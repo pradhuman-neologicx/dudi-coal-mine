@@ -121,6 +121,6 @@ export class SigninComponent implements OnInit {
   }
 
   forgotPassword() {
-    this.notificationService.show('Forgot Password functionality coming soon!', 'info');
+    this.router.navigate(['/forgot_password']);
   }
 }

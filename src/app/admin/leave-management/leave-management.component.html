@@ -165,34 +165,60 @@
 
     <!-- Tab 2: Approval Inbox -->
     <div class="col-12" *ngIf="activeTab === 'inbox'">
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4 pt-0">
-          <div class="d-flex justify-content-between align-items-center flex-wrap py-3 mb-2">
-            <h5 class="fw-bold text-dark mb-0">
-              <i class="fa-solid fa-inbox text-primary me-2"></i>
-              Incoming Requests (Simulating: {{ simulatedRole }})
-            </h5>
+      <div class="card border-0 my-4 px-4 py-4">
+        <!-- Inbox top title & Simulator information -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+          <h5 class="fw-bold text-dark mb-0">
+            <i class="fa-solid fa-inbox text-primary me-2"></i>
+            Incoming Requests (Simulating: {{ simulatedRole }})
+          </h5>
+        </div>
+
+        <div class="d-md-flex justify-content-between align-items-center my-3">
+          <div class="d-flex align-items-center mb-md-0 mb-2">
+            <span class="me-1 show-entery-text">Show</span>
+            <select class="form-control form-select show-entries-select" [(ngModel)]="showEntries" style="width: auto;">
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="15">15</option>
+              <option [ngValue]="20">20</option>
+              <option [ngValue]="25">25</option>
+              <option [ngValue]="50">50</option>
+              <option [ngValue]="100">100</option>
+            </select>
+            <span class="ms-1 show-entery-text">entries</span>
           </div>
 
-          <div class="table-responsive border rounded-3">
-            <table class="table table-bordered align-middle mb-0 custom-table">
-              <thead class="table-light">
+          <div class="d-flex align-items-center">
+            <span class="me-1 show-entery-text">Search:</span>
+            <div class="position-relative">
+              <input type="text" class="form-control search-user" [(ngModel)]="searchText" placeholder="Search requests..." autocomplete="off" />
+              <i *ngIf="searchText" class="fa-solid fa-times position-absolute" style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;" (click)="searchText = ''"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive-sm mt-2">
+          <!-- Desktop Table View -->
+          <div class="hidden lg:block">
+            <table class="table table-bordered table-hover table-striped mb-0">
+              <thead class="table-header">
                 <tr>
-                  <th class="ps-3">Request ID</th>
-                  <th>Employee</th>
-                  <th>Leave Type</th>
-                  <th class="text-center">Dates</th>
-                  <th class="text-center">Days</th>
-                  <th>Reason</th>
-                  <th class="text-center">Current Stage</th>
-                  <th class="text-center pe-3">Actions</th>
+                  <th><p class="table-heading">Request ID</p></th>
+                  <th><p class="table-heading">Employee</p></th>
+                  <th><p class="table-heading">Leave Type</p></th>
+                  <th><p class="table-heading">Dates</p></th>
+                  <th><p class="table-heading">Days</p></th>
+                  <th><p class="table-heading">Reason</p></th>
+                  <th><p class="table-heading">Current Stage</p></th>
+                  <th><p class="table-heading">Actions</p></th>
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  *ngFor="let req of getInboxRequests() | paginate: { id: 'inbox-pagination', itemsPerPage: 5, currentPage: pInbox }"
-                  class="hover-bg-light transition">
-                  <td class="ps-3 fw-bold text-dark fs-7">{{ req.id }}</td>
+                <tr *ngFor="let req of getInboxRequests() | paginate: { id: 'inbox-pagination', itemsPerPage: showEntries, currentPage: pInbox }; index as i">
+                  <td>
+                    {{ req.id }}
+                  </td>
                   <td>
                     <div class="d-flex flex-column">
                       <span class="fw-bold text-dark fs-7">{{ req.empName }}</span>
@@ -202,85 +228,148 @@
                   <td>
                     <span class="badge bg-light text-primary border fs-8 px-2 py-1">{{ req.leaveType }}</span>
                   </td>
-                  <td class="text-center fs-7">
+                  <td>
                     <span class="fw-medium text-dark">{{ req.startDate | date:'dd MMM' }}</span> to
                     <span class="fw-medium text-dark">{{ req.endDate | date:'dd MMM yyyy' }}</span>
                   </td>
-                  <td class="text-center fw-bold text-dark fs-7">{{ getLeaveDays(req.startDate, req.endDate) }}</td>
-                  <td class="text-truncate fs-7" style="max-width: 150px;" [title]="req.reason">{{ req.reason }}</td>
-                  <td class="text-center fs-7">
+                  <td>
+                    {{ getLeaveDays(req.startDate, req.endDate) }}
+                  </td>
+                  <td class="text-truncate fs-7" style="max-width: 150px;" [title]="req.reason">
+                    {{ req.reason }}
+                  </td>
+                  <td>
                     <span class="fw-medium text-dark">
                       {{ req.status }}
                     </span>
                   </td>
-                  <td class="text-center pe-3">
-                    <div class="d-flex justify-content-center gap-2">
-                      <button class="btn-action view-btn"
-                        (click)="openViewModal(req)" data-tooltip="View Details">
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <button class="btn-action view-btn" (click)="openViewModal(req)" title="View Details">
                         <i class="fa-solid fa-eye"></i>
                       </button>
-                      <button class="btn-action activate-btn"
-                        (click)="approveRequest(req)" data-tooltip="Approve Request">
+                      <button class="btn-action activate-btn" (click)="approveRequest(req)" title="Approve Request">
                         <i class="fa-solid fa-check"></i>
                       </button>
-                      <button class="btn-action deactivate-btn"
-                        (click)="rejectRequest(req)" data-tooltip="Reject Request">
+                      <button class="btn-action deactivate-btn" (click)="rejectRequest(req)" title="Reject Request">
                         <i class="fa-solid fa-xmark"></i>
                       </button>
                     </div>
                   </td>
                 </tr>
                 <tr *ngIf="getInboxRequests().length === 0">
-                  <td colspan="8" class="text-center py-5 text-muted">
-                    <div class="d-flex flex-column align-items-center">
-                      <i class="fa-solid fa-circle-check display-4 text-light mb-3"></i>
-                      <p class="mb-0 fs-5 fw-medium text-dark">No pending approvals.</p>
-                      <p class="fs-7 text-muted">Inbox is completely clear for the {{ simulatedRole }} role.</p>
-                    </div>
+                  <td colspan="8" class="text-center py-4 text-muted">
+                    No pending approvals.
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-        </div>
-        <div class="card-footer bg-white border-0 py-3 px-4" *ngIf="getInboxRequests().length > 0">
-          <pagination-controls id="inbox-pagination" (pageChange)="pInbox = $event"
-            class="my-pagination"></pagination-controls>
+
+          <!-- Mobile Card View -->
+          <div class="lg:hidden space-y-4">
+            <div *ngFor="let req of getInboxRequests() | paginate: { id: 'inbox-pagination', itemsPerPage: showEntries, currentPage: pInbox }; index as i"
+                 class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div class="flex justify-between items-center mb-2">
+                <div>
+                  <strong>Request ID:</strong> {{ req.id }}
+                </div>
+                <div>
+                  <div class="d-flex align-items-center gap-1">
+                    <button class="btn-action view-btn" (click)="openViewModal(req)" title="View Details">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                    <button class="btn-action activate-btn" (click)="approveRequest(req)" title="Approve Request">
+                      <i class="fa-solid fa-check"></i>
+                    </button>
+                    <button class="btn-action deactivate-btn" (click)="rejectRequest(req)" title="Reject Request">
+                      <i class="fa-solid fa-xmark"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="mb-2"><strong>Employee:</strong> {{ req.empName }} ({{ req.empId }})</div>
+              <div class="mb-2"><strong>Leave Type:</strong> {{ req.leaveType }}</div>
+              <div class="mb-2">
+                <strong>Dates:</strong> {{ req.startDate | date:'dd MMM' }} to {{ req.endDate | date:'dd MMM yyyy' }} ({{ getLeaveDays(req.startDate, req.endDate) }} days)
+              </div>
+              <div class="mb-2"><strong>Reason:</strong> {{ req.reason }}</div>
+              <div>
+                <strong>Current Stage:</strong> {{ req.status }}
+              </div>
+            </div>
+            <div *ngIf="getInboxRequests().length === 0" class="text-center py-4 text-muted">
+              No pending approvals.
+            </div>
+          </div>
+
+          <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center" *ngIf="getInboxRequests().length > 0">
+            <span class="showalltext">Showing
+              {{ showEntries * (pInbox - 1) > 0 ? showEntries * (pInbox - 1) + 1 : 1 }} to
+              {{ showEntries * pInbox <= getInboxRequests().length ? showEntries * pInbox : getInboxRequests().length }} of {{ getInboxRequests().length }} entries</span>
+            <pagination-controls id="inbox-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
+              (pageChange)="pInbox = $event" target="_top"></pagination-controls>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Tab 3: Leave History -->
     <div class="col-12" *ngIf="activeTab === 'history'">
-      <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body p-4 pt-0">
-          <div class="py-3 mb-2">
-            <h5 class="fw-bold text-dark mb-0">
-              <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>
-              Processed Applications History
-            </h5>
+      <div class="card border-0 my-4 px-4 py-4">
+        <div class="py-3 mb-2">
+          <h5 class="fw-bold text-dark mb-0">
+            <i class="fa-solid fa-clock-rotate-left text-primary me-2"></i>
+            Processed Applications History
+          </h5>
+        </div>
+
+        <div class="d-md-flex justify-content-between align-items-center my-3">
+          <div class="d-flex align-items-center mb-md-0 mb-2">
+            <span class="me-1 show-entery-text">Show</span>
+            <select class="form-control form-select show-entries-select" [(ngModel)]="showEntries" style="width: auto;">
+              <option [ngValue]="5">5</option>
+              <option [ngValue]="10">10</option>
+              <option [ngValue]="15">15</option>
+              <option [ngValue]="20">20</option>
+              <option [ngValue]="25">25</option>
+              <option [ngValue]="50">50</option>
+              <option [ngValue]="100">100</option>
+            </select>
+            <span class="ms-1 show-entery-text">entries</span>
           </div>
 
-          <div class="table-responsive border rounded-3">
-            <table class="table table-bordered align-middle mb-0 custom-table">
-              <thead class="table-light">
+          <div class="d-flex align-items-center">
+            <span class="me-1 show-entery-text">Search:</span>
+            <div class="position-relative">
+              <input type="text" class="form-control search-user" [(ngModel)]="searchText" placeholder="Search requests..." autocomplete="off" />
+              <i *ngIf="searchText" class="fa-solid fa-times position-absolute" style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;" (click)="searchText = ''"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive-sm mt-2">
+          <!-- Desktop Table View -->
+          <div class="hidden lg:block">
+            <table class="table table-bordered table-hover table-striped mb-0">
+              <thead class="table-header">
                 <tr>
-                  <th class="ps-3">Request ID</th>
-                  <th>Employee</th>
-                  <th>Leave Type</th>
-                  <th class="text-center">Dates</th>
-                  <th class="text-center">Days</th>
-                  <th class="text-center">Status</th>
-                  <th>Applied On</th>
-                  <th>Workflow Comments</th>
-                  <th class="text-center pe-3">Actions</th>
+                  <th><p class="table-heading">Request ID</p></th>
+                  <th><p class="table-heading">Employee</p></th>
+                  <th><p class="table-heading">Leave Type</p></th>
+                  <th><p class="table-heading">Dates</p></th>
+                  <th><p class="table-heading">Days</p></th>
+                  <th><p class="table-heading">Status</p></th>
+                  <th><p class="table-heading">Applied On</p></th>
+                  <th><p class="table-heading">Workflow Comments</p></th>
+                  <th><p class="table-heading">Actions</p></th>
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  *ngFor="let req of getHistoryRequests() | paginate: { id: 'history-pagination', itemsPerPage: 10, currentPage: pHistory }"
-                  class="hover-bg-light transition">
-                  <td class="ps-3 fw-bold text-dark fs-7">{{ req.id }}</td>
+                <tr *ngFor="let req of getHistoryRequests() | paginate: { id: 'history-pagination', itemsPerPage: showEntries, currentPage: pHistory }; index as i">
+                  <td>
+                    {{ req.id }}
+                  </td>
                   <td>
                     <div class="d-flex flex-column">
                       <span class="fw-bold text-dark fs-7">{{ req.empName }}</span>
@@ -290,40 +379,83 @@
                   <td>
                     <span class="badge bg-light text-primary border fs-8 px-2 py-1">{{ req.leaveType }}</span>
                   </td>
-                  <td class="text-center fs-7">
+                  <td>
                     <span class="fw-medium text-dark">{{ req.startDate | date:'dd MMM' }}</span> to
                     <span class="fw-medium text-dark">{{ req.endDate | date:'dd MMM yyyy' }}</span>
                   </td>
-                  <td class="text-center fw-bold text-dark fs-7">{{ getLeaveDays(req.startDate, req.endDate) }}</td>
-                  <td class="text-center">
+                  <td>
+                    {{ getLeaveDays(req.startDate, req.endDate) }}
+                  </td>
+                  <td>
                     <span class="badge px-3 py-2 fs-8 fw-bold rounded-pill" [ngClass]="getStatusClass(req.status)">
                       {{ req.status }}
                     </span>
                   </td>
-                  <td class="fs-7">{{ req.appliedDate | date:'dd MMM yyyy' }}</td>
-                  <td class="text-muted fs-7 italic" style="max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" [title]="req.comments || ''">{{ req.comments || 'No comments' }}</td>
-                  <td class="text-center pe-3">
-                    <button class="btn-action view-btn" (click)="openViewModal(req)" data-tooltip="View Details">
-                      <i class="fa-solid fa-eye"></i>
-                    </button>
+                  <td>
+                    {{ req.appliedDate | date:'dd MMM yyyy' }}
+                  </td>
+                  <td class="text-muted fs-7 italic" style="max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" [title]="req.comments || ''">
+                    {{ req.comments || 'No comments' }}
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <button class="btn-action view-btn" (click)="openViewModal(req)" title="View Details">
+                        <i class="fa-solid fa-eye"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
                 <tr *ngIf="getHistoryRequests().length === 0">
-                  <td colspan="9" class="text-center py-5 text-muted">
-                    <div class="d-flex flex-column align-items-center">
-                      <i class="fa-solid fa-hourglass display-4 text-light mb-3"></i>
-                      <p class="mb-0 fs-5 fw-medium text-dark">No leave history records.</p>
-                      <p class="fs-7 text-muted">Approved or rejected records will appear here.</p>
-                    </div>
+                  <td colspan="9" class="text-center py-4 text-muted">
+                    No leave history records.
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
-        </div>
-        <div class="card-footer bg-white border-0 py-3 px-4" *ngIf="getHistoryRequests().length > 0">
-          <pagination-controls id="history-pagination" (pageChange)="pHistory = $event"
-            class="my-pagination"></pagination-controls>
+
+          <!-- Mobile Card View -->
+          <div class="lg:hidden space-y-4">
+            <div *ngFor="let req of getHistoryRequests() | paginate: { id: 'history-pagination', itemsPerPage: showEntries, currentPage: pHistory }; index as i"
+                 class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div class="flex justify-between items-center mb-2">
+                <div>
+                  <strong>Request ID:</strong> {{ req.id }}
+                </div>
+                <div>
+                  <div class="d-flex align-items-center gap-1">
+                    <button class="btn-action view-btn" (click)="openViewModal(req)" title="View Details">
+                      <i class="fa-solid fa-eye"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div class="mb-2"><strong>Employee:</strong> {{ req.empName }} ({{ req.empId }})</div>
+              <div class="mb-2"><strong>Leave Type:</strong> {{ req.leaveType }}</div>
+              <div class="mb-2">
+                <strong>Dates:</strong> {{ req.startDate | date:'dd MMM' }} to {{ req.endDate | date:'dd MMM yyyy' }} ({{ getLeaveDays(req.startDate, req.endDate) }} days)
+              </div>
+              <div class="mb-2">
+                <strong>Status:</strong>
+                <span class="badge px-2 py-1 fs-9 fw-bold rounded-pill" [ngClass]="getStatusClass(req.status)">
+                  {{ req.status }}
+                </span>
+              </div>
+              <div class="mb-2"><strong>Applied On:</strong> {{ req.appliedDate | date:'dd MMM yyyy' }}</div>
+              <div><strong>Workflow Comments:</strong> {{ req.comments || 'No comments' }}</div>
+            </div>
+            <div *ngIf="getHistoryRequests().length === 0" class="text-center py-4 text-muted">
+              No leave history records.
+            </div>
+          </div>
+
+          <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center" *ngIf="getHistoryRequests().length > 0">
+            <span class="showalltext">Showing
+              {{ showEntries * (pHistory - 1) > 0 ? showEntries * (pHistory - 1) + 1 : 1 }} to
+              {{ showEntries * pHistory <= getHistoryRequests().length ? showEntries * pHistory : getHistoryRequests().length }} of {{ getHistoryRequests().length }} entries</span>
+            <pagination-controls id="history-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
+              (pageChange)="pHistory = $event" target="_top"></pagination-controls>
+          </div>
         </div>
       </div>
     </div>

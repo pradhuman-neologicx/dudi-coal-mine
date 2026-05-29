@@ -158,6 +158,21 @@
   }
 }
 
+@media (min-width: 769px) and (max-height: 850px) {
+  .dashboard-wrapper {
+    height: auto;
+    overflow-y: visible;
+  }
+  .bento-grid {
+    grid-template-rows: auto;
+    height: auto;
+  }
+  .bento-card {
+    height: auto;
+    min-height: 180px;
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard-wrapper {
     height: auto;

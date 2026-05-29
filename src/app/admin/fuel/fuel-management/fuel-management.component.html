@@ -1,137 +1,179 @@
-<div class="content">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="table-heading-detail tt-color" style="margin: 0; font-weight: 600;">Fuel Management</h2>
-    <div class="d-flex gap-2">
-      <button class="btn btn-custom-primary" style="background-color: #5e72e4; color: white;">Export</button>
-      <button class="btn btn-custom-primary" (click)="openAddModal()">+ Add Fuel</button>
+<div class="container mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap">
+    <h1 class="text-primary table-heading-detail">Fuel Management</h1>
+    <div>
+      <button class="btn btn-custom-primary px-4 py-2 me-2" style="background-color: #5e72e4; color: white;">
+        Export
+      </button>
+      <button class="btn btn-custom-primary px-4 py-2" (click)="openAddModal()">
+        Add Fuel
+      </button>
     </div>
   </div>
 
-  <div class="table-card bg-white rounded p-4">
-    <div class="d-flex justify-content-between mb-4 align-items-center">
-      <div class="d-flex align-items-center">
-        <span style="font-size: 14px; color: #525f7f;">Show</span>
-        <input type="number" class="form-control mx-2 text-center"
-          style="width: 70px; height: 38px; border-color: #e2e8f0; border-radius: 4px;" [(ngModel)]="showEntries">
-        <span style="font-size: 14px; color: #525f7f;">entries</span>
+  <div class="card border-0 my-4 px-4 py-4">
+    <div class="d-md-flex justify-content-between align-items-center my-3">
+      <div class="d-flex align-items-center mb-md-0 mb-2">
+        <span class="me-1 show-entery-text">Show</span>
+        <select class="form-control form-select show-entries-select" [(ngModel)]="showEntries" style="width: auto;">
+          <option [ngValue]="5">5</option>
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="15">15</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="25">25</option>
+          <option [ngValue]="50">50</option>
+          <option [ngValue]="100">100</option>
+        </select>
+        <span class="ms-1 show-entery-text">entries</span>
       </div>
-      <div>
+
+      <div class="d-flex align-items-center">
+        <span class="me-1 show-entery-text">Search:</span>
         <div class="position-relative">
-          <input type="text" class="form-control pe-5" placeholder="Search" [(ngModel)]="searchText"
-            style="height: 38px; width: 250px; border-color: #e2e8f0; border-radius: 4px; font-size: 14px;">
-          <i *ngIf="!searchText" class="fa-solid fa-search position-absolute" style="right: 15px; top: 12px; color: #8898aa; font-size: 14px;"></i>
+          <input type="text" class="form-control search-user" [(ngModel)]="searchText" placeholder="Search fuel..." autocomplete="off" />
           <i *ngIf="searchText" class="fa-solid fa-times position-absolute" style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;" (click)="searchText = ''"></i>
         </div>
       </div>
     </div>
 
-    <div class="table-responsive">
-      <table mat-table [dataSource]="dataSource | paginate: { itemsPerPage: showEntries, currentPage: p }" class="table table-hover w-100" style="margin-bottom: 0;">
-        <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;"> SR NO
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.id}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="vehicle">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            VEHICLE
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;">
-            {{element.vehicle}} </td>
-        </ng-container>
-
-
-
-        <ng-container matColumnDef="driver">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            DRIVER
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.driver}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="fuelType">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;"> FUEL
-            TYPE
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.fuelType}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="quantity">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            QUANTITY
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.quantity}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="amount">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            AMOUNT
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.amount}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="date">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;"> DATE
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.date}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="addedBy">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;"> ADDED
-            BY
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.addedBy}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            STATUS </th>
-          <td mat-cell *matCellDef="let element" style="border-bottom: 1px solid #e9ecef;">
-            <mat-slide-toggle [checked]="element.status" color="primary"></mat-slide-toggle>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            ACTION </th>
-          <td mat-cell *matCellDef="let element" style="border-bottom: 1px solid #e9ecef;">
-            <div class="d-flex align-items-center gap-2">
-              <button class="btn-action edit-btn" (click)="openEditModal(element)" data-tooltip="Edit">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-            </div>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
-    </div>
-
-    <div class="d-flex justify-content-between align-items-center mt-4">
-      <div style="font-size: 14px; color: #525f7f;">
-        Showing {{ (p - 1) * showEntries + 1 }} to {{ (p * showEntries > dataSource.length) ? dataSource.length : (p * showEntries) }} of {{ dataSource.length }} entries
+    <div class="table-responsive-sm mt-2">
+      <!-- Table View for lg+ -->
+      <div class="hidden lg:block">
+        <table class="table table-bordered table-hover table-striped mb-0">
+          <thead class="table-header">
+            <tr>
+              <th><p class="table-heading">SR NO</p></th>
+              <th><p class="table-heading">VEHICLE</p></th>
+              <th><p class="table-heading">DRIVER</p></th>
+              <th><p class="table-heading">FUEL TYPE</p></th>
+              <th><p class="table-heading">QUANTITY</p></th>
+              <th><p class="table-heading">AMOUNT</p></th>
+              <th><p class="table-heading">DATE</p></th>
+              <th><p class="table-heading">ADDED BY</p></th>
+              <th><p class="table-heading">STATUS</p></th>
+              <th><p class="table-heading">ACTION</p></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="
+                let element of dataSource
+                  | paginate
+                    : {
+                        itemsPerPage: showEntries,
+                        currentPage: p
+                      };
+                index as i
+              ">
+              <td>
+                {{ (p - 1) * showEntries + i + 1 }}
+              </td>
+              <td>
+                <p>{{ element.vehicle }}</p>
+              </td>
+              <td>
+                <p>{{ element.driver }}</p>
+              </td>
+              <td>
+                <p>{{ element.fuelType }}</p>
+              </td>
+              <td>
+                <p>{{ element.quantity }}</p>
+              </td>
+              <td>
+                <p>{{ element.amount }}</p>
+              </td>
+              <td>
+                <p>{{ element.date }}</p>
+              </td>
+              <td>
+                <p>{{ element.addedBy }}</p>
+              </td>
+              <td>
+                <p [ngClass]="{
+                    'active-status': element.status,
+                    'deactive-status': !element.status
+                  }">
+                  {{ element.status ? "active" : "deactive" }}
+                </p>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <button class="btn-action edit-btn" (click)="openEditModal(element)" title="Edit">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="btn-action view-btn" (click)="openViewModal(element)" title="View Details">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                  <button class="btn-action" [ngClass]="element.status ? 'deactivate-btn' : 'activate-btn'"
+                    (click)="toggleStatus(element)"
+                    [title]="element.status ? 'Deactivate Status' : 'Activate Status'">
+                    <i class="fa-solid" [ngClass]="element.status ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-      <pagination-controls (pageChange)="p = $event" class="my-pagination"></pagination-controls>
+
+      <!-- Card View for below lg -->
+      <div class="lg:hidden space-y-4">
+        <div *ngFor="
+            let element of dataSource
+              | paginate
+                : {
+                    itemsPerPage: showEntries,
+                    currentPage: p
+                  };
+            index as i
+          " class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div class="flex justify-between items-center mb-2">
+            <div>
+              <strong>Sr No:</strong>
+              {{ (p - 1) * showEntries + i + 1 }}
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-1">
+                <button class="btn-action edit-btn" (click)="openEditModal(element)" title="Edit">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button class="btn-action view-btn" (click)="openViewModal(element)" title="View Details">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button class="btn-action" [ngClass]="element.status ? 'deactivate-btn' : 'activate-btn'"
+                  (click)="toggleStatus(element)"
+                  [title]="element.status ? 'Deactivate Status' : 'Activate Status'">
+                  <i class="fa-solid" [ngClass]="element.status ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="mb-2"><strong>Vehicle:</strong> {{ element.vehicle }}</div>
+          <div class="mb-2"><strong>Driver:</strong> {{ element.driver }}</div>
+          <div class="mb-2"><strong>Fuel Type:</strong> {{ element.fuelType }}</div>
+          <div class="mb-2"><strong>Quantity:</strong> {{ element.quantity }}</div>
+          <div class="mb-2"><strong>Amount:</strong> {{ element.amount }}</div>
+          <div class="mb-2"><strong>Date:</strong> {{ element.date }}</div>
+          <div class="mb-2"><strong>Added By:</strong> {{ element.addedBy }}</div>
+          <div>
+            <strong>Status:</strong>
+            <span [ngClass]="{
+                'active-status': element.status,
+                'deactive-status': !element.status
+              }">
+              {{ element.status ? "active" : "deactive" }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center">
+        <span class="showalltext">Showing
+          {{ showEntries * (p - 1) > 0 ? showEntries * (p - 1) + 1 : 1 }} to
+          {{ showEntries * p <= dataSource.length ? showEntries * p : dataSource.length }} of {{ dataSource.length }} entries</span>
+        <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true"
+          (pageChange)="p = $event" target="_top"></pagination-controls>
+      </div>
     </div>
   </div>
 </div>
@@ -270,5 +312,115 @@
         </div>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- View Modal -->
+<div *ngIf="viewFuelOpen" class="your-animation-class modal-container premium-detail-modal" aria-labelledby="modal-title" role="dialog"
+  aria-modal="true">
+  <div class="modal-contenttop modal-content-50" style="max-width: 600px; margin: 30px auto;">
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="modal-title pt-1 mb-0">Fuel Details</h5>
+          <p class="modal-subtitle">Full overview of fuel log ID: #{{selectedViewFuel?.id}}</p>
+        </div>
+        <button class="cross-btn-icon border-0 p-0" type="button" (click)="closeModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="card-body mb-0">
+        <!-- Premium Summary Banner -->
+        <div class="dept-summary-banner mb-3">
+          <div class="banner-content">
+            <div class="banner-label">Vehicle Number</div>
+            <div class="banner-value" style="font-size: 18px;">{{ selectedViewFuel?.vehicle }}</div>
+            <div class="banner-subtitle">
+              <span class="pulse-indicator" [ngClass]="{'deactive': !selectedViewFuel?.status}"></span>
+              Status: 
+              <span class="status-badge-pill" [ngClass]="selectedViewFuel?.status ? 'active' : 'deactive'">
+                {{ selectedViewFuel?.status ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Specifications Grid Section -->
+        <div class="grid-section-title">Fuel Information</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper type">
+                <i class="fa-solid fa-gas-pump"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Fuel Type</span>
+                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{ selectedViewFuel?.fuelType }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper code">
+                <i class="fa-solid fa-weight-hanging"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Quantity</span>
+                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{ selectedViewFuel?.quantity }} Ltr</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper type" style="background: rgba(52, 211, 153, 0.1); color: #34d399;">
+                <i class="fa-solid fa-indian-rupee-sign"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Amount</span>
+                <span class="info-value text-dark fs-7" style="font-weight: 700;">Rs. {{ selectedViewFuel?.amount }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper code" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Driver</span>
+                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{ selectedViewFuel?.driver }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper type" style="background: rgba(100, 116, 139, 0.1); color: #64748b;">
+                <i class="fa-solid fa-calendar-day"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Date</span>
+                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{ selectedViewFuel?.date }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper code">
+                <i class="fa-solid fa-user-shield"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Added By</span>
+                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{ selectedViewFuel?.addedBy }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer text-end">
+        <button class="btn btn-premium-close px-4 py-2" type="button" (click)="closeModal()">
+          Close
+        </button>
+      </div>
+    </div>
   </div>
 </div>

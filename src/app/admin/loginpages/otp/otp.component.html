@@ -1,66 +1,119 @@
+<div class="card login-card border-0 shadow-lg h-100 w-100">
+  <div class="card-body p-4 p-md-5 d-flex flex-column justify-content-center">
 
-<form [formGroup]="ResetPassword">
-    <div class="card border-0">
-        <div class="card-body px-5  py-5">
-            <div class="text-center mb-3">
-                <h3 class="login-border-text pb-2 text-center text-capitalize">Reset
-                    Password</h3>
-            </div>
-            <div class="mb-3">
-                <label for="NewPassword" class="form-label">Enter New
-                    Password</label>
-                <input type="text" class="form-control input-custom" formControlName="NewPassword"
-                    placeholder="Enter New Password"
-                    [ngClass]="{ 'is-invalid':ResetPassword.controls['NewPassword'].errors && (ResetPassword.controls['NewPassword'].touched || ResetPassword.controls['NewPassword'].dirty) }">
-                <div class="text-danger error-message"
-                    *ngIf="ResetPassword.controls['NewPassword'].errors && (ResetPassword.controls['NewPassword'].touched || ResetPassword.controls['NewPassword'].dirty)">
-                    <p class="fw-light  text-danger"
-                        *ngIf="ResetPassword.controls['NewPassword'].errors['required']">
-                        New Password is required</p>
-                    <p class="fw-light text-danger"
-                        *ngIf="ResetPassword.controls['NewPassword'].errors['minlength']">
-                        New Password Must have at least 8 digits</p>
-                    <p class="fw-light text-danger"
-                        *ngIf="ResetPassword.controls['NewPassword'].errors['maxlength']">
-                        New Password Must have at
-                        most 16 digits</p>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label for="confirmPassword" class="form-label">Confirm New
-                    Password</label>
-                <input type="text" class="form-control input-custom" formControlName="confirmPassword"
-                    placeholder="Enter confirm Password"
-                    [ngClass]="{ 'is-invalid':ResetPassword.controls['confirmPassword'].errors && (ResetPassword.controls['confirmPassword'].touched || ResetPassword.controls['confirmPassword'].dirty) }">
-                <div class="text-danger error-message"
-                    *ngIf="ResetPassword.get('confirmPassword')?.hasError('passwordMismatch') && (ResetPassword.controls['confirmPassword'].touched || ResetPassword.controls['confirmPassword'].dirty)">
-                    <p class="fw-light text-danger">Passwords
-                        do not match</p>
-
-                </div>
-                <div class="text-danger error-message"
-                    *ngIf="ResetPassword.controls['confirmPassword'].errors && (ResetPassword.controls['confirmPassword'].touched || ResetPassword.controls['confirmPassword'].dirty)">
-                    <p class="fw-light  text-danger"
-                        *ngIf="ResetPassword.controls['confirmPassword'].errors['required']">
-                        Confrm Password is required</p>
-                </div>
-            </div>
-            <div class="text-center">
-                <button class="btn btn-custom-primary  rounded main-btn px-5 mt-4 mb-3"
-                    (click)="changePassword();">Continue</button>
-            </div>
-        </div>
+    <!-- Success State Card -->
+    <div *ngIf="submitted" class="text-center py-4">
+      <div class="success-icon-wrapper mb-4">
+        <i class="fa-solid fa-check text-success fs-2"></i>
+      </div>
+      <h3 class="fw-bold text-success mb-3">Password Reset Successfully!</h3>
+      <p class="text-muted small mb-4 px-2">
+        Your password has been updated. You will now be automatically redirected to the login page to sign in with your new credentials.
+      </p>
+      <div class="d-flex justify-content-center align-items-center gap-2 text-primary small fw-semibold">
+        <i class="fa-solid fa-spinner animate-spin"></i>
+        <span>Redirecting...</span>
+      </div>
     </div>
-</form>
 
+    <!-- Active Form State -->
+    <div *ngIf="!submitted">
+      <div class="text-center mb-4">
+        <img src="./assets/logo.png" class="logo-image mb-3" alt="Logo" style="max-height: 70px;" />
+        <h3 class="fw-bold text-primary mb-2 text-capitalize">Reset Password</h3>
+        <p class="text-muted small">Choose a strong, memorable password to secure your account.</p>
+      </div>
 
-<div *ngIf="openSecondsuccess" class="your-animation-class modal-container-success" [@slideIn]
-aria-labelledby="modal-title" role="dialog" aria-modal="true">
-<div>
-<div class=" p-4 d-flex justify-content-between align-items-center success-content">
-    <span class="icon-success me-2"><i class="fa-solid fa-check"></i></span>
-    <p class="text-green-900 text-capitalize mb-0">{{ successName }}
-        successfully</p>
-</div>
-</div>
+      <form [formGroup]="ResetPassword" (ngSubmit)="changePassword()">
+        <!-- OTP Verification Field -->
+        <div class="mb-4">
+          <label class="form-label form-lable-custom text-muted fw-semibold" for="otp">One-Time Password (OTP)</label>
+          <div class="input-group custom-input-group"
+            [ngClass]="{'has-error': ResetPassword.controls['otp'].errors && (ResetPassword.controls['otp'].touched || ResetPassword.controls['otp'].dirty)}">
+            <span class="input-group-text bg-transparent border-end-0 text-muted">
+              <i class="fa-solid fa-key"></i>
+            </span>
+            <input type="text" class="form-control border-start-0 ps-0"
+              formControlName="otp" placeholder="Enter 6-digit OTP code" />
+          </div>
+          
+          <!-- Validation Errors -->
+          <div class="text-danger error-message mt-1"
+            *ngIf="ResetPassword.controls['otp'].errors && (ResetPassword.controls['otp'].touched || ResetPassword.controls['otp'].dirty)">
+            <small class="fw-medium d-block" *ngIf="ResetPassword.controls['otp'].errors['required']">One-Time Password is required</small>
+          </div>
+        </div>
+
+        <!-- New Password Field -->
+        <div class="mb-4">
+          <label class="form-label form-lable-custom text-muted fw-semibold" for="NewPassword">Enter New Password</label>
+          <div class="input-group custom-input-group"
+            [ngClass]="{'has-error': ResetPassword.controls['NewPassword'].errors && (ResetPassword.controls['NewPassword'].touched || ResetPassword.controls['NewPassword'].dirty)}">
+            <span class="input-group-text bg-transparent border-end-0 text-muted">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input [type]="showNewPassword ? 'text' : 'password'" class="form-control border-start-0 border-end-0 ps-0"
+              formControlName="NewPassword" placeholder="Enter new password" />
+            <span class="input-group-text bg-transparent border-start-0 cursor text-muted"
+              (click)="toggleNewPasswordVisibility()">
+              <i class="fa-regular" [ngClass]="showNewPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </span>
+          </div>
+          
+          <!-- Validation Errors -->
+          <div class="text-danger error-message mt-1"
+            *ngIf="ResetPassword.controls['NewPassword'].errors && (ResetPassword.controls['NewPassword'].touched || ResetPassword.controls['NewPassword'].dirty)">
+            <small class="fw-medium d-block" *ngIf="ResetPassword.controls['NewPassword'].errors['required']">New password is required</small>
+            <small class="fw-medium d-block" *ngIf="ResetPassword.controls['NewPassword'].errors['minlength']">New password must be at least 8 digits</small>
+            <small class="fw-medium d-block" *ngIf="ResetPassword.controls['NewPassword'].errors['maxlength']">New password must be at most 16 digits</small>
+          </div>
+        </div>
+
+        <!-- Confirm Password Field -->
+        <div class="mb-4">
+          <label class="form-label form-lable-custom text-muted fw-semibold" for="confirmPassword">Confirm New Password</label>
+          <div class="input-group custom-input-group"
+            [ngClass]="{'has-error': (ResetPassword.get('confirmPassword')?.hasError('passwordMismatch') || ResetPassword.controls['confirmPassword'].errors) && (ResetPassword.controls['confirmPassword'].touched || ResetPassword.controls['confirmPassword'].dirty)}">
+            <span class="input-group-text bg-transparent border-end-0 text-muted">
+              <i class="fa-solid fa-lock"></i>
+            </span>
+            <input [type]="showConfirmPassword ? 'text' : 'password'" class="form-control border-start-0 border-end-0 ps-0"
+              formControlName="confirmPassword" placeholder="Confirm new password" />
+            <span class="input-group-text bg-transparent border-start-0 cursor text-muted"
+              (click)="toggleConfirmPasswordVisibility()">
+              <i class="fa-regular" [ngClass]="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </span>
+          </div>
+          
+          <!-- Validation Errors -->
+          <div class="text-danger error-message mt-1"
+            *ngIf="ResetPassword.get('confirmPassword')?.hasError('passwordMismatch') && (ResetPassword.controls['confirmPassword'].touched || ResetPassword.controls['confirmPassword'].dirty)">
+            <small class="fw-medium d-block">Passwords do not match</small>
+          </div>
+          <div class="text-danger error-message mt-1"
+            *ngIf="ResetPassword.controls['confirmPassword'].errors && (ResetPassword.controls['confirmPassword'].touched || ResetPassword.controls['confirmPassword'].dirty)">
+            <small class="fw-medium d-block" *ngIf="ResetPassword.controls['confirmPassword'].errors['required']">Confirm password is required</small>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary w-100 py-2 mb-3 fw-bold login-btn shadow-sm text-white">
+          Reset Password
+        </button>
+
+        <!-- API Error Response Alert -->
+        <div class="text-center error-message mt-2" *ngIf="errorMessage">
+          <small class="fw-bold text-danger bg-danger bg-opacity-10 py-1 px-3 rounded d-inline-block">{{ errorMessage }}</small>
+        </div>
+
+        <!-- Back to Login Link -->
+        <div class="text-center mt-3">
+          <a routerLink="/sign_in" class="text-primary small fw-semibold text-decoration-none cursor">
+            <i class="fa-solid fa-arrow-left me-1.5"></i>Back to Login
+          </a>
+        </div>
+      </form>
+    </div>
+
+  </div>
 </div>

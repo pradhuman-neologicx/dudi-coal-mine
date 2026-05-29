@@ -60,7 +60,7 @@ export class ForgotPasswordComponent implements OnInit {
     ngOnInit() {
       // this.loginAS = this.jwtService.getLoginAs();
       this.ForgotForm = this.formBuilder.group({
-        Email: ['', [Validators.required, Validators.pattern(this.email_pattern)]],
+        Email: ['', [Validators.required, Validators.email]],
       });
     }
 
@@ -73,38 +73,17 @@ export class ForgotPasswordComponent implements OnInit {
     }
 
     ForgetPasswordfun() {
-      this.errorMessage = ''
-   if (this.ForgotForm.valid) {
-     const formData: FormData = new FormData();
-     formData.append("email", this.ForgotForm.get("Email")?.value);
-     formData.forEach((value, key) => {
-       console.log(`${key}:`, value);
-     });
-     this.loginService.AdminForgetPasswordApi(formData).subscribe((response: any) => {
-       this.errorMessage = response.message;
-       if (response.status === 200) {
-         this.closeModal();
-         this.submitted=true;
-        //  this.router.navigate(['/reset_password']);
-         // this.successName = 'Foget Passoword';
-         // setTimeout(() => {
-         //   this.openSecondsuccess = true;
-         //   setTimeout(() => {
-         //     this.openSecondsuccess = false;
-           
-         //   }, 1800);
-         // }, 200);
-     } else {
-         this.submitted = false;
-       }
-     });
-   } else {
-   this.submitted = false;
-   this.errorMessage = 'please Enter All The Details'
-     this.ForgotForm.markAllAsTouched();
-     console.log(this.findInvalidControls(this.ForgotForm));
-   }
- }
+      this.errorMessage = '';
+      if (this.ForgotForm.valid) {
+        // Bypass backend email checking API and navigate directly to OTP/Reset Password screen
+        this.router.navigate(['/reset-password/1/dummy-token']);
+      } else {
+        this.submitted = false;
+        this.errorMessage = 'please Enter All The Details';
+        this.ForgotForm.markAllAsTouched();
+        console.log(this.findInvalidControls(this.ForgotForm));
+      }
+    }
   
   
   

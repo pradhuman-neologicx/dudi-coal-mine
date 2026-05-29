@@ -80,6 +80,7 @@ export class AttendanceManagementComponent implements OnInit {
   selectedRecord: DailyAttendance | null = null;
 
   p: number = 1; // Pagination
+  showEntries: number = 10;
 
   selectedRecordIds = new Set<string>();
 

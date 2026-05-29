@@ -94,5 +94,10 @@ export class VehiclesComponent {
     this.currentVehicle = null;
     this.currentBodyType = null;
   }
+
+  toggleStatus(element: any) {
+    element.status = !element.status;
+  }
 }
+
 

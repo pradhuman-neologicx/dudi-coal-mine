@@ -1,218 +1,283 @@
-<div class="container mb-5">
+<div class="container mb-4">
   <!-- Page Header -->
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
     <div>
       <h1 class="text-primary table-heading-detail mb-1">Attendance Management</h1>
       <p class="text-muted mb-0 fs-6">Upload and manage daily biometric attendance logs.</p>
     </div>
     <div class="d-flex gap-2">
-      <!-- <button class="btn btn-outline-primary px-3 py-2" (click)="openManualEntryModal()">
-        <i class="fa-solid fa-plus me-2"></i>Manual Entry
-      </button> -->
       <button class="btn btn-custom-primary px-3 py-2" (click)="openBulkUploadModal()">
         <i class="fa-solid fa-cloud-arrow-up me-2"></i>Bulk Upload
       </button>
     </div>
   </div>
 
-  <div class="row g-4">
-    <!-- Attendance Grid Section -->
-    <div class="col-12">
-      <div class="card border-0 shadow-sm h-100 mb-4">
-        <!-- <div class="card-header bg-white border-0 pt-4 px-4 pb-3 d-flex justify-content-between align-items-center">
-          <h5 class="fw-bold text-dark mb-0">
-            <i class="fa-solid fa-clipboard-user text-primary me-2"></i>
-            Daily Attendance
-          </h5>
-        </div> -->
-        <div class="card-body p-4 ">
-          <!-- Filters Bar -->
-          <div class="row g-3 mb-4 align-items-end">
-            <!-- Search Filter -->
-            <div class="col-md-3">
-              <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Search
-                Employee</label>
-              <div class="input-group">
-                <span class="input-group-text bg-white text-muted border-end-0 py-2">
-                  <i class="fa-solid fa-magnifying-glass"></i>
-                </span>
-                <input type="text" class="form-control form-input-custom border-start-0 ps-0 py-2"
-                  [(ngModel)]="filterSearch" (input)="applyFilters()" placeholder="Search Name/ID...">
-              </div>
-            </div>
+  <div class="card border-0 my-4 px-4 py-4">
+    <!-- Filters Bar -->
+    <div class="row g-3 mb-4 align-items-end">
+      <!-- Search Filter -->
+      <div class="col-md-3">
+        <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Search Employee</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white text-muted border-end-0 py-2">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="text" class="form-control form-input-custom border-start-0 ps-0 py-2"
+            [(ngModel)]="filterSearch" (input)="applyFilters()" placeholder="Search Name/ID...">
+        </div>
+      </div>
 
-            <!-- Date Filter -->
-            <div class="col-md-2">
-              <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Date
-                Filter</label>
-              <div class="input-group">
-                <span class="input-group-text bg-white text-muted border-end-0 py-2">
-                  <i class="fa-solid fa-calendar-days"></i>
-                </span>
-                <input type="date" class="form-control form-input-custom border-start-0 ps-0 py-2"
-                  [(ngModel)]="filterDate" (change)="applyFilters()">
-              </div>
-            </div>
+      <!-- Date Filter -->
+      <div class="col-md-2">
+        <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Date Filter</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white text-muted border-end-0 py-2">
+            <i class="fa-solid fa-calendar-days"></i>
+          </span>
+          <input type="date" class="form-control form-input-custom border-start-0 ps-0 py-2"
+            [(ngModel)]="filterDate" (change)="applyFilters()">
+        </div>
+      </div>
 
-            <!-- Site Filter -->
-            <div class="col-md-3">
-              <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Site
-                Filter</label>
-              <select class="form-select form-input-custom py-2" [(ngModel)]="filterSite" (change)="applyFilters()">
-                <option value="">All Sites</option>
-                <option *ngFor="let s of mockSites" [value]="s">{{ s }}</option>
-              </select>
-            </div>
+      <!-- Site Filter -->
+      <div class="col-md-3">
+        <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Site Filter</label>
+        <select class="form-select form-input-custom py-2" [(ngModel)]="filterSite" (change)="applyFilters()">
+          <option value="">All Sites</option>
+          <option *ngFor="let s of mockSites" [value]="s">{{ s }}</option>
+        </select>
+      </div>
 
-            <!-- Status Filter -->
-            <div class="col-md-2">
-              <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Status
-                Filter</label>
-              <select class="form-select form-input-custom py-2" [(ngModel)]="filterStatus" (change)="applyFilters()">
-                <option value="">All Statuses</option>
-                <option value="Present">Present</option>
-                <option value="Absent">Absent</option>
-                <option value="Half Day">Half Day</option>
-                <option value="Exception">Exception</option>
-              </select>
-            </div>
+      <!-- Status Filter -->
+      <div class="col-md-2">
+        <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Status Filter</label>
+        <select class="form-select form-input-custom py-2" [(ngModel)]="filterStatus" (change)="applyFilters()">
+          <option value="">All Statuses</option>
+          <option value="Present">Present</option>
+          <option value="Absent">Absent</option>
+          <option value="Half Day">Half Day</option>
+          <option value="Exception">Exception</option>
+        </select>
+      </div>
 
-            <!-- Reset Button -->
-            <div class="col-md-2">
-              <button
-                class="btn btn-outline-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2 hover-up"
-                (click)="resetFilters()" style="height: 42px;">
-                <i class="fa-solid fa-rotate-right"></i> Reset
-              </button>
-            </div>
-          </div>
+      <!-- Reset Button -->
+      <div class="col-md-2">
+        <button
+          class="btn btn-outline-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2 hover-up"
+          (click)="resetFilters()" style="height: 42px;">
+          <i class="fa-solid fa-rotate-right"></i> Reset
+        </button>
+      </div>
+    </div>
 
-          <!-- Floating Bulk Action Bar -->
-          <div class="bulk-action-bar animate-fade p-3 mb-3 d-flex justify-content-between align-items-center rounded-3 shadow" 
-            *ngIf="selectedRecordIds.size > 0">
-            <div class="d-flex align-items-center gap-3">
-              <div class="bulk-info d-flex align-items-center gap-2">
-                <span class="badge bg-primary rounded-pill px-2.5 py-1.5 fs-8">{{ selectedRecordIds.size }}</span>
-                <span class="fw-bold text-dark fs-7">Employees Selected</span>
-              </div>
-              <div class="vertical-divider"></div>
-              <a href="javascript:void(0)" class="text-decoration-none text-muted fs-8 hover-primary fw-semibold" (click)="clearSelection()">
-                <i class="fa-solid fa-rotate-left me-1"></i> Clear Selection
-              </a>
-            </div>
-            
+    <!-- Floating Bulk Action Bar -->
+    <div class="bulk-action-bar animate-fade p-3 mb-3 d-flex justify-content-between align-items-center rounded-3 shadow" 
+      *ngIf="selectedRecordIds.size > 0">
+      <div class="d-flex align-items-center gap-3">
+        <div class="bulk-info d-flex align-items-center gap-2">
+          <span class="badge bg-primary rounded-pill px-2.5 py-1.5 fs-8">{{ selectedRecordIds.size }}</span>
+          <span class="fw-bold text-dark fs-7">Employees Selected</span>
+        </div>
+        <div class="vertical-divider"></div>
+        <a href="javascript:void(0)" class="text-decoration-none text-muted fs-8 hover-primary fw-semibold" (click)="clearSelection()">
+          <i class="fa-solid fa-rotate-left me-1"></i> Clear Selection
+        </a>
+      </div>
+      
+      <div class="d-flex align-items-center gap-2">
+        <span class="fs-8 fw-bold text-muted text-uppercase me-2 letter-spacing-1">Mark Selected:</span>
+        <button class="btn btn-sm btn-success bulk-btn px-3 py-2 fs-8 fw-bold d-flex align-items-center gap-1.5 rounded-pill hover-up" 
+          (click)="markBulkAttendance('Present')">
+          <i class="fa-solid fa-circle-check"></i> Present
+        </button>
+        <button class="btn btn-sm btn-secondary bulk-btn px-3 py-2 fs-8 fw-bold d-flex align-items-center gap-1.5 rounded-pill hover-up" 
+          (click)="markBulkAttendance('Absent')">
+          <i class="fa-solid fa-circle-xmark"></i> Absent
+        </button>
+        <button class="btn btn-sm btn-info text-white bulk-btn px-3 py-2 fs-8 fw-bold d-flex align-items-center gap-1.5 rounded-pill hover-up" 
+          (click)="markBulkAttendance('Leave')">
+          <i class="fa-solid fa-circle-info"></i> Leave
+        </button>
+      </div>
+    </div>
+
+    <!-- Entries Select Row -->
+    <div class="d-flex align-items-center mb-4">
+      <span class="me-1 show-entery-text">Show</span>
+      <select class="form-control form-select show-entries-select" [(ngModel)]="showEntries" style="width: auto;">
+        <option [ngValue]="5">5</option>
+        <option [ngValue]="10">10</option>
+        <option [ngValue]="15">15</option>
+        <option [ngValue]="20">20</option>
+        <option [ngValue]="25">25</option>
+        <option [ngValue]="50">50</option>
+        <option [ngValue]="100">100</option>
+      </select>
+      <span class="ms-1 show-entery-text">entries</span>
+    </div>
+
+    <div class="table-responsive-sm mt-2">
+      <!-- Desktop Table View -->
+      <div class="hidden lg:block">
+        <table class="table table-bordered table-hover table-striped mb-0">
+          <thead class="table-header">
+            <tr>
+              <th class="text-center" style="width: 40px;">
+                <div class="custom-control custom-checkbox d-flex align-items-center justify-content-center">
+                  <input type="checkbox" class="form-check-input select-all-checkbox cursor-pointer"
+                    (change)="toggleAllSelection($event)" [checked]="isAllSelected()">
+                </div>
+              </th>
+              <th><p class="table-heading">Date</p></th>
+              <th><p class="table-heading">Employee</p></th>
+              <th><p class="table-heading">Site</p></th>
+              <th><p class="table-heading">Check In</p></th>
+              <th><p class="table-heading">Check Out</p></th>
+              <th><p class="table-heading">Shift</p></th>
+              <th><p class="table-heading">Status</p></th>
+              <th><p class="table-heading">Actions</p></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let record of attendanceRecords | paginate: { itemsPerPage: showEntries, currentPage: p }"
+              class="hover-bg-light transition">
+              <td class="text-center">
+                <div class="custom-control custom-checkbox d-flex align-items-center justify-content-center">
+                  <input type="checkbox" class="form-check-input record-checkbox cursor-pointer"
+                    (change)="toggleSelection(record.id)" [checked]="isRecordSelected(record.id)">
+                </div>
+              </td>
+              <td>
+                <p class="fw-medium text-dark">{{ record.date | date:'dd MMM yyyy' }}</p>
+              </td>
+              <td>
+                <div class="d-flex flex-column">
+                  <span class="fw-bold text-dark fs-7">{{ record.empName }}</span>
+                  <span class="text-muted fs-8">{{ record.empId }}</span>
+                </div>
+              </td>
+              <td>
+                <p class="fw-medium text-muted fs-7">{{ record.site }}</p>
+              </td>
+              <td>
+                <p class="fw-medium text-muted fs-7">{{ record.checkIn || '--:--' }}</p>
+              </td>
+              <td>
+                <p class="fw-medium text-muted fs-7">{{ record.checkOut || '--:--' }}</p>
+              </td>
+              <td>
+                <span class="badge bg-light text-muted border fs-9 px-2 py-1">{{ record.shift }}</span>
+              </td>
+              <td>
+                <p [ngClass]="{
+                    'active-status': record.status === 'Present',
+                    'deactive-status': record.status === 'Absent',
+                    'warning-status': record.status === 'Half Day',
+                    'info-status': record.status === 'Leave',
+                    'exception-status': record.status === 'Exception'
+                  }">
+                  {{ record.status }}
+                </p>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <button class="btn-action edit-btn" title="Manual Correction" (click)="openCorrectionModal(record)">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="btn-action view-btn" [matMenuTriggerFor]="individualMenu" title="Quick Attendance Status">
+                    <i class="fa-solid fa-calendar-check"></i>
+                  </button>
+                </div>
+
+                <mat-menu #individualMenu="matMenu">
+                  <button mat-menu-item (click)="markIndividualAttendance(record, 'Present')">
+                    <mat-icon class="text-success">check_circle</mat-icon>
+                    <span>Mark Present</span>
+                  </button>
+                  <button mat-menu-item (click)="markIndividualAttendance(record, 'Absent')">
+                    <mat-icon class="text-danger">cancel</mat-icon>
+                    <span>Mark Absent</span>
+                  </button>
+                  <button mat-menu-item (click)="markIndividualAttendance(record, 'Leave')">
+                    <mat-icon class="text-info">info</mat-icon>
+                    <span>Mark Leave</span>
+                  </button>
+                </mat-menu>
+              </td>
+            </tr>
+            <tr *ngIf="attendanceRecords.length === 0">
+              <td colspan="9" class="text-center py-4 text-muted">
+                No attendance records found.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Card View for below lg -->
+      <div class="lg:hidden space-y-4">
+        <div *ngFor="let record of attendanceRecords | paginate: { itemsPerPage: showEntries, currentPage: p }; index as i"
+             class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div class="flex justify-between items-center mb-2">
             <div class="d-flex align-items-center gap-2">
-              <span class="fs-8 fw-bold text-muted text-uppercase me-2 letter-spacing-1">Mark Selected:</span>
-              <button class="btn btn-sm btn-success bulk-btn px-3 py-2 fs-8 fw-bold d-flex align-items-center gap-1.5 rounded-pill hover-up" 
-                (click)="markBulkAttendance('Present')">
-                <i class="fa-solid fa-circle-check"></i> Present
-              </button>
-              <button class="btn btn-sm btn-secondary bulk-btn px-3 py-2 fs-8 fw-bold d-flex align-items-center gap-1.5 rounded-pill hover-up" 
-                (click)="markBulkAttendance('Absent')">
-                <i class="fa-solid fa-circle-xmark"></i> Absent
-              </button>
-              <button class="btn btn-sm btn-info text-white bulk-btn px-3 py-2 fs-8 fw-bold d-flex align-items-center gap-1.5 rounded-pill hover-up" 
-                (click)="markBulkAttendance('Leave')">
-                <i class="fa-solid fa-circle-info"></i> Leave
-              </button>
+              <input type="checkbox" class="form-check-input record-checkbox cursor-pointer"
+                (change)="toggleSelection(record.id)" [checked]="isRecordSelected(record.id)">
+              <strong>Date:</strong> {{ record.date | date:'dd MMM yyyy' }}
             </div>
-          </div>
+            <div>
+              <div class="d-flex align-items-center gap-1">
+                <button class="btn-action edit-btn" (click)="openCorrectionModal(record)" title="Manual Correction">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
+                <button class="btn-action view-btn" [matMenuTriggerFor]="individualMenuMobile" title="Quick Attendance Status">
+                  <i class="fa-solid fa-calendar-check"></i>
+                </button>
+              </div>
+            </div>
 
-          <div class="table-responsive border rounded-3">
-            <table class="table table-bordered align-middle mb-0 custom-table">
-              <thead class="table-light">
-                <tr>
-                  <th class="text-center" style="width: 40px; padding-left: 10px; padding-right: 10px;">
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-center">
-                      <input type="checkbox" class="form-check-input select-all-checkbox cursor-pointer"
-                        (change)="toggleAllSelection($event)" [checked]="isAllSelected()">
-                    </div>
-                  </th>
-                  <th class="ps-3">Date</th>
-                  <th>Employee</th>
-                  <th class="text-center">Site</th>
-                  <th class="text-center">Check In</th>
-                  <th class="text-center">Check Out</th>
-                  <th class="text-center">Shift</th>
-                  <th class="text-center">Status</th>
-                  <th class="text-center pe-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let record of attendanceRecords | paginate: { itemsPerPage: 10, currentPage: p }"
-                  class="hover-bg-light transition">
-                  <td class="text-center" style="padding-left: 10px; padding-right: 10px;">
-                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-center">
-                      <input type="checkbox" class="form-check-input record-checkbox cursor-pointer"
-                        (change)="toggleSelection(record.id)" [checked]="isRecordSelected(record.id)">
-                    </div>
-                  </td>
-                  <td class="ps-3 fw-medium text-dark fs-7">{{ record.date | date:'dd MMM yyyy' }}</td>
-                  <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <!-- <div class="avatar-small d-flex align-items-center justify-content-center bg-light text-primary rounded-circle fw-bold">
-                        {{ record.empName.charAt(0) }}
-                      </div> -->
-                      <div class="d-flex flex-column">
-                        <span class="fw-bold text-dark fs-7">{{ record.empName }}</span>
-                        <span class="text-muted fs-8">{{ record.empId }}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="text-center fw-medium text-muted fs-7">{{ record.site }}</td>
-                  <td class="text-center fw-medium text-muted fs-7">{{ record.checkIn || '--:--' }}</td>
-                  <td class="text-center fw-medium text-muted fs-7">{{ record.checkOut || '--:--' }}</td>
-                  <td class="text-center">
-                    <span class="badge bg-light text-muted border fs-9 px-2 py-1">{{ record.shift }}</span>
-                  </td>
-                  <td class="text-center">
-                    <span class="badge px-3 py-2 fs-8 fw-bold w-75 rounded-pill"
-                      [ngClass]="getStatusClass(record.status)">
-                      {{ record.status }}
-                    </span>
-                  </td>
-                  <td class="text-center pe-3">
-                    <button class="btn btn-sm btn-outline-primary btn-icon rounded-circle hover-up me-1"
-                      title="Manual Correction" (click)="openCorrectionModal(record)">
-                      <i class="fa-solid fa-pen-to-square"></i>
-                    </button>
-                    <button class="btn btn-sm btn-outline-success btn-icon rounded-circle hover-up"
-                      [matMenuTriggerFor]="individualMenu" title="Quick Attendance Status">
-                      <i class="fa-solid fa-calendar-check"></i>
-                    </button>
-                    
-                    <mat-menu #individualMenu="matMenu">
-                      <button mat-menu-item (click)="markIndividualAttendance(record, 'Present')">
-                        <mat-icon class="text-success">check_circle</mat-icon>
-                        <span>Mark Present</span>
-                      </button>
-                      <button mat-menu-item (click)="markIndividualAttendance(record, 'Absent')">
-                        <mat-icon class="text-danger">cancel</mat-icon>
-                        <span>Mark Absent</span>
-                      </button>
-                      <button mat-menu-item (click)="markIndividualAttendance(record, 'Leave')">
-                        <mat-icon class="text-info">info</mat-icon>
-                        <span>Mark Leave</span>
-                      </button>
-                    </mat-menu>
-                  </td>
-                </tr>
-                <tr *ngIf="attendanceRecords.length === 0">
-                  <td colspan="9" class="text-center py-5 text-muted">
-                    <div class="d-flex flex-column align-items-center">
-                      <i class="fa-solid fa-calendar-xmark display-4 text-light mb-3"></i>
-                      <p class="mb-0 fs-5 fw-medium text-dark">No attendance records found.</p>
-                      <p class="fs-7 text-muted">Upload a biometric log file to populate data.</p>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <mat-menu #individualMenuMobile="matMenu">
+              <button mat-menu-item (click)="markIndividualAttendance(record, 'Present')">
+                <mat-icon class="text-success">check_circle</mat-icon>
+                <span>Mark Present</span>
+              </button>
+              <button mat-menu-item (click)="markIndividualAttendance(record, 'Absent')">
+                <mat-icon class="text-danger">cancel</mat-icon>
+                <span>Mark Absent</span>
+              </button>
+              <button mat-menu-item (click)="markIndividualAttendance(record, 'Leave')">
+                <mat-icon class="text-info">info</mat-icon>
+                <span>Mark Leave</span>
+              </button>
+            </mat-menu>
+          </div>
+          <div class="mb-2"><strong>Employee:</strong> {{ record.empName }} ({{ record.empId }})</div>
+          <div class="mb-2"><strong>Site:</strong> {{ record.site }}</div>
+          <div class="mb-2"><strong>Check In:</strong> {{ record.checkIn || '--:--' }}</div>
+          <div class="mb-2"><strong>Check Out:</strong> {{ record.checkOut || '--:--' }}</div>
+          <div class="mb-2"><strong>Shift:</strong> {{ record.shift }}</div>
+          <div>
+            <strong>Status:</strong>
+            <span [ngClass]="{
+                'active-status': record.status === 'Present',
+                'deactive-status': record.status === 'Absent',
+                'warning-status': record.status === 'Half Day',
+                'info-status': record.status === 'Leave',
+                'exception-status': record.status === 'Exception'
+              }">
+              {{ record.status }}
+            </span>
           </div>
         </div>
-        <div class="card-footer bg-white border-0 py-3 px-4" *ngIf="attendanceRecords.length > 0">
-          <pagination-controls (pageChange)="p = $event" class="my-pagination"></pagination-controls>
+        <div *ngIf="attendanceRecords.length === 0" class="text-center py-4 text-muted">
+          No attendance records found.
         </div>
+      </div>
+
+      <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center" *ngIf="attendanceRecords.length > 0">
+        <span class="showalltext">Showing
+          {{ showEntries * (p - 1) > 0 ? showEntries * (p - 1) + 1 : 1 }} to
+          {{ showEntries * p <= attendanceRecords.length ? showEntries * p : attendanceRecords.length }} of {{ attendanceRecords.length }} entries</span>
+        <pagination-controls (pageChange)="p = $event" class="my-pagination"></pagination-controls>
       </div>
     </div>
   </div>
@@ -384,94 +449,3 @@
     </div>
   </div>
 </div>
-
-<!-- Manual Entry Modal -->
-<!-- <div *ngIf="showManualEntryModal" class="modal-overlay"
-  style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.4); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
-  <div class="modal-dialog-large bg-white rounded-3 shadow-lg d-flex flex-column h-auto-modal mx-3"
-    style="width: 100%; max-width: 650px;">
-
-    <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
-      <h4 class="mb-0 text-primary fw-bold">Manual Attendance Entry</h4>
-      <button class="btn bg-transparent border-0 p-0" (click)="closeManualEntryModal()">
-        <i class="fa-solid fa-xmark fs-4 text-muted"></i>
-      </button>
-    </div>
-
-    <div class="modal-body p-4">
-      <form [formGroup]="manualEntryForm" (ngSubmit)="submitManualEntry()">
-        <div class="row g-3 mb-3">
-          <div class="col-md-6">
-            <label class="form-label form-lable-custom">Employee <span class="text-danger">*</span></label>
-            <select class="form-select form-input-custom" formControlName="empId">
-              <option value="">Select Employee</option>
-              <option *ngFor="let emp of employees" [value]="emp.id || emp.user_id">{{ emp.name || emp.first_name + ' '
-                + (emp.last_name || '') }}</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label form-lable-custom">Date <span class="text-danger">*</span></label>
-            <input type="date" class="form-control form-input-custom" formControlName="date">
-          </div>
-        </div>
-
-        <div class="row g-3 mb-3">
-          <div class="col-md-6">
-            <label class="form-label form-lable-custom">Check In Time</label>
-            <div class="input-group">
-              <span class="input-group-text bg-white text-muted border-end-0">
-                <i class="fa-solid fa-right-to-bracket"></i>
-              </span>
-              <input type="time" class="form-control form-input-custom border-start-0 ps-0" formControlName="checkIn">
-            </div>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label form-lable-custom">Check Out Time</label>
-            <div class="input-group">
-              <span class="input-group-text bg-white text-muted border-end-0">
-                <i class="fa-solid fa-right-from-bracket"></i>
-              </span>
-              <input type="time" class="form-control form-input-custom border-start-0 ps-0" formControlName="checkOut">
-            </div>
-          </div>
-        </div>
-
-        <div class="row g-3 mb-3">
-          <div class="col-md-6">
-            <label class="form-label form-lable-custom">Status <span class="text-danger">*</span></label>
-            <select class="form-select form-input-custom" formControlName="status">
-              <option value="Present">Present</option>
-              <option value="Absent">Absent</option>
-              <option value="Half Day">Half Day</option>
-              <option value="Exception">Exception</option>
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label form-lable-custom">Site <span class="text-danger">*</span></label>
-            <select class="form-select form-input-custom" formControlName="site">
-              <option value="">Select Site</option>
-              <option *ngFor="let s of mockSites" [value]="s">{{ s }}</option>
-            </select>
-            <div class="text-danger fs-8 mt-1"
-              *ngIf="manualEntryForm.get('site')?.invalid && manualEntryForm.get('site')?.touched">
-              Site is required.
-            </div>
-          </div>
-        </div>
-
-        <div class="mb-4 mt-2">
-          <label class="form-label form-lable-custom">Reason <span class="text-danger">*</span></label>
-          <textarea class="form-control form-input-custom" formControlName="reason" rows="2"
-            placeholder="e.g. System down, outdoor duty"></textarea>
-        </div>
-
-        <div class="d-flex justify-content-end gap-2 mt-4 pt-2 border-top">
-          <button type="button" class="btn btn-secondary px-4 py-2" (click)="closeManualEntryModal()">Cancel</button>
-          <button type="submit" class="btn btn-custom-primary px-4 py-2" [disabled]="manualEntryForm.invalid">
-            Add Record
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div> -->

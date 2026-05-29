@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { JwtService } from './jwt.service';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { environment } from 'src/environments/environment';
 @Injectable({
   providedIn: 'root',
 })
@@ -47,12 +48,7 @@ export class LoginService {
       'Content-Type': 'application/json',
     });
 
-    return this.apiservice.post(`logout`, {}, headers).pipe(
-      tap((error: any) => {
-        console.log('Response received:', error);
-        this.erromessagefunction(error);
-      })
-    );
+    return this.http.post(`${environment.api_url}logout`, {}, { headers });
   }
   Emailverify(formData: any, headers: any) {
     return this.apiservice.post('login', formData, headers);

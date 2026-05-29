@@ -88,4 +88,9 @@ export class FuelManagementComponent {
     this.viewFuelOpen = false;
     this.selectedViewFuel = null;
   }
+
+  toggleStatus(element: FuelManagement) {
+    element.status = !element.status;
+  }
 }
+

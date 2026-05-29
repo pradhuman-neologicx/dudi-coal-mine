@@ -174,6 +174,19 @@ export class ApiService {
       // server-side error
       errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
     }
+
+    if (error.status == 401 || error.status == 403) {
+      if (this.router.url.includes('/admin')) {
+        console.warn('Unauthorized/Forbidden request in admin panel - clearing session and redirecting');
+        this.jwtService.clearStorage();
+        this.router.navigate(['/sign_in']);
+        return throwError(() => 'Unauthorized');
+      } else {
+        console.warn('Unauthorized/Forbidden request outside admin panel - returning error silently');
+        return throwError(() => error);
+      }
+    }
+
     if (error.status === 422) {
       const errorMessage =
         error.errors?.name?.[0] ||

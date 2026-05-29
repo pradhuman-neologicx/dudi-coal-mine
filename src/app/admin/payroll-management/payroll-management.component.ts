@@ -62,6 +62,7 @@ export class PayrollManagementComponent implements OnInit {
   
   // Pagination
   p: number = 1;
+  showEntries: number = 10;
   
   // Selected Payslip for A4 Print/Preview
   selectedPayslipRecord: PayrollRecord | null = null;

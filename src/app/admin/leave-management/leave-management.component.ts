@@ -48,6 +48,9 @@ export class LeaveManagementComponent implements OnInit {
   pHistory: number = 1;
   pBalances: number = 1;
   
+  showEntries: number = 10;
+  searchText: string = '';
+  
   viewLeaveOpen: boolean = false;
   selectedLeave: LeaveRequest | null = null;
 
@@ -236,7 +239,7 @@ export class LeaveManagementComponent implements OnInit {
   }
 
   getInboxRequests(): LeaveRequest[] {
-    return this.leaveRequests.filter(req => {
+    const list = this.leaveRequests.filter(req => {
       if (this.simulatedRole === 'Supervisor') {
         return req.status === 'Pending Supervisor';
       } else if (this.simulatedRole === 'Project Manager') {
@@ -246,10 +249,26 @@ export class LeaveManagementComponent implements OnInit {
       }
       return false;
     });
+    if (!this.searchText) return list;
+    const txt = this.searchText.toLowerCase();
+    return list.filter(req => 
+      req.empName.toLowerCase().includes(txt) ||
+      req.empId.toLowerCase().includes(txt) ||
+      req.leaveType.toLowerCase().includes(txt) ||
+      req.reason.toLowerCase().includes(txt)
+    );
   }
 
   getHistoryRequests(): LeaveRequest[] {
-    return this.leaveRequests.filter(req => req.status === 'Approved' || req.status === 'Rejected');
+    const list = this.leaveRequests.filter(req => req.status === 'Approved' || req.status === 'Rejected');
+    if (!this.searchText) return list;
+    const txt = this.searchText.toLowerCase();
+    return list.filter(req => 
+      req.empName.toLowerCase().includes(txt) ||
+      req.empId.toLowerCase().includes(txt) ||
+      req.leaveType.toLowerCase().includes(txt) ||
+      req.reason.toLowerCase().includes(txt)
+    );
   }
 
   approveRequest(req: LeaveRequest) {

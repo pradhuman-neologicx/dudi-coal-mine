@@ -86,13 +86,23 @@ export class SidenavHeaderComponent implements OnInit {
   successName: any = '';
 
   logout() {
-    this.loginService.Adminlogout().subscribe((response: any) => {
-      this.errorMessage = response.message;
-      if (response.status === 200) {
+    this.loginService.Adminlogout().subscribe({
+      next: (response: any) => {
+        this.errorMessage = response.message;
+        if (response.status === 200) {
+          this.jwtService.clearStorage();
+          this.router.navigate(['/sign_in']);
+        } else {
+          this.submitted = false;
+          // Unconditional local logout on failure response to avoid user getting stuck
+          this.jwtService.clearStorage();
+          this.router.navigate(['/sign_in']);
+        }
+      },
+      error: (error: any) => {
+        console.error('Logout API failed, performing local logout:', error);
         this.jwtService.clearStorage();
         this.router.navigate(['/sign_in']);
-      } else {
-        this.submitted = false;
       }
     });
   }

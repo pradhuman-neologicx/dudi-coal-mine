@@ -113,10 +113,10 @@
           TELEMETRY</span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 flex-grow items-center">
+      <div class="flex flex-col lg:flex-row gap-4 flex-grow items-center justify-between w-full">
         <!-- Left Column: Attendance Stats (Clickable) -->
         <div [routerLink]="['/admin/employee-management']"
-          class="md:col-span-6 flex items-center justify-between gap-4 border-r border-slate-100 pr-2 clickable-panel p-2 rounded-2xl"
+          class="w-full lg:w-1/2 flex items-center justify-between gap-4 border-b lg:border-b-0 lg:border-r border-slate-100 pb-3 lg:pb-0 lg:pr-4 clickable-panel p-2 rounded-2xl"
           title="Open Employee & Attendance Management">
           <div>
             <div class="flex items-baseline gap-1">
@@ -149,7 +149,7 @@
 
         <!-- Right Column: Active Shift & Rotation Progress (Clickable) -->
         <div [routerLink]="['/admin/shift-management']"
-          class="md:col-span-6 flex flex-col justify-center pl-2 clickable-panel p-2 rounded-2xl"
+          class="w-full lg:w-1/2 flex flex-col justify-center lg:pl-4 clickable-panel p-2 rounded-2xl"
           title="Open Shift Rotation Management">
           <div
             class="flex justify-between items-center text-[9px] font-extrabold text-slate-500 uppercase tracking-widest mb-1.5">
@@ -289,10 +289,10 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center flex-grow">
+      <div class="flex flex-col lg:flex-row gap-4 items-center flex-grow w-full">
         <!-- Vehicle Fleet (Span 5) (Clickable) -->
         <div [routerLink]="['/admin/vehicle-management']"
-          class="md:col-span-5 flex flex-col justify-center p-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/50 border border-slate-200/40 shadow-inner h-full clickable-panel"
+          class="w-full lg:w-[45%] flex flex-col justify-center p-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100/50 border border-slate-200/40 shadow-inner h-full clickable-panel"
           title="Open Vehicle & Fleet Management">
           <span class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider mb-1.5">VEHICLES IN
             ACTION</span>
@@ -310,7 +310,7 @@
 
         <!-- Fuel Station metrics (Span 7) (Clickable) -->
         <div [routerLink]="['/admin/fuel']"
-          class="md:col-span-7 flex flex-col justify-center pl-2 h-full clickable-panel p-2.5 rounded-2xl"
+          class="w-full lg:w-[55%] flex flex-col justify-center lg:pl-4 h-full clickable-panel p-2.5 rounded-2xl"
           title="Open Fuel Management & Dispatches">
           <span class="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest mb-1.5">FUEL MANAGEMENT
             STATUS</span>
@@ -329,7 +329,7 @@
     </div>
 
     <!-- CARD 5: Dedicated Inventory Stock Levels (Row 2 - Span 2 col) -->
-    <div [routerLink]="['/admin/inventory-management']"
+    <div [routerLink]="['/admin/inventory-management/inventory']"
       class="bento-card col-span-1 md:col-span-2 flex flex-col p-4 rounded-3xl border glass-effect relative overflow-hidden clickable-panel"
       title="Open Inventory & Stock Management">
       <div class="flex items-center justify-between mb-3">
@@ -347,9 +347,9 @@
         </span>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-3 flex-grow items-center">
+      <div class="flex flex-col lg:flex-row gap-4 flex-grow items-center w-full">
         <!-- Stock Summary Left Column (Span 5) -->
-        <div class="md:col-span-5 flex flex-col gap-2 justify-center border-r border-slate-100 pr-2 h-full">
+        <div class="w-full lg:w-[40%] flex flex-col gap-2 justify-center border-b lg:border-b-0 lg:border-r border-slate-100 pb-3 lg:pb-0 lg:pr-4 h-full">
           <div>
             <span class="text-[8px] font-extrabold text-slate-400 uppercase tracking-wider block mb-0.5">TOTAL AVAILABLE
               STOCK</span>
@@ -361,7 +361,7 @@
         </div>
 
         <!-- Category Wise Stock Distribution Right Column (Span 7) -->
-        <div class="md:col-span-7 flex flex-col justify-center pl-2 h-full">
+        <div class="w-full lg:w-[60%] flex flex-col justify-center lg:pl-4 h-full">
           <span class="text-[8px] font-extrabold text-slate-400 uppercase tracking-widest mb-2 block">STOCK BY
             CATEGORY</span>
 

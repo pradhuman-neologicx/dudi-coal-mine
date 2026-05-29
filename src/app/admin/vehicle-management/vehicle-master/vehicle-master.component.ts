@@ -101,4 +101,9 @@ export class VehicleMasterComponent {
     this.createManufacturerOpen = false;
     this.createModelOpen = false;
   }
+
+  toggleStatus(element: any) {
+    element.status = !element.status;
+  }
 }
+

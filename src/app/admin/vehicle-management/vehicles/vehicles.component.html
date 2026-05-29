@@ -1,176 +1,253 @@
-<div class="content">
-  <div class="d-flex justify-content-between align-items-center mb-2">
-    <h2 class="table-heading-detail tt-color" style="margin: 0; font-weight: 600;">Vehicle Management</h2>
-  </div>
+<div class="container mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+    <h1 class="text-primary table-heading-detail mb-0">Vehicle Management</h1>
+    
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <!-- Capsule Tabs for Vehicles & Body Types -->
+      <div class="d-flex gap-2 p-1 bg-light rounded-pill roster-tabs-wrapper" style="width: fit-content; border: 1px solid #e2e8f0;">
+        <button class="btn rounded-pill px-4 py-2 tab-btn text-nowrap transition-all fw-semibold"
+                [ngClass]="{'btn-primary shadow-sm text-white': activeTab === 'vehicles', 'btn-light-text text-muted bg-transparent border-0': activeTab !== 'vehicles'}"
+                (click)="setTab('vehicles')"
+                type="button">
+          Vehicles
+        </button>
+        <button class="btn rounded-pill px-4 py-2 tab-btn text-nowrap transition-all fw-semibold"
+                [ngClass]="{'btn-primary shadow-sm text-white': activeTab === 'body-types', 'btn-light-text text-muted bg-transparent border-0': activeTab !== 'body-types'}"
+                (click)="setTab('body-types')"
+                type="button">
+          Body Types
+        </button>
+      </div>
 
-  <div class="mb-4" style="border-bottom: 1px solid #e0e6ed;">
-    <ul class="nav nav-tabs border-0" style="gap: 20px;">
-      <li class="nav-item" style="cursor: pointer;">
-        <a class="nav-link custom-tab-link" [class.active-tab]="activeTab === 'vehicles'"
-          (click)="setTab('vehicles')">Vehicles</a>
-      </li>
-      <li class="nav-item" style="cursor: pointer;">
-        <a class="nav-link custom-tab-link" [class.active-tab]="activeTab === 'body-types'" (click)="setTab('body-types')">Body Types</a>
-      </li>
-    </ul>
-  </div>
-
-  <div class="table-card bg-white rounded p-4">
-    <div class="d-flex justify-content-end mb-4">
-      <button *ngIf="activeTab === 'vehicles'" class="btn btn-custom-primary"
-        style="background-color: #468faf; color: white;" (click)="openAddVehicleModal()">Add Vehicle</button>
-      <button *ngIf="activeTab === 'body-types'" class="btn btn-custom-primary"
-        style="background-color: #468faf; color: white;" (click)="openAddBodyTypeModal()">Add Body Type</button>
+      <!-- Add Button -->
+      <div>
+        <button *ngIf="activeTab === 'vehicles'" class="btn btn-custom-primary px-4 py-2"
+          (click)="openAddVehicleModal()">Add Vehicle</button>
+        <button *ngIf="activeTab === 'body-types'" class="btn btn-custom-primary px-4 py-2"
+          (click)="openAddBodyTypeModal()">Add Body Type</button>
+      </div>
     </div>
+  </div>
 
-    <div class="d-flex justify-content-between mb-4 align-items-center">
+  <div class="card border-0 my-4 px-4 py-4">
+    <div class="d-md-flex justify-content-between align-items-center my-3">
+      <div class="d-flex align-items-center mb-md-0 mb-2">
+        <span class="me-1 show-entery-text">Show</span>
+        <select class="form-control form-select show-entries-select" [(ngModel)]="showEntries" style="width: auto;">
+          <option [ngValue]="5">5</option>
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="15">15</option>
+          <option [ngValue]="20">20</option>
+          <option [ngValue]="25">25</option>
+          <option [ngValue]="50">50</option>
+          <option [ngValue]="100">100</option>
+        </select>
+        <span class="ms-1 show-entery-text">entries</span>
+      </div>
+
       <div class="d-flex align-items-center">
-        <span style="font-size: 14px; color: #525f7f;">Show</span>
-        <input type="number" class="form-control mx-2 text-center"
-          style="width: 70px; height: 38px; border-color: #e2e8f0; border-radius: 4px;" [(ngModel)]="showEntries">
-        <span style="font-size: 14px; color: #525f7f;">entries</span>
-      </div>
-      <div class="position-relative">
-        <input type="text" class="form-control pe-5" placeholder="Search" [(ngModel)]="searchText"
-          style="height: 38px; width: 250px; border-color: #e2e8f0; border-radius: 4px; font-size: 14px;">
-        <i *ngIf="!searchText" class="fa-solid fa-search position-absolute"
-          style="right: 15px; top: 12px; color: #8898aa; font-size: 14px;"></i>
-        <i *ngIf="searchText" class="fa-solid fa-times position-absolute"
-          style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;"
-          (click)="searchText = ''"></i>
+        <span class="me-1 show-entery-text">Search:</span>
+        <div class="position-relative">
+          <input type="text" class="form-control search-user" [(ngModel)]="searchText" placeholder="Search..." autocomplete="off" />
+          <i *ngIf="searchText" class="fa-solid fa-times position-absolute" style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;" (click)="searchText = ''"></i>
+        </div>
       </div>
     </div>
 
-    <!-- Vehicles Table -->
-    <div class="table-responsive" *ngIf="activeTab === 'vehicles'">
-      <table mat-table [dataSource]="dataSourceVehicle | paginate: { id: 'vehicles-pagination', itemsPerPage: showEntries, currentPage: pVehicles }" class="table table-hover w-100" style="margin-bottom: 0;">
-        <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;"> SR NO
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.id}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="vehicleNo">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            VEHICLE NO
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;">
-            {{element.vehicleNo}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="modelName">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;"> MODEL NAME
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.modelName}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="registrationDate">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            REGISTRATION_DATE
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.registrationDate}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="mileage">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            MILEAGE
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.mileage}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            STATUS </th>
-          <td mat-cell *matCellDef="let element" style="border-bottom: 1px solid #e9ecef;">
-            <mat-slide-toggle [checked]="element.status" color="primary"></mat-slide-toggle>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            ACTION </th>
-          <td mat-cell *matCellDef="let element" style="border-bottom: 1px solid #e9ecef;">
-            <div class="d-flex align-items-center gap-2">
-              <button class="btn-action edit-btn" (click)="openEditVehicleModal(element)" data-tooltip="Edit">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-            </div>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedVehicleColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedVehicleColumns;"></tr>
-      </table>
-      <div class="d-flex justify-content-between align-items-center mt-4">
-        <div style="font-size: 14px; color: #525f7f;">
-          Showing {{ (pVehicles - 1) * showEntries + 1 }} to {{ (pVehicles * showEntries > dataSourceVehicle.length) ? dataSourceVehicle.length : (pVehicles * showEntries) }} of {{ dataSourceVehicle.length }} entries
+    <div class="table-responsive-sm mt-2">
+      <!-- Vehicles View (Active Tab: vehicles) -->
+      <div *ngIf="activeTab === 'vehicles'">
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block">
+          <table class="table table-bordered table-hover table-striped mb-0">
+            <thead class="table-header">
+              <tr>
+                <th><p class="table-heading">SR NO</p></th>
+                <th><p class="table-heading">VEHICLE NO</p></th>
+                <th><p class="table-heading">MODEL NAME</p></th>
+                <th><p class="table-heading">REGISTRATION DATE</p></th>
+                <th><p class="table-heading">MILEAGE</p></th>
+                <th><p class="table-heading">STATUS</p></th>
+                <th><p class="table-heading">ACTION</p></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let element of dataSourceVehicle | paginate: { id: 'vehicles-pagination', itemsPerPage: showEntries, currentPage: pVehicles }; index as i">
+                <td>
+                  {{ (pVehicles - 1) * showEntries + i + 1 }}
+                </td>
+                <td>
+                  <p>{{ element.vehicleNo }}</p>
+                </td>
+                <td>
+                  <p>{{ element.modelName }}</p>
+                </td>
+                <td>
+                  <p>{{ element.registrationDate }}</p>
+                </td>
+                <td>
+                  <p>{{ element.mileage }}</p>
+                </td>
+                <td>
+                  <p [ngClass]="{
+                      'active-status': element.status,
+                      'deactive-status': !element.status
+                    }">
+                    {{ element.status ? "active" : "deactive" }}
+                  </p>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <button class="btn-action edit-btn" (click)="openEditVehicleModal(element)" title="Edit">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button class="btn-action" [ngClass]="element.status ? 'deactivate-btn' : 'activate-btn'"
+                      (click)="toggleStatus(element)"
+                      [title]="element.status ? 'Deactivate Status' : 'Activate Status'">
+                      <i class="fa-solid" [ngClass]="element.status ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <pagination-controls id="vehicles-pagination" (pageChange)="pVehicles = $event" class="my-pagination"></pagination-controls>
+
+        <!-- Mobile Card View -->
+        <div class="lg:hidden space-y-4">
+          <div *ngFor="let element of dataSourceVehicle | paginate: { id: 'vehicles-pagination', itemsPerPage: showEntries, currentPage: pVehicles }; index as i"
+               class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-2">
+              <div>
+                <strong>Sr No:</strong>
+                {{ (pVehicles - 1) * showEntries + i + 1 }}
+              </div>
+              <div>
+                <div class="d-flex align-items-center gap-1">
+                  <button class="btn-action edit-btn" (click)="openEditVehicleModal(element)" title="Edit">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="btn-action" [ngClass]="element.status ? 'deactivate-btn' : 'activate-btn'"
+                    (click)="toggleStatus(element)"
+                    [title]="element.status ? 'Deactivate Status' : 'Activate Status'">
+                    <i class="fa-solid" [ngClass]="element.status ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="mb-2"><strong>Vehicle No:</strong> {{ element.vehicleNo }}</div>
+            <div class="mb-2"><strong>Model Name:</strong> {{ element.modelName }}</div>
+            <div class="mb-2"><strong>Registration Date:</strong> {{ element.registrationDate }}</div>
+            <div class="mb-2"><strong>Mileage:</strong> {{ element.mileage }}</div>
+            <div>
+              <strong>Status:</strong>
+              <span [ngClass]="{
+                  'active-status': element.status,
+                  'deactive-status': !element.status
+                }">
+                {{ element.status ? "active" : "deactive" }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center">
+          <span class="showalltext">Showing
+            {{ showEntries * (pVehicles - 1) > 0 ? showEntries * (pVehicles - 1) + 1 : 1 }} to
+            {{ showEntries * pVehicles <= dataSourceVehicle.length ? showEntries * pVehicles : dataSourceVehicle.length }} of {{ dataSourceVehicle.length }} entries</span>
+          <pagination-controls id="vehicles-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
+            (pageChange)="pVehicles = $event" target="_top"></pagination-controls>
+        </div>
       </div>
-    </div>
 
-    <!-- Body Types Table -->
-    <div class="table-responsive" *ngIf="activeTab === 'body-types'">
-      <table mat-table [dataSource]="dataSourceBodyType | paginate: { id: 'bodytypes-pagination', itemsPerPage: showEntries, currentPage: pBodyTypes }" class="table table-hover w-100" style="margin-bottom: 0;">
-        <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;"> SR NO
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;"> {{element.id}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="bodyType">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;"> BODY TYPE
-          </th>
-          <td mat-cell *matCellDef="let element"
-            style="border-bottom: 1px solid #e9ecef; color: #525f7f; font-size: 13px;">
-            {{element.bodyType}} </td>
-        </ng-container>
-
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            STATUS </th>
-          <td mat-cell *matCellDef="let element" style="border-bottom: 1px solid #e9ecef;">
-            <mat-slide-toggle [checked]="element.status" color="primary"></mat-slide-toggle>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef class="table-new-heading font-weight-bold"
-            style="color: #8898aa; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #e9ecef;">
-            ACTION </th>
-          <td mat-cell *matCellDef="let element" style="border-bottom: 1px solid #e9ecef;">
-            <div class="d-flex align-items-center gap-2">
-              <button class="btn-action edit-btn" (click)="openEditBodyTypeModal(element)" data-tooltip="Edit">
-                <i class="fa-solid fa-pen-to-square"></i>
-              </button>
-            </div>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedBodyTypeColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedBodyTypeColumns;"></tr>
-      </table>
-      <div class="d-flex justify-content-between align-items-center mt-4">
-        <div style="font-size: 14px; color: #525f7f;">
-          Showing {{ (pBodyTypes - 1) * showEntries + 1 }} to {{ (pBodyTypes * showEntries > dataSourceBodyType.length) ? dataSourceBodyType.length : (pBodyTypes * showEntries) }} of {{ dataSourceBodyType.length }} entries
+      <!-- Body Types View (Active Tab: body-types) -->
+      <div *ngIf="activeTab === 'body-types'">
+        <!-- Desktop Table View -->
+        <div class="hidden lg:block">
+          <table class="table table-bordered table-hover table-striped mb-0">
+            <thead class="table-header">
+              <tr>
+                <th><p class="table-heading">SR NO</p></th>
+                <th><p class="table-heading">BODY TYPE</p></th>
+                <th><p class="table-heading">STATUS</p></th>
+                <th><p class="table-heading">ACTION</p></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let element of dataSourceBodyType | paginate: { id: 'bodytypes-pagination', itemsPerPage: showEntries, currentPage: pBodyTypes }; index as i">
+                <td>
+                  {{ (pBodyTypes - 1) * showEntries + i + 1 }}
+                </td>
+                <td>
+                  <p>{{ element.bodyType }}</p>
+                </td>
+                <td>
+                  <p [ngClass]="{
+                      'active-status': element.status,
+                      'deactive-status': !element.status
+                    }">
+                    {{ element.status ? "active" : "deactive" }}
+                  </p>
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <button class="btn-action edit-btn" (click)="openEditBodyTypeModal(element)" title="Edit">
+                      <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button class="btn-action" [ngClass]="element.status ? 'deactivate-btn' : 'activate-btn'"
+                      (click)="toggleStatus(element)"
+                      [title]="element.status ? 'Deactivate Status' : 'Activate Status'">
+                      <i class="fa-solid" [ngClass]="element.status ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <pagination-controls id="bodytypes-pagination" (pageChange)="pBodyTypes = $event" class="my-pagination"></pagination-controls>
+
+        <!-- Mobile Card View -->
+        <div class="lg:hidden space-y-4">
+          <div *ngFor="let element of dataSourceBodyType | paginate: { id: 'bodytypes-pagination', itemsPerPage: showEntries, currentPage: pBodyTypes }; index as i"
+               class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div class="flex justify-between items-center mb-2">
+              <div>
+                <strong>Sr No:</strong>
+                {{ (pBodyTypes - 1) * showEntries + i + 1 }}
+              </div>
+              <div>
+                <div class="d-flex align-items-center gap-1">
+                  <button class="btn-action edit-btn" (click)="openEditBodyTypeModal(element)" title="Edit">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="btn-action" [ngClass]="element.status ? 'deactivate-btn' : 'activate-btn'"
+                    (click)="toggleStatus(element)"
+                    [title]="element.status ? 'Deactivate Status' : 'Activate Status'">
+                    <i class="fa-solid" [ngClass]="element.status ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="mb-2"><strong>Body Type:</strong> {{ element.bodyType }}</div>
+            <div>
+              <strong>Status:</strong>
+              <span [ngClass]="{
+                  'active-status': element.status,
+                  'deactive-status': !element.status
+                }">
+                {{ element.status ? "active" : "deactive" }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center">
+          <span class="showalltext">Showing
+            {{ showEntries * (pBodyTypes - 1) > 0 ? showEntries * (pBodyTypes - 1) + 1 : 1 }} to
+            {{ showEntries * pBodyTypes <= dataSourceBodyType.length ? showEntries * pBodyTypes : dataSourceBodyType.length }} of {{ dataSourceBodyType.length }} entries</span>
+          <pagination-controls id="bodytypes-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
+            (pageChange)="pBodyTypes = $event" target="_top"></pagination-controls>
+        </div>
       </div>
     </div>
   </div>
