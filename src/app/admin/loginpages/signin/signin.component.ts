@@ -14,6 +14,7 @@ import {
 import { Router } from '@angular/router';
 import { JwtService } from 'src/app/core/services/jwt.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
+import { LoginService } from 'src/app/core/services/login.service';
 
 @Component({
   selector: 'app-signin',
@@ -59,6 +60,8 @@ export class SigninComponent implements OnInit {
   successName: any = '';
 
   errorMessage: any;
+  emailBackendError: string = '';
+  passwordBackendError: string = '';
   submitted: boolean = false;
   showPassword: boolean = false;
 
@@ -69,12 +72,17 @@ export class SigninComponent implements OnInit {
     private router: Router,
     private jwtService: JwtService,
     private notificationService: NotificationService,
+    private loginService: LoginService,
   ) {}
 
   ngOnInit(): void {
     this.signIn = this.formBuilder.group({
       email: ['', [Validators.required, Validators.pattern(this.email_pattern)]],
       password: ['', [Validators.required, Validators.minLength(6)]],
+    });
+
+    this.signIn.valueChanges.subscribe(() => {
+      this.errorMessage = '';
     });
   }
 
@@ -88,32 +96,70 @@ export class SigninComponent implements OnInit {
 
   onSignIn() {
     this.errorMessage = '';
+    this.emailBackendError = '';
+    this.passwordBackendError = '';
     this.submitted = true;
 
     if (this.signIn.valid) {
       const email = this.signIn.get('email')?.value;
       const password = this.signIn.get('password')?.value;
 
-      // Mock Login Logic
-      if (email === 'admin@demo.com' && password === '123456') {
-        this.successName = 'Login';
-        this.openSecondsuccess = true;
-        
-        // Mocking token and user data
-        this.jwtService.savepanelUserId('1');
-        this.jwtService.saveadminame('Admin User');
-        this.jwtService.saveAdminToken('mock-token-123');
-        this.jwtService.saveAdminRole('admin');
-        this.jwtService.isLoggedIn(true);
-        
-        setTimeout(() => {
-          this.openSecondsuccess = false;
-          this.router.navigate(['admin/dashboard']);
-        }, 1500);
+      const body = new FormData();
+      body.append('email', email);
+      body.append('password', password);
 
-      } else {
-        this.errorMessage = 'Invalid email or password';
-      }
+      this.loginService.AdminLoginapi(body).subscribe({
+        next: (response: any) => {
+          if (response && response.access_token) {
+            this.successName = 'Login';
+            this.openSecondsuccess = true;
+
+            this.jwtService.savepanelUserId(response.user.id.toString());
+            this.jwtService.saveadminame(response.user.email || 'Admin User');
+            this.jwtService.saveAdminToken(response.access_token);
+            this.jwtService.saveAdminRole('admin');
+            this.jwtService.isLoggedIn(true);
+
+            setTimeout(() => {
+              this.openSecondsuccess = false;
+              this.router.navigate(['admin/dashboard']);
+            }, 1500);
+          } else if (response && (response.status === 422 || response.status === 401)) {
+            const errorMsg = response.message || 'Invalid credentials';
+            this.errorMessage = 'Invalid credentials';
+            this.notificationService.show(errorMsg, 'error', 3000);
+            this.signIn.markAllAsTouched();
+          } else {
+            const errorMsg = response?.message || 'Login failed. Please try again.';
+            this.errorMessage = 'Invalid credentials';
+            this.notificationService.show(errorMsg, 'error', 3000);
+            this.signIn.markAllAsTouched();
+          }
+        },
+        error: (err: any) => {
+          console.log('Login error received:', err);
+          
+          let errorMsg = '';
+          
+          if (typeof err === 'string') {
+            if (err.includes('Message:')) {
+              errorMsg = err.split('Message:')[1].trim();
+            } else {
+              errorMsg = err;
+            }
+          } else if (err && err.message) {
+            errorMsg = err.message;
+          } else if (err && err.error && err.error.message) {
+            errorMsg = err.error.message;
+          } else {
+            errorMsg = 'Invalid email or password';
+          }
+
+          this.errorMessage = 'Invalid credentials';
+          this.notificationService.show(errorMsg, 'error', 3000);
+          this.signIn.markAllAsTouched();
+        }
+      });
     } else {
       this.errorMessage = 'Please fill out all required fields correctly';
       this.signIn.markAllAsTouched();

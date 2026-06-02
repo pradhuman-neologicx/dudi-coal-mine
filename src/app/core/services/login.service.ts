@@ -18,7 +18,7 @@ export class LoginService {
   ) {}
 
   AdminLoginapi(body: any): Observable<any> {
-    return this.apiservice.postWithoutHeader(`login`, body);
+    return this.apiservice.postWithoutHeader(`v1/auth/login`, body);
   }
 
   AdminForgetPasswordApi(body: any): Observable<any> {

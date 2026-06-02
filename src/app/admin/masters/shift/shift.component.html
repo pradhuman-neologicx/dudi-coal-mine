@@ -116,7 +116,7 @@
               </td>
               <td>
                 <div class="d-flex align-items-center gap-2">
-                  <button class="btn-action edit-btn" (click)="OpenEditModal(shift)" title="Edit">
+                  <button *ngIf="shift.is_active == 1" class="btn-action edit-btn" (click)="OpenEditModal(shift)" title="Edit">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
                   <button class="btn-action view-btn" (click)="openviewModal(shift)" title="View Details">
@@ -157,7 +157,7 @@
             </div>
             <div>
               <div class="d-flex align-items-center gap-1">
-                <button class="btn btn-link p-1 text-primary" (click)="OpenEditModal(shift)" title="Edit">
+                <button *ngIf="shift.is_active == 1" class="btn btn-link p-1 text-primary" (click)="OpenEditModal(shift)" title="Edit">
                   <i class="fa-solid fa-pen-to-square fs-5"></i>
                 </button>
                 <button class="btn btn-link p-1 text-info" (click)="openviewModal(shift)" title="View Details">
@@ -219,16 +219,27 @@
                 [ngClass]="{'is-invalid': createShiftForm.controls['shiftName'].errors && (createShiftForm.controls['shiftName'].touched || createShiftForm.controls['shiftName'].dirty)}" />
             </div>
 
+            <div class="col-md-12 mb-3 d-flex align-items-center gap-2">
+              <input type="checkbox" id="isNightShift" class="form-check-input mt-0" formControlName="isNightShift" />
+              <label for="isNightShift" class="form-check-label form-lable-custom mb-0 cursor-pointer">Night Shift</label>
+            </div>
+
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Start Time</label>
               <input type="time" class="d-block form-control form-input-custom" formControlName="startTime"
                 [ngClass]="{'is-invalid': createShiftForm.controls['startTime'].errors && (createShiftForm.controls['startTime'].touched || createShiftForm.controls['startTime'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createShiftForm.controls['startTime'].hasError('invalidNightStart')">
+                Night shift must start between 6:00 PM and 6:00 AM
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">End Time</label>
               <input type="time" class="d-block form-control form-input-custom" formControlName="endTime"
                 [ngClass]="{'is-invalid': createShiftForm.controls['endTime'].errors && (createShiftForm.controls['endTime'].touched || createShiftForm.controls['endTime'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createShiftForm.controls['endTime'].hasError('invalidNightEnd')">
+                Night shift must end between 3:00 AM and 3:00 PM
+              </div>
             </div>
 
             <div class="col-md-12 mb-3">
@@ -275,16 +286,27 @@
                 [ngClass]="{'is-invalid': updateShiftForm.controls['shiftName'].errors && (updateShiftForm.controls['shiftName'].touched || updateShiftForm.controls['shiftName'].dirty)}" />
             </div>
 
+            <div class="col-md-12 mb-3 d-flex align-items-center gap-2">
+              <input type="checkbox" id="updateIsNightShift" class="form-check-input mt-0" formControlName="isNightShift" />
+              <label for="updateIsNightShift" class="form-check-label form-lable-custom mb-0 cursor-pointer">Night Shift</label>
+            </div>
+
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Start Time</label>
               <input type="time" class="d-block form-control form-input-custom" formControlName="startTime"
                 [ngClass]="{'is-invalid': updateShiftForm.controls['startTime'].errors && (updateShiftForm.controls['startTime'].touched || updateShiftForm.controls['startTime'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateShiftForm.controls['startTime'].hasError('invalidNightStart')">
+                Night shift must start between 6:00 PM and 6:00 AM
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">End Time</label>
               <input type="time" class="d-block form-control form-input-custom" formControlName="endTime"
                 [ngClass]="{'is-invalid': updateShiftForm.controls['endTime'].errors && (updateShiftForm.controls['endTime'].touched || updateShiftForm.controls['endTime'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateShiftForm.controls['endTime'].hasError('invalidNightEnd')">
+                Night shift must end between 3:00 AM and 3:00 PM
+              </div>
             </div>
 
             <div class="col-md-12 mb-3">

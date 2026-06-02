@@ -6,13 +6,14 @@ import {
   animate,
 } from '@angular/animations';
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
+import { ShiftService } from 'src/app/core/services/shift.service';
 
 @Component({
   selector: 'app-shift',
@@ -69,6 +70,7 @@ export class ShiftComponent implements OnInit {
   
   shiftList: any[] = [];
   
+
   table_heading = [
     {
       heading0: 'Serial No.',
@@ -80,15 +82,10 @@ export class ShiftComponent implements OnInit {
     },
   ];
 
-  mockShifts: any[] = [
-    { id: '1', shiftName: 'Shift A', startTime: '06:00', endTime: '14:00', minWorkingHours: 8, graceTime: 15, is_active: 1 },
-    { id: '2', shiftName: 'Shift B', startTime: '14:00', endTime: '22:00', minWorkingHours: 8, graceTime: 15, is_active: 1 },
-    { id: '3', shiftName: 'Shift C', startTime: '22:00', endTime: '06:00', minWorkingHours: 8, graceTime: 15, is_active: 1 },
-  ];
-
   constructor(
     private formBuilder: FormBuilder,
     private notificationService: NotificationService,
+    private shiftService: ShiftService,
   ) {}
 
   ngOnInit(): void {
@@ -98,18 +95,18 @@ export class ShiftComponent implements OnInit {
 
     this.createShiftForm = this.formBuilder.group({
       shiftName: ['', [Validators.required]],
-      startTime: ['', [Validators.required]],
-      endTime: ['', [Validators.required]],
+      startTime: ['', [Validators.required, this.nightShiftValidator()]],
+      endTime: ['', [Validators.required, this.nightShiftEndValidator()]],
       minWorkingHours: ['', [Validators.required, Validators.min(1)]],
-      // graceTime: ['', [Validators.required, Validators.min(0)]],
+      isNightShift: [false]
     });
 
     this.updateShiftForm = this.formBuilder.group({
       shiftName: ['', [Validators.required]],
-      startTime: ['', [Validators.required]],
-      endTime: ['', [Validators.required]],
+      startTime: ['', [Validators.required, this.nightShiftValidator()]],
+      endTime: ['', [Validators.required, this.nightShiftEndValidator()]],
       minWorkingHours: ['', [Validators.required, Validators.min(1)]],
-      // graceTime: ['', [Validators.required, Validators.min(0)]],
+      isNightShift: [false]
     });
 
     this.viewShiftForm = this.formBuilder.group({
@@ -117,10 +114,71 @@ export class ShiftComponent implements OnInit {
       startTime: [''],
       endTime: [''],
       minWorkingHours: [''],
-      // graceTime: [''],
+    });
+
+    // Subscribe to Create Form Night Shift Checkbox Changes
+    this.createShiftForm.get('isNightShift')?.valueChanges.subscribe((isChecked) => {
+      if (isChecked) {
+        this.createShiftForm.patchValue({
+          startTime: '20:00',
+          endTime: '08:00'
+        }, { emitEvent: false });
+      } else {
+        this.createShiftForm.patchValue({
+          startTime: '',
+          endTime: ''
+        }, { emitEvent: false });
+      }
+      this.createShiftForm.get('startTime')?.updateValueAndValidity();
+      this.createShiftForm.get('endTime')?.updateValueAndValidity();
+    });
+
+    // Subscribe to Update Form Night Shift Checkbox Changes
+    this.updateShiftForm.get('isNightShift')?.valueChanges.subscribe((isChecked) => {
+      if (isChecked) {
+        this.updateShiftForm.patchValue({
+          startTime: '20:00',
+          endTime: '08:00'
+        }, { emitEvent: false });
+      }
+      this.updateShiftForm.get('startTime')?.updateValueAndValidity();
+      this.updateShiftForm.get('endTime')?.updateValueAndValidity();
     });
     
     this.GetShiftFun();
+  }
+
+  nightShiftValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.parent) return null;
+      const isNight = control.parent.get('isNightShift')?.value;
+      const startTime = control.value;
+
+      if (isNight && startTime) {
+        const hour = parseInt(startTime.split(':')[0], 10);
+        if (hour >= 6 && hour < 18) {
+          return { invalidNightStart: true };
+        }
+      }
+      return null;
+    };
+  }
+
+  nightShiftEndValidator(): ValidatorFn {
+    return (control: AbstractControl): ValidationErrors | null => {
+      if (!control.parent) return null;
+      const isNight = control.parent.get('isNightShift')?.value;
+      const endTime = control.value;
+
+      if (isNight && endTime) {
+        const hour = parseInt(endTime.split(':')[0], 10);
+        // Night shift ends usually in morning/afternoon (e.g. between 03:00 AM and 03:00 PM)
+        if (hour >= 15 || hour < 3) {
+          return { invalidNightEnd: true };
+        }
+      }
+      return null;
+    };
   }
 
   onTableSizeChange(event: any): void {
@@ -150,6 +208,8 @@ export class ShiftComponent implements OnInit {
     this.GetShiftFun();
   }
 
+
+
   openAddModal() {
     this.createShiftOpen = true;
   }
@@ -171,47 +231,96 @@ export class ShiftComponent implements OnInit {
   openviewModal(shift: any): void {
     this.viewShiftOpen = true;
     this.currentShiftId = shift.id;
-    this.selectedShift = shift;
-    this.viewShiftForm.patchValue({ 
-      shiftName: shift.shiftName,
-      startTime: shift.startTime,
-      endTime: shift.endTime,
-      minWorkingHours: shift.minWorkingHours,
-      // graceTime: shift.graceTime,
+    this.selectedShift = null;
+
+    this.shiftService.getShiftById(shift.id).subscribe({
+      next: (response: any) => {
+        if (response.status === 200) {
+          const resShift = response.data;
+          this.selectedShift = {
+            ...resShift,
+            shiftName: resShift.name,
+            startTime: resShift.start_time,
+            endTime: resShift.end_time,
+            minWorkingHours: resShift.minimum_working_hours,
+            is_active: resShift.status !== undefined ? resShift.status : resShift.is_active
+          };
+          this.viewShiftForm.patchValue({ 
+            shiftName: resShift.name,
+            startTime: resShift.start_time,
+            endTime: resShift.end_time,
+            minWorkingHours: resShift.minimum_working_hours
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching shift details:', error);
+      }
     });
   }
 
   GetupdateShiftbyid(shiftId: any) {
-    const shift = this.mockShifts.find((d) => d.id === shiftId);
-    if (shift) {
-      this.updateShiftForm.patchValue({
-        shiftName: shift.shiftName,
-        startTime: shift.startTime,
-        endTime: shift.endTime,
-        minWorkingHours: shift.minWorkingHours,
-        // graceTime: shift.graceTime,
-      });
-    }
+    this.shiftService.getShiftById(shiftId).subscribe({
+      next: (response: any) => {
+        if (response.status === 200) {
+          const shift = response.data;
+          this.updateShiftForm.patchValue({
+            shiftName: shift.name,
+            startTime: shift.start_time,
+            endTime: shift.end_time,
+            minWorkingHours: shift.minimum_working_hours,
+            isNightShift: shift.is_night_shift == 1
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching shift details:', error);
+      }
+    });
   }
 
+  errorMessage: any;
   createShift() {
     if (this.createShiftForm.valid) {
-      const shiftData = this.createShiftForm.value;
-      const newId = (this.mockShifts.length + 1).toString();
-      
-      this.mockShifts.unshift({ 
-        id: newId, 
-        ...shiftData, 
-        is_active: 1 
+      const shiftName = this.createShiftForm.get('shiftName')?.value;
+      const startTime = this.createShiftForm.get('startTime')?.value;
+      const endTime = this.createShiftForm.get('endTime')?.value;
+      const minWorkingHours = this.createShiftForm.get('minWorkingHours')?.value;
+      const isNightShift = this.createShiftForm.get('isNightShift')?.value ? 1 : 0;
+
+      const formData = new FormData();
+      formData.append('name', shiftName);
+      formData.append('start_time', startTime);
+      formData.append('end_time', endTime);
+      formData.append('minimum_working_hours', minWorkingHours.toString());
+      formData.append('is_night_shift', isNightShift.toString());
+
+      this.shiftService.createShift(formData).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.closeModal();
+            this.notificationService.show(response.message || 'Shift created successfully', 'success', 3000);
+            this.GetShiftFun();
+          } else {
+            this.notificationService.show(
+              response.message || response.error || 'Something went wrong',
+              'error',
+              3000,
+            );
+          }
+        },
+        error: (error) => {
+          console.error('Create Shift failed:', error);
+          let errorMsg = '';
+          if (typeof error === 'string') {
+            errorMsg = error.includes('Message:') ? error.split('Message:')[1].trim() : error;
+          } else {
+            errorMsg = error.message || error.error?.message || 'Something went wrong';
+          }
+          this.errorMessage = errorMsg;
+          this.notificationService.show(this.errorMessage, 'error', 3000);
+        },
       });
-      
-      this.closeModal();
-      this.notificationService.show(
-        'Shift created successfully',
-        'success',
-        3000,
-      );
-      this.GetShiftFun();
     } else {
       this.createShiftForm.markAllAsTouched();
     }
@@ -219,55 +328,109 @@ export class ShiftComponent implements OnInit {
 
   updateShift() {
     if (this.updateShiftForm.valid) {
-      const shiftData = this.updateShiftForm.value;
-      const index = this.mockShifts.findIndex((d) => d.id === this.currentShiftId);
-      
-      if (index !== -1) {
-        this.mockShifts[index] = { ...this.mockShifts[index], ...shiftData };
-        this.closeModal();
-        this.notificationService.show(
-          'Shift updated successfully',
-          'success',
-          3000,
-        );
-        this.GetShiftFun();
-      }
+      const shiftName = this.updateShiftForm.get('shiftName')?.value;
+      const startTime = this.updateShiftForm.get('startTime')?.value;
+      const endTime = this.updateShiftForm.get('endTime')?.value;
+      const minWorkingHours = this.updateShiftForm.get('minWorkingHours')?.value;
+      const isNightShift = this.updateShiftForm.get('isNightShift')?.value ? 1 : 0;
+
+      const formData = new FormData();
+      formData.append('name', shiftName);
+      formData.append('start_time', startTime);
+      formData.append('end_time', endTime);
+      formData.append('minimum_working_hours', minWorkingHours.toString());
+      formData.append('is_night_shift', isNightShift.toString());
+      formData.append('_method', 'PUT');
+
+      this.shiftService.updateShift(this.currentShiftId, formData).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.closeModal();
+            this.notificationService.show(response.message || 'Shift updated successfully', 'success', 3000);
+            this.GetShiftFun();
+          } else {
+            this.notificationService.show(
+              response.message || response.error || 'Something went wrong',
+              'error',
+              3000,
+            );
+          }
+        },
+        error: (error: any) => {
+          console.error('Update Shift failed:', error);
+          let errorMsg = '';
+          if (typeof error === 'string') {
+            errorMsg = error.includes('Message:') ? error.split('Message:')[1].trim() : error;
+          } else {
+            errorMsg = error.message || error.error?.message || 'Something went wrong';
+          }
+          this.notificationService.show(errorMsg, 'error', 3000);
+        }
+      });
     } else {
       this.updateShiftForm.markAllAsTouched();
     }
   }
 
   GetShiftFun() {
-    const searchText = this.searchbarform.get('searchbar')?.value?.toLowerCase();
-    let filteredData = this.mockShifts;
+    const searchText = this.searchbarform?.get('searchbar')?.value || '';
 
-    if (searchText) {
-      filteredData = this.mockShifts.filter((d) =>
-        d.shiftName.toLowerCase().includes(searchText)
-      );
-    }
-
-    this.totalRecords = filteredData.length;
-
-    if (this.tableSize === 'all') {
-      this.shiftList = filteredData;
-    } else {
-      const startIndex = (this.page - 1) * this.tableSize;
-      const endIndex = startIndex + this.tableSize;
-      this.shiftList = filteredData.slice(startIndex, endIndex);
-    }
+    this.shiftService
+      .getShifts(this.tableSize, this.page, searchText)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 200) {
+            this.shiftList = response.data.map((item: any) => ({
+              ...item,
+              shiftName: item.name,
+              startTime: item.start_time,
+              endTime: item.end_time,
+              minWorkingHours: item.minimum_working_hours,
+              is_active: item.status !== undefined ? item.status : item.is_active
+            }));
+            this.totalRecords = response.pagination?.total || response.data.length;
+          } else {
+            console.error('Failed to fetch shifts:', response.message);
+          }
+        },
+        error: (error: any) => {
+          console.error('Error fetching shifts:', error);
+        }
+      });
   }
 
   async Status(id: string, status: any) {
-    const index = this.mockShifts.findIndex((d) => d.id === id);
-    if (index !== -1) {
-      this.mockShifts[index].is_active = status;
-      this.notificationService.show(
-        `Shift ${status ? 'activated' : 'deactivated'} successfully`,
-        'success',
-        2000,
-      );
-      this.GetShiftFun();
-    }
+    const formData = new FormData();
+    formData.append('_method', 'PATCH');
+    formData.append('status', status.toString());
+
+    this.shiftService.updateShiftStatus(id, formData).subscribe({
+      next: (response: any) => {
+        if (response.status === 200 || response.status === 201) {
+          this.notificationService.show(
+            response.message || `Shift status updated successfully`,
+            'success',
+            3000
+          );
+          this.GetShiftFun();
+        } else {
+          this.notificationService.show(
+            response.message || response.error || 'Failed to update status',
+            'error',
+            3000
+          );
+        }
+      },
+      error: (error: any) => {
+        console.error('Status update failed:', error);
+        let errorMsg = '';
+        if (typeof error === 'string') {
+          errorMsg = error.includes('Message:') ? error.split('Message:')[1].trim() : error;
+        } else {
+          errorMsg = error.message || error.error?.message || 'Something went wrong';
+        }
+        this.notificationService.show(errorMsg, 'error', 3000);
+      }
+    });
   }
 }

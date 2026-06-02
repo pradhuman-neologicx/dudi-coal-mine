@@ -11,6 +11,7 @@ import { EmployeeService } from 'src/app/core/services/Employee.service';
 import { JwtService } from 'src/app/core/services/jwt.service';
 import { LoginService } from 'src/app/core/services/login.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
+import { DepartmentService } from 'src/app/core/services/department.service';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
@@ -110,6 +111,7 @@ export class DepartmentComponent {
     private jwtService: JwtService,
     private notificationService: NotificationService,
     private loginService: LoginService,
+    private departmentService: DepartmentService,
   ) {}
 
   searchfun() {
@@ -158,6 +160,8 @@ export class DepartmentComponent {
     },
   ];
 
+  currentDepartmentId: any;
+
   OpenEditModal(user: any): void {
     this.currentDepartmentId = user.id;
     this.updateDepartmentOpen = true;
@@ -165,43 +169,40 @@ export class DepartmentComponent {
     this.GetupdateDepartmentbyid(this.currentDepartmentId);
   }
 
-  currentDepartmentId: any;
   openviewModal(user: any): void {
     this.viewDepartmentOpen = true;
     this.currentDepartmentId = user.id;
-    this.selectedDepartment = user;
-    this.viewDepartmentForm.patchValue({ Name: user.name });
+    this.selectedDepartment = null;
+
+    this.departmentService.getDepartmentById(user.id).subscribe({
+      next: (response: any) => {
+        if (response.status === 200) {
+          const dept = response.data;
+          this.selectedDepartment = {
+            ...dept,
+            is_active: dept.status !== undefined ? dept.status : dept.is_active
+          };
+          this.viewDepartmentForm.patchValue({ Name: dept.name });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching department details:', error);
+      }
+    });
   }
 
-  mockDepartments: any[] = [
-    { id: '1', name: 'IT Department', is_active: 1 },
-    { id: '2', name: 'Human Resources', is_active: 1 },
-    { id: '3', name: 'Operations', is_active: 0 },
-    { id: '4', name: 'Sales & Marketing', is_active: 1 },
-    { id: '5', name: 'Finance', is_active: 1 },
-    { id: '6', name: 'Quality Assurance', is_active: 1 },
-    { id: '7', name: 'Customer Support', is_active: 0 },
-    { id: '8', name: 'R&D', is_active: 1 },
-    { id: '9', name: 'Logistics', is_active: 1 },
-    { id: '10', name: 'Legal', is_active: 1 },
-  ];
 
   GetupdateDepartmentbyid(userId: any) {
-    // Mock implementation
-    const department = this.mockDepartments.find((d) => d.id === userId);
-    if (department) {
-      this.fillformdate(department);
-    }
-
-    /*
-    this.employeeService
-      .getDepartmentbyID(userId)
-      .subscribe((response: any) => {
+    this.departmentService.getDepartmentById(userId).subscribe({
+      next: (response: any) => {
         if (response.status === 200) {
           this.fillformdate(response.data);
         }
-      });
-    */
+      },
+      error: (error: any) => {
+        console.error('Error fetching department details:', error);
+      }
+    });
   }
 
   async fillformdate(response: any) {
@@ -213,43 +214,35 @@ export class DepartmentComponent {
     if (this.updateDepartmentForm.valid) {
       const name = this.updateDepartmentForm.get('Name')?.value;
 
-      // Mock update logic
-      const index = this.mockDepartments.findIndex(
-        (d) => d.id === this.currentDepartmentId,
-      );
-      if (index !== -1) {
-        this.mockDepartments[index].name = name;
-        this.closeModal();
-        this.notificationService.show(
-          'Department updated successfully',
-          'success',
-          3000,
-        );
-        this.GetDepartmentFun();
-      }
-
-      /*
       const formData = new FormData();
       formData.append('name', name);
-      formData.append('_method', 'put');
+      formData.append('_method', 'PUT');
 
-      this.employeeService
-        .updateDepartment(formData, this.currrentClubId)
-        .subscribe({
-          next: (response: any) => {
-            if (response.status === 200 || response.status === 201) {
-              this.closeModal();
-              this.notificationService.show(response.message, 'success', 3000);
-              this.ngOnInit();
-            } else {
-              this.notificationService.show(response.error, 'error', 3000);
-            }
-          },
-          error: (error: any) => {
-            console.error('Update failed', error);
-          },
-        });
-      */
+      this.departmentService.updateDepartment(this.currentDepartmentId, formData).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.closeModal();
+            this.notificationService.show(response.message || 'Department updated successfully', 'success', 3000);
+            this.ngOnInit();
+          } else {
+            this.notificationService.show(
+              response.message || response.error || 'Something went wrong',
+              'error',
+              3000,
+            );
+          }
+        },
+        error: (error: any) => {
+          console.error('Update Department failed:', error);
+          let errorMsg = '';
+          if (typeof error === 'string') {
+            errorMsg = error.includes('Message:') ? error.split('Message:')[1].trim() : error;
+          } else {
+            errorMsg = error.message || error.error?.message || 'Something went wrong';
+          }
+          this.notificationService.show(errorMsg, 'error', 3000);
+        }
+      });
     } else {
       this.updateDepartmentForm.markAllAsTouched();
     }
@@ -276,103 +269,98 @@ export class DepartmentComponent {
     if (this.createDepartmentForm.valid) {
       const name = this.createDepartmentForm.get('Name')?.value;
 
-      // Mock create logic
-      const newId = (this.mockDepartments.length + 1).toString();
-      this.mockDepartments.unshift({ id: newId, name: name, is_active: 1 });
-      this.closeModal();
-      this.notificationService.show(
-        'Department created successfully',
-        'success',
-        3000,
-      );
-      this.GetDepartmentFun();
-
-      /*
       const formData = new FormData();
       formData.append('name', name);
-      this.employeeService.createDepartment(formData).subscribe({
+
+      this.departmentService.createDepartment(formData).subscribe({
         next: (response: any) => {
           if (response.status === 200 || response.status === 201) {
             this.closeModal();
-            this.notificationService.show(response.message, 'success', 3000);
+            this.notificationService.show(response.message || 'Department created successfully', 'success', 3000);
             this.ngOnInit();
           } else {
             this.notificationService.show(
-              response.error || 'Something went wrong',
+              response.message || response.error || 'Something went wrong',
               'error',
               3000,
             );
           }
         },
         error: (error) => {
-          this.errorMessage = error.message; // Display error message
+          console.error('Create Department failed:', error);
+          let errorMsg = '';
+          if (typeof error === 'string') {
+            errorMsg = error.includes('Message:') ? error.split('Message:')[1].trim() : error;
+          } else {
+            errorMsg = error.message || error.error?.message || 'Something went wrong';
+          }
+          this.errorMessage = errorMsg; // Display error message
           this.notificationService.show(this.errorMessage, 'error', 3000);
         },
       });
-      */
     } else {
       this.createDepartmentForm.markAllAsTouched();
     }
   }
 
   GetDepartmentFun() {
-    // Mock fetch logic with search and pagination
-    const searchText = this.searchbarform
-      .get('searchbar')
-      ?.value?.toLowerCase();
-    let filteredData = this.mockDepartments;
+    const searchText = this.searchbarform?.get('searchbar')?.value || '';
 
-    if (searchText) {
-      filteredData = this.mockDepartments.filter((d) =>
-        d.name.toLowerCase().includes(searchText),
-      );
-    }
-
-    this.totalRecords = filteredData.length;
-
-    if (this.tableSize === 'all') {
-      this.departmentList = filteredData;
-    } else {
-      const startIndex = (this.page - 1) * this.tableSize;
-      const endIndex = startIndex + this.tableSize;
-      this.departmentList = filteredData.slice(startIndex, endIndex);
-    }
-
-    /*
-    this.employeeService
-      .GetDepartmentAPi(
-        this.tableSize,
-        this.page,
-        this.searchbarform.get('searchbar')?.value,
-      )
-      .subscribe((response: any) => {
-        if (response.status === 200) {
-          this.examCategory = response.data.records;
-          this.totalRecords = response.data.total;
+    this.departmentService
+      .getDepartments(this.tableSize, this.page, searchText)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 200) {
+            this.departmentList = response.data.map((item: any) => ({
+              ...item,
+              is_active: item.status !== undefined ? item.status : item.is_active
+            }));
+            this.totalRecords = response.pagination?.total || response.data.length;
+          } else {
+            console.error('Failed to fetch departments:', response.message);
+          }
+        },
+        error: (error: any) => {
+          console.error('Error fetching departments:', error);
         }
       });
-    */
   }
 
   async Status(id: string, status: any) {
-    // Mock status toggle logic
-    const index = this.mockDepartments.findIndex((d) => d.id === id);
-    if (index !== -1) {
-      this.mockDepartments[index].is_active = status;
-      this.notificationService.show(
-        `Department ${status ? 'activated' : 'deactivated'} successfully`,
-        'success',
-        2000,
-      );
-      this.GetDepartmentFun();
-    }
+    const department = this.departmentList?.find((d: any) => d.id === id);
+    if (!department) return;
 
-    /*
-    this.employeeService.changestatus(id, status).subscribe((response: any) => {
-      if (response.status === 200) {
-        this.ngOnInit();
+    const formData = new FormData();
+    formData.append('_method', 'PATCH');
+    formData.append('status', status.toString());
+
+    this.departmentService.updateDepartmentStatus(id, formData).subscribe({
+      next: (response: any) => {
+        if (response.status === 200 || response.status === 201) {
+          this.notificationService.show(
+            response.message || `Department status updated successfully`,
+            'success',
+            3000
+          );
+          this.GetDepartmentFun();
+        } else {
+          this.notificationService.show(
+            response.message || response.error || 'Failed to update status',
+            'error',
+            3000
+          );
+        }
+      },
+      error: (error: any) => {
+        console.error('Status update failed:', error);
+        let errorMsg = '';
+        if (typeof error === 'string') {
+          errorMsg = error.includes('Message:') ? error.split('Message:')[1].trim() : error;
+        } else {
+          errorMsg = error.message || error.error?.message || 'Something went wrong';
+        }
+        this.notificationService.show(errorMsg, 'error', 3000);
       }
     });
-    */
   }
 }

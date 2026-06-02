@@ -1,0 +1,79 @@
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { ApiService } from './api.service';
+import { JwtService } from './jwt.service';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class SiteService {
+  constructor(
+    private http: HttpClient,
+    private apiservice: ApiService,
+    private jwtService: JwtService
+  ) {}
+
+  createSite(requestbody: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    let headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+    if (!(requestbody instanceof FormData)) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
+    return this.apiservice.post(`v1/admin/sites`, requestbody, headers);
+  }
+
+  getSites(tableSize: any, page: any, search: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+
+    let url = '';
+    if (tableSize !== 'all') {
+      url = `v1/admin/sites?limit=${tableSize}&page=${page}`;
+    } else {
+      url = `v1/admin/sites`;
+    }
+
+    if (search && search.length > 0) {
+      url += (url.includes('?') ? '&' : '?') + `search=${search}`;
+    }
+
+    return this.apiservice.get(url, headers);
+  }
+
+  getSiteById(id: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+    return this.apiservice.get(`v1/admin/sites/${id}`, headers);
+  }
+
+  updateSite(id: any, body: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    let headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+    if (!(body instanceof FormData)) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
+    return this.apiservice.post(`v1/admin/sites/${id}`, body, headers);
+  }
+
+  updateSiteStatus(id: any, body: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    let headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+    if (!(body instanceof FormData)) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
+    return this.apiservice.post(`v1/admin/sites/${id}/status`, body, headers);
+  }
+}

@@ -13,6 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
+import { SiteService } from 'src/app/core/services/site.service';
 
 @Component({
   selector: 'app-site-master',
@@ -79,15 +80,10 @@ export class SiteMasterComponent implements OnInit {
     },
   ];
 
-  mockSites: any[] = [
-    { id: '1', siteName: 'East Mine', address: 'Block A, East Sector', is_active: 1 },
-    { id: '2', siteName: 'West Mine', address: 'Block B, West Sector', is_active: 1 },
-    { id: '3', siteName: 'North Mine', address: 'Block C, North Sector', is_active: 0 },
-  ];
-
   constructor(
     private formBuilder: FormBuilder,
     private notificationService: NotificationService,
+    private siteService: SiteService,
   ) {}
 
   ngOnInit(): void {
@@ -161,37 +157,82 @@ export class SiteMasterComponent implements OnInit {
   openviewModal(site: any): void {
     this.viewSiteOpen = true;
     this.currentSiteId = site.id;
-    this.selectedSite = site;
-    this.viewSiteForm.patchValue({ 
-      siteName: site.siteName,
-      address: site.address
+    this.selectedSite = null;
+
+    this.siteService.getSiteById(site.id).subscribe({
+      next: (response: any) => {
+        if (response.status === 200) {
+          const resSite = response.data;
+          this.selectedSite = {
+            ...resSite,
+            siteName: resSite.name,
+            is_active: resSite.status !== undefined ? resSite.status : resSite.is_active
+          };
+          this.viewSiteForm.patchValue({ 
+            siteName: resSite.name,
+            address: resSite.address
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching site details:', error);
+      }
     });
   }
 
   GetupdateSitebyid(siteId: any) {
-    const site = this.mockSites.find((d) => d.id === siteId);
-    if (site) {
-      this.updateSiteForm.patchValue({
-        siteName: site.siteName,
-        address: site.address
-      });
-    }
+    this.siteService.getSiteById(siteId).subscribe({
+      next: (response: any) => {
+        if (response.status === 200) {
+          const site = response.data;
+          this.updateSiteForm.patchValue({
+            siteName: site.name,
+            address: site.address
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching site details:', error);
+      }
+    });
   }
 
+  errorMessage: any;
   createSite() {
     if (this.createSiteForm.valid) {
       const siteName = this.createSiteForm.get('siteName')?.value;
       const address = this.createSiteForm.get('address')?.value;
 
-      const newId = (this.mockSites.length + 1).toString();
-      this.mockSites.unshift({ id: newId, siteName: siteName, address: address, is_active: 1 });
-      this.closeModal();
-      this.notificationService.show(
-        'Site created successfully',
-        'success',
-        3000,
-      );
-      this.GetSiteFun();
+      const formData = new FormData();
+      formData.append('name', siteName);
+      formData.append('address', address);
+
+      this.siteService.createSite(formData).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.closeModal();
+            this.notificationService.show(response.message || 'Site created successfully', 'success', 3000);
+            this.GetSiteFun();
+          } else {
+            this.notificationService.show(
+              response.message || response.error || 'Something went wrong',
+              'error',
+              3000,
+            );
+          }
+        },
+        error: (error) => {
+          console.error('Create Site failed:', error);
+          let errorMsg = '';
+          if (typeof error === 'string') {
+            errorMsg = error.includes('Message:') ? error.split('Message:')[1].trim() : error;
+          } else {
+            errorMsg = error.message || error.error?.message || 'Something went wrong';
+          }
+          this.errorMessage = errorMsg;
+          this.notificationService.show(this.errorMessage, 'error', 3000);
+        },
+      });
     } else {
       this.createSiteForm.markAllAsTouched();
     }
@@ -202,54 +243,97 @@ export class SiteMasterComponent implements OnInit {
       const siteName = this.updateSiteForm.get('siteName')?.value;
       const address = this.updateSiteForm.get('address')?.value;
 
-      const index = this.mockSites.findIndex((d) => d.id === this.currentSiteId);
-      if (index !== -1) {
-        this.mockSites[index].siteName = siteName;
-        this.mockSites[index].address = address;
-        this.closeModal();
-        this.notificationService.show(
-          'Site updated successfully',
-          'success',
-          3000,
-        );
-        this.GetSiteFun();
-      }
+      const formData = new FormData();
+      formData.append('name', siteName);
+      formData.append('address', address);
+      formData.append('_method', 'PUT');
+
+      this.siteService.updateSite(this.currentSiteId, formData).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.closeModal();
+            this.notificationService.show(response.message || 'Site updated successfully', 'success', 3000);
+            this.GetSiteFun();
+          } else {
+            this.notificationService.show(
+              response.message || response.error || 'Something went wrong',
+              'error',
+              3000,
+            );
+          }
+        },
+        error: (error: any) => {
+          console.error('Update Site failed:', error);
+          let errorMsg = '';
+          if (typeof error === 'string') {
+            errorMsg = error.includes('Message:') ? error.split('Message:')[1].trim() : error;
+          } else {
+            errorMsg = error.message || error.error?.message || 'Something went wrong';
+          }
+          this.notificationService.show(errorMsg, 'error', 3000);
+        }
+      });
     } else {
       this.updateSiteForm.markAllAsTouched();
     }
   }
 
   GetSiteFun() {
-    const searchText = this.searchbarform.get('searchbar')?.value?.toLowerCase();
-    let filteredData = this.mockSites;
+    const searchText = this.searchbarform?.get('searchbar')?.value || '';
 
-    if (searchText) {
-      filteredData = this.mockSites.filter((d) =>
-        d.siteName.toLowerCase().includes(searchText) || d.address.toLowerCase().includes(searchText)
-      );
-    }
-
-    this.totalRecords = filteredData.length;
-
-    if (this.tableSize === 'all') {
-      this.siteList = filteredData;
-    } else {
-      const startIndex = (this.page - 1) * this.tableSize;
-      const endIndex = startIndex + this.tableSize;
-      this.siteList = filteredData.slice(startIndex, endIndex);
-    }
+    this.siteService
+      .getSites(this.tableSize, this.page, searchText)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 200) {
+            this.siteList = response.data.map((item: any) => ({
+              ...item,
+              siteName: item.name,
+              is_active: item.status !== undefined ? item.status : item.is_active
+            }));
+            this.totalRecords = response.pagination?.total || response.data.length;
+          } else {
+            console.error('Failed to fetch sites:', response.message);
+          }
+        },
+        error: (error: any) => {
+          console.error('Error fetching sites:', error);
+        }
+      });
   }
 
   async Status(id: string, status: any) {
-    const index = this.mockSites.findIndex((d) => d.id === id);
-    if (index !== -1) {
-      this.mockSites[index].is_active = status;
-      this.notificationService.show(
-        `Site ${status ? 'activated' : 'deactivated'} successfully`,
-        'success',
-        2000,
-      );
-      this.GetSiteFun();
-    }
+    const formData = new FormData();
+    formData.append('_method', 'PATCH');
+    formData.append('status', status.toString());
+
+    this.siteService.updateSiteStatus(id, formData).subscribe({
+      next: (response: any) => {
+        if (response.status === 200 || response.status === 201) {
+          this.notificationService.show(
+            response.message || `Site status updated successfully`,
+            'success',
+            3000
+          );
+          this.GetSiteFun();
+        } else {
+          this.notificationService.show(
+            response.message || response.error || 'Failed to update status',
+            'error',
+            3000
+          );
+        }
+      },
+      error: (error: any) => {
+        console.error('Status update failed:', error);
+        let errorMsg = '';
+        if (typeof error === 'string') {
+          errorMsg = error.includes('Message:') ? error.split('Message:')[1].trim() : error;
+        } else {
+          errorMsg = error.message || error.error?.message || 'Something went wrong';
+        }
+        this.notificationService.show(errorMsg, 'error', 3000);
+      }
+    });
   }
 }

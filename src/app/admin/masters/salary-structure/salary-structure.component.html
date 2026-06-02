@@ -86,6 +86,9 @@
               <th>
                 <p class="table-heading">{{ detail.heading8 }}</p>
               </th>
+              <th>
+                <p class="table-heading">{{ detail.heading9 }}</p>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -105,6 +108,9 @@
                 ? tableSize * (page - 1) + i + 1
                 : i + 1
                 }}
+              </td>
+              <td>
+                <p class="fw-bold">{{ getDesignationName(salary.designationId) }}</p>
               </td>
               <td>
                 <p>₹{{ salary.basicSalary }}</p>
@@ -192,6 +198,7 @@
               </div>
             </div>
           </div>
+          <div class="mb-2"><strong>Designation:</strong> {{ getDesignationName(salary.designationId) }}</div>
           <div class="mb-2"><strong>Basic Salary:</strong> ₹{{ salary.basicSalary }}</div>
           <div class="mb-2"><strong>Shift Allowance:</strong> ₹{{ salary.shiftAllowance }}</div>
           <div class="mb-2"><strong>Incentives:</strong> ₹{{ salary.incentives }}</div>
@@ -237,6 +244,14 @@
         </div>
         <div class="modal-content-widthtop card-body mb-0">
           <div class="row">
+            <div class="col-md-12 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Designation</label>
+              <select class="d-block form-control form-select form-input-custom" formControlName="designationId"
+                [ngClass]="{'is-invalid': createSalaryForm.controls['designationId'].errors && (createSalaryForm.controls['designationId'].touched || createSalaryForm.controls['designationId'].dirty)}">
+                <option value="">Select Designation</option>
+                <option *ngFor="let d of designations" [value]="d.id">{{ d.name }}</option>
+              </select>
+            </div>
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Basic Salary (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="basicSalary"
@@ -303,6 +318,14 @@
         </div>
         <div class="modal-content-widthtop card-body mb-0">
           <div class="row">
+            <div class="col-md-12 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Designation</label>
+              <select class="d-block form-control form-select form-input-custom" formControlName="designationId"
+                [ngClass]="{'is-invalid': updateSalaryForm.controls['designationId'].errors && (updateSalaryForm.controls['designationId'].touched || updateSalaryForm.controls['designationId'].dirty)}">
+                <option value="">Select Designation</option>
+                <option *ngFor="let d of designations" [value]="d.id">{{ d.name }}</option>
+              </select>
+            </div>
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Basic Salary (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="basicSalary"
@@ -388,6 +411,17 @@
         <!-- Salary Components Section -->
         <div class="grid-section-title">Salary Components</div>
         <div class="row g-3 mb-4">
+          <div class="col-md-12">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper basic" style="background: rgba(59, 130, 246, 0.1); color: rgb(59, 130, 246);">
+                <i class="fa-solid fa-user-tie"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Designation</span>
+                <span class="info-value text-primary">{{ getDesignationName(selectedSalary?.designationId) }}</span>
+              </div>
+            </div>
+          </div>
           <div class="col-md-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper basic">

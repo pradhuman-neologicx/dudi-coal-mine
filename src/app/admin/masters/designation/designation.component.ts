@@ -8,6 +8,7 @@ import {
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
+import { DesignationService } from 'src/app/core/services/designation.service';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
@@ -68,23 +69,13 @@ export class DesignationComponent implements OnInit {
   viewDesignationOpen: boolean = false;
   selectedDesignation: any = null;
 
-  mockDesignations: any[] = [
-    { id: '1', name: 'Mining Engineer', code: 'MENG', department: 'Mining', created_at: '2023-01-15', is_active: 1 },
-    { id: '2', name: 'Safety Officer', code: 'SOFF', department: 'Security', created_at: '2023-03-22', is_active: 1 },
-    { id: '3', name: 'Excavator Operator', code: 'EXOP', department: 'Maintenance', created_at: '2023-05-10', is_active: 1 },
-    { id: '4', name: 'HR Manager', code: 'HRMG', department: 'HR', created_at: '2023-07-04', is_active: 1 },
-    { id: '5', name: 'Ventilation Officer', code: 'VOFF', department: 'Mining', created_at: '2023-09-18', is_active: 0 },
-    { id: '6', name: 'Logistics Supervisor', code: 'LSUP', department: 'Operations', created_at: '2023-11-05', is_active: 1 },
-    { id: '7', name: 'Blasting Specialist', code: 'BSPL', department: 'Mining', created_at: '2024-01-20', is_active: 1 },
-    { id: '8', name: 'Maintenance Technician', code: 'MTEC', department: 'Maintenance', created_at: '2024-02-14', is_active: 0 }
-  ];
-
   designationList: any[] = [];
   table_heading = ['Serial No.', 'Designation Name', 'Status', 'Action'];
 
   constructor(
     private formBuilder: FormBuilder,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private designationService: DesignationService
   ) {}
 
   ngOnInit(): void {
@@ -122,8 +113,23 @@ export class DesignationComponent implements OnInit {
   }
 
   openviewModal(designation: any): void {
-    this.selectedDesignation = designation;
     this.viewDesignationOpen = true;
+    this.selectedDesignation = null;
+
+    this.designationService.getDesignationById(designation.id).subscribe({
+      next: (response: any) => {
+        if (response.status === 200) {
+          const resDesignation = response.data;
+          this.selectedDesignation = {
+            ...resDesignation,
+            is_active: resDesignation.status !== undefined ? resDesignation.status : resDesignation.is_active
+          };
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching designation details:', error);
+      }
+    });
   }
 
   closeModal() {
@@ -132,38 +138,60 @@ export class DesignationComponent implements OnInit {
   }
 
   GetDesignationFun() {
-    const searchText = this.searchbarform.get('searchbar')?.value?.toLowerCase();
-    let filteredData = this.mockDesignations;
+    const searchText = this.searchbarform?.get('searchbar')?.value || '';
 
-    if (searchText) {
-      filteredData = this.mockDesignations.filter((d) =>
-        d.name.toLowerCase().includes(searchText) || 
-        d.code.toLowerCase().includes(searchText) ||
-        d.department.toLowerCase().includes(searchText)
-      );
-    }
-
-    this.totalRecords = filteredData.length;
-
-    if (this.tableSize === 'all') {
-      this.designationList = filteredData;
-    } else {
-      const startIndex = (this.page - 1) * this.tableSize;
-      const endIndex = startIndex + this.tableSize;
-      this.designationList = filteredData.slice(startIndex, endIndex);
-    }
+    this.designationService
+      .getDesignations(this.tableSize, this.page, searchText)
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 200) {
+            this.designationList = response.data.map((item: any) => ({
+              ...item,
+              is_active: item.status !== undefined ? item.status : item.is_active
+            }));
+            this.totalRecords = response.pagination?.total || response.data.length;
+          } else {
+            console.error('Failed to fetch designations:', response.message);
+          }
+        },
+        error: (error: any) => {
+          console.error('Error fetching designations:', error);
+        }
+      });
   }
 
   async Status(id: string, status: any) {
-    const index = this.mockDesignations.findIndex((d) => d.id === id);
-    if (index !== -1) {
-      this.mockDesignations[index].is_active = status;
-      this.notificationService.show(
-        `Designation ${status ? 'activated' : 'deactivated'} successfully`,
-        'success',
-        2000
-      );
-      this.GetDesignationFun();
-    }
+    const formData = new FormData();
+    formData.append('_method', 'PATCH');
+    formData.append('status', status.toString());
+
+    this.designationService.updateDesignationStatus(id, formData).subscribe({
+      next: (response: any) => {
+        if (response.status === 200 || response.status === 201) {
+          this.notificationService.show(
+            response.message || `Role status updated successfully`,
+            'success',
+            3000
+          );
+          this.GetDesignationFun();
+        } else {
+          this.notificationService.show(
+            response.message || response.error || 'Failed to update status',
+            'error',
+            3000
+          );
+        }
+      },
+      error: (error: any) => {
+        console.error('Status update failed:', error);
+        let errorMsg = '';
+        if (typeof error === 'string') {
+          errorMsg = error.includes('Message:') ? error.split('Message:')[1].trim() : error;
+        } else {
+          errorMsg = error.message || error.error?.message || 'Something went wrong';
+        }
+        this.notificationService.show(errorMsg, 'error', 3000);
+      }
+    });
   }
 }

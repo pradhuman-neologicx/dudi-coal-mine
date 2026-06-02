@@ -226,8 +226,12 @@ export class AttendanceManagementService {
     return this.apiservice.post("student-attendance/get-employees",body,headers);
   }
   GetRoles(){
-  
-    return this.apiservice.get("auth/getUserManagementRoles");
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+    return this.apiservice.get("auth/getUserManagementRoles", headers);
   }
   
   MarkAttendanceemployeeExcelApi(formData:any){

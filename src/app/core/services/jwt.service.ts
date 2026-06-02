@@ -6,147 +6,147 @@ import { Observable } from 'rxjs';
   providedIn: 'root',
 })
 export class JwtService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // admin panel
 
   getisLoggedIn(): boolean {
-    return window.localStorage['cargo_isloggedIn'];
+    return window.localStorage['dudi_isloggedIn'];
   }
   isLoggedIn(isloggedIn: boolean) {
-    window.localStorage['cargo_isloggedIn'] =
+    window.localStorage['dudi_isloggedIn'] =
       isloggedIn != undefined ? isloggedIn : false;
   }
 
   getLoginAs(): number {
-    return window.localStorage['cargo_LoginAs'];
+    return window.localStorage['dudi_LoginAs'];
   }
 
   saveLoginAs(LoginAs: number) {
-    window.localStorage['cargo_LoginAs'] = LoginAs;
+    window.localStorage['dudi_LoginAs'] = LoginAs;
   }
 
   saveRoles(roles: any) {
-    localStorage.setItem('cargo_roles', JSON.stringify(roles));
+    localStorage.setItem('dudi_roles', JSON.stringify(roles));
   }
 
   getRoles() {
-    return JSON.parse(localStorage.getItem('cargo_roles') || '[]');
+    return JSON.parse(localStorage.getItem('dudi_roles') || '[]');
   }
 
   getfirstLoggedIn(): boolean {
-    return window.localStorage['cargo_isfirstlogin'];
+    return window.localStorage['dudi_isfirstlogin'];
   }
   firstLoggedIn(isfirstlogin: boolean) {
-    window.localStorage['cargo_isfirstlogin'] =
+    window.localStorage['dudi_isfirstlogin'] =
       isfirstlogin != undefined ? isfirstlogin : false;
   }
 
   getSession(): string {
-    return window.localStorage['cargo_Session'];
+    return window.localStorage['dudi_Session'];
   }
 
   saveSession(Session: string) {
-    window.localStorage['cargo_Session'] = Session;
+    window.localStorage['dudi_Session'] = Session;
   }
   getName(): string {
-    return window.localStorage['cargo_name'];
+    return window.localStorage['dudi_name'];
   }
 
   saveName(name: string) {
-    window.localStorage['cargo_name'] = name;
+    window.localStorage['dudi_name'] = name;
   }
 
   getSessionStartdate(): string {
-    return window.localStorage['cargo_Sessionstartdate'];
+    return window.localStorage['dudi_Sessionstartdate'];
   }
 
   saveSessionStartdate(Session: string) {
-    window.localStorage['cargo_Sessionstartdate'] = Session;
+    window.localStorage['dudi_Sessionstartdate'] = Session;
   }
 
   getSessionEnddate(): string {
-    return window.localStorage['cargo_SessionEnddate'];
+    return window.localStorage['dudi_SessionEnddate'];
   }
 
   saveSessionEnddate(Session: string) {
-    window.localStorage['cargo_SessionEnddate'] = Session;
+    window.localStorage['dudi_SessionEnddate'] = Session;
   }
 
   getpanelUserId(): Number {
-    return window.localStorage['cargo_panel_user_id'];
+    return window.localStorage['dudi_panel_user_id'];
   }
 
   savepanelUserId(userid: any) {
-    window.localStorage['cargo_panel_user_id'] = userid;
+    window.localStorage['dudi_panel_user_id'] = userid;
   }
   getadminame(): String {
-    return window.localStorage['cargo_adminname'];
+    return window.localStorage['dudi_adminname'];
   }
 
   saveadminame(adminname: string) {
-    window.localStorage['cargo_adminname'] = adminname;
+    window.localStorage['dudi_adminname'] = adminname;
   }
 
   saveAdminToken(Token: String) {
-    window.localStorage['cargo_Token'] = Token;
+    window.localStorage['dudi_Token'] = Token;
   }
   saveAdminRole(Role: String) {
-    window.localStorage['cargo_Role'] = Role;
+    window.localStorage['dudi_Role'] = Role;
   }
   getadmiRole(): String {
-    return window.localStorage['cargo_Role'];
+    return window.localStorage['dudi_Role'];
   }
   getpanelPartyId(): Number {
-    return window.localStorage['cargo_Party_id'];
+    return window.localStorage['dudi_Party_id'];
   }
 
   savePartyId(Party_id: Number) {
-    window.localStorage['cargo_Party_id'] = Party_id;
+    window.localStorage['dudi_Party_id'] = Party_id;
   }
 
   getType(): String {
-    return window.localStorage['cargo_Type'];
+    return window.localStorage['dudi_Type'];
   }
 
   saveType(Type: String) {
-    window.localStorage['cargo_Type'] = Type;
+    window.localStorage['dudi_Type'] = Type;
   }
 
   getToken(): String {
-    return window.localStorage['cargo_Token'];
+    return window.localStorage['dudi_Token'];
   }
 
   saveToken(Token: String) {
-    window.localStorage['cargo_Token'] = Token;
+    window.localStorage['dudi_Token'] = Token;
   }
 
   // Profile Image of
   getImageUrl(): String {
-    return window.localStorage['cargo_ImageUrl'];
+    return window.localStorage['dudi_ImageUrl'];
   }
 
   saveImageUrl(ImageUrl: String) {
-    window.localStorage['cargo_ImageUrl'] = ImageUrl;
+    window.localStorage['dudi_ImageUrl'] = ImageUrl;
   }
 
   getUserId(): String {
-    return window.localStorage['cargo_user_id'];
+    return window.localStorage['dudi_user_id'];
   }
 
   saveUserId(user_id: String) {
-    window.localStorage['cargo_user_id'] = user_id;
+    window.localStorage['dudi_user_id'] = user_id;
   }
 
   ///call on logout
   clearStorage() {
-    window.localStorage.removeItem('cargo_isloggedIn');
-    window.localStorage.removeItem('cargo_panel_user_id');
+    window.localStorage.removeItem('dudi_isloggedIn');
+    window.localStorage.removeItem('dudi_panel_user_id');
 
-    window.localStorage.removeItem('cargo_Token');
-    window.localStorage.removeItem('cargo_Role');
-    window.localStorage.removeItem('cargo_adminname');
-    window.localStorage.removeItem('cargo_isfirstlogin');
+    window.localStorage.removeItem('dudi_Token');
+    window.localStorage.removeItem('dudi_Role');
+    window.localStorage.removeItem('dudi_adminname');
+    window.localStorage.removeItem('dudi_isfirstlogin');
 
     // window.localStorage.removeItem("isloggedStudent");
   }
