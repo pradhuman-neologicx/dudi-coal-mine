@@ -77,9 +77,6 @@
               <th>
                 <p class="table-heading">{{ detail.heading5 }}</p>
               </th>
-              <th>
-                <p class="table-heading">{{ detail.heading6 }}</p>
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -108,9 +105,6 @@
               </td>
               <td>
                 <p>{{ shift.minWorkingHours }} hrs</p>
-              </td>
-              <td>
-                <p>{{ shift.graceTime }} mins</p>
               </td>
               <td>
                 <p [ngClass]="{
@@ -179,8 +173,7 @@
           </div>
           <div class="mb-2"><strong>Shift Name:</strong> {{ shift.shiftName }}</div>
           <div class="mb-2"><strong>Timing:</strong> {{ shift.startTime }} - {{ shift.endTime }}</div>
-          <div class="mb-2"><strong>Min Hrs / Grace:</strong> {{ shift.minWorkingHours }} hrs / {{ shift.graceTime }}
-            mins</div>
+          <div class="mb-2"><strong>Min Working Hours:</strong> {{ shift.minWorkingHours }} hrs</div>
           <div>
             <strong>Status:</strong>
             <span [ngClass]="{
@@ -238,17 +231,17 @@
                 [ngClass]="{'is-invalid': createShiftForm.controls['endTime'].errors && (createShiftForm.controls['endTime'].touched || createShiftForm.controls['endTime'].dirty)}" />
             </div>
 
-            <div class="col-md-6 mb-3">
+            <div class="col-md-12 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Min Working Hours</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="minWorkingHours"
                 [ngClass]="{'is-invalid': createShiftForm.controls['minWorkingHours'].errors && (createShiftForm.controls['minWorkingHours'].touched || createShiftForm.controls['minWorkingHours'].dirty)}" />
             </div>
 
-            <div class="col-md-6 mb-3">
+            <!-- <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Grace Time (mins)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="graceTime"
                 [ngClass]="{'is-invalid': createShiftForm.controls['graceTime'].errors && (createShiftForm.controls['graceTime'].touched || createShiftForm.controls['graceTime'].dirty)}" />
-            </div>
+            </div> -->
           </div>
         </div>
         <div class="modal-footer text-end">
@@ -294,17 +287,17 @@
                 [ngClass]="{'is-invalid': updateShiftForm.controls['endTime'].errors && (updateShiftForm.controls['endTime'].touched || updateShiftForm.controls['endTime'].dirty)}" />
             </div>
 
-            <div class="col-md-6 mb-3">
+            <div class="col-md-12 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Min Working Hours</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="minWorkingHours"
                 [ngClass]="{'is-invalid': updateShiftForm.controls['minWorkingHours'].errors && (updateShiftForm.controls['minWorkingHours'].touched || updateShiftForm.controls['minWorkingHours'].dirty)}" />
             </div>
 
-            <div class="col-md-6 mb-3">
+            <!-- <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Grace Time (mins)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="graceTime"
                 [ngClass]="{'is-invalid': updateShiftForm.controls['graceTime'].errors && (updateShiftForm.controls['graceTime'].touched || updateShiftForm.controls['graceTime'].dirty)}" />
-            </div>
+            </div> -->
           </div>
         </div>
         <div class="modal-footer text-end">
@@ -350,7 +343,7 @@
         <!-- Shift Details Grid Section -->
         <div class="grid-section-title">Timing & Policy Parameters</div>
         <div class="row g-3">
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper timing">
                 <i class="fa-solid fa-clock"></i>
@@ -361,7 +354,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper hours">
                 <i class="fa-solid fa-business-time"></i>
@@ -372,7 +365,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
+          <!-- <div class="col-md-4">
             <div class="glass-info-card">
               <div class="card-icon-wrapper grace">
                 <i class="fa-solid fa-hourglass-half"></i>
@@ -382,7 +375,7 @@
                 <span class="info-value text-dark fs-7">{{ selectedShift?.graceTime }} mins</span>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
       <div class="modal-footer text-end">

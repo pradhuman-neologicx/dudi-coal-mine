@@ -80,6 +80,12 @@
               <th>
                 <p class="table-heading">{{ detail.heading6 }}</p>
               </th>
+              <th>
+                <p class="table-heading">{{ detail.heading7 }}</p>
+              </th>
+              <th>
+                <p class="table-heading">{{ detail.heading8 }}</p>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -105,6 +111,12 @@
               </td>
               <td>
                 <p>₹{{ salary.shiftAllowance }}</p>
+              </td>
+              <td>
+                <p>₹{{ salary.incentives }}</p>
+              </td>
+              <td>
+                <p>₹{{ salary.otherDeductions }}</p>
               </td>
               <td>
                 <span class="badge" [ngClass]="salary.isPfApplicable ? 'bg-success' : 'bg-secondary'">
@@ -182,6 +194,8 @@
           </div>
           <div class="mb-2"><strong>Basic Salary:</strong> ₹{{ salary.basicSalary }}</div>
           <div class="mb-2"><strong>Shift Allowance:</strong> ₹{{ salary.shiftAllowance }}</div>
+          <div class="mb-2"><strong>Incentives:</strong> ₹{{ salary.incentives }}</div>
+          <div class="mb-2"><strong>Other Deductions:</strong> ₹{{ salary.otherDeductions }}</div>
           <div class="mb-2"><strong>PF Applicable:</strong> {{ salary.isPfApplicable ? 'Yes' : 'No' }}</div>
           <div class="mb-2"><strong>Mess Deduction:</strong> {{ salary.isMessDeduction ? 'Yes' : 'No' }}</div>
           <div>
@@ -233,6 +247,18 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Shift Allowance (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="shiftAllowance"
                 [ngClass]="{'is-invalid': createSalaryForm.controls['shiftAllowance'].errors && (createSalaryForm.controls['shiftAllowance'].touched || createSalaryForm.controls['shiftAllowance'].dirty)}" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Incentives (₹)</label>
+              <input type="number" class="d-block form-control form-input-custom" formControlName="incentives"
+                [ngClass]="{'is-invalid': createSalaryForm.controls['incentives'].errors && (createSalaryForm.controls['incentives'].touched || createSalaryForm.controls['incentives'].dirty)}" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Other Deductions (₹)</label>
+              <input type="number" class="d-block form-control form-input-custom" formControlName="otherDeductions"
+                [ngClass]="{'is-invalid': createSalaryForm.controls['otherDeductions'].errors && (createSalaryForm.controls['otherDeductions'].touched || createSalaryForm.controls['otherDeductions'].dirty)}" />
             </div>
 
             <div class="col-md-6 mb-3">
@@ -290,6 +316,18 @@
             </div>
 
             <div class="col-md-6 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Incentives (₹)</label>
+              <input type="number" class="d-block form-control form-input-custom" formControlName="incentives"
+                [ngClass]="{'is-invalid': updateSalaryForm.controls['incentives'].errors && (updateSalaryForm.controls['incentives'].touched || updateSalaryForm.controls['incentives'].dirty)}" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Other Deductions (₹)</label>
+              <input type="number" class="d-block form-control form-input-custom" formControlName="otherDeductions"
+                [ngClass]="{'is-invalid': updateSalaryForm.controls['otherDeductions'].errors && (updateSalaryForm.controls['otherDeductions'].touched || updateSalaryForm.controls['otherDeductions'].dirty)}" />
+            </div>
+
+            <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">PF Applicable</label>
               <select class="d-block form-control form-select form-input-custom" formControlName="isPfApplicable">
                 <option [ngValue]="true">Yes</option>
@@ -335,7 +373,7 @@
         <div class="salary-summary-banner">
           <div class="banner-content">
             <div class="banner-label">Monthly Gross Salary</div>
-            <div class="banner-value">₹{{ (selectedSalary?.basicSalary + selectedSalary?.shiftAllowance) | number }}
+            <div class="banner-value">₹{{ (selectedSalary?.basicSalary + selectedSalary?.shiftAllowance + (selectedSalary?.incentives || 0)) | number }}
             </div>
             <div class="banner-subtitle">
               <span class="pulse-indicator" [ngClass]="{'deactive': selectedSalary?.is_active !== 1}"></span>
@@ -369,6 +407,28 @@
               <div class="card-info-content">
                 <span class="info-label">Shift Allowance</span>
                 <span class="info-value">₹{{ selectedSalary?.shiftAllowance | number }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper basic" style="background: rgba(16, 185, 129, 0.1); color: rgb(16, 185, 129);">
+                <i class="fa-solid fa-gift"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Incentives</span>
+                <span class="info-value">₹{{ selectedSalary?.incentives | number }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper mess" style="background: rgba(239, 68, 68, 0.1); color: rgb(239, 68, 68);">
+                <i class="fa-solid fa-minus-circle"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Other Deductions</span>
+                <span class="info-value">₹{{ selectedSalary?.otherDeductions | number }}</span>
               </div>
             </div>
           </div>

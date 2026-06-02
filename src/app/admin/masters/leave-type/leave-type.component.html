@@ -93,7 +93,6 @@
               <th><p class="table-heading">{{ detail.heading3 }}</p></th>
               <th><p class="table-heading">{{ detail.heading4 }}</p></th>
               <th><p class="table-heading">{{ detail.heading5 }}</p></th>
-              <th><p class="table-heading">{{ detail.heading6 }}</p></th>
             </tr>
           </thead>
           <tbody>
@@ -116,7 +115,6 @@
                     : i + 1
                 }}
               </td>
-              <td><p>{{ leaveType.leaveCode }}</p></td>
               <td><p>{{ leaveType.leaveName }}</p></td>
               <td>
                 <span class="badge" [ngClass]="leaveType.isPaid ? 'bg-success' : 'bg-warning text-dark'">
@@ -193,7 +191,6 @@
               </div>
             </div>
           </div>
-          <div class="mb-2"><strong>Code:</strong> {{ leaveType.leaveCode }}</div>
           <div class="mb-2"><strong>Name:</strong> {{ leaveType.leaveName }}</div>
           <div class="mb-2"><strong>Paid/Unpaid:</strong> {{ leaveType.isPaid ? 'Paid' : 'Unpaid' }}</div>
           <div class="mb-2"><strong>Annual Limit:</strong> {{ leaveType.annualLimit }}</div>
@@ -252,13 +249,7 @@
         </div>
         <div class="modal-content-widthtop card-body mb-0">
           <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="d-block text-capitalize form-label form-lable-custom">Leave Code</label>
-              <input type="text" class="d-block form-control form-input-custom" formControlName="leaveCode"
-                [ngClass]="{'is-invalid': createLeaveTypeForm.controls['leaveCode'].errors && (createLeaveTypeForm.controls['leaveCode'].touched || createLeaveTypeForm.controls['leaveCode'].dirty)}" />
-            </div>
-
-            <div class="col-md-6 mb-3">
+            <div class="col-md-12 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Leave Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="leaveName"
                 [ngClass]="{'is-invalid': createLeaveTypeForm.controls['leaveName'].errors && (createLeaveTypeForm.controls['leaveName'].touched || createLeaveTypeForm.controls['leaveName'].dirty)}" />
@@ -307,13 +298,7 @@
         </div>
         <div class="modal-content-widthtop card-body mb-0">
           <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="d-block text-capitalize form-label form-lable-custom">Leave Code</label>
-              <input type="text" class="d-block form-control form-input-custom" formControlName="leaveCode"
-                [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['leaveCode'].errors && (updateLeaveTypeForm.controls['leaveCode'].touched || updateLeaveTypeForm.controls['leaveCode'].dirty)}" />
-            </div>
-
-            <div class="col-md-6 mb-3">
+            <div class="col-md-12 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Leave Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="leaveName"
                 [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['leaveName'].errors && (updateLeaveTypeForm.controls['leaveName'].touched || updateLeaveTypeForm.controls['leaveName'].dirty)}" />
@@ -376,18 +361,7 @@
         <!-- Leave Type Details Grid Section -->
         <div class="grid-section-title">Classification & Limit Rules</div>
         <div class="row g-3">
-          <div class="col-md-4">
-            <div class="glass-info-card">
-              <div class="card-icon-wrapper code">
-                <i class="fa-solid fa-folder-open"></i>
-              </div>
-              <div class="card-info-content">
-                <span class="info-label">Leave Code</span>
-                <span class="info-value text-dark fs-7">{{ selectedLeaveType?.leaveCode }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper type">
                 <i class="fa-solid fa-wallet"></i>
@@ -401,7 +375,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper limit">
                 <i class="fa-solid fa-shield-halved"></i>

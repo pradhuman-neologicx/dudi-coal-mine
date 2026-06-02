@@ -80,7 +80,7 @@ export class DesignationComponent implements OnInit {
   ];
 
   designationList: any[] = [];
-  table_heading = ['Serial No.', 'Designation Name', 'Department', 'Status', 'Action'];
+  table_heading = ['Serial No.', 'Designation Name', 'Status', 'Action'];
 
   constructor(
     private formBuilder: FormBuilder,

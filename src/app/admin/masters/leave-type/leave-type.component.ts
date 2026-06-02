@@ -72,19 +72,18 @@ export class LeaveTypeComponent implements OnInit {
   table_heading = [
     {
       heading0: 'Serial No.',
-      heading1: 'Leave Code',
-      heading2: 'Leave Name',
-      heading3: 'Paid/Unpaid',
-      heading4: 'Annual Limit',
-      heading5: 'Status',
-      heading6: 'Action',
+      heading1: 'Leave Name',
+      heading2: 'Paid/Unpaid',
+      heading3: 'Annual Limit',
+      heading4: 'Status',
+      heading5: 'Action',
     },
   ];
 
   mockLeaveTypes: any[] = [
-    { id: '1', leaveCode: 'CL', leaveName: 'Casual Leave', isPaid: true, annualLimit: 12, is_active: 1 },
-    { id: '2', leaveCode: 'SL', leaveName: 'Sick Leave', isPaid: true, annualLimit: 10, is_active: 1 },
-    { id: '3', leaveCode: 'LWP', leaveName: 'Leave Without Pay', isPaid: false, annualLimit: 365, is_active: 1 },
+    { id: '1', leaveName: 'Casual Leave', isPaid: true, annualLimit: 12, is_active: 1 },
+    { id: '2', leaveName: 'Sick Leave', isPaid: true, annualLimit: 10, is_active: 1 },
+    { id: '3', leaveName: 'Leave Without Pay', isPaid: false, annualLimit: 365, is_active: 1 },
   ];
 
   constructor(
@@ -98,21 +97,18 @@ export class LeaveTypeComponent implements OnInit {
     });
 
     this.createLeaveTypeForm = this.formBuilder.group({
-      leaveCode: ['', [Validators.required]],
       leaveName: ['', [Validators.required]],
       isPaid: [true, [Validators.required]],
       annualLimit: ['', [Validators.required, Validators.min(0)]],
     });
 
     this.updateLeaveTypeForm = this.formBuilder.group({
-      leaveCode: ['', [Validators.required]],
       leaveName: ['', [Validators.required]],
       isPaid: [true, [Validators.required]],
       annualLimit: ['', [Validators.required, Validators.min(0)]],
     });
 
     this.viewLeaveTypeForm = this.formBuilder.group({
-      leaveCode: [''],
       leaveName: [''],
       isPaid: [''],
       annualLimit: [''],
@@ -171,7 +167,6 @@ export class LeaveTypeComponent implements OnInit {
     this.currentLeaveTypeId = leaveType.id;
     this.selectedLeaveType = leaveType;
     this.viewLeaveTypeForm.patchValue({ 
-      leaveCode: leaveType.leaveCode,
       leaveName: leaveType.leaveName,
       isPaid: leaveType.isPaid ? 'Paid' : 'Unpaid',
       annualLimit: leaveType.annualLimit,
@@ -182,7 +177,6 @@ export class LeaveTypeComponent implements OnInit {
     const leaveType = this.mockLeaveTypes.find((d) => d.id === leaveTypeId);
     if (leaveType) {
       this.updateLeaveTypeForm.patchValue({
-        leaveCode: leaveType.leaveCode,
         leaveName: leaveType.leaveName,
         isPaid: leaveType.isPaid,
         annualLimit: leaveType.annualLimit,
@@ -248,7 +242,7 @@ export class LeaveTypeComponent implements OnInit {
 
     if (searchText) {
       filteredData = this.mockLeaveTypes.filter((d) =>
-        d.leaveName.toLowerCase().includes(searchText) || d.leaveCode.toLowerCase().includes(searchText)
+        d.leaveName.toLowerCase().includes(searchText)
       );
     }
 

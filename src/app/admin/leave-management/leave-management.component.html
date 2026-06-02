@@ -7,7 +7,7 @@
     </div>
 
     <!-- Simulator Role Picker -->
-    <div class="d-flex align-items-center gap-2 bg-light border p-2 rounded-3">
+    <!-- <div class="d-flex align-items-center gap-2 bg-light border p-2 rounded-3">
       <span class="text-muted fs-8 fw-bold text-uppercase me-1"><i class="fa-solid fa-flask text-primary me-1"></i>Test
         Role:</span>
       <select class="form-select form-select-sm border-0 bg-transparent fw-bold text-dark ps-0"
@@ -16,7 +16,7 @@
         <option value="Project Manager">Project Manager</option>
         <option value="HR">HR Officer</option>
       </select>
-    </div>
+    </div> -->
   </div>
 
   <!-- Navigation Tabs -->
@@ -192,8 +192,11 @@
           <div class="d-flex align-items-center">
             <span class="me-1 show-entery-text">Search:</span>
             <div class="position-relative">
-              <input type="text" class="form-control search-user" [(ngModel)]="searchText" placeholder="Search requests..." autocomplete="off" />
-              <i *ngIf="searchText" class="fa-solid fa-times position-absolute" style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;" (click)="searchText = ''"></i>
+              <input type="text" class="form-control search-user" [(ngModel)]="searchText"
+                placeholder="Search requests..." autocomplete="off" />
+              <i *ngIf="searchText" class="fa-solid fa-times position-absolute"
+                style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;"
+                (click)="searchText = ''"></i>
             </div>
           </div>
         </div>
@@ -204,18 +207,35 @@
             <table class="table table-bordered table-hover table-striped mb-0">
               <thead class="table-header">
                 <tr>
-                  <th><p class="table-heading">Request ID</p></th>
-                  <th><p class="table-heading">Employee</p></th>
-                  <th><p class="table-heading">Leave Type</p></th>
-                  <th><p class="table-heading">Dates</p></th>
-                  <th><p class="table-heading">Days</p></th>
-                  <th><p class="table-heading">Reason</p></th>
-                  <th><p class="table-heading">Current Stage</p></th>
-                  <th><p class="table-heading">Actions</p></th>
+                  <th>
+                    <p class="table-heading">Request ID</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Employee</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Leave Type</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Dates</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Days</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Reason</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Current Stage</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Actions</p>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let req of getInboxRequests() | paginate: { id: 'inbox-pagination', itemsPerPage: showEntries, currentPage: pInbox }; index as i">
+                <tr
+                  *ngFor="let req of getInboxRequests() | paginate: { id: 'inbox-pagination', itemsPerPage: showEntries, currentPage: pInbox }; index as i">
                   <td>
                     {{ req.id }}
                   </td>
@@ -268,8 +288,9 @@
 
           <!-- Mobile Card View -->
           <div class="lg:hidden space-y-4">
-            <div *ngFor="let req of getInboxRequests() | paginate: { id: 'inbox-pagination', itemsPerPage: showEntries, currentPage: pInbox }; index as i"
-                 class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div
+              *ngFor="let req of getInboxRequests() | paginate: { id: 'inbox-pagination', itemsPerPage: showEntries, currentPage: pInbox }; index as i"
+              class="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div class="flex justify-between items-center mb-2">
                 <div>
                   <strong>Request ID:</strong> {{ req.id }}
@@ -291,7 +312,8 @@
               <div class="mb-2"><strong>Employee:</strong> {{ req.empName }} ({{ req.empId }})</div>
               <div class="mb-2"><strong>Leave Type:</strong> {{ req.leaveType }}</div>
               <div class="mb-2">
-                <strong>Dates:</strong> {{ req.startDate | date:'dd MMM' }} to {{ req.endDate | date:'dd MMM yyyy' }} ({{ getLeaveDays(req.startDate, req.endDate) }} days)
+                <strong>Dates:</strong> {{ req.startDate | date:'dd MMM' }} to {{ req.endDate | date:'dd MMM yyyy' }}
+                ({{ getLeaveDays(req.startDate, req.endDate) }} days)
               </div>
               <div class="mb-2"><strong>Reason:</strong> {{ req.reason }}</div>
               <div>
@@ -303,12 +325,14 @@
             </div>
           </div>
 
-          <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center" *ngIf="getInboxRequests().length > 0">
+          <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center"
+            *ngIf="getInboxRequests().length > 0">
             <span class="showalltext">Showing
               {{ showEntries * (pInbox - 1) > 0 ? showEntries * (pInbox - 1) + 1 : 1 }} to
-              {{ showEntries * pInbox <= getInboxRequests().length ? showEntries * pInbox : getInboxRequests().length }} of {{ getInboxRequests().length }} entries</span>
-            <pagination-controls id="inbox-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
-              (pageChange)="pInbox = $event" target="_top"></pagination-controls>
+              {{ showEntries * pInbox <= getInboxRequests().length ? showEntries * pInbox : getInboxRequests().length }}
+                of {{ getInboxRequests().length }} entries</span>
+                <pagination-controls id="inbox-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
+                  (pageChange)="pInbox = $event" target="_top"></pagination-controls>
           </div>
         </div>
       </div>
@@ -342,8 +366,11 @@
           <div class="d-flex align-items-center">
             <span class="me-1 show-entery-text">Search:</span>
             <div class="position-relative">
-              <input type="text" class="form-control search-user" [(ngModel)]="searchText" placeholder="Search requests..." autocomplete="off" />
-              <i *ngIf="searchText" class="fa-solid fa-times position-absolute" style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;" (click)="searchText = ''"></i>
+              <input type="text" class="form-control search-user" [(ngModel)]="searchText"
+                placeholder="Search requests..." autocomplete="off" />
+              <i *ngIf="searchText" class="fa-solid fa-times position-absolute"
+                style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;"
+                (click)="searchText = ''"></i>
             </div>
           </div>
         </div>
@@ -354,19 +381,38 @@
             <table class="table table-bordered table-hover table-striped mb-0">
               <thead class="table-header">
                 <tr>
-                  <th><p class="table-heading">Request ID</p></th>
-                  <th><p class="table-heading">Employee</p></th>
-                  <th><p class="table-heading">Leave Type</p></th>
-                  <th><p class="table-heading">Dates</p></th>
-                  <th><p class="table-heading">Days</p></th>
-                  <th><p class="table-heading">Status</p></th>
-                  <th><p class="table-heading">Applied On</p></th>
-                  <th><p class="table-heading">Workflow Comments</p></th>
-                  <th><p class="table-heading">Actions</p></th>
+                  <th>
+                    <p class="table-heading">Request ID</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Employee</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Leave Type</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Dates</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Days</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Status</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Applied On</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Workflow Comments</p>
+                  </th>
+                  <th>
+                    <p class="table-heading">Actions</p>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let req of getHistoryRequests() | paginate: { id: 'history-pagination', itemsPerPage: showEntries, currentPage: pHistory }; index as i">
+                <tr
+                  *ngFor="let req of getHistoryRequests() | paginate: { id: 'history-pagination', itemsPerPage: showEntries, currentPage: pHistory }; index as i">
                   <td>
                     {{ req.id }}
                   </td>
@@ -394,7 +440,9 @@
                   <td>
                     {{ req.appliedDate | date:'dd MMM yyyy' }}
                   </td>
-                  <td class="text-muted fs-7 italic" style="max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" [title]="req.comments || ''">
+                  <td class="text-muted fs-7 italic"
+                    style="max-width: 150px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;"
+                    [title]="req.comments || ''">
                     {{ req.comments || 'No comments' }}
                   </td>
                   <td>
@@ -416,8 +464,9 @@
 
           <!-- Mobile Card View -->
           <div class="lg:hidden space-y-4">
-            <div *ngFor="let req of getHistoryRequests() | paginate: { id: 'history-pagination', itemsPerPage: showEntries, currentPage: pHistory }; index as i"
-                 class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div
+              *ngFor="let req of getHistoryRequests() | paginate: { id: 'history-pagination', itemsPerPage: showEntries, currentPage: pHistory }; index as i"
+              class="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div class="flex justify-between items-center mb-2">
                 <div>
                   <strong>Request ID:</strong> {{ req.id }}
@@ -433,7 +482,8 @@
               <div class="mb-2"><strong>Employee:</strong> {{ req.empName }} ({{ req.empId }})</div>
               <div class="mb-2"><strong>Leave Type:</strong> {{ req.leaveType }}</div>
               <div class="mb-2">
-                <strong>Dates:</strong> {{ req.startDate | date:'dd MMM' }} to {{ req.endDate | date:'dd MMM yyyy' }} ({{ getLeaveDays(req.startDate, req.endDate) }} days)
+                <strong>Dates:</strong> {{ req.startDate | date:'dd MMM' }} to {{ req.endDate | date:'dd MMM yyyy' }}
+                ({{ getLeaveDays(req.startDate, req.endDate) }} days)
               </div>
               <div class="mb-2">
                 <strong>Status:</strong>
@@ -449,12 +499,14 @@
             </div>
           </div>
 
-          <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center" *ngIf="getHistoryRequests().length > 0">
+          <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center"
+            *ngIf="getHistoryRequests().length > 0">
             <span class="showalltext">Showing
               {{ showEntries * (pHistory - 1) > 0 ? showEntries * (pHistory - 1) + 1 : 1 }} to
-              {{ showEntries * pHistory <= getHistoryRequests().length ? showEntries * pHistory : getHistoryRequests().length }} of {{ getHistoryRequests().length }} entries</span>
-            <pagination-controls id="history-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
-              (pageChange)="pHistory = $event" target="_top"></pagination-controls>
+              {{ showEntries * pHistory <= getHistoryRequests().length ? showEntries * pHistory :
+                getHistoryRequests().length }} of {{ getHistoryRequests().length }} entries</span>
+                <pagination-controls id="history-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
+                  (pageChange)="pHistory = $event" target="_top"></pagination-controls>
           </div>
         </div>
       </div>
@@ -540,7 +592,8 @@
 </div>
 
 <!-- Premium View Details Modal -->
-<div *ngIf="viewLeaveOpen" class="your-animation-class modal-container premium-detail-modal" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div *ngIf="viewLeaveOpen" class="your-animation-class modal-container premium-detail-modal"
+  aria-labelledby="modal-title" role="dialog" aria-modal="true">
   <div class="modal-contenttop modal-content-50" [@fadeIn]>
     <div class="card">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -567,7 +620,8 @@
           </div>
           <div class="banner-right">
             <span class="days-number">{{ getLeaveDays(selectedLeave?.startDate, selectedLeave?.endDate) }}</span>
-            <span class="days-label">{{ getLeaveDays(selectedLeave?.startDate, selectedLeave?.endDate) === 1 ? 'Day' : 'Days' }}</span>
+            <span class="days-label">{{ getLeaveDays(selectedLeave?.startDate, selectedLeave?.endDate) === 1 ? 'Day' :
+              'Days' }}</span>
           </div>
         </div>
 
@@ -599,8 +653,8 @@
               <div class="card-info-content">
                 <span class="info-label">Leave Duration</span>
                 <span class="date-timeline">
-                  {{ selectedLeave?.startDate | date:'dd MMM yyyy' }} 
-                  <i class="fa-solid fa-arrow-right mx-1"></i> 
+                  {{ selectedLeave?.startDate | date:'dd MMM yyyy' }}
+                  <i class="fa-solid fa-arrow-right mx-1"></i>
                   {{ selectedLeave?.endDate | date:'dd MMM yyyy' }}
                 </span>
               </div>
@@ -660,8 +714,9 @@
               <div class="step-details">
                 <span class="step-title">Supervisor Stage</span>
                 <span class="step-subtitle">
-                  {{ selectedLeave?.status === 'Pending Supervisor' ? 'Awaiting supervisor approval' : 
-                     (selectedLeave?.status === 'Rejected' && selectedLeave?.comments && selectedLeave?.comments?.indexOf('Supervisor') !== -1 ? 'Rejected by Supervisor' : 'Approved') }}
+                  {{ selectedLeave?.status === 'Pending Supervisor' ? 'Awaiting supervisor approval' :
+                  (selectedLeave?.status === 'Rejected' && selectedLeave?.comments &&
+                  selectedLeave?.comments?.indexOf('Supervisor') !== -1 ? 'Rejected by Supervisor' : 'Approved') }}
                 </span>
               </div>
             </div>
@@ -681,9 +736,10 @@
               <div class="step-details">
                 <span class="step-title">Project Manager Stage</span>
                 <span class="step-subtitle">
-                  {{ selectedLeave?.status === 'Pending Supervisor' ? 'Awaiting previous stage' : 
-                     (selectedLeave?.status === 'Pending PM' ? 'Awaiting PM approval' : 
-                     (selectedLeave?.status === 'Rejected' && selectedLeave?.comments && selectedLeave?.comments?.indexOf('PM') !== -1 ? 'Rejected by PM' : 'Approved')) }}
+                  {{ selectedLeave?.status === 'Pending Supervisor' ? 'Awaiting previous stage' :
+                  (selectedLeave?.status === 'Pending PM' ? 'Awaiting PM approval' :
+                  (selectedLeave?.status === 'Rejected' && selectedLeave?.comments &&
+                  selectedLeave?.comments?.indexOf('PM') !== -1 ? 'Rejected by PM' : 'Approved')) }}
                 </span>
               </div>
             </div>
@@ -703,10 +759,12 @@
               <div class="step-details">
                 <span class="step-title">HR Finalization</span>
                 <span class="step-subtitle">
-                  {{ (selectedLeave?.status === 'Pending Supervisor' || selectedLeave?.status === 'Pending PM') ? 'Awaiting previous stages' : 
-                     (selectedLeave?.status === 'Pending HR' ? 'Awaiting HR final approval' : 
-                     (selectedLeave?.status === 'Rejected' && selectedLeave?.comments && selectedLeave?.comments?.indexOf('HR') !== -1 ? 'Rejected by HR' : 
-                     (selectedLeave?.status === 'Approved' ? 'Fully Approved & Synced' : 'Awaiting HR')) ) }}
+                  {{ (selectedLeave?.status === 'Pending Supervisor' || selectedLeave?.status === 'Pending PM') ?
+                  'Awaiting previous stages' :
+                  (selectedLeave?.status === 'Pending HR' ? 'Awaiting HR final approval' :
+                  (selectedLeave?.status === 'Rejected' && selectedLeave?.comments &&
+                  selectedLeave?.comments?.indexOf('HR') !== -1 ? 'Rejected by HR' :
+                  (selectedLeave?.status === 'Approved' ? 'Fully Approved & Synced' : 'Awaiting HR')) ) }}
                 </span>
               </div>
             </div>
@@ -733,16 +791,18 @@
           <button class="btn btn-premium-close px-4 py-2" type="button" (click)="closeViewModal()">
             Close
           </button>
-          
+
           <!-- Direct Inbox approvals if pending for simulated role -->
           <ng-container *ngIf="selectedLeave">
             <div *ngIf="(selectedLeave.status === 'Pending Supervisor' && simulatedRole === 'Supervisor') || 
                         (selectedLeave.status === 'Pending PM' && simulatedRole === 'Project Manager') || 
                         (selectedLeave.status === 'Pending HR' && simulatedRole === 'HR')">
-              <button class="btn btn-premium-reject px-4 py-2 me-2" type="button" (click)="selectedLeave && rejectRequest(selectedLeave); closeViewModal()">
+              <button class="btn btn-premium-reject px-4 py-2 me-2" type="button"
+                (click)="selectedLeave && rejectRequest(selectedLeave); closeViewModal()">
                 <i class="fa-solid fa-xmark me-2"></i>Reject
               </button>
-              <button class="btn btn-premium-approve px-4 py-2" type="button" (click)="selectedLeave && approveRequest(selectedLeave); closeViewModal()">
+              <button class="btn btn-premium-approve px-4 py-2" type="button"
+                (click)="selectedLeave && approveRequest(selectedLeave); closeViewModal()">
                 <i class="fa-solid fa-check me-2"></i>Approve
               </button>
             </div>

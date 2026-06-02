@@ -84,9 +84,6 @@
                 <p class="fw-bold">{{ user.name }}</p>
               </td>
 
-              <td>
-                <p class="text-muted">{{ user.department }}</p>
-              </td>
 
               <td>
                 <p [ngClass]="{
@@ -149,9 +146,7 @@
             </div>
           </div>
           <div class="mb-1"><span class="fw-bold fs-5">{{ user.name }}</span></div>
-          <div class="mb-2 d-flex gap-2 flex-wrap">
-            <span class="badge bg-light text-dark border"><i class="fa-solid fa-sitemap me-1 text-muted"></i>{{ user.department }}</span>
-          </div>
+
           <div>
             <strong>Status:</strong>
             <span [ngClass]="{
@@ -209,7 +204,7 @@
         
         <!-- Details Card Grid -->
         <div class="row g-3">
-          <div class="col-12">
+          <!-- <div class="col-12">
             <div class="glass-info-card">
               <div class="card-icon-wrapper structure"><i class="fa-solid fa-sitemap"></i></div>
               <div class="card-info-content">
@@ -217,7 +212,7 @@
                 <span class="info-value">{{ selectedDesignation?.department }}</span>
               </div>
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
       <div class="modal-footer text-end">

@@ -75,9 +75,8 @@ export class ShiftComponent implements OnInit {
       heading1: 'Shift Name',
       heading2: 'Timing',
       heading3: 'Min Hrs',
-      heading4: 'Grace (mins)',
-      heading5: 'Status',
-      heading6: 'Action',
+      heading4: 'Status',
+      heading5: 'Action',
     },
   ];
 
@@ -102,7 +101,7 @@ export class ShiftComponent implements OnInit {
       startTime: ['', [Validators.required]],
       endTime: ['', [Validators.required]],
       minWorkingHours: ['', [Validators.required, Validators.min(1)]],
-      graceTime: ['', [Validators.required, Validators.min(0)]],
+      // graceTime: ['', [Validators.required, Validators.min(0)]],
     });
 
     this.updateShiftForm = this.formBuilder.group({
@@ -110,7 +109,7 @@ export class ShiftComponent implements OnInit {
       startTime: ['', [Validators.required]],
       endTime: ['', [Validators.required]],
       minWorkingHours: ['', [Validators.required, Validators.min(1)]],
-      graceTime: ['', [Validators.required, Validators.min(0)]],
+      // graceTime: ['', [Validators.required, Validators.min(0)]],
     });
 
     this.viewShiftForm = this.formBuilder.group({
@@ -118,7 +117,7 @@ export class ShiftComponent implements OnInit {
       startTime: [''],
       endTime: [''],
       minWorkingHours: [''],
-      graceTime: [''],
+      // graceTime: [''],
     });
     
     this.GetShiftFun();
@@ -178,7 +177,7 @@ export class ShiftComponent implements OnInit {
       startTime: shift.startTime,
       endTime: shift.endTime,
       minWorkingHours: shift.minWorkingHours,
-      graceTime: shift.graceTime,
+      // graceTime: shift.graceTime,
     });
   }
 
@@ -190,7 +189,7 @@ export class ShiftComponent implements OnInit {
         startTime: shift.startTime,
         endTime: shift.endTime,
         minWorkingHours: shift.minWorkingHours,
-        graceTime: shift.graceTime,
+        // graceTime: shift.graceTime,
       });
     }
   }
