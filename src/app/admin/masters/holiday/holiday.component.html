@@ -210,12 +210,22 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Holiday Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="holidayName"
                 [ngClass]="{'is-invalid': createHolidayForm.controls['holidayName'].errors && (createHolidayForm.controls['holidayName'].touched || createHolidayForm.controls['holidayName'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createHolidayForm.controls['holidayName'].errors && (createHolidayForm.controls['holidayName'].touched || createHolidayForm.controls['holidayName'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createHolidayForm.controls['holidayName'].hasError('required')">
+                  Holiday Name is required
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Date</label>
               <input type="date" class="d-block form-control form-input-custom" formControlName="date"
                 [ngClass]="{'is-invalid': createHolidayForm.controls['date'].errors && (createHolidayForm.controls['date'].touched || createHolidayForm.controls['date'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createHolidayForm.controls['date'].errors && (createHolidayForm.controls['date'].touched || createHolidayForm.controls['date'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createHolidayForm.controls['date'].hasError('required')">
+                  Date is required
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
@@ -225,6 +235,11 @@
                 <option value="" disabled>Select Site</option>
                 <option *ngFor="let site of sites" [value]="site.id">{{ site.name }}</option>
               </select>
+              <div class="text-danger error-message d-block mt-1" *ngIf="createHolidayForm.controls['site'].errors && (createHolidayForm.controls['site'].touched || createHolidayForm.controls['site'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createHolidayForm.controls['site'].hasError('required')">
+                  Site is required
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
@@ -235,6 +250,11 @@
                 <option value="Festival">Festival</option>
                 <option value="Local">Local</option>
               </select>
+              <div class="text-danger error-message d-block mt-1" *ngIf="createHolidayForm.controls['holidayType'].errors && (createHolidayForm.controls['holidayType'].touched || createHolidayForm.controls['holidayType'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createHolidayForm.controls['holidayType'].hasError('required')">
+                  Holiday Type is required
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -267,12 +287,22 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Holiday Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="holidayName"
                 [ngClass]="{'is-invalid': updateHolidayForm.controls['holidayName'].errors && (updateHolidayForm.controls['holidayName'].touched || updateHolidayForm.controls['holidayName'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateHolidayForm.controls['holidayName'].errors && (updateHolidayForm.controls['holidayName'].touched || updateHolidayForm.controls['holidayName'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateHolidayForm.controls['holidayName'].hasError('required')">
+                  Holiday Name is required
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Date</label>
               <input type="date" class="d-block form-control form-input-custom" formControlName="date"
                 [ngClass]="{'is-invalid': updateHolidayForm.controls['date'].errors && (updateHolidayForm.controls['date'].touched || updateHolidayForm.controls['date'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateHolidayForm.controls['date'].errors && (updateHolidayForm.controls['date'].touched || updateHolidayForm.controls['date'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateHolidayForm.controls['date'].hasError('required')">
+                  Date is required
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
@@ -282,6 +312,11 @@
                 <option value="" disabled>Select Site</option>
                 <option *ngFor="let site of sites" [value]="site.id">{{ site.name }}</option>
               </select>
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateHolidayForm.controls['site'].errors && (updateHolidayForm.controls['site'].touched || updateHolidayForm.controls['site'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateHolidayForm.controls['site'].hasError('required')">
+                  Site is required
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
@@ -292,6 +327,11 @@
                 <option value="Festival">Festival</option>
                 <option value="Local">Local</option>
               </select>
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateHolidayForm.controls['holidayType'].errors && (updateHolidayForm.controls['holidayType'].touched || updateHolidayForm.controls['holidayType'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateHolidayForm.controls['holidayType'].hasError('required')">
+                  Holiday Type is required
+                </p>
+              </div>
             </div>
           </div>
         </div>

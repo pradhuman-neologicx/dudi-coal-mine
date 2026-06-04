@@ -236,29 +236,66 @@
                 <option value="">Select Designation</option>
                 <option *ngFor="let d of designations" [value]="d.id">{{ d.name }}</option>
               </select>
+              <div class="text-danger error-message d-block mt-1" *ngIf="createSalaryForm.controls['designationId'].errors && (createSalaryForm.controls['designationId'].touched || createSalaryForm.controls['designationId'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['designationId'].hasError('required')">
+                  Designation is required
+                </p>
+              </div>
             </div>
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Basic Salary (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="basicSalary"
                 [ngClass]="{'is-invalid': createSalaryForm.controls['basicSalary'].errors && (createSalaryForm.controls['basicSalary'].touched || createSalaryForm.controls['basicSalary'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createSalaryForm.controls['basicSalary'].errors && (createSalaryForm.controls['basicSalary'].touched || createSalaryForm.controls['basicSalary'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['basicSalary'].hasError('required')">
+                  Basic Salary is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['basicSalary'].hasError('min')">
+                  Basic Salary must be at least 0
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Shift Allowance (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="shiftAllowance"
                 [ngClass]="{'is-invalid': createSalaryForm.controls['shiftAllowance'].errors && (createSalaryForm.controls['shiftAllowance'].touched || createSalaryForm.controls['shiftAllowance'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createSalaryForm.controls['shiftAllowance'].errors && (createSalaryForm.controls['shiftAllowance'].touched || createSalaryForm.controls['shiftAllowance'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['shiftAllowance'].hasError('required')">
+                  Shift Allowance is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['shiftAllowance'].hasError('min')">
+                  Shift Allowance must be at least 0
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Incentives (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="incentives"
                 [ngClass]="{'is-invalid': createSalaryForm.controls['incentives'].errors && (createSalaryForm.controls['incentives'].touched || createSalaryForm.controls['incentives'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createSalaryForm.controls['incentives'].errors && (createSalaryForm.controls['incentives'].touched || createSalaryForm.controls['incentives'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['incentives'].hasError('required')">
+                  Incentives is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['incentives'].hasError('min')">
+                  Incentives must be at least 0
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Other Deductions (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="otherDeductions"
                 [ngClass]="{'is-invalid': createSalaryForm.controls['otherDeductions'].errors && (createSalaryForm.controls['otherDeductions'].touched || createSalaryForm.controls['otherDeductions'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createSalaryForm.controls['otherDeductions'].errors && (createSalaryForm.controls['otherDeductions'].touched || createSalaryForm.controls['otherDeductions'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['otherDeductions'].hasError('required')">
+                  Other Deductions is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['otherDeductions'].hasError('min')">
+                  Other Deductions must be at least 0
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
@@ -310,29 +347,66 @@
                 <option value="">Select Designation</option>
                 <option *ngFor="let d of designations" [value]="d.id">{{ d.name }}</option>
               </select>
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateSalaryForm.controls['designationId'].errors && (updateSalaryForm.controls['designationId'].touched || updateSalaryForm.controls['designationId'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['designationId'].hasError('required')">
+                  Designation is required
+                </p>
+              </div>
             </div>
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Basic Salary (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="basicSalary"
                 [ngClass]="{'is-invalid': updateSalaryForm.controls['basicSalary'].errors && (updateSalaryForm.controls['basicSalary'].touched || updateSalaryForm.controls['basicSalary'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateSalaryForm.controls['basicSalary'].errors && (updateSalaryForm.controls['basicSalary'].touched || updateSalaryForm.controls['basicSalary'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['basicSalary'].hasError('required')">
+                  Basic Salary is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['basicSalary'].hasError('min')">
+                  Basic Salary must be at least 0
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Shift Allowance (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="shiftAllowance"
                 [ngClass]="{'is-invalid': updateSalaryForm.controls['shiftAllowance'].errors && (updateSalaryForm.controls['shiftAllowance'].touched || updateSalaryForm.controls['shiftAllowance'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateSalaryForm.controls['shiftAllowance'].errors && (updateSalaryForm.controls['shiftAllowance'].touched || updateSalaryForm.controls['shiftAllowance'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['shiftAllowance'].hasError('required')">
+                  Shift Allowance is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['shiftAllowance'].hasError('min')">
+                  Shift Allowance must be at least 0
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Incentives (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="incentives"
                 [ngClass]="{'is-invalid': updateSalaryForm.controls['incentives'].errors && (updateSalaryForm.controls['incentives'].touched || updateSalaryForm.controls['incentives'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateSalaryForm.controls['incentives'].errors && (updateSalaryForm.controls['incentives'].touched || updateSalaryForm.controls['incentives'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['incentives'].hasError('required')">
+                  Incentives is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['incentives'].hasError('min')">
+                  Incentives must be at least 0
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Other Deductions (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="otherDeductions"
                 [ngClass]="{'is-invalid': updateSalaryForm.controls['otherDeductions'].errors && (updateSalaryForm.controls['otherDeductions'].touched || updateSalaryForm.controls['otherDeductions'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateSalaryForm.controls['otherDeductions'].errors && (updateSalaryForm.controls['otherDeductions'].touched || updateSalaryForm.controls['otherDeductions'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['otherDeductions'].hasError('required')">
+                  Other Deductions is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['otherDeductions'].hasError('min')">
+                  Other Deductions must be at least 0
+                </p>
+              </div>
             </div>
 
             <div class="col-md-6 mb-3">

@@ -217,6 +217,11 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Shift Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="shiftName"
                 [ngClass]="{'is-invalid': createShiftForm.controls['shiftName'].errors && (createShiftForm.controls['shiftName'].touched || createShiftForm.controls['shiftName'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createShiftForm.controls['shiftName'].errors && (createShiftForm.controls['shiftName'].touched || createShiftForm.controls['shiftName'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createShiftForm.controls['shiftName'].hasError('required')">
+                  Shift Name is required
+                </p>
+              </div>
             </div>
 
             <!-- Timing Header with Night Shift Toggle Switch next to it -->
@@ -231,24 +236,34 @@
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Start Time</label>
               <input type="time" class="d-block form-control form-input-custom" formControlName="startTime"
-                [ngClass]="{'is-invalid': createShiftForm.controls['startTime'].errors && (createShiftForm.controls['startTime'].touched || createShiftForm.controls['startTime'].dirty)}" />
-              <div class="text-danger error-message d-block mt-1" *ngIf="createShiftForm.controls['startTime'].hasError('invalidNightRange')">
-                Night shift must cross midnight (Start time must be greater than End time)
-              </div>
-              <div class="text-danger error-message d-block mt-1" *ngIf="createShiftForm.controls['startTime'].hasError('invalidDayRange')">
-                Start time must be less than End time for day shifts
+                [ngClass]="{'is-invalid': createShiftForm.controls['startTime'].errors && (createShiftForm.controls['startTime'].touched || createShiftForm.controls['startTime'].dirty || createShiftForm.controls['isNightShift'].value)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createShiftForm.controls['startTime'].errors && (createShiftForm.controls['startTime'].touched || createShiftForm.controls['startTime'].dirty || createShiftForm.controls['isNightShift'].value)">
+                <p class="fw-light text-danger mb-0" *ngIf="createShiftForm.controls['startTime'].hasError('required')">
+                  Start Time is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createShiftForm.controls['startTime'].hasError('invalidNightRange')">
+                  Night shift must cross midnight (Start time must be greater than End time)
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createShiftForm.controls['startTime'].hasError('invalidDayRange')">
+                  Start time must be less than End time for day shifts
+                </p>
               </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">End Time</label>
               <input type="time" class="d-block form-control form-input-custom" formControlName="endTime"
-                [ngClass]="{'is-invalid': createShiftForm.controls['endTime'].errors && (createShiftForm.controls['endTime'].touched || createShiftForm.controls['endTime'].dirty)}" />
-              <div class="text-danger error-message d-block mt-1" *ngIf="createShiftForm.controls['endTime'].hasError('invalidNightRange')">
-                Night shift must cross midnight (End time must be less than Start time)
-              </div>
-              <div class="text-danger error-message d-block mt-1" *ngIf="createShiftForm.controls['endTime'].hasError('invalidDayRange')">
-                End time must be greater than Start time for day shifts
+                [ngClass]="{'is-invalid': createShiftForm.controls['endTime'].errors && (createShiftForm.controls['endTime'].touched || createShiftForm.controls['endTime'].dirty || createShiftForm.controls['isNightShift'].value)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createShiftForm.controls['endTime'].errors && (createShiftForm.controls['endTime'].touched || createShiftForm.controls['endTime'].dirty || createShiftForm.controls['isNightShift'].value)">
+                <p class="fw-light text-danger mb-0" *ngIf="createShiftForm.controls['endTime'].hasError('required')">
+                  End Time is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createShiftForm.controls['endTime'].hasError('invalidNightRange')">
+                  Night shift must cross midnight (End time must be less than Start time)
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createShiftForm.controls['endTime'].hasError('invalidDayRange')">
+                  End time must be greater than Start time for day shifts
+                </p>
               </div>
             </div>
 
@@ -256,6 +271,14 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Min Working Hours</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="minWorkingHours"
                 [ngClass]="{'is-invalid': createShiftForm.controls['minWorkingHours'].errors && (createShiftForm.controls['minWorkingHours'].touched || createShiftForm.controls['minWorkingHours'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createShiftForm.controls['minWorkingHours'].errors && (createShiftForm.controls['minWorkingHours'].touched || createShiftForm.controls['minWorkingHours'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createShiftForm.controls['minWorkingHours'].hasError('required')">
+                  Minimum Working Hours is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createShiftForm.controls['minWorkingHours'].hasError('min')">
+                  Minimum Working Hours must be at least 1
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -288,6 +311,11 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Shift Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="shiftName"
                 [ngClass]="{'is-invalid': updateShiftForm.controls['shiftName'].errors && (updateShiftForm.controls['shiftName'].touched || updateShiftForm.controls['shiftName'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateShiftForm.controls['shiftName'].errors && (updateShiftForm.controls['shiftName'].touched || updateShiftForm.controls['shiftName'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateShiftForm.controls['shiftName'].hasError('required')">
+                  Shift Name is required
+                </p>
+              </div>
             </div>
 
             <!-- Timing Header with Night Shift Toggle Switch next to it -->
@@ -302,24 +330,34 @@
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Start Time</label>
               <input type="time" class="d-block form-control form-input-custom" formControlName="startTime"
-                [ngClass]="{'is-invalid': updateShiftForm.controls['startTime'].errors && (updateShiftForm.controls['startTime'].touched || updateShiftForm.controls['startTime'].dirty)}" />
-              <div class="text-danger error-message d-block mt-1" *ngIf="updateShiftForm.controls['startTime'].hasError('invalidNightRange')">
-                Night shift must cross midnight (Start time must be greater than End time)
-              </div>
-              <div class="text-danger error-message d-block mt-1" *ngIf="updateShiftForm.controls['startTime'].hasError('invalidDayRange')">
-                Start time must be less than End time for day shifts
+                [ngClass]="{'is-invalid': updateShiftForm.controls['startTime'].errors && (updateShiftForm.controls['startTime'].touched || updateShiftForm.controls['startTime'].dirty || updateShiftForm.controls['isNightShift'].value)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateShiftForm.controls['startTime'].errors && (updateShiftForm.controls['startTime'].touched || updateShiftForm.controls['startTime'].dirty || updateShiftForm.controls['isNightShift'].value)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateShiftForm.controls['startTime'].hasError('required')">
+                  Start Time is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateShiftForm.controls['startTime'].hasError('invalidNightRange')">
+                  Night shift must cross midnight (Start time must be greater than End time)
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateShiftForm.controls['startTime'].hasError('invalidDayRange')">
+                  Start time must be less than End time for day shifts
+                </p>
               </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">End Time</label>
               <input type="time" class="d-block form-control form-input-custom" formControlName="endTime"
-                [ngClass]="{'is-invalid': updateShiftForm.controls['endTime'].errors && (updateShiftForm.controls['endTime'].touched || updateShiftForm.controls['endTime'].dirty)}" />
-              <div class="text-danger error-message d-block mt-1" *ngIf="updateShiftForm.controls['endTime'].hasError('invalidNightRange')">
-                Night shift must cross midnight (End time must be less than Start time)
-              </div>
-              <div class="text-danger error-message d-block mt-1" *ngIf="updateShiftForm.controls['endTime'].hasError('invalidDayRange')">
-                End time must be greater than Start time for day shifts
+                [ngClass]="{'is-invalid': updateShiftForm.controls['endTime'].errors && (updateShiftForm.controls['endTime'].touched || updateShiftForm.controls['endTime'].dirty || updateShiftForm.controls['isNightShift'].value)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateShiftForm.controls['endTime'].errors && (updateShiftForm.controls['endTime'].touched || updateShiftForm.controls['endTime'].dirty || updateShiftForm.controls['isNightShift'].value)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateShiftForm.controls['endTime'].hasError('required')">
+                  End Time is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateShiftForm.controls['endTime'].hasError('invalidNightRange')">
+                  Night shift must cross midnight (End time must be less than Start time)
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateShiftForm.controls['endTime'].hasError('invalidDayRange')">
+                  End time must be greater than Start time for day shifts
+                </p>
               </div>
             </div>
 
@@ -327,6 +365,14 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Min Working Hours</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="minWorkingHours"
                 [ngClass]="{'is-invalid': updateShiftForm.controls['minWorkingHours'].errors && (updateShiftForm.controls['minWorkingHours'].touched || updateShiftForm.controls['minWorkingHours'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateShiftForm.controls['minWorkingHours'].errors && (updateShiftForm.controls['minWorkingHours'].touched || updateShiftForm.controls['minWorkingHours'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateShiftForm.controls['minWorkingHours'].hasError('required')">
+                  Minimum Working Hours is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateShiftForm.controls['minWorkingHours'].hasError('min')">
+                  Minimum Working Hours must be at least 1
+                </p>
+              </div>
             </div>
           </div>
         </div>

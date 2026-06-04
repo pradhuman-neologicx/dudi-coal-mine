@@ -232,6 +232,11 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Leave Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="leaveName"
                 [ngClass]="{'is-invalid': createLeaveTypeForm.controls['leaveName'].errors && (createLeaveTypeForm.controls['leaveName'].touched || createLeaveTypeForm.controls['leaveName'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createLeaveTypeForm.controls['leaveName'].errors && (createLeaveTypeForm.controls['leaveName'].touched || createLeaveTypeForm.controls['leaveName'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createLeaveTypeForm.controls['leaveName'].hasError('required')">
+                  Leave Name is required
+                </p>
+              </div>
             </div>
             
             <div class="col-md-6 mb-3">
@@ -246,6 +251,14 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Annual Limit</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="annualLimit"
                 [ngClass]="{'is-invalid': createLeaveTypeForm.controls['annualLimit'].errors && (createLeaveTypeForm.controls['annualLimit'].touched || createLeaveTypeForm.controls['annualLimit'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createLeaveTypeForm.controls['annualLimit'].errors && (createLeaveTypeForm.controls['annualLimit'].touched || createLeaveTypeForm.controls['annualLimit'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createLeaveTypeForm.controls['annualLimit'].hasError('required')">
+                  Annual Limit is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createLeaveTypeForm.controls['annualLimit'].hasError('min')">
+                  Annual Limit must be at least 0
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -281,6 +294,11 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Leave Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="leaveName"
                 [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['leaveName'].errors && (updateLeaveTypeForm.controls['leaveName'].touched || updateLeaveTypeForm.controls['leaveName'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateLeaveTypeForm.controls['leaveName'].errors && (updateLeaveTypeForm.controls['leaveName'].touched || updateLeaveTypeForm.controls['leaveName'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateLeaveTypeForm.controls['leaveName'].hasError('required')">
+                  Leave Name is required
+                </p>
+              </div>
             </div>
             
             <div class="col-md-6 mb-3">
@@ -295,6 +313,14 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Annual Limit</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="annualLimit"
                 [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['annualLimit'].errors && (updateLeaveTypeForm.controls['annualLimit'].touched || updateLeaveTypeForm.controls['annualLimit'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateLeaveTypeForm.controls['annualLimit'].errors && (updateLeaveTypeForm.controls['annualLimit'].touched || updateLeaveTypeForm.controls['annualLimit'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateLeaveTypeForm.controls['annualLimit'].hasError('required')">
+                  Annual Limit is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateLeaveTypeForm.controls['annualLimit'].hasError('min')">
+                  Annual Limit must be at least 0
+                </p>
+              </div>
             </div>
           </div>
         </div>
