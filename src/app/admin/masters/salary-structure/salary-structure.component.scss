@@ -51,6 +51,24 @@
   .card-body {
     padding: 24px !important;
     background: #fafbfd;
+    max-height: 65vh;
+    overflow-y: auto;
+
+    /* Custom premium scrollbar styling */
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+      &:hover {
+        background: #94a3b8;
+      }
+    }
   }
 
   /* Premium Gross Salary Banner */

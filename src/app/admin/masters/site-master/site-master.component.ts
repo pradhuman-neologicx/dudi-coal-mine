@@ -88,7 +88,7 @@ export class SiteMasterComponent implements OnInit {
 
   ngOnInit(): void {
     this.searchbarform = this.formBuilder.group({
-      searchbar: ['', [Validators.required]],
+      searchbar: [''],
     });
 
     this.createSiteForm = this.formBuilder.group({
@@ -121,12 +121,9 @@ export class SiteMasterComponent implements OnInit {
   }
 
   searchfun() {
-    if (this.searchbarform.valid) {
-      this.showreset = true;
-      this.GetSiteFun();
-    } else {
-      this.searchbarform.markAllAsTouched();
-    }
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
+    this.showreset = searchText.trim().length > 0;
+    this.GetSiteFun();
   }
 
   resetsearchbar() {

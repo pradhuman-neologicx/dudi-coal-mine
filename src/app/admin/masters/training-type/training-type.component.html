@@ -20,25 +20,18 @@
       </div>
 
       <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">
-        <select class="form-control form-select" [(ngModel)]="filterStatus" (change)="onFilterChange()"
-          style="width: 150px;">
-          <option value="">All Status</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-        </select>
-
-        <div class="d-flex align-items-center ms-2">
+        <form [formGroup]="searchbarform" class="d-flex align-items-center ms-2">
           <div class="position-relative">
             <input type="text" class="form-control search-user" placeholder="Search Training Type..."
-              [(ngModel)]="filterSearch" autocomplete="off" />
+              formControlName="searchbar" autocomplete="off" />
           </div>
-          <button class="btn btn-primary search-btn ms-2" (click)="onFilterChange()">
+          <button class="btn btn-primary search-btn ms-2" (click)="searchfun()">
             <span><i class="fa-solid fa-magnifying-glass text-white"></i></span>
           </button>
-          <button class="btn btn-secondary ms-2" (click)="resetFilter()" type="button" *ngIf="showreset">
+          <button class="btn btn-secondary ms-2" (click)="resetsearchbar()" type="button" *ngIf="showreset">
             <span><i class="fa-solid fa-rotate-right text-white"></i></span>
           </button>
-        </div>
+        </form>
       </div>
     </div>
 

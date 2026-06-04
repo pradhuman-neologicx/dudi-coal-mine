@@ -91,7 +91,7 @@ export class LeaveTypeComponent implements OnInit {
 
   ngOnInit(): void {
     this.searchbarform = this.formBuilder.group({
-      searchbar: ['', [Validators.required]],
+      searchbar: [''],
     });
 
     this.createLeaveTypeForm = this.formBuilder.group({
@@ -127,12 +127,9 @@ export class LeaveTypeComponent implements OnInit {
   }
 
   searchfun() {
-    if (this.searchbarform.valid) {
-      this.showreset = true;
-      this.GetLeaveTypeFun();
-    } else {
-      this.searchbarform.markAllAsTouched();
-    }
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
+    this.showreset = searchText.trim().length > 0;
+    this.GetLeaveTypeFun();
   }
 
   resetsearchbar() {

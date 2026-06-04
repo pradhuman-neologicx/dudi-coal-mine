@@ -5,16 +5,18 @@ import { catchError, map, retry } from 'rxjs/operators';
 import { JwtService } from './jwt.service';
 import { environment } from 'src/environments/environment';
 import { Router } from '@angular/router';
+import { NotificationService } from './notificationnew.service';
 
 @Injectable()
 export class ApiService {
   constructor(
     private http: HttpClient,
     private jwtService: JwtService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {}
 
-  private formatErrors(error: any) {
+  private formatErrors = (error: any) => {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {
       // client-side error
@@ -165,7 +167,7 @@ export class ApiService {
         catchError(this.handleError)
       );
   }
-  handleError(error: any) {
+  handleError = (error: any) => {
     let errorMessage = '';
     if (error.error instanceof ErrorEvent) {
       // client-side error
@@ -188,19 +190,29 @@ export class ApiService {
     }
 
     if (error.status === 422) {
-      const errorMessage =
-        error.errors?.name?.[0] ||
-        error.errors?.email?.[0] ||
-        error.errors?.mobile?.[0] ||
-        error.errors?.input_fields?.[0] ||
-        error.errors?.material_id?.[0] ||
-        error.message;
+      let errorMessage = '';
+      const errorsObj = error.error?.errors || error.errors;
+      if (errorsObj && typeof errorsObj === 'object') {
+        const errorKeys = Object.keys(errorsObj);
+        if (errorKeys.length > 0) {
+          const firstKey = errorKeys[0];
+          const messages = errorsObj[firstKey];
+          if (Array.isArray(messages) && messages.length > 0) {
+            errorMessage = messages[0];
+          } else if (typeof messages === 'string') {
+            errorMessage = messages;
+          }
+        }
+      }
+      if (!errorMessage) {
+        errorMessage = error.error?.message || error.message || 'Validation failed';
+      }
       console.error('Validation Error:', errorMessage);
 
       return throwError(() => new Error(errorMessage));
     }
     //console.log(errorMessage+"er");
-    window.alert(errorMessage);
+    this.notificationService.show(errorMessage, 'error', 3000);
     return throwError(() => {
       return errorMessage;
     });

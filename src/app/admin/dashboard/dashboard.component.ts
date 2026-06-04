@@ -160,7 +160,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }, 1000);
 
     // Fetch actual API data
-    this.loadDashboardData();
+    // this.loadDashboardData();
   }
 
   ngOnDestroy(): void {
@@ -172,7 +172,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   updateClock() {
     this.currentTime = new Date();
     const hours = this.currentTime.getHours();
-    
+
     // Shift boundaries
     if (hours >= 6 && hours < 14) {
       this.currentShift = 'Shift A (Morning)';

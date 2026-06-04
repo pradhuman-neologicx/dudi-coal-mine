@@ -25,22 +25,7 @@
           <span class="me-1">Search:</span>
           <div>
             <input type="text" class="form-control search-user position-relative" autocomplete="off"
-              formControlName="searchbar" [ngClass]="{
-                'is-invalid':
-                  searchbarform.controls['searchbar'].errors &&
-                  (searchbarform.controls['searchbar'].touched ||
-                    searchbarform.controls['searchbar'].dirty),
-              }" />
-            <div class="text-danger error-message d-block" *ngIf="
-                searchbarform.controls['searchbar'].errors &&
-                (searchbarform.controls['searchbar'].touched ||
-                  searchbarform.controls['searchbar'].dirty)
-              ">
-              <p class="fw-light text-danger search-required"
-                *ngIf="searchbarform.controls['searchbar'].errors['required']">
-                This is required
-              </p>
-            </div>
+              formControlName="searchbar" />
           </div>
 
           <button class="btn btn-primary search-btn ms-2" (click)="searchfun()">
@@ -109,7 +94,7 @@
                     'active-status': site.is_active == 1 ? 1 : 0,
                     'deactive-status': site.is_active == 1 ? 0 : 1,
                   }">
-                  {{ site.is_active == 1 ? "active" : "deactive" }}
+                  {{ site.is_active == 1 ? "Active" : "Deactive" }}
                 </p>
               </td>
 
@@ -177,7 +162,7 @@
                 'active-status': site.is_active == 1 ? 1 : 0,
                 'deactive-status': site.is_active == 1 ? 0 : 1,
               }">
-              {{ site.is_active == 1 ? "active" : "deactive" }}
+              {{ site.is_active == 1 ? "Active" : "Deactive" }}
             </span>
           </div>
         </div>

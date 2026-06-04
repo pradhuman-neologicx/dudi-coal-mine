@@ -80,7 +80,7 @@ export class DesignationComponent implements OnInit {
 
   ngOnInit(): void {
     this.searchbarform = this.formBuilder.group({
-      searchbar: ['', [Validators.required]]
+      searchbar: ['']
     });
     this.GetDesignationFun();
   }
@@ -97,12 +97,9 @@ export class DesignationComponent implements OnInit {
   }
 
   searchfun() {
-    if (this.searchbarform.valid) {
-      this.showreset = true;
-      this.GetDesignationFun();
-    } else {
-      this.searchbarform.markAllAsTouched();
-    }
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
+    this.showreset = searchText.trim().length > 0;
+    this.GetDesignationFun();
   }
 
   resetsearchbar() {

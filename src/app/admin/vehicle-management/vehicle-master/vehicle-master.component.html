@@ -90,7 +90,7 @@
                 </td>
                 <td>
                   <div class="d-flex align-items-center gap-2">
-                    <button class="btn-action edit-btn" title="Edit">
+                    <button class="btn-action edit-btn" title="Edit" (click)="openEditManufacturerModal(element)">
                       <i class="fa-solid fa-pen-to-square"></i>
                     </button>
                     <button class="btn-action" [ngClass]="element.status ? 'deactivate-btn' : 'activate-btn'"
@@ -116,7 +116,7 @@
               </div>
               <div>
                 <div class="d-flex align-items-center gap-1">
-                  <button class="btn-action edit-btn" title="Edit">
+                  <button class="btn-action edit-btn" title="Edit" (click)="openEditManufacturerModal(element)">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
                   <button class="btn-action" [ngClass]="element.status ? 'deactivate-btn' : 'activate-btn'"
@@ -189,7 +189,7 @@
                 </td>
                 <td>
                   <div class="d-flex align-items-center gap-2">
-                    <button class="btn-action edit-btn" title="Edit">
+                    <button class="btn-action edit-btn" title="Edit" (click)="openEditModelModal(element)">
                       <i class="fa-solid fa-pen-to-square"></i>
                     </button>
                     <button class="btn-action" [ngClass]="element.status ? 'deactivate-btn' : 'activate-btn'"
@@ -215,7 +215,7 @@
               </div>
               <div>
                 <div class="d-flex align-items-center gap-1">
-                  <button class="btn-action edit-btn" title="Edit">
+                  <button class="btn-action edit-btn" title="Edit" (click)="openEditModelModal(element)">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
                   <button class="btn-action" [ngClass]="element.status ? 'deactivate-btn' : 'activate-btn'"
@@ -257,10 +257,10 @@
 <div *ngIf="createManufacturerOpen" class="your-animation-class modal-container" aria-labelledby="modal-title"
   role="dialog" aria-modal="true">
   <div class="modal-contenttop" style="max-width: 600px; margin: 30px auto;">
-    <form>
+    <form (ngSubmit)="saveManufacturer()">
       <div class="card border-0" style="border-radius: 8px;">
         <div class="card-header bg-white d-flex justify-content-between align-items-center border-0 p-4 pb-0">
-          <h5 class="modal-title pt-1 mb-0 tt-color" style="font-weight: 500;">Add Vehicle Manufacturer</h5>
+          <h5 class="modal-title pt-1 mb-0 tt-color" style="font-weight: 500;">{{ isEditManufacturer ? 'Edit Vehicle Manufacturer' : 'Add Vehicle Manufacturer' }}</h5>
           <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button"
             (click)="closeModal()">
             <i class="fa-solid fa-xmark" style="color: #525f7f; font-size: 20px;"></i>
@@ -272,6 +272,7 @@
               <label class="d-block form-label form-lable-custom mb-1"
                 style="font-weight: 400; font-size: 14px;">Name</label>
               <input type="text" class="d-block form-control form-input-custom" placeholder="Manufacturer Name"
+                [(ngModel)]="manufacturerName" name="manufacturerName"
                 style="border-radius: 4px; border: 1px solid #e0e6ed;">
             </div>
 
@@ -279,6 +280,7 @@
               <label class="d-block form-label form-lable-custom mb-1" style="font-weight: 400; font-size: 14px;">Sort
                 Name</label>
               <input type="text" class="d-block form-control form-input-custom" placeholder="Manufacturer Sort Name"
+                [(ngModel)]="manufacturerSortName" name="manufacturerSortName"
                 style="border-radius: 4px; border: 1px solid #e0e6ed;">
             </div>
           </div>
@@ -287,7 +289,7 @@
           <button class="btn btn-secondary main-btnfs px-4 py-2 me-3"
             style="background-color: #8898aa; border: none; color: white;" type="button"
             (click)="closeModal()">Close</button>
-          <button class="btn btn-custom-primary px-4 py-2" type="button"
+          <button class="btn btn-custom-primary px-4 py-2" type="submit"
             style="background-color: #468faf; color: white;">Save</button>
         </div>
       </div>
@@ -299,10 +301,10 @@
 <div *ngIf="createModelOpen" class="your-animation-class modal-container" aria-labelledby="modal-title" role="dialog"
   aria-modal="true">
   <div class="modal-contenttop" style="max-width: 700px; margin: 30px auto;">
-    <form>
+    <form (ngSubmit)="saveModel()">
       <div class="card border-0" style="border-radius: 8px;">
         <div class="card-header bg-white d-flex justify-content-between align-items-center border-0 p-4 pb-0">
-          <h5 class="modal-title pt-1 mb-0 tt-color" style="font-weight: 500;">Add Vehicle Model</h5>
+          <h5 class="modal-title pt-1 mb-0 tt-color" style="font-weight: 500;">{{ isEditModel ? 'Edit Vehicle Model' : 'Add Vehicle Model' }}</h5>
           <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button"
             (click)="closeModal()">
             <i class="fa-solid fa-xmark" style="color: #525f7f; font-size: 20px;"></i>
@@ -314,34 +316,40 @@
               <label class="d-block form-label form-lable-custom mb-1" style="font-weight: 400; font-size: 14px;">Model
                 Name</label>
               <input type="text" class="d-block form-control form-input-custom" placeholder="Model Name"
+                [(ngModel)]="modelName" name="modelName"
                 style="border-radius: 4px; border: 1px solid #e0e6ed;">
             </div>
             <div class="col-md-6 mb-3">
               <label class="d-block form-label form-lable-custom mb-1"
                 style="font-weight: 400; font-size: 14px;">Manufacturer</label>
-              <ng-select [items]="manufacturers" placeholder="Select Manufacturer" class="custom-ng-select"></ng-select>
+              <ng-select [items]="manufacturers" placeholder="Select Manufacturer" class="custom-ng-select"
+                [(ngModel)]="modelManufacturer" name="modelManufacturer"></ng-select>
             </div>
             <div class="col-md-6 mb-3">
               <label class="d-block form-label form-lable-custom mb-1"
                 style="font-weight: 400; font-size: 14px;">Batteries</label>
               <input type="number" class="d-block form-control form-input-custom" placeholder="No Of Batteries"
+                [(ngModel)]="modelBatteries" name="modelBatteries"
                 style="border-radius: 4px; border: 1px solid #e0e6ed;">
             </div>
             <div class="col-md-6 mb-3">
               <label class="d-block form-label form-lable-custom mb-1"
                 style="font-weight: 400; font-size: 14px;">Tyres</label>
               <input type="number" class="d-block form-control form-input-custom" placeholder="No Of Tyres"
+                [(ngModel)]="modelTyres" name="modelTyres"
                 style="border-radius: 4px; border: 1px solid #e0e6ed;">
             </div>
             <div class="col-md-6 mb-3">
               <label class="d-block form-label form-lable-custom mb-1" style="font-weight: 400; font-size: 14px;">Tyre
                 Type</label>
-              <ng-select [items]="tyreTypes" placeholder="Select Tyre Type" class="custom-ng-select"></ng-select>
+              <ng-select [items]="tyreTypes" placeholder="Select Tyre Type" class="custom-ng-select"
+                [(ngModel)]="modelTyreType" name="modelTyreType"></ng-select>
             </div>
             <div class="col-md-6 mb-3">
               <label class="d-block form-label form-lable-custom mb-1" style="font-weight: 400; font-size: 14px;">Fuel
                 Type</label>
-              <ng-select [items]="fuelTypes" placeholder="Select Fuel Type" class="custom-ng-select"></ng-select>
+              <ng-select [items]="fuelTypes" placeholder="Select Fuel Type" class="custom-ng-select"
+                [(ngModel)]="modelFuelType" name="modelFuelType"></ng-select>
             </div>
           </div>
         </div>
@@ -349,7 +357,7 @@
           <button class="btn btn-secondary main-btnfs px-4 py-2 me-3"
             style="background-color: #8898aa; border: none; color: white;" type="button"
             (click)="closeModal()">Close</button>
-          <button class="btn btn-custom-primary px-4 py-2" type="button"
+          <button class="btn btn-custom-primary px-4 py-2" type="submit"
             style="background-color: #468faf; color: white;">Save</button>
         </div>
       </div>

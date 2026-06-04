@@ -83,6 +83,20 @@ export class VehicleMasterComponent {
   tyreTypes = ['Radial', 'Bias'];
   fuelTypes = ['Petrol', 'Diesel', 'Electric', 'CNG'];
 
+  isEditManufacturer: boolean = false;
+  selectedManufacturerId: number | null = null;
+  manufacturerName: string = '';
+  manufacturerSortName: string = '';
+
+  isEditModel: boolean = false;
+  selectedModelId: number | null = null;
+  modelName: string = '';
+  modelManufacturer: string | null = null;
+  modelBatteries: number | null = null;
+  modelTyres: number | null = null;
+  modelTyreType: string | null = null;
+  modelFuelType: string | null = null;
+
   constructor() {}
 
   setTab(tab: 'manufacturer' | 'model') {
@@ -90,16 +104,108 @@ export class VehicleMasterComponent {
   }
 
   openAddManufacturerModal() {
+    this.isEditManufacturer = false;
+    this.selectedManufacturerId = null;
+    this.manufacturerName = '';
+    this.manufacturerSortName = '';
     this.createManufacturerOpen = true;
   }
 
+  openEditManufacturerModal(manufacturer: VehicleManufacturer) {
+    this.isEditManufacturer = true;
+    this.selectedManufacturerId = manufacturer.id;
+    this.manufacturerName = manufacturer.manufacturerName;
+    this.manufacturerSortName = manufacturer.sortName;
+    this.createManufacturerOpen = true;
+  }
+
+  saveManufacturer() {
+    if (this.isEditManufacturer) {
+      const index = this.dataSourceManufacturer.findIndex(m => m.id === this.selectedManufacturerId);
+      if (index !== -1) {
+        this.dataSourceManufacturer[index].manufacturerName = this.manufacturerName;
+        this.dataSourceManufacturer[index].sortName = this.manufacturerSortName;
+      }
+    } else {
+      const newId = this.dataSourceManufacturer.length > 0 ? Math.max(...this.dataSourceManufacturer.map(m => m.id)) + 1 : 1;
+      this.dataSourceManufacturer = [
+        ...this.dataSourceManufacturer,
+        {
+          id: newId,
+          manufacturerName: this.manufacturerName,
+          sortName: this.manufacturerSortName,
+          status: true
+        }
+      ];
+    }
+    this.closeModal();
+  }
+
   openAddModelModal() {
+    this.isEditModel = false;
+    this.selectedModelId = null;
+    this.modelName = '';
+    this.modelManufacturer = null;
+    this.modelBatteries = null;
+    this.modelTyres = null;
+    this.modelTyreType = null;
+    this.modelFuelType = null;
     this.createModelOpen = true;
+  }
+
+  openEditModelModal(model: VehicleModel) {
+    this.isEditModel = true;
+    this.selectedModelId = model.id;
+    this.modelName = model.modelName;
+    this.modelManufacturer = model.manufacturerName;
+    this.modelFuelType = model.fuelType;
+    this.modelBatteries = null;
+    this.modelTyres = null;
+    this.modelTyreType = null;
+    this.createModelOpen = true;
+  }
+
+  saveModel() {
+    if (this.isEditModel) {
+      const index = this.dataSourceModel.findIndex(m => m.id === this.selectedModelId);
+      if (index !== -1) {
+        this.dataSourceModel[index].modelName = this.modelName;
+        this.dataSourceModel[index].manufacturerName = this.modelManufacturer || '';
+        this.dataSourceModel[index].fuelType = this.modelFuelType || '';
+      }
+    } else {
+      const newId = this.dataSourceModel.length > 0 ? Math.max(...this.dataSourceModel.map(m => m.id)) + 1 : 1;
+      this.dataSourceModel = [
+        ...this.dataSourceModel,
+        {
+          id: newId,
+          modelName: this.modelName,
+          manufacturerName: this.modelManufacturer || '',
+          fuelType: this.modelFuelType || '',
+          status: true
+        }
+      ];
+    }
+    this.closeModal();
   }
 
   closeModal() {
     this.createManufacturerOpen = false;
     this.createModelOpen = false;
+    
+    this.isEditManufacturer = false;
+    this.selectedManufacturerId = null;
+    this.manufacturerName = '';
+    this.manufacturerSortName = '';
+
+    this.isEditModel = false;
+    this.selectedModelId = null;
+    this.modelName = '';
+    this.modelManufacturer = null;
+    this.modelBatteries = null;
+    this.modelTyres = null;
+    this.modelTyreType = null;
+    this.modelFuelType = null;
   }
 
   toggleStatus(element: any) {

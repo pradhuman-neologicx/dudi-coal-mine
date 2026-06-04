@@ -4,6 +4,8 @@ import { ApiService } from './api.service';
 import { JwtService } from './jwt.service';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { NotificationService } from './notificationnew.service';
+
 @Injectable({
   providedIn: 'root',
 })
@@ -14,15 +16,37 @@ export class LoginService {
   constructor(
     private http: HttpClient,
     private apiservice: ApiService,
-    private jwtService: JwtService
-  ) {}
+    private jwtService: JwtService,
+    private notificationService: NotificationService
+  ) { }
 
   AdminLoginapi(body: any): Observable<any> {
     return this.apiservice.postWithoutHeader(`v1/auth/login`, body);
   }
 
   AdminForgetPasswordApi(body: any): Observable<any> {
-    return this.apiservice.postWithoutHeader(`forgot-password`, body).pipe(
+    return this.apiservice.postWithoutHeader(`v1/auth/password/request`, body).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      })
+    );
+  }
+  AdminVerifyOtpApi(body: any): Observable<any> {
+    return this.apiservice.postWithoutHeader(`v1/auth/password/verify`, body).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      })
+    );
+  }
+
+  AdminResetPasswordV1(body: any): Observable<any> {
+    return this.apiservice.postWithoutHeader(`v1/auth/password/reset`, body);
+  }
+
+  VerifyOTPApi(body: any): Observable<any> {
+    return this.apiservice.postWithoutHeader(`v1/auth/password/verify`, body).pipe(
       tap((error: any) => {
         console.log('Response received:', error);
         this.erromessagefunction(error);
@@ -40,15 +64,13 @@ export class LoginService {
   }
 
   Adminlogout(): Observable<any> {
-    // const user = this.jwtService.getpanelUserId();
     const token = this.jwtService.getToken();
-    // const fcmtoken = this.jwtService.getadminnotficationToken();
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     });
 
-    return this.http.post(`${environment.api_url}logout`, {}, { headers });
+    return this.http.post(`${environment.api_url}v1/logout`, {}, { headers });
   }
   Emailverify(formData: any, headers: any) {
     return this.apiservice.post('login', formData, headers);
@@ -85,7 +107,7 @@ export class LoginService {
       // Log the user out and navigate to sign-in page
       this.jwtService.clearStorage(); // Clear token (implement this method in your JwtService)
       // this.router.navigate(['/sign_in']); // Navigate to home route
-      alert(errorMessage); // Show alert with error message
+      this.notificationService.show(errorMessage, 'error', 3000);
     } else if (error.status === 422 && error.errors) {
       if (
         typeof response.errors === 'object' &&
@@ -96,10 +118,13 @@ export class LoginService {
       } else {
         errorMessage = response.errors;
       }
-      alert(errorMessage); // Show alert with error message
+      this.notificationService.show(errorMessage, 'error', 3000);
     } else if (error && error.message) {
       // Display error message
-      if (!errorMessage.includes('success')) alert(errorMessage);
+      const isSuccess = error.status === 200 || error.status === 201 || error.status === true || error.success === true;
+      if (!isSuccess && !errorMessage.includes('success')) {
+        this.notificationService.show(errorMessage, 'error', 3000);
+      }
     }
   }
 }

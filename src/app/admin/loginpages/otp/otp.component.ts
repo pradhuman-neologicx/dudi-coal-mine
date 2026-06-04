@@ -52,6 +52,7 @@ import { LoginService } from 'src/app/core/services/login.service';
   
     ResetPassword!: FormGroup;
     Token: any;
+    email: string = '';
     ngOnInit() {
       // this.userId = this.jwtService.getpanelUserId();
       this.route.url.subscribe(segments => {
@@ -60,6 +61,11 @@ import { LoginService } from 'src/app/core/services/login.service';
         this.Token = segments[segments.length - 1].path;
         console.log('Extracted userId:', this.userId);
         console.log('Extracted Token:', this.Token);
+      });
+
+      this.route.queryParams.subscribe(params => {
+        this.email = params['email'] || '';
+        console.log('Extracted email:', this.email);
       });
   
       this.ResetPassword = this.formBuilder.group({
@@ -107,19 +113,44 @@ import { LoginService } from 'src/app/core/services/login.service';
     changePassword() {
       this.errorMessage = '';
       if (this.ResetPassword.valid) {
-        // Mock successful password reset flow directly for seamless local visual testing
-        this.submitted = true;
-        console.log("Success: Password reset locally");
-        this.successName = 'Reset Password';
-        
-        setTimeout(() => {
-          this.openSecondsuccess = true;
-          setTimeout(() => {
-            this.openSecondsuccess = false;
-            this.ngOnInit();
-            this.router.navigate(['/sign_in']);
-          }, 1800);
-        }, 200);
+        const otpValue = this.ResetPassword.get('otp')?.value;
+        const newPassword = this.ResetPassword.get('NewPassword')?.value;
+        const confirmPassword = this.ResetPassword.get('confirmPassword')?.value;
+
+        const formData = new FormData();
+        formData.append('email', this.email);
+        formData.append('otp', otpValue);
+        formData.append('password', newPassword);
+        formData.append('password_confirmation', confirmPassword);
+
+        this.loginService.VerifyOTPApi(formData).subscribe({
+          next: (response: any) => {
+            if (response && response.status === 200) {
+              this.submitted = true;
+              this.successName = 'Reset Password';
+              
+              setTimeout(() => {
+                this.openSecondsuccess = true;
+                setTimeout(() => {
+                  this.openSecondsuccess = false;
+                  this.router.navigate(['/sign_in']);
+                }, 1800);
+              }, 200);
+            } else {
+              this.errorMessage = response.message || 'Something went wrong';
+            }
+          },
+          error: (error: any) => {
+            console.error('Password reset failed:', error);
+            if (error.error && error.error.message) {
+              this.errorMessage = error.error.message;
+            } else if (error.message) {
+              this.errorMessage = error.message;
+            } else {
+              this.errorMessage = 'Failed to reset password';
+            }
+          }
+        });
       } else {
         this.submitted = false;
         this.errorMessage = 'please Enter All The Details';

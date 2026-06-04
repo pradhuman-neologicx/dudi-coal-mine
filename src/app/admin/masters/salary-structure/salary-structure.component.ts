@@ -87,11 +87,7 @@ export class SalaryStructureComponent implements OnInit {
     },
   ];
 
-  mockSalaries: any[] = [
-    { id: '1', designationId: '1', basicSalary: 18000, shiftAllowance: 2000, incentives: 1500, otherDeductions: 500, isPfApplicable: true, isMessDeduction: true, is_active: 1 },
-    { id: '2', designationId: '1', basicSalary: 25000, shiftAllowance: 3000, incentives: 2000, otherDeductions: 1000, isPfApplicable: true, isMessDeduction: false, is_active: 1 },
-    { id: '3', designationId: '1', basicSalary: 15000, shiftAllowance: 1000, incentives: 800, otherDeductions: 300, isPfApplicable: false, isMessDeduction: true, is_active: 1 },
-  ];
+
 
   constructor(
     private formBuilder: FormBuilder,
@@ -102,7 +98,7 @@ export class SalaryStructureComponent implements OnInit {
 
   ngOnInit(): void {
     this.searchbarform = this.formBuilder.group({
-      searchbar: ['', [Validators.required]],
+      searchbar: [''],
     });
 
     this.createSalaryForm = this.formBuilder.group({
@@ -111,8 +107,8 @@ export class SalaryStructureComponent implements OnInit {
       shiftAllowance: ['', [Validators.required, Validators.min(0)]],
       incentives: ['', [Validators.required, Validators.min(0)]],
       otherDeductions: ['', [Validators.required, Validators.min(0)]],
-      isPfApplicable: [true, [Validators.required]],
-      isMessDeduction: [true, [Validators.required]],
+      isPfApplicable: [false, [Validators.required]],
+      isMessDeduction: [false, [Validators.required]],
     });
 
     this.updateSalaryForm = this.formBuilder.group({
@@ -144,6 +140,7 @@ export class SalaryStructureComponent implements OnInit {
       next: (response: any) => {
         if (response.status === 200) {
           this.designations = response.data;
+          this.GetSalaryFun();
         }
       },
       error: (error: any) => {
@@ -153,8 +150,9 @@ export class SalaryStructureComponent implements OnInit {
   }
 
   getDesignationName(id: any): string {
+    if (!id) return 'N/A';
     const designation = this.designations.find(d => d.id == id);
-    return designation ? designation.name : 'N/A';
+    return designation ? designation.name : id;
   }
 
   onTableSizeChange(event: any): void {
@@ -169,12 +167,9 @@ export class SalaryStructureComponent implements OnInit {
   }
 
   searchfun() {
-    if (this.searchbarform.valid) {
-      this.showreset = true;
-      this.GetSalaryFun();
-    } else {
-      this.searchbarform.markAllAsTouched();
-    }
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
+    this.showreset = searchText.trim().length > 0;
+    this.GetSalaryFun();
   }
 
   resetsearchbar() {
@@ -193,7 +188,7 @@ export class SalaryStructureComponent implements OnInit {
     this.createSalaryOpen = false;
     this.viewSalaryOpen = false;
     this.selectedSalary = null;
-    this.createSalaryForm.reset({ designationId: '', isPfApplicable: true, isMessDeduction: true });
+    this.createSalaryForm.reset({ designationId: '', isPfApplicable: false, isMessDeduction: false });
   }
 
   OpenEditModal(salary: any): void {
@@ -205,31 +200,77 @@ export class SalaryStructureComponent implements OnInit {
   openviewModal(salary: any): void {
     this.viewSalaryOpen = true;
     this.currentSalaryId = salary.id;
-    this.selectedSalary = salary;
-    this.viewSalaryForm.patchValue({ 
-      designationId: this.getDesignationName(salary.designationId),
-      basicSalary: salary.basicSalary,
-      shiftAllowance: salary.shiftAllowance,
-      incentives: salary.incentives,
-      otherDeductions: salary.otherDeductions,
-      isPfApplicable: salary.isPfApplicable ? 'Yes' : 'No',
-      isMessDeduction: salary.isMessDeduction ? 'Yes' : 'No',
+    this.selectedSalary = null;
+
+    this.salaryStructureService.getSalaryStructureById(salary.id).subscribe({
+      next: (response: any) => {
+        if (response.status === 200 && response.data) {
+          const resSalary = response.data;
+          
+          let designationIdVal = resSalary.designation_id;
+          if (!designationIdVal && resSalary.designation) {
+            const foundDesignation = this.designations.find(d => d.name === resSalary.designation);
+            designationIdVal = foundDesignation ? foundDesignation.id : resSalary.designation;
+          }
+
+          this.selectedSalary = {
+            id: resSalary.id,
+            designationId: designationIdVal,
+            basicSalary: Number(resSalary.basic_salary),
+            shiftAllowance: Number(resSalary.shift_allowance),
+            incentives: Number(resSalary.incentives || 0),
+            otherDeductions: Number(resSalary.other_deduction || 0),
+            isPfApplicable: resSalary.pf_applicable,
+            isMessDeduction: resSalary.mess_deduction_applicable,
+            is_active: resSalary.status !== undefined ? resSalary.status : resSalary.is_active
+          };
+
+          this.viewSalaryForm.patchValue({ 
+            designationId: this.getDesignationName(this.selectedSalary.designationId),
+            basicSalary: this.selectedSalary.basicSalary,
+            shiftAllowance: this.selectedSalary.shiftAllowance,
+            incentives: this.selectedSalary.incentives,
+            otherDeductions: this.selectedSalary.otherDeductions,
+            isPfApplicable: this.selectedSalary.isPfApplicable ? 'Yes' : 'No',
+            isMessDeduction: this.selectedSalary.isMessDeduction ? 'Yes' : 'No',
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching salary structure details:', error);
+      }
     });
   }
 
   GetupdateSalarybyid(salaryId: any) {
-    const salary = this.mockSalaries.find((d) => d.id === salaryId);
-    if (salary) {
-      this.updateSalaryForm.patchValue({
-        designationId: salary.designationId,
-        basicSalary: salary.basicSalary,
-        shiftAllowance: salary.shiftAllowance,
-        incentives: salary.incentives,
-        otherDeductions: salary.otherDeductions,
-        isPfApplicable: salary.isPfApplicable,
-        isMessDeduction: salary.isMessDeduction,
-      });
-    }
+    this.salaryStructureService.getSalaryStructureById(salaryId).subscribe({
+      next: (response: any) => {
+        if (response.status === 200 && response.data) {
+          const salary = response.data;
+          
+          let designId = salary.designation_id || salary.designation;
+          if (isNaN(Number(designId))) {
+            const found = this.designations.find(d => d.name === designId);
+            if (found) {
+              designId = found.id;
+            }
+          }
+
+          this.updateSalaryForm.patchValue({
+            designationId: designId,
+            basicSalary: Number(salary.basic_salary),
+            shiftAllowance: Number(salary.shift_allowance),
+            incentives: Number(salary.incentives || 0),
+            otherDeductions: Number(salary.other_deduction || 0),
+            isPfApplicable: salary.pf_applicable,
+            isMessDeduction: salary.mess_deduction_applicable,
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching salary structure for edit:', error);
+      }
+    });
   }
 
   createSalary() {
@@ -259,18 +300,6 @@ export class SalaryStructureComponent implements OnInit {
               3000,
             );
             
-            const newId = response.data?.id || (this.mockSalaries.length + 1).toString();
-            this.mockSalaries.unshift({
-              id: newId,
-              designationId: salaryData.designationId,
-              basicSalary: Number(salaryData.basicSalary),
-              shiftAllowance: Number(salaryData.shiftAllowance),
-              incentives: Number(salaryData.incentives || 0),
-              otherDeductions: Number(salaryData.otherDeductions || 0),
-              isPfApplicable: pfVal === '1',
-              isMessDeduction: messVal === '1',
-              is_active: 1
-            });
             this.GetSalaryFun();
           } else {
             this.notificationService.show(
@@ -339,20 +368,7 @@ export class SalaryStructureComponent implements OnInit {
               3000,
             );
 
-            const index = this.mockSalaries.findIndex((d) => d.id === this.currentSalaryId);
-            if (index !== -1) {
-              this.mockSalaries[index] = {
-                ...this.mockSalaries[index],
-                designationId: salaryData.designationId,
-                basicSalary: Number(salaryData.basicSalary),
-                shiftAllowance: Number(salaryData.shiftAllowance),
-                incentives: Number(salaryData.incentives || 0),
-                otherDeductions: Number(salaryData.otherDeductions || 0),
-                isPfApplicable: pfVal === '1',
-                isMessDeduction: messVal === '1',
-              };
-              this.GetSalaryFun();
-            }
+            this.GetSalaryFun();
           } else {
             this.notificationService.show(
               response.message || 'Something went wrong',
@@ -393,37 +409,72 @@ export class SalaryStructureComponent implements OnInit {
   }
 
   GetSalaryFun() {
-    const searchText = this.searchbarform.get('searchbar')?.value?.toLowerCase();
-    let filteredData = this.mockSalaries;
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
 
-    if (searchText) {
-      filteredData = this.mockSalaries.filter((d) =>
-        d.basicSalary.toString().includes(searchText) || 
-        this.getDesignationName(d.designationId).toLowerCase().includes(searchText)
-      );
-    }
-
-    this.totalRecords = filteredData.length;
-
-    if (this.tableSize === 'all') {
-      this.salaryList = filteredData;
-    } else {
-      const startIndex = (this.page - 1) * this.tableSize;
-      const endIndex = startIndex + this.tableSize;
-      this.salaryList = filteredData.slice(startIndex, endIndex);
-    }
+    this.salaryStructureService.getSalaryStructures(this.tableSize, this.page, searchText).subscribe({
+      next: (response: any) => {
+        if (response.status === 200) {
+          this.salaryList = response.data.map((item: any) => {
+            let designationIdVal = item.designation_id;
+            if (!designationIdVal && item.designation) {
+              const foundDesignation = this.designations.find(d => d.name === item.designation);
+              designationIdVal = foundDesignation ? foundDesignation.id : item.designation;
+            }
+            return {
+              id: item.id,
+              designationId: designationIdVal,
+              basicSalary: item.basic_salary,
+              shiftAllowance: item.shift_allowance,
+              incentives: item.incentives,
+              otherDeductions: item.other_deduction,
+              isPfApplicable: item.pf_applicable,
+              isMessDeduction: item.mess_deduction_applicable,
+              is_active: item.status !== undefined ? item.status : item.is_active
+            };
+          });
+          this.totalRecords = response.pagination?.total || response.data.length;
+        } else {
+          console.error('Failed to fetch salary structures:', response.message);
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching salary structures:', error);
+      }
+    });
   }
 
   async Status(id: string, status: any) {
-    const index = this.mockSalaries.findIndex((d) => d.id === id);
-    if (index !== -1) {
-      this.mockSalaries[index].is_active = status;
-      this.notificationService.show(
-        `Salary Structure ${status ? 'activated' : 'deactivated'} successfully`,
-        'success',
-        2000,
-      );
-      this.GetSalaryFun();
-    }
+    const formData = new FormData();
+    formData.append('_method', 'PATCH');
+    formData.append('status', status.toString());
+
+    this.salaryStructureService.updateSalaryStructureStatus(id, formData).subscribe({
+      next: (response: any) => {
+        if (response.status === 200 || response.status === 201) {
+          this.notificationService.show(
+            response.message || `Salary Structure status updated successfully`,
+            'success',
+            3000
+          );
+          this.GetSalaryFun();
+        } else {
+          this.notificationService.show(
+            response.message || 'Something went wrong',
+            'error',
+            3000
+          );
+        }
+      },
+      error: (error: any) => {
+        console.error('Error updating status:', error);
+        let errorMsg = 'Something went wrong';
+        if (error.error && error.error.message) {
+          errorMsg = error.error.message;
+        } else if (error.message) {
+          errorMsg = error.message;
+        }
+        this.notificationService.show(errorMsg, 'error', 3000);
+      }
+    });
   }
 }

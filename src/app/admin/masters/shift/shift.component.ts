@@ -69,16 +69,20 @@ export class ShiftComponent implements OnInit {
   selectedShift: any = null;
   
   shiftList: any[] = [];
+  originalStartTime: string = '';
+  originalEndTime: string = '';
+  originalIsNightShift: boolean = false;
   
 
   table_heading = [
     {
       heading0: 'Serial No.',
       heading1: 'Shift Name',
-      heading2: 'Timing',
-      heading3: 'Min Hrs',
-      heading4: 'Status',
-      heading5: 'Action',
+      heading2: 'Shift Type',
+      heading3: 'Timing',
+      heading4: 'Min Hrs',
+      heading5: 'Status',
+      heading6: 'Action',
     },
   ];
 
@@ -90,7 +94,7 @@ export class ShiftComponent implements OnInit {
 
   ngOnInit(): void {
     this.searchbarform = this.formBuilder.group({
-      searchbar: ['', [Validators.required]],
+      searchbar: [''],
     });
 
     this.createShiftForm = this.formBuilder.group({
@@ -136,13 +140,48 @@ export class ShiftComponent implements OnInit {
     // Subscribe to Update Form Night Shift Checkbox Changes
     this.updateShiftForm.get('isNightShift')?.valueChanges.subscribe((isChecked) => {
       if (isChecked) {
-        this.updateShiftForm.patchValue({
-          startTime: '20:00',
-          endTime: '08:00'
-        }, { emitEvent: false });
+        if (this.originalIsNightShift) {
+          this.updateShiftForm.patchValue({
+            startTime: this.originalStartTime || '20:00',
+            endTime: this.originalEndTime || '08:00'
+          }, { emitEvent: false });
+        } else {
+          this.updateShiftForm.patchValue({
+            startTime: '20:00',
+            endTime: '08:00'
+          }, { emitEvent: false });
+        }
+      } else {
+        if (!this.originalIsNightShift) {
+          this.updateShiftForm.patchValue({
+            startTime: this.originalStartTime || '',
+            endTime: this.originalEndTime || ''
+          }, { emitEvent: false });
+        } else {
+          this.updateShiftForm.patchValue({
+            startTime: '',
+            endTime: ''
+          }, { emitEvent: false });
+        }
       }
       this.updateShiftForm.get('startTime')?.updateValueAndValidity();
       this.updateShiftForm.get('endTime')?.updateValueAndValidity();
+    });
+
+    // Subscribe to Create Form Time Changes
+    this.createShiftForm.get('startTime')?.valueChanges.subscribe(() => {
+      this.createShiftForm.get('endTime')?.updateValueAndValidity({ emitEvent: false });
+    });
+    this.createShiftForm.get('endTime')?.valueChanges.subscribe(() => {
+      this.createShiftForm.get('startTime')?.updateValueAndValidity({ emitEvent: false });
+    });
+
+    // Subscribe to Update Form Time Changes
+    this.updateShiftForm.get('startTime')?.valueChanges.subscribe(() => {
+      this.updateShiftForm.get('endTime')?.updateValueAndValidity({ emitEvent: false });
+    });
+    this.updateShiftForm.get('endTime')?.valueChanges.subscribe(() => {
+      this.updateShiftForm.get('startTime')?.updateValueAndValidity({ emitEvent: false });
     });
     
     this.GetShiftFun();
@@ -153,11 +192,17 @@ export class ShiftComponent implements OnInit {
       if (!control.parent) return null;
       const isNight = control.parent.get('isNightShift')?.value;
       const startTime = control.value;
+      const endTime = control.parent.get('endTime')?.value;
 
-      if (isNight && startTime) {
-        const hour = parseInt(startTime.split(':')[0], 10);
-        if (hour >= 6 && hour < 18) {
-          return { invalidNightStart: true };
+      if (!startTime || !endTime) return null;
+
+      if (isNight) {
+        if (startTime <= endTime) {
+          return { invalidNightRange: true };
+        }
+      } else {
+        if (startTime >= endTime) {
+          return { invalidDayRange: true };
         }
       }
       return null;
@@ -169,12 +214,17 @@ export class ShiftComponent implements OnInit {
       if (!control.parent) return null;
       const isNight = control.parent.get('isNightShift')?.value;
       const endTime = control.value;
+      const startTime = control.parent.get('startTime')?.value;
 
-      if (isNight && endTime) {
-        const hour = parseInt(endTime.split(':')[0], 10);
-        // Night shift ends usually in morning/afternoon (e.g. between 03:00 AM and 03:00 PM)
-        if (hour >= 15 || hour < 3) {
-          return { invalidNightEnd: true };
+      if (!startTime || !endTime) return null;
+
+      if (isNight) {
+        if (startTime <= endTime) {
+          return { invalidNightRange: true };
+        }
+      } else {
+        if (startTime >= endTime) {
+          return { invalidDayRange: true };
         }
       }
       return null;
@@ -193,12 +243,9 @@ export class ShiftComponent implements OnInit {
   }
 
   searchfun() {
-    if (this.searchbarform.valid) {
-      this.showreset = true;
-      this.GetShiftFun();
-    } else {
-      this.searchbarform.markAllAsTouched();
-    }
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
+    this.showreset = searchText.trim().length > 0;
+    this.GetShiftFun();
   }
 
   resetsearchbar() {
@@ -264,13 +311,17 @@ export class ShiftComponent implements OnInit {
       next: (response: any) => {
         if (response.status === 200) {
           const shift = response.data;
+          this.originalStartTime = shift.start_time || '';
+          this.originalEndTime = shift.end_time || '';
+          this.originalIsNightShift = shift.is_night_shift == 1;
+          
           this.updateShiftForm.patchValue({
             shiftName: shift.name,
             startTime: shift.start_time,
             endTime: shift.end_time,
             minWorkingHours: shift.minimum_working_hours,
             isNightShift: shift.is_night_shift == 1
-          });
+          }, { emitEvent: false });
         }
       },
       error: (error: any) => {
@@ -386,6 +437,7 @@ export class ShiftComponent implements OnInit {
               startTime: item.start_time,
               endTime: item.end_time,
               minWorkingHours: item.minimum_working_hours,
+              is_night_shift: item.is_night_shift !== undefined ? item.is_night_shift : 0,
               is_active: item.status !== undefined ? item.status : item.is_active
             }));
             this.totalRecords = response.pagination?.total || response.data.length;

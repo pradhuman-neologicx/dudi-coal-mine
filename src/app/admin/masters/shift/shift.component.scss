@@ -271,3 +271,28 @@
     box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
   }
 }
+
+/* Shift Type Badges */
+.status-badge-pill {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.3px;
+  border: 1px solid transparent;
+
+  &.day-shift {
+    background-color: rgba(245, 158, 11, 0.1); /* Amber light */
+    color: #d97706; /* Amber dark */
+    border-color: rgba(245, 158, 11, 0.2);
+  }
+
+  &.night-shift {
+    background-color: rgba(99, 102, 241, 0.1); /* Indigo light */
+    color: #4f46e5; /* Indigo dark */
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+}

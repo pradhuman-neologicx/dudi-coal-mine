@@ -115,12 +115,9 @@ export class DepartmentComponent {
   ) {}
 
   searchfun() {
-    if (this.searchbarform.valid) {
-      this.showreset = true; // Show reset button when search is performed
-      this.GetDepartmentFun();
-    } else {
-      this.searchbarform.markAllAsTouched();
-    }
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
+    this.showreset = searchText.trim().length > 0;
+    this.GetDepartmentFun();
   }
 
   resetsearchbar() {
@@ -133,7 +130,7 @@ export class DepartmentComponent {
   ngOnInit(): void {
     this.uuserId = this.jwtService.getpanelUserId();
     this.searchbarform = this.formBuilder.group({
-      searchbar: ['', [Validators.required]],
+      searchbar: [''],
     });
 
     this.createDepartmentForm = this.formBuilder.group({

@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { NotificationService } from 'src/app/core/services/notificationnew.service';
+import { TrainingTypeService } from 'src/app/core/services/training-type.service';
 
 export interface TrainingType {
   id: string;
@@ -29,11 +31,7 @@ export interface TrainingType {
   ]
 })
 export class TrainingTypeComponent implements OnInit {
-  trainingTypes: TrainingType[] = [
-    { id: 'TT-001', name: 'Safety Training', is_active: 1 },
-    { id: 'TT-002', name: 'Equipment Operations', is_active: 1 },
-    { id: 'TT-003', name: 'Emergency Response', is_active: 1 },
-  ];
+  trainingTypes: TrainingType[] = [];
   displayTypes: TrainingType[] = [];
 
   page: number = 1;
@@ -41,7 +39,7 @@ export class TrainingTypeComponent implements OnInit {
   tableSize: any = 10;
   tableSizes: any = [10, 25, 50, 100, 'all'];
 
-  filterSearch: string = '';
+  searchbarform!: FormGroup;
   filterStatus: string = '';
   showreset: boolean = false;
 
@@ -52,46 +50,77 @@ export class TrainingTypeComponent implements OnInit {
   selectedType: TrainingType | null = null;
   selectedTrainingType: TrainingType | null = null;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private trainingTypeService: TrainingTypeService,
+    private notificationService: NotificationService,
+  ) {}
 
   ngOnInit(): void {
+    this.searchbarform = this.fb.group({
+      searchbar: ['']
+    });
     this.typeForm = this.fb.group({
       name: ['', Validators.required],
     });
-    this.filterData();
+    this.GetTrainingTypesFun();
+  }
+
+  GetTrainingTypesFun(): void {
+    const searchText = this.searchbarform?.get('searchbar')?.value || '';
+    this.trainingTypeService.getTrainingTypes(this.tableSize, this.page, searchText).subscribe({
+      next: (response: any) => {
+        if (response.status === 200) {
+          this.trainingTypes = response.data.map((item: any) => ({
+            ...item,
+            is_active: item.status !== undefined ? item.status : item.is_active
+          }));
+          this.filterData();
+          this.totalRecords = response.pagination?.total || response.data.length;
+        } else {
+          console.error('Failed to fetch training types:', response.message);
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching training types:', error);
+      }
+    });
   }
 
   filterData(): void {
+    const searchText = this.searchbarform?.get('searchbar')?.value || '';
     this.displayTypes = this.trainingTypes.filter((t) => {
-      const matchSearch = t.name.toLowerCase().includes(this.filterSearch.toLowerCase());
       const matchStatus = this.filterStatus === '' || 
                           (this.filterStatus === 'Active' && t.is_active === 1) ||
                           (this.filterStatus === 'Inactive' && t.is_active === 0);
-      return matchSearch && matchStatus;
+      return matchStatus;
     });
-    this.totalRecords = this.displayTypes.length;
-    this.showreset = this.filterSearch !== '' || this.filterStatus !== '';
+    this.showreset = searchText !== '' || this.filterStatus !== '';
   }
 
-  onFilterChange(): void {
-    this.page = 1;
-    this.filterData();
+  searchfun(): void {
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
+    this.showreset = searchText.trim().length > 0;
+    this.GetTrainingTypesFun();
   }
 
-  resetFilter(): void {
-    this.filterSearch = '';
+  resetsearchbar(): void {
+    this.searchbarform.get('searchbar')?.reset();
     this.filterStatus = '';
+    this.showreset = false;
     this.page = 1;
-    this.filterData();
+    this.GetTrainingTypesFun();
   }
 
   onTableDataChange(event: any): void {
     this.page = event;
+    this.GetTrainingTypesFun();
   }
 
   onTableSizeChange(event: any): void {
     this.tableSize = event.target.value === 'all' ? 'all' : Number(event.target.value);
     this.page = 1;
+    this.GetTrainingTypesFun();
   }
 
   openAddModal(): void {
@@ -106,11 +135,38 @@ export class TrainingTypeComponent implements OnInit {
     this.selectedType = type;
     this.typeForm.patchValue({ name: type.name });
     this.modalOpen = true;
+
+    this.trainingTypeService.getTrainingTypeById(type.id).subscribe({
+      next: (response: any) => {
+        if (response.status === 200) {
+          const freshData = response.data;
+          this.typeForm.patchValue({ name: freshData.name });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching training type details for edit:', error);
+      }
+    });
   }
 
   openviewModal(type: TrainingType): void {
     this.viewTrainingTypeOpen = true;
-    this.selectedTrainingType = type;
+    this.selectedTrainingType = null;
+
+    this.trainingTypeService.getTrainingTypeById(type.id).subscribe({
+      next: (response: any) => {
+        if (response.status === 200) {
+          const data = response.data;
+          this.selectedTrainingType = {
+            ...data,
+            is_active: data.status !== undefined ? data.status : data.is_active
+          };
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching training type details:', error);
+      }
+    });
   }
 
   closeModal(): void {
@@ -126,21 +182,141 @@ export class TrainingTypeComponent implements OnInit {
     }
     const val = this.typeForm.value;
     if (this.isEditMode && this.selectedType) {
-      this.selectedType.name = val.name;
+      const formData = new FormData();
+      formData.append('name', val.name);
+      formData.append('_method', 'PUT');
+
+      this.trainingTypeService.updateTrainingType(this.selectedType.id, formData).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.closeModal();
+            this.notificationService.show(
+              response.message || 'Training Type updated successfully',
+              'success',
+              3000,
+            );
+            this.GetTrainingTypesFun();
+          } else {
+            this.notificationService.show(
+              response.message || 'Something went wrong',
+              'error',
+              3000,
+            );
+          }
+        },
+        error: (error: any) => {
+          console.error('Update Training Type failed:', error);
+          let errorMsg = 'Something went wrong';
+          if (error.error) {
+            if (error.error.errors) {
+              const errorKeys = Object.keys(error.error.errors);
+              if (errorKeys.length > 0) {
+                const firstKey = errorKeys[0];
+                const messages = error.error.errors[firstKey];
+                if (Array.isArray(messages) && messages.length > 0) {
+                  errorMsg = messages[0];
+                } else if (typeof messages === 'string') {
+                  errorMsg = messages;
+                }
+              }
+            } else if (error.error.message) {
+              errorMsg = error.error.message;
+            }
+          }
+          this.notificationService.show(errorMsg, 'error', 3000);
+        }
+      });
     } else {
-      const newId = 'TT-' + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-      this.trainingTypes.unshift({
-        id: newId,
-        name: val.name,
-        is_active: 1
+      const formData = new FormData();
+      formData.append('name', val.name);
+
+      this.trainingTypeService.createTrainingType(formData).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.closeModal();
+            this.notificationService.show(
+              response.message || 'Training Type created successfully',
+              'success',
+              3000,
+            );
+            this.page = 1;
+            this.GetTrainingTypesFun();
+          } else {
+            this.notificationService.show(
+              response.message || 'Something went wrong',
+              'error',
+              3000,
+            );
+          }
+        },
+        error: (error: any) => {
+          console.error('Create Training Type failed:', error);
+          let errorMsg = 'Something went wrong';
+          if (error.error) {
+            if (error.error.errors) {
+              const errorKeys = Object.keys(error.error.errors);
+              if (errorKeys.length > 0) {
+                const firstKey = errorKeys[0];
+                const messages = error.error.errors[firstKey];
+                if (Array.isArray(messages) && messages.length > 0) {
+                  errorMsg = messages[0];
+                } else if (typeof messages === 'string') {
+                  errorMsg = messages;
+                }
+              }
+            } else if (error.error.message) {
+              errorMsg = error.error.message;
+            }
+          }
+          this.notificationService.show(errorMsg, 'error', 3000);
+        }
       });
     }
-    this.closeModal();
-    this.filterData();
   }
 
   toggleStatus(type: TrainingType, status: number): void {
-    type.is_active = status;
-    this.filterData();
+    const formData = new FormData();
+    formData.append('_method', 'PATCH');
+    formData.append('status', status.toString());
+
+    this.trainingTypeService.updateTrainingTypeStatus(type.id, formData).subscribe({
+      next: (response: any) => {
+        if (response.status === 200 || response.status === 201) {
+          this.notificationService.show(
+            response.message || 'Training Type status updated successfully',
+            'success',
+            3000,
+          );
+          this.GetTrainingTypesFun();
+        } else {
+          this.notificationService.show(
+            response.message || 'Something went wrong',
+            'error',
+            3000,
+          );
+        }
+      },
+      error: (error: any) => {
+        console.error('Status update failed:', error);
+        let errorMsg = 'Something went wrong';
+        if (error.error) {
+          if (error.error.errors) {
+            const errorKeys = Object.keys(error.error.errors);
+            if (errorKeys.length > 0) {
+              const firstKey = errorKeys[0];
+              const messages = error.error.errors[firstKey];
+              if (Array.isArray(messages) && messages.length > 0) {
+                errorMsg = messages[0];
+              } else if (typeof messages === 'string') {
+                errorMsg = messages;
+              }
+            }
+          } else if (error.error.message) {
+            errorMsg = error.error.message;
+          }
+        }
+        this.notificationService.show(errorMsg, 'error', 3000);
+      }
+    });
   }
 }

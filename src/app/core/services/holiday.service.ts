@@ -7,14 +7,14 @@ import { JwtService } from './jwt.service';
 @Injectable({
   providedIn: 'root',
 })
-export class SalaryStructureService {
+export class HolidayService {
   constructor(
     private http: HttpClient,
     private apiservice: ApiService,
     private jwtService: JwtService
   ) {}
 
-  createSalaryStructure(requestbody: any): Observable<any> {
+  createHoliday(requestbody: any): Observable<any> {
     const token = this.jwtService.getToken();
     let headers = new HttpHeaders({
       Authorization: `Bearer ${token}`
@@ -22,10 +22,10 @@ export class SalaryStructureService {
     if (!(requestbody instanceof FormData)) {
       headers = headers.set('Content-Type', 'application/json');
     }
-    return this.apiservice.post(`v1/admin/salarystructure`, requestbody, headers);
+    return this.apiservice.post(`v1/admin/holiday`, requestbody, headers);
   }
 
-  updateSalaryStructure(id: any, requestbody: any): Observable<any> {
+  updateHoliday(id: any, requestbody: any): Observable<any> {
     const token = this.jwtService.getToken();
     let headers = new HttpHeaders({
       Authorization: `Bearer ${token}`
@@ -33,10 +33,10 @@ export class SalaryStructureService {
     if (!(requestbody instanceof FormData)) {
       headers = headers.set('Content-Type', 'application/json');
     }
-    return this.apiservice.post(`v1/admin/salarystructure/${id}`, requestbody, headers);
+    return this.apiservice.post(`v1/admin/holiday/${id}`, requestbody, headers);
   }
 
-  getSalaryStructures(tableSize: any, page: any, search: any): Observable<any> {
+  getHolidays(tableSize: any, page: any, search: any): Observable<any> {
     const token = this.jwtService.getToken();
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
@@ -45,9 +45,9 @@ export class SalaryStructureService {
 
     let url = '';
     if (tableSize !== 'all') {
-      url = `v1/admin/salarystructure?limit=${tableSize}&page=${page}`;
+      url = `v1/admin/holiday?limit=${tableSize}&page=${page}`;
     } else {
-      url = `v1/admin/salarystructure`;
+      url = `v1/admin/holiday`;
     }
 
     if (search && search.length > 0) {
@@ -57,7 +57,16 @@ export class SalaryStructureService {
     return this.apiservice.get(url, headers);
   }
 
-  updateSalaryStructureStatus(id: any, requestbody: any): Observable<any> {
+  getHolidayById(id: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+    return this.apiservice.get(`v1/admin/holiday/${id}`, headers);
+  }
+
+  updateHolidayStatus(id: any, requestbody: any): Observable<any> {
     const token = this.jwtService.getToken();
     let headers = new HttpHeaders({
       Authorization: `Bearer ${token}`
@@ -65,15 +74,6 @@ export class SalaryStructureService {
     if (!(requestbody instanceof FormData)) {
       headers = headers.set('Content-Type', 'application/json');
     }
-    return this.apiservice.post(`v1/admin/salarystructure/${id}/status`, requestbody, headers);
-  }
-
-  getSalaryStructureById(id: any): Observable<any> {
-    const token = this.jwtService.getToken();
-    const headers = new HttpHeaders({
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    });
-    return this.apiservice.get(`v1/admin/salarystructure/${id}`, headers);
+    return this.apiservice.post(`v1/admin/holiday/${id}/status`, requestbody, headers);
   }
 }
