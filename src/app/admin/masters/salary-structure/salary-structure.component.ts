@@ -104,9 +104,9 @@ export class SalaryStructureComponent implements OnInit {
     this.createSalaryForm = this.formBuilder.group({
       designationId: ['', [Validators.required]],
       basicSalary: ['', [Validators.required, Validators.min(0)]],
-      shiftAllowance: ['', [Validators.required, Validators.min(0)]],
-      incentives: ['', [Validators.required, Validators.min(0)]],
-      otherDeductions: ['', [Validators.required, Validators.min(0)]],
+      shiftAllowance: ['0', [Validators.min(0)]],
+      incentives: ['0', [Validators.min(0)]],
+      otherDeductions: ['0', [Validators.min(0)]],
       isPfApplicable: [false, [Validators.required]],
       isMessDeduction: [false, [Validators.required]],
     });
@@ -114,9 +114,9 @@ export class SalaryStructureComponent implements OnInit {
     this.updateSalaryForm = this.formBuilder.group({
       designationId: ['', [Validators.required]],
       basicSalary: ['', [Validators.required, Validators.min(0)]],
-      shiftAllowance: ['', [Validators.required, Validators.min(0)]],
-      incentives: ['', [Validators.required, Validators.min(0)]],
-      otherDeductions: ['', [Validators.required, Validators.min(0)]],
+      shiftAllowance: ['0', [Validators.min(0)]],
+      incentives: ['0', [Validators.min(0)]],
+      otherDeductions: ['0', [Validators.min(0)]],
       isPfApplicable: [true, [Validators.required]],
       isMessDeduction: [true, [Validators.required]],
     });

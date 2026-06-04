@@ -50,9 +50,9 @@
               <th>
                 <p class="table-heading">{{ detail.heading1 }}</p>
               </th>
-              <th>
+              <!-- <th>
                 <p class="table-heading">{{ detail.heading2 }}</p>
-              </th>
+              </th> -->
               <th>
                 <p class="table-heading">{{ detail.heading3 }}</p>
               </th>
@@ -88,12 +88,12 @@
               <td>
                 <p>{{ shift.shiftName }}</p>
               </td>
-              <td>
+              <!-- <td>
                 <span class="status-badge-pill" [ngClass]="(shift.is_night_shift == 1 || shift.is_night_shift === true) ? 'night-shift' : 'day-shift'">
                   <i class="fa-solid me-1" [ngClass]="(shift.is_night_shift == 1 || shift.is_night_shift === true) ? 'fa-moon' : 'fa-sun'"></i>
                   {{ (shift.is_night_shift == 1 || shift.is_night_shift === true) ? 'Night' : 'Day' }}
                 </span>
-              </td>
+              </td> -->
               <td>
                 <p>{{ shift.startTime }} - {{ shift.endTime }}</p>
               </td>
@@ -165,13 +165,13 @@
             </div>
           </div>
           <div class="mb-2"><strong>Shift Name:</strong> {{ shift.shiftName }}</div>
-          <div class="mb-2">
+          <!-- <div class="mb-2">
             <strong>Shift Type:</strong>
             <span class="status-badge-pill ms-2" [ngClass]="(shift.is_night_shift == 1 || shift.is_night_shift === true) ? 'night-shift' : 'day-shift'">
               <i class="fa-solid me-1" [ngClass]="(shift.is_night_shift == 1 || shift.is_night_shift === true) ? 'fa-moon' : 'fa-sun'"></i>
               {{ (shift.is_night_shift == 1 || shift.is_night_shift === true) ? 'Night' : 'Day' }}
             </span>
-          </div>
+          </div> -->
           <div class="mb-2"><strong>Timing:</strong> {{ shift.startTime }} - {{ shift.endTime }}</div>
           <div class="mb-2"><strong>Min Working Hours:</strong> {{ shift.minWorkingHours }} hrs</div>
           <div>

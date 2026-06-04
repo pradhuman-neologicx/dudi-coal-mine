@@ -75,10 +75,21 @@
   font-size: 14px;
 }
 
+.form-input-custom[readonly] {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+  color: #495057;
+}
+
 .form-input-custom:focus {
   border-color: var(--primary-color, #007bff);
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.25);
   outline: none;
+}
+
+.form-input-custom[readonly]:focus {
+  border-color: #ced4da;
+  box-shadow: none;
 }
 
 .active-status {
@@ -403,4 +414,45 @@ input[type="date"].is-invalid {
   background-image: none !important;
   padding-right: 12px !important;
 }
+
+/* Bulk Upload Modal Styling */
+.sample-download-box {
+  background-color: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    border-color: #468faf;
+    background-color: rgba(70, 143, 175, 0.03);
+  }
+}
+
+.upload-zone {
+  border: 2px dashed #cbd5e1;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: #468faf;
+    background-color: rgba(70, 143, 175, 0.03);
+  }
+
+  &.has-file {
+    border-color: #10b981;
+    background-color: rgba(16, 185, 129, 0.02);
+  }
+}
+
+.upload-icon-circle {
+  width: 60px;
+  height: 60px;
+  background: rgba(70, 143, 175, 0.1);
+  color: #468faf;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 

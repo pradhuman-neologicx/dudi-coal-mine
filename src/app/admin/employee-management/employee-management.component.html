@@ -194,6 +194,7 @@
             <label class="form-label form-lable-custom">Employee ID *</label>
             <input type="text" class="form-control form-input-custom" formControlName="empId"
               placeholder="Enter Employee ID"
+              [readonly]="isEditMode"
               [ngClass]="{'is-invalid': employeeForm.get('empId')?.invalid && employeeForm.get('empId')?.touched}" />
             <div class="invalid-feedback">Employee ID is required.</div>
           </div>
@@ -662,7 +663,7 @@
 <!-- Upload Modal -->
 <div *ngIf="uploadModalOpen" class="modal-overlay" [@fadeIn]>
   <div class="modal-dialog bg-white rounded-3 shadow-lg d-flex flex-column"
-    style="max-width: 700px; width: 90%; margin: 1.75rem auto; pointer-events: auto;">
+    style="max-width: 500px; width: 90%; margin: 1.75rem auto; pointer-events: auto;">
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
       <h5 class="modal-title fw-bold text-primary mb-0">Bulk Employee Upload</h5>
       <button class="btn bg-transparent border-0 p-0" (click)="closeUploadModal()">
@@ -671,72 +672,36 @@
     </div>
 
     <div class="modal-body-custom p-4 overflow-auto">
-      <div class="row g-4">
-        <!-- Left Column: Instructions & Download -->
-        <div class="col-md-5">
-          <div class="h-100 d-flex flex-column">
-            <div class="mb-4">
-              <h6 class="fw-bold mb-2">Step 1: Get Template</h6>
-              <p class="text-muted small">
-                Download our standard template to ensure your data is formatted correctly for a successful upload.
-              </p>
+      <div class="w-100">
+        <h6 class="fw-bold mb-3">Upload File</h6>
+        <form [formGroup]="uploadForm">
+          <div class="upload-zone p-5 text-center rounded-4 mb-4 border border-dashed"
+            [ngClass]="{ 'has-file': selectedUploadFile }" (click)="fileInput.click()"
+            style="min-height: 200px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            <input type="file" #fileInput class="d-none" (change)="onUploadFileSelected($event)"
+              accept=".csv, .xlsx, .xls" />
+
+            <div *ngIf="!selectedUploadFile">
+              <div class="upload-icon-circle mx-auto mb-3">
+                <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary"></i>
+              </div>
+              <p class="mb-1 fw-bold">Click to select file</p>
             </div>
 
-            <div
-              class="sample-download-box p-4 rounded-4 border d-flex flex-column align-items-center text-center flex-grow-1 justify-content-center bg-light">
-              <div class="sample-icon mb-3">
-                <i class="fa-solid fa-file-csv fs-1 text-success"></i>
-              </div>
-              <h6 class="mb-2 fw-bold">Employee CSV Template</h6>
-              <p class="small text-muted mb-4">
-                Includes all required fields like Name, Mobile, and Department.
-              </p>
-              <button class="btn btn-outline-primary fw-bold w-100" (click)="downloadSampleFile()">
-                <i class="fa-solid fa-download me-2"></i> Download Template
+            <div *ngIf="selectedUploadFile" class="file-info-view">
+              <i class="fa-solid fa-file-circle-check fs-1 text-success mb-2"></i>
+              <h6 class="fw-bold mb-0 text-truncate px-3" style="max-width: 250px;">
+                {{ selectedUploadFileName }}
+              </h6>
+              <button class="btn btn-link btn-sm text-danger mt-2"
+                (click)="$event.stopPropagation(); removeSelectedFile(fileInput)">
+                Remove
               </button>
             </div>
           </div>
-        </div>
 
-        <!-- Right Column: Upload Zone -->
-        <div class="col-md-7">
-          <h6 class="fw-bold mb-3">Step 2: Upload File</h6>
-          <form [formGroup]="uploadForm">
-            <div class="upload-zone p-5 text-center rounded-4 mb-4 border border-dashed"
-              [ngClass]="{ 'has-file': selectedUploadFile }" (click)="fileInput.click()"
-              style="min-height: 200px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-              <input type="file" #fileInput class="d-none" (change)="onUploadFileSelected($event)"
-                accept=".csv, .xlsx, .xls" />
 
-              <div *ngIf="!selectedUploadFile">
-                <div class="upload-icon-circle mx-auto mb-3">
-                  <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary"></i>
-                </div>
-                <p class="mb-1 fw-bold">Click to select file</p>
-                <p class="small text-muted mb-0">Supports CSV, Excel (Max 5MB)</p>
-              </div>
-
-              <div *ngIf="selectedUploadFile" class="file-info-view">
-                <i class="fa-solid fa-file-circle-check fs-1 text-success mb-2"></i>
-                <h6 class="fw-bold mb-0 text-truncate px-3" style="max-width: 250px;">
-                  {{ selectedUploadFileName }}
-                </h6>
-                <button class="btn btn-link btn-sm text-danger mt-2"
-                  (click)="$event.stopPropagation(); removeSelectedFile()">
-                  Remove
-                </button>
-              </div>
-            </div>
-
-            <div class="alert alert-info border-0 small py-3 px-4 rounded-3 d-flex align-items-center mb-0">
-              <i class="fa-solid fa-circle-info fs-5 me-3"></i>
-              <div>
-                <strong>Pro Tip:</strong> Ensure all mobile numbers are unique and department/designation IDs match
-                existing records.
-              </div>
-            </div>
-          </form>
-        </div>
+        </form>
       </div>
     </div>
 

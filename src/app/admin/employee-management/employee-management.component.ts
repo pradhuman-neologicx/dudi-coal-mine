@@ -264,10 +264,13 @@ export class EmployeeManagementComponent implements OnInit {
     }
   }
 
-  removeSelectedFile() {
+  removeSelectedFile(fileInput: any) {
     this.selectedUploadFile = null;
     this.selectedUploadFileName = '';
     this.uploadForm.reset();
+    if (fileInput) {
+      fileInput.value = '';
+    }
   }
 
   uploadFile() {
@@ -478,66 +481,84 @@ export class EmployeeManagementComponent implements OnInit {
     this.isEditMode = true;
     this.currentEmployeeId = employee.id;
 
-    // Find department ID and designation ID based on name or ID properties
-    let deptId = '';
-    if (employee.department) {
-      const deptObj = this.departmentsList.find(d => 
-        (d.name && d.name.trim().toLowerCase() === employee.department.trim().toLowerCase()) || 
-        d.id === employee.department_id ||
-        String(d.id) === String(employee.department)
-      );
-      if (deptObj) deptId = deptObj.id;
-    }
+    this.employeeManagementService.getEmployeeById(employee.id).subscribe({
+      next: (response: any) => {
+        if (response.status === 200 && response.data) {
+          const emp = Array.isArray(response.data) ? response.data[0] : response.data;
 
-    let desigId = '';
-    if (employee.designation) {
-      const desigObj = this.designationsList.find(d => 
-        (d.name && d.name.trim().toLowerCase() === employee.designation.trim().toLowerCase()) || 
-        d.id === employee.designation_id ||
-        String(d.id) === String(employee.designation)
-      );
-      if (desigObj) desigId = desigObj.id;
-    }
+          // Find department ID and designation ID based on name or ID properties
+          let deptId = '';
+          if (emp.department) {
+            const deptObj = this.departmentsList.find(d => 
+              (d.name && d.name.trim().toLowerCase() === emp.department.trim().toLowerCase()) || 
+              d.id === emp.department_id ||
+              String(d.id) === String(emp.department)
+            );
+            if (deptObj) deptId = deptObj.id;
+          } else if (emp.department_id) {
+            deptId = emp.department_id;
+          }
 
-    // Determine salary type
-    const salType = employee.salary_type === 'monthly' ? 'Monthly' : (employee.salary_type === 'daily_wage' ? 'Daily Wage' : '');
+          let desigId = '';
+          if (emp.designation) {
+            const desigObj = this.designationsList.find(d => 
+              (d.name && d.name.trim().toLowerCase() === emp.designation.trim().toLowerCase()) || 
+              d.id === emp.designation_id ||
+              String(d.id) === String(emp.designation)
+            );
+            if (desigObj) desigId = desigObj.id;
+          } else if (emp.designation_id) {
+            desigId = emp.designation_id;
+          }
 
-    // Determine basicSalary field value based on salaryType
-    let basicSal = '';
-    if (salType === 'Monthly') {
-      basicSal = employee.basic_salary;
-    } else if (salType === 'Daily Wage') {
-      basicSal = employee.daily_wage;
-    }
+          // Determine salary type
+          const salType = emp.salary_type === 'monthly' ? 'Monthly' : (emp.salary_type === 'daily_wage' ? 'Daily Wage' : '');
 
-    const formData = {
-      empId: employee.employee_code || '',
-      name: employee.name || '',
-      fatherName: employee.father_name || '',
-      dob: this.formatDateToYYYYMMDD(employee.dob),
-      gender: employee.gender ? (employee.gender.charAt(0).toUpperCase() + employee.gender.slice(1)) : '',
-      mobile: employee.mobile || '',
-      address: employee.address || '',
-      emergencyContact: employee.emergency_contact || '',
-      joiningDate: this.formatDateToYYYYMMDD(employee.joining_date),
-      empType: employee.employee_type === 'permanent' ? 'Permanent' : (employee.employee_type === 'daily_wage' ? 'Daily Wage' : ''),
-      department: deptId,
-      designation: desigId,
-      salaryType: salType,
-      basicSalary: basicSal,
-      isPfApplicable: employee.pf_applicable == 1 ? 'Yes' : 'No',
-      pfNumber: employee.pf_number || '',
-      bankName: employee.bank_name || '',
-      accountNumber: employee.bank_account_number || '',
-      ifscCode: employee.ifsc_code || '',
-      isMessApplicable: employee.mess_deduction_applicable == 1 ? 'Yes' : 'No',
-      isOthersDeductionApplicable: employee.other_deduction_appliacble == 1 ? 'Yes' : 'No',
-      othersDeductionAmount: employee.other_deduction || ''
-    };
+          // Determine basicSalary field value based on salaryType
+          let basicSal = '';
+          if (salType === 'Monthly') {
+            basicSal = emp.basic_salary;
+          } else if (salType === 'Daily Wage') {
+            basicSal = emp.daily_wage;
+          }
 
-    this.employeeForm.patchValue(formData);
-    this.activeTab = 'personal';
-    this.employeeModalOpen = true;
+          const formData = {
+            empId: emp.employee_code || '',
+            name: emp.name || '',
+            fatherName: emp.father_name || '',
+            dob: this.formatDateToYYYYMMDD(emp.dob),
+            gender: emp.gender ? (emp.gender.charAt(0).toUpperCase() + emp.gender.slice(1)) : '',
+            mobile: emp.mobile || '',
+            address: emp.address || '',
+            emergencyContact: emp.emergency_contact || '',
+            joiningDate: this.formatDateToYYYYMMDD(emp.joining_date),
+            empType: emp.employee_type === 'permanent' ? 'Permanent' : (emp.employee_type === 'daily_wage' ? 'Daily Wage' : ''),
+            department: deptId,
+            designation: desigId,
+            salaryType: salType,
+            basicSalary: basicSal,
+            isPfApplicable: emp.pf_applicable == 1 ? 'Yes' : 'No',
+            pfNumber: emp.pf_number || '',
+            bankName: emp.bank_name || '',
+            accountNumber: emp.bank_account_number || '',
+            ifscCode: emp.ifsc_code || '',
+            isMessApplicable: emp.mess_deduction_applicable == 1 ? 'Yes' : 'No',
+            isOthersDeductionApplicable: emp.other_deduction_appliacble == 1 ? 'Yes' : 'No',
+            othersDeductionAmount: emp.other_deduction || ''
+          };
+
+          this.employeeForm.patchValue(formData);
+          this.activeTab = 'personal';
+          this.employeeModalOpen = true;
+        } else {
+          this.notificationService.show(response.message || 'Failed to fetch employee details for editing', 'error', 3000);
+        }
+      },
+      error: (err: any) => {
+        console.error('Error fetching employee details for editing:', err);
+        this.notificationService.show('Error fetching employee details', 'error', 3000);
+      }
+    });
   }
 
   saveEmployee() {

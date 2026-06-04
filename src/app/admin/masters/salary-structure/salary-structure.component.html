@@ -53,12 +53,12 @@
               <th>
                 <p class="table-heading">{{ detail.heading2 }}</p>
               </th>
-              <th>
+              <!-- <th>
                 <p class="table-heading">{{ detail.heading3 }}</p>
               </th>
               <th>
                 <p class="table-heading">{{ detail.heading4 }}</p>
-              </th>
+              </th> -->
               <th>
                 <p class="table-heading">{{ detail.heading5 }}</p>
               </th>
@@ -100,12 +100,12 @@
               <td>
                 <p>₹{{ salary.basicSalary }}</p>
               </td>
-              <td>
+              <!-- <td>
                 <p>₹{{ salary.shiftAllowance }}</p>
               </td>
               <td>
                 <p>₹{{ salary.incentives }}</p>
-              </td>
+              </td> -->
               <td>
                 <p>₹{{ salary.otherDeductions }}</p>
               </td>
@@ -185,8 +185,8 @@
           </div>
           <div class="mb-2"><strong>Designation:</strong> {{ getDesignationName(salary.designationId) }}</div>
           <div class="mb-2"><strong>Basic Salary:</strong> ₹{{ salary.basicSalary }}</div>
-          <div class="mb-2"><strong>Shift Allowance:</strong> ₹{{ salary.shiftAllowance }}</div>
-          <div class="mb-2"><strong>Incentives:</strong> ₹{{ salary.incentives }}</div>
+          <!-- <div class="mb-2"><strong>Shift Allowance:</strong> ₹{{ salary.shiftAllowance }}</div>
+          <div class="mb-2"><strong>Incentives:</strong> ₹{{ salary.incentives }}</div> -->
           <div class="mb-2"><strong>Other Deductions:</strong> ₹{{ salary.otherDeductions }}</div>
           <div class="mb-2"><strong>PF Applicable:</strong> {{ salary.isPfApplicable ? 'Yes' : 'No' }}</div>
           <div class="mb-2"><strong>Mess Deduction:</strong> {{ salary.isMessDeduction ? 'Yes' : 'No' }}</div>
@@ -256,7 +256,7 @@
               </div>
             </div>
 
-            <div class="col-md-6 mb-3">
+            <!-- <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Shift Allowance (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="shiftAllowance"
                 [ngClass]="{'is-invalid': createSalaryForm.controls['shiftAllowance'].errors && (createSalaryForm.controls['shiftAllowance'].touched || createSalaryForm.controls['shiftAllowance'].dirty)}" />
@@ -282,16 +282,13 @@
                   Incentives must be at least 0
                 </p>
               </div>
-            </div>
+            </div> -->
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Other Deductions (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="otherDeductions"
                 [ngClass]="{'is-invalid': createSalaryForm.controls['otherDeductions'].errors && (createSalaryForm.controls['otherDeductions'].touched || createSalaryForm.controls['otherDeductions'].dirty)}" />
               <div class="text-danger error-message d-block mt-1" *ngIf="createSalaryForm.controls['otherDeductions'].errors && (createSalaryForm.controls['otherDeductions'].touched || createSalaryForm.controls['otherDeductions'].dirty)">
-                <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['otherDeductions'].hasError('required')">
-                  Other Deductions is required
-                </p>
                 <p class="fw-light text-danger mb-0" *ngIf="createSalaryForm.controls['otherDeductions'].hasError('min')">
                   Other Deductions must be at least 0
                 </p>
@@ -367,7 +364,7 @@
               </div>
             </div>
 
-            <div class="col-md-6 mb-3">
+            <!-- <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Shift Allowance (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="shiftAllowance"
                 [ngClass]="{'is-invalid': updateSalaryForm.controls['shiftAllowance'].errors && (updateSalaryForm.controls['shiftAllowance'].touched || updateSalaryForm.controls['shiftAllowance'].dirty)}" />
@@ -393,16 +390,13 @@
                   Incentives must be at least 0
                 </p>
               </div>
-            </div>
+            </div> -->
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Other Deductions (₹)</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="otherDeductions"
                 [ngClass]="{'is-invalid': updateSalaryForm.controls['otherDeductions'].errors && (updateSalaryForm.controls['otherDeductions'].touched || updateSalaryForm.controls['otherDeductions'].dirty)}" />
               <div class="text-danger error-message d-block mt-1" *ngIf="updateSalaryForm.controls['otherDeductions'].errors && (updateSalaryForm.controls['otherDeductions'].touched || updateSalaryForm.controls['otherDeductions'].dirty)">
-                <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['otherDeductions'].hasError('required')">
-                  Other Deductions is required
-                </p>
                 <p class="fw-light text-danger mb-0" *ngIf="updateSalaryForm.controls['otherDeductions'].hasError('min')">
                   Other Deductions must be at least 0
                 </p>
@@ -455,8 +449,7 @@
         <div class="salary-summary-banner">
           <div class="banner-content">
             <div class="banner-label">Monthly Gross Salary</div>
-            <div class="banner-value">₹{{ (selectedSalary?.basicSalary + selectedSalary?.shiftAllowance + (selectedSalary?.incentives || 0)) | number }}
-            </div>
+            <div class="banner-value">₹{{ selectedSalary?.basicSalary | number }}</div>
             <div class="banner-subtitle">
               <span class="pulse-indicator" [ngClass]="{'deactive': selectedSalary?.is_active !== 1}"></span>
               Status:
@@ -492,7 +485,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6">
+          <!-- <div class="col-md-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper allowance">
                 <i class="fa-solid fa-clock"></i>
@@ -513,7 +506,7 @@
                 <span class="info-value">₹{{ selectedSalary?.incentives | number }}</span>
               </div>
             </div>
-          </div>
+          </div> -->
           <div class="col-md-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper mess" style="background: rgba(239, 68, 68, 0.1); color: rgb(239, 68, 68);">
