@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -6,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { trigger, state, style, transition, animate } from '@angular/animations';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
+import { ShiftService } from 'src/app/core/services/shift.service';
 
 @Component({
   selector: 'app-shift-management',
@@ -55,6 +57,9 @@ export class ShiftManagementComponent implements OnInit {
   activeWeekDays: any[] = [];
   isOverrideModalOpen = false;
   overrideForm!: FormGroup;
+  isBulkRotateModalOpen = false;
+  bulkRotateForm!: FormGroup;
+  shiftGroups: { [groupName: string]: string[] } = {};
 
   // Tab and Week/Month filtering state
   activeTab: string = 'Shift A';
@@ -97,7 +102,8 @@ export class ShiftManagementComponent implements OnInit {
 
   constructor(
     private formBuilder: FormBuilder,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private shiftService: ShiftService
   ) { }
 
   ngOnInit(): void {
@@ -108,6 +114,8 @@ export class ShiftManagementComponent implements OnInit {
     this.generateWeeksList();
     this.selectedWeekMondayStr = this.formatDateStr(this.currentDate);
     this.initOverrideForm();
+    this.initBulkRotateForm();
+    this.loadShiftGroups();
 
     // Seed initial logs
     this.rotationLogs = [
@@ -164,15 +172,32 @@ export class ShiftManagementComponent implements OnInit {
 
   // Generates roster values if not present
   initRosterForWeek(weekStartMonday: Date) {
+    const stored = localStorage.getItem('shiftAssignments');
+    const localAssignments = stored ? JSON.parse(stored) : {};
+
     this.employees.forEach(emp => {
       if (!this.shiftAssignments[emp.id]) {
         this.shiftAssignments[emp.id] = {};
+      }
+
+      // Pre-merge localStorage values for this employee ID or code to ensure updates show immediately
+      if (localAssignments[emp.id]) {
+        Object.assign(this.shiftAssignments[emp.id], localAssignments[emp.id]);
+      }
+      if (emp.empId && localAssignments[emp.empId]) {
+        Object.assign(this.shiftAssignments[emp.id], localAssignments[emp.empId]);
       }
 
       for (let i = 0; i < 7; i++) {
         const dayDate = new Date(weekStartMonday);
         dayDate.setDate(weekStartMonday.getDate() + i);
         const dayStr = this.formatDateStr(dayDate);
+
+        if (localAssignments[emp.id] && localAssignments[emp.id][dayStr]) {
+          this.shiftAssignments[emp.id][dayStr] = localAssignments[emp.id][dayStr];
+        } else if (emp.empId && localAssignments[emp.empId] && localAssignments[emp.empId][dayStr]) {
+          this.shiftAssignments[emp.id][dayStr] = localAssignments[emp.empId][dayStr];
+        }
 
         if (!this.shiftAssignments[emp.id][dayStr]) {
           // Default Seeding: Sat-Sun Off, Mon-Fri rotating
@@ -861,5 +886,86 @@ export class ShiftManagementComponent implements OnInit {
     this.initRosterForWeek(this.currentDate);
 
     this.notificationService.show("Sunday 00:00 Scheduler simulated! Roster rotated and advanced.", 'success', 4000);
+  }
+
+  initBulkRotateForm() {
+    this.bulkRotateForm = this.formBuilder.group({
+      sourceGroup: ['', Validators.required],
+      targetShift: ['', Validators.required],
+      effectiveDate: ['', Validators.required]
+    });
+  }
+
+  loadShiftGroups() {
+    this.shiftService.getShiftGroups().subscribe({
+      next: (res: any) => {
+        if (res.status === 200 && res.data) {
+          this.shiftGroups = res.data;
+        }
+      },
+      error: (err) => console.error('Error loading shift groups in Roster', err)
+    });
+  }
+
+  openBulkRotationModal() {
+    this.loadShiftGroups();
+    const today = new Date().toISOString().split('T')[0];
+    this.bulkRotateForm.reset({
+      sourceGroup: '',
+      targetShift: 'Shift A',
+      effectiveDate: today
+    });
+    this.isBulkRotateModalOpen = true;
+  }
+
+  closeBulkRotationModal() {
+    this.isBulkRotateModalOpen = false;
+  }
+
+  applyBulkRotation() {
+    if (this.bulkRotateForm.invalid) {
+      this.bulkRotateForm.markAllAsTouched();
+      this.notificationService.show('Please fill in all required fields.', 'error', 3000);
+      return;
+    }
+
+    const { sourceGroup, targetShift, effectiveDate } = this.bulkRotateForm.value;
+
+    if (sourceGroup === targetShift) {
+      this.notificationService.show('Source group and target shift cannot be the same.', 'error', 3000);
+      return;
+    }
+
+    const payload = {
+      source_group: sourceGroup,
+      target_shift: targetShift,
+      date: effectiveDate
+    };
+
+    this.shiftService.rotateBulkGroup(payload).subscribe({
+      next: (res: any) => {
+        if (res.status === 200) {
+          this.notificationService.show(res.message || 'Group rotated successfully', 'success', 3000);
+          this.initRosterForWeek(this.currentDate); // Refresh grid
+          this.loadShiftGroups(); // Refresh count
+          
+          this.rotationLogs.unshift({
+            id: Math.floor(1000 + Math.random() * 9000).toString(),
+            timestamp: new Date(),
+            type: 'Shift Override',
+            description: `Bulk rotated dynamic tag cohort "${sourceGroup}" to "${targetShift}" effective ${effectiveDate}.`,
+            supervisor: 'Supervisor Admin'
+          });
+
+          this.closeBulkRotationModal();
+        } else {
+          this.notificationService.show(res.message || 'Rotation failed', 'error', 3000);
+        }
+      },
+      error: (err: any) => {
+        console.error('Rotation failed', err);
+        this.notificationService.show('An error occurred during bulk rotation.', 'error', 3000);
+      }
+    });
   }
 }

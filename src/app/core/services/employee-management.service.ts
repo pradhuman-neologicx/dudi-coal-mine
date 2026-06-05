@@ -30,7 +30,7 @@ export class EmployeeManagementService {
     return this.apiservice.post(`v1/admin/employees/${id}`, requestbody, headers);
   }
 
-  getEmployees(tableSize: any, page: any, search?: string, departmentId?: any, siteId?: any): Observable<any> {
+  getEmployees(tableSize: any, page: any, search?: string, departmentId?: any, siteId?: any, designationId?: any): Observable<any> {
     const token = this.jwtService.getToken();
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
@@ -52,6 +52,9 @@ export class EmployeeManagementService {
     }
     if (siteId) {
       url += (url.includes('?') ? '&' : '?') + `site_id=${siteId}`;
+    }
+    if (designationId) {
+      url += (url.includes('?') ? '&' : '?') + `designation_id=${designationId}`;
     }
 
     return this.apiservice.get(url, headers);

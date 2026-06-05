@@ -17,6 +17,8 @@ import { EmployeeManagementService } from 'src/app/core/services/employee-manage
 import { DepartmentService } from 'src/app/core/services/department.service';
 import { DesignationService } from 'src/app/core/services/designation.service';
 import { SiteService } from 'src/app/core/services/site.service';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { ShiftService } from 'src/app/core/services/shift.service';
 
 @Component({
   selector: 'app-employee-management',
@@ -29,6 +31,7 @@ import { SiteService } from 'src/app/core/services/site.service';
     MatIconModule,
     MatButtonModule,
     NgxPaginationModule,
+    NgSelectModule,
   ],
   templateUrl: './employee-management.component.html',
   styleUrl: './employee-management.component.scss',
@@ -84,9 +87,7 @@ export class EmployeeManagementComponent implements OnInit {
 
   employeeList: any[] = [];
 
-  table_heading = ['S.No.', 'Emp ID', 'Name', 'Contact', 'Department', 'Designation', 'Status', 'Action'];
-
-
+  table_heading = ['S.No.', 'Emp ID', 'Name', 'Contact', 'Department', 'Designation', 'Shift Group', 'Status', 'Action'];
 
   sitesList: any[] = [];
   departmentsList: any[] = [];
@@ -97,6 +98,17 @@ export class EmployeeManagementComponent implements OnInit {
   selectedUploadFile: any = null;
   selectedUploadFileName: string = '';
 
+  // Assign Shift variables
+  assignShiftModalOpen: boolean = false;
+  allShiftsList: any[] = [];
+  allEmployeesList: any[] = [];
+  selectedEmployeeIds = new Set<string>();
+  assignShiftStartDate: string = '';
+  assignShiftEndDate: string = '';
+  assignShiftType: string = '';
+  shiftGroups: { [groupName: string]: string[] } = {};
+  assignShiftModalLabel: string = '';
+
   constructor(
     private formBuilder: FormBuilder,
     private notificationService: NotificationService,
@@ -104,6 +116,7 @@ export class EmployeeManagementComponent implements OnInit {
     private departmentService: DepartmentService,
     private designationService: DesignationService,
     private siteService: SiteService,
+    private shiftService: ShiftService,
   ) { }
 
   ngOnInit(): void {
@@ -114,6 +127,7 @@ export class EmployeeManagementComponent implements OnInit {
     this.filterForm = this.formBuilder.group({
       siteFilter: [''],
       deptFilter: [''],
+      designationFilter: [''],
     });
 
     this.uploadForm = this.formBuilder.group({
@@ -123,6 +137,14 @@ export class EmployeeManagementComponent implements OnInit {
     this.loadDropdownData();
     this.initEmployeeForm();
     this.GetEmployeeFun();
+    this.loadShiftGroups();
+    this.loadAllEmployees();
+  }
+
+  onDateClick(event: any) {
+    if (event.target && typeof event.target.showPicker === 'function') {
+      event.target.showPicker();
+    }
   }
 
   initEmployeeForm() {
@@ -404,8 +426,9 @@ export class EmployeeManagementComponent implements OnInit {
     const searchText = this.searchbarform.get('searchbar')?.value || '';
     const siteFilter = this.filterForm.get('siteFilter')?.value || '';
     const deptFilter = this.filterForm.get('deptFilter')?.value || '';
+    const designationFilter = this.filterForm.get('designationFilter')?.value || '';
 
-    this.showreset = (searchText.trim().length > 0 || !!siteFilter || !!deptFilter);
+    this.showreset = (searchText.trim().length > 0 || !!siteFilter || !!deptFilter || !!designationFilter);
     this.page = 1;
     this.GetEmployeeFun();
   }
@@ -662,8 +685,9 @@ export class EmployeeManagementComponent implements OnInit {
     const searchText = this.searchbarform.get('searchbar')?.value || '';
     const siteFilter = this.filterForm.get('siteFilter')?.value || '';
     const deptFilter = this.filterForm.get('deptFilter')?.value || '';
+    const designationFilter = this.filterForm.get('designationFilter')?.value || '';
 
-    this.employeeManagementService.getEmployees(this.tableSize, this.page, searchText, deptFilter, siteFilter)
+    this.employeeManagementService.getEmployees(this.tableSize, this.page, searchText, deptFilter, siteFilter, designationFilter)
       .subscribe({
         next: (response: any) => {
           if (response.status === 200) {
@@ -710,6 +734,242 @@ export class EmployeeManagementComponent implements OnInit {
         console.error('Status update failed:', error);
         const errorMsg = error.error?.message || error.message || 'Something went wrong';
         this.notificationService.show(errorMsg, 'error', 3000);
+      }
+    });
+  }
+
+  toggleEmployeeSelection(empId: string) {
+    const idStr = String(empId);
+    if (this.selectedEmployeeIds.has(idStr)) {
+      this.selectedEmployeeIds.delete(idStr);
+    } else {
+      this.selectedEmployeeIds.add(idStr);
+    }
+  }
+
+  isEmployeeSelected(empId: string): boolean {
+    return this.selectedEmployeeIds.has(String(empId));
+  }
+
+  toggleAllEmployees(event: any) {
+    const checked = event.target.checked;
+    if (checked) {
+      this.employeeList.forEach(emp => {
+        if (emp.is_active == 1) {
+          this.selectedEmployeeIds.add(String(emp.id));
+        }
+      });
+    } else {
+      this.selectedEmployeeIds.clear();
+    }
+  }
+
+  areAllEmployeesSelected(): boolean {
+    if (this.employeeList.length === 0) return false;
+    const activeEmps = this.employeeList.filter(emp => emp.is_active == 1);
+    if (activeEmps.length === 0) return false;
+    return activeEmps.every(emp => this.selectedEmployeeIds.has(String(emp.id)));
+  }
+
+  getSelectedEmployeeNames(): string[] {
+    const names: string[] = [];
+    this.selectedEmployeeIds.forEach(id => {
+      const emp = this.allEmployeesList.find(e => String(e.id) === String(id));
+      if (emp) {
+        names.push(emp.name);
+      }
+    });
+    return names;
+  }
+
+  loadShiftGroups() {
+    this.shiftService.getShiftGroups().subscribe({
+      next: (res: any) => {
+        if (res.status === 200 && res.data) {
+          this.shiftGroups = res.data;
+        }
+      },
+      error: (err) => console.error('Error fetching shift groups', err)
+    });
+  }
+
+  getEmployeeShiftGroup(empId: any): string {
+    const idStr = String(empId);
+    for (const groupName in this.shiftGroups) {
+      if (this.shiftGroups[groupName]?.includes(idStr)) {
+        return groupName;
+      }
+    }
+    return '';
+  }
+
+  openAssignShiftModal(employee?: any) {
+    if (!employee && this.selectedEmployeeIds.size === 0) {
+      this.notificationService.show('Please select at least one active employee using the checkboxes first.', 'error', 3000);
+      return;
+    }
+    this.assignShiftModalOpen = true;
+    this.loadShifts();
+    this.loadAllEmployees();
+
+    const today = new Date().toISOString().split('T')[0];
+    this.assignShiftStartDate = today;
+    this.assignShiftEndDate = today;
+    this.assignShiftType = '';
+    this.assignShiftModalLabel = '';
+
+    if (employee) {
+      this.selectedEmployeeIds.clear();
+      this.selectedEmployeeIds.add(String(employee.id));
+    }
+
+    // Determine current shift group for pre-selection / helper label
+    const targetIds = Array.from(this.selectedEmployeeIds);
+    if (targetIds.length === 1) {
+      const singleId = targetIds[0];
+      const currentGroup = this.getEmployeeShiftGroup(singleId);
+      if (currentGroup) {
+        this.assignShiftType = currentGroup;
+        const emp = this.allEmployeesList.find(e => String(e.id) === String(singleId)) || this.employeeList.find(e => String(e.id) === String(singleId));
+        const name = emp ? emp.name : 'Employee';
+        this.assignShiftModalLabel = `${name} is currently in ${currentGroup} Group.`;
+      }
+    } else if (targetIds.length > 1) {
+      const groupCounts: { [key: string]: number } = {};
+      targetIds.forEach(id => {
+        const group = this.getEmployeeShiftGroup(id) || 'No Group';
+        groupCounts[group] = (groupCounts[group] || 0) + 1;
+      });
+
+      const uniqueGroups = Object.keys(groupCounts);
+      if (uniqueGroups.length === 1) {
+        const group = uniqueGroups[0];
+        if (group !== 'No Group') {
+          this.assignShiftType = group;
+        }
+        this.assignShiftModalLabel = `All selected employees are currently in ${group} Group.`;
+      } else {
+        const summary = uniqueGroups.map(g => `${groupCounts[g]} in ${g}`).join(', ');
+        this.assignShiftModalLabel = `Current assignment breakdown: ${summary}`;
+      }
+    }
+  }
+
+  closeAssignShiftModal() {
+    this.assignShiftModalOpen = false;
+    this.selectedEmployeeIds.clear();
+    this.assignShiftType = '';
+    this.assignShiftStartDate = '';
+    this.assignShiftEndDate = '';
+    this.assignShiftModalLabel = '';
+  }
+
+  loadShifts() {
+    this.shiftService.getShifts('all', 1, '').subscribe({
+      next: (res: any) => {
+        if (res.status === 200 && res.data && res.data.length > 0) {
+          this.allShiftsList = res.data.map((s: any) => ({
+            id: s.name.includes('Shift A') ? 'Shift A' : s.name.includes('Shift B') ? 'Shift B' : s.name.includes('Shift C') ? 'Shift C' : s.name,
+            name: s.name
+          }));
+        } else {
+          this.allShiftsList = [
+            { id: 'Shift A', name: 'Shift A (Morning)' },
+            { id: 'Shift B', name: 'Shift B (Afternoon)' },
+            { id: 'Shift C', name: 'Shift C (Night)' },
+            { id: 'Off', name: 'Weekly Off' }
+          ];
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching shifts', err);
+        this.allShiftsList = [
+          { id: 'Shift A', name: 'Shift A (Morning)' },
+          { id: 'Shift B', name: 'Shift B (Afternoon)' },
+          { id: 'Shift C', name: 'Shift C (Night)' },
+          { id: 'Off', name: 'Weekly Off' }
+        ];
+      }
+    });
+  }
+
+  loadAllEmployees() {
+    this.employeeManagementService.getEmployees('all', 1).subscribe({
+      next: (res: any) => {
+        if (res.status === 200 && res.data && res.data.length > 0) {
+          this.allEmployeesList = res.data;
+        } else {
+          this.allEmployeesList = this.employeeList.length > 0 ? this.employeeList : [
+            { id: '1', name: 'Ramesh Kumar', employee_code: 'EMP-001' },
+            { id: '2', name: 'Suresh Singh', employee_code: 'EMP-002' },
+            { id: '3', name: 'Anita Sharma', employee_code: 'EMP-003' },
+            { id: '4', name: 'Rajesh Patel', employee_code: 'EMP-004' },
+            { id: '5', name: 'Amit Sen', employee_code: 'EMP-005' },
+            { id: '6', name: 'Vikram Singh', employee_code: 'EMP-006' }
+          ];
+        }
+      },
+      error: (err) => {
+        console.error('Error fetching all employees', err);
+        this.allEmployeesList = this.employeeList.length > 0 ? this.employeeList : [
+          { id: '1', name: 'Ramesh Kumar', employee_code: 'EMP-001' },
+          { id: '2', name: 'Suresh Singh', employee_code: 'EMP-002' },
+          { id: '3', name: 'Anita Sharma', employee_code: 'EMP-003' },
+          { id: '4', name: 'Rajesh Patel', employee_code: 'EMP-004' },
+          { id: '5', name: 'Amit Sen', employee_code: 'EMP-005' },
+          { id: '6', name: 'Vikram Singh', employee_code: 'EMP-006' }
+        ];
+      }
+    });
+  }
+
+  saveBulkShift() {
+    const startDate = this.assignShiftStartDate;
+    const endDate = this.assignShiftEndDate;
+    const shiftCode = this.assignShiftType;
+
+    if (!startDate || !endDate) {
+      this.notificationService.show('Please select a valid start and end date.', 'error', 3000);
+      return;
+    }
+
+    if (new Date(startDate) > new Date(endDate)) {
+      this.notificationService.show('End date cannot be before start date.', 'error', 3000);
+      return;
+    }
+
+    if (!shiftCode) {
+      this.notificationService.show('Please select a shift to assign.', 'error', 3000);
+      return;
+    }
+
+    const targetIds = Array.from(this.selectedEmployeeIds);
+
+    if (targetIds.length === 0) {
+      this.notificationService.show('Please select at least one employee.', 'error', 3000);
+      return;
+    }
+
+    const payload = {
+      employee_ids: targetIds,
+      shift_code: shiftCode,
+      start_date: startDate,
+      end_date: endDate
+    };
+
+    this.shiftService.assignBulkShift(payload).subscribe({
+      next: (res: any) => {
+        if (res.status === 200) {
+          this.notificationService.show(res.message || 'Shift assigned successfully', 'success', 3000);
+          this.closeAssignShiftModal();
+          this.loadShiftGroups(); // Refresh count of chips
+        } else {
+          this.notificationService.show(res.message || 'Failed to assign shift', 'error', 3000);
+        }
+      },
+      error: (err: any) => {
+        console.error('Error assigning bulk shift:', err);
+        this.notificationService.show('Something went wrong while assigning shifts.', 'error', 3000);
       }
     });
   }

@@ -455,4 +455,181 @@ input[type="date"].is-invalid {
   justify-content: center;
 }
 
+::ng-deep .custom-ng-select {
+  .ng-select-container {
+    border: 1px solid #ced4da !important;
+    border-radius: 6px !important;
+    min-height: 40px !important;
+    padding: 2px 8px !important;
+    box-shadow: none !important;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    
+    &:focus, &:focus-within {
+      border-color: var(--primary-color, #468faf) !important;
+      box-shadow: 0 0 0 3px rgba(70, 143, 175, 0.15) !important;
+    }
+  }
+  
+  &.is-invalid .ng-select-container {
+    border-color: #dc3545 !important;
+  }
+  
+  .ng-dropdown-panel {
+    border-radius: 8px !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08) !important;
+    max-height: 220px !important;
+    z-index: 1060 !important;
+  }
+  
+  .ng-dropdown-panel-items {
+    max-height: 200px !important;
+    overflow-y: auto !important;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+
+      &:hover {
+        background: #94a3b8;
+      }
+    }
+  }
+
+  .ng-option {
+    padding: 6px 20px !important;
+    font-size: 13px !important;
+    
+    &.ng-option-marked {
+      background-color: rgba(70, 143, 175, 0.08) !important;
+    }
+    
+    &.ng-option-selected {
+      background-color: rgba(70, 143, 175, 0.15) !important;
+      font-weight: 600 !important;
+    }
+  }
+}
+
+/* Dynamic Grouping Chips */
+.uppercase-label {
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.group-pill {
+  border-radius: 30px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 6px 16px !important;
+  border: 1px solid #e2e8f0 !important;
+  background-color: #ffffff !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  color: #475569 !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02) !important;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    border-color: #cbd5e1 !important;
+  }
+
+  .pill-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    background: #cbd5e1;
+    transition: all 0.2s ease;
+  }
+
+  .badge {
+    transition: all 0.2s ease;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+  }
+
+  /* Active states */
+  &.active {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+    transform: translateY(-1px);
+  }
+
+  &.shift-a-pill {
+    &:hover { border-color: #3a86c8 !important; }
+    &.active {
+      background-color: rgba(58, 134, 200, 0.08) !important;
+      border-color: #3a86c8 !important;
+      color: #3a86c8 !important;
+      .pill-dot { background: #3a86c8; box-shadow: 0 0 0 3px rgba(58, 134, 200, 0.2); }
+      .badge { background-color: #3a86c8 !important; color: #ffffff !important; border-color: #3a86c8 !important; }
+    }
+  }
+
+  &.shift-b-pill {
+    &:hover { border-color: #f59e0b !important; }
+    &.active {
+      background-color: rgba(245, 158, 11, 0.08) !important;
+      border-color: #f59e0b !important;
+      color: #b45309 !important;
+      .pill-dot { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
+      .badge { background-color: #f59e0b !important; color: #ffffff !important; border-color: #f59e0b !important; }
+    }
+  }
+
+  &.shift-c-pill {
+    &:hover { border-color: #6366f1 !important; }
+    &.active {
+      background-color: rgba(99, 102, 241, 0.08) !important;
+      border-color: #6366f1 !important;
+      color: #6366f1 !important;
+      .pill-dot { background: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
+      .badge { background-color: #6366f1 !important; color: #ffffff !important; border-color: #6366f1 !important; }
+    }
+  }
+}
+
+/* Shift Group Badge in Table & Cards */
+.shift-group-badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+
+  &.shift-tag-a {
+    background-color: rgba(58, 134, 200, 0.08);
+    color: #3a86c8;
+    border-color: rgba(58, 134, 200, 0.15);
+  }
+
+  &.shift-tag-b {
+    background-color: rgba(245, 158, 11, 0.08);
+    color: #b45309;
+    border-color: rgba(245, 158, 11, 0.15);
+  }
+
+  &.shift-tag-c {
+    background-color: rgba(99, 102, 241, 0.08);
+    color: #6366f1;
+    border-color: rgba(99, 102, 241, 0.15);
+  }
+}
+
 

@@ -83,6 +83,9 @@
         <button class="btn btn-outline-primary px-3 py-2" (click)="openOverrideModal('swap')">
           <i class="fa-solid fa-arrow-right-arrow-left me-2"></i>Swap Shifts
         </button>
+        <button class="btn btn-outline-primary px-3 py-2" (click)="openBulkRotationModal()">
+          <i class="fa-solid fa-rotate me-2"></i>Bulk Rotate Groups
+        </button>
       </div>
     </div>
 
@@ -216,20 +219,23 @@
         </div>
 
         <div class="row g-3">
-          <!-- Date Selection -->
+          <!-- Date Range Selection -->
           <div class="col-md-6">
-            <label class="form-label form-lable-custom">Select Date *</label>
-            <select class="form-select form-input-custom" formControlName="dateStr"
-              [ngClass]="{'is-invalid': overrideForm.get('dateStr')?.invalid && overrideForm.get('dateStr')?.touched}">
-              <option value="">Select Date</option>
-              <option *ngFor="let day of activeWeekDays" [value]="day.dateStr">{{ day.name }} ({{ day.date | date: 'dd
-                MMM' }})</option>
-            </select>
-            <div class="invalid-feedback">Please select a date.</div>
+            <label class="form-label form-lable-custom">Start Date *</label>
+            <input type="date" class="form-control form-input-custom cursor-pointer" formControlName="startDate"
+              [ngClass]="{'is-invalid': overrideForm.get('startDate')?.invalid && overrideForm.get('startDate')?.touched}" />
+            <div class="invalid-feedback">Please select a start date.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom">End Date *</label>
+            <input type="date" class="form-control form-input-custom cursor-pointer" formControlName="endDate"
+              [ngClass]="{'is-invalid': overrideForm.get('endDate')?.invalid && overrideForm.get('endDate')?.touched}" />
+            <div class="invalid-feedback">Please select an end date.</div>
           </div>
 
           <!-- Primary Employee Selection -->
-          <div class="col-md-6">
+          <div class="col-md-12">
             <label class="form-label form-lable-custom">
               {{ overrideForm.get('type')?.value === 'standby' ? 'Original Employee' : 'Employee' }} *
             </label>
@@ -424,5 +430,77 @@
       </button>
     </div>
 
+  </div>
+</div>
+
+<!-- Bulk Group Rotation Modal -->
+<div *ngIf="isBulkRotateModalOpen" class="modal-overlay" [@fadeIn]>
+  <div class="modal-dialog-large bg-white rounded-3 shadow-lg d-flex flex-column max-w-600 h-auto-modal">
+    
+    <!-- Modal Header -->
+    <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
+      <h4 class="mb-0 text-primary fw-bold">Bulk Group Rotation</h4>
+      <button class="btn bg-transparent border-0 p-0" (click)="closeBulkRotationModal()">
+        <i class="fa-solid fa-xmark fs-4 text-muted"></i>
+      </button>
+    </div>
+
+    <!-- Modal Form -->
+    <form [formGroup]="bulkRotateForm" (ngSubmit)="applyBulkRotation()" class="d-flex flex-column overflow-hidden">
+      <div class="px-4 py-4 overflow-auto">
+        
+        <div class="row g-3">
+          <!-- Source Group Selection -->
+          <div class="col-md-12">
+            <label class="form-label form-lable-custom">Select Source Group (Tag) *</label>
+            <select class="form-select form-input-custom" formControlName="sourceGroup"
+              [ngClass]="{'is-invalid': bulkRotateForm.get('sourceGroup')?.invalid && bulkRotateForm.get('sourceGroup')?.touched}">
+              <option value="">Select Source Group</option>
+              <option value="Shift A">Shift A Group ({{ (shiftGroups['Shift A'] || []).length }} employees)</option>
+              <option value="Shift B">Shift B Group ({{ (shiftGroups['Shift B'] || []).length }} employees)</option>
+              <option value="Shift C">Shift C Group ({{ (shiftGroups['Shift C'] || []).length }} employees)</option>
+            </select>
+            <div class="invalid-feedback">Please select the source group to rotate.</div>
+            <div class="form-text text-muted fs-8 mt-1" *ngIf="bulkRotateForm.get('sourceGroup')?.value">
+              This rotation will apply to all {{ (shiftGroups[bulkRotateForm.get('sourceGroup')?.value] || []).length }} active employee(s) in this group.
+            </div>
+          </div>
+
+          <!-- Target Shift Selection -->
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom">Target Shift *</label>
+            <select class="form-select form-input-custom" formControlName="targetShift"
+              [ngClass]="{'is-invalid': bulkRotateForm.get('targetShift')?.invalid && bulkRotateForm.get('targetShift')?.touched}">
+              <option *ngFor="let shift of shifts" [value]="shift.code">{{ shift.name }}</option>
+            </select>
+            <div class="invalid-feedback">Please select the target shift.</div>
+          </div>
+
+          <!-- Effective Date Range -->
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom">Effective Start Date *</label>
+            <input type="date" class="form-control form-input-custom cursor-pointer" formControlName="startDate"
+              [ngClass]="{'is-invalid': bulkRotateForm.get('startDate')?.invalid && bulkRotateForm.get('startDate')?.touched}" />
+            <div class="invalid-feedback">Please select the effective start date.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom">Effective End Date *</label>
+            <input type="date" class="form-control form-input-custom cursor-pointer" formControlName="endDate"
+              [ngClass]="{'is-invalid': bulkRotateForm.get('endDate')?.invalid && bulkRotateForm.get('endDate')?.touched}" />
+            <div class="invalid-feedback">Please select the effective end date.</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="px-4 py-3 border-top bg-light text-end">
+        <button class="btn btn-secondary px-4 py-2 me-2" type="button" (click)="closeBulkRotationModal()">Cancel</button>
+        <button class="btn btn-custom-primary px-4 py-2" type="submit">
+          <i class="fa-solid fa-rotate me-1"></i> Rotate / Swap
+        </button>
+      </div>
+    </form>
   </div>
 </div>
