@@ -109,7 +109,7 @@ export class EmployeeManagementComponent implements OnInit {
   allShiftsList: any[] = [];
   allEmployeesList: any[] = [];
   selectedEmployeeIds = new Set<string>();
-  selectedEmployeeIdsForAssign: string[] = [];
+  selectedEmployeeIdsForAssign: any[] = [];
   assignShiftStartDate: string = '';
   assignShiftEndDate: string = '';
   assignShiftType: string = '';
@@ -425,47 +425,25 @@ export class EmployeeManagementComponent implements OnInit {
     }
 
     const file = this.selectedBulkAssignFile;
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      const text = e.target.result;
-      const lines = text.split('\n');
-      if (lines.length > 1) {
-        const defaultShifts = JSON.parse(localStorage.getItem('employeeDefaultShifts') || '{}');
-        let count = 0;
-        for (let i = 1; i < lines.length; i++) {
-          const line = lines[i].trim();
-          if (!line) continue;
-          const parts = line.split(',');
-          if (parts.length >= 2) {
-            const empCode = parts[0].trim();
-            const shiftCode = parts[1].trim(); // Shift A, Shift B, etc.
-            
-            // Find employee by employee_code
-            const emp = this.allEmployeesList.find(e => 
-              (e.employee_code && e.employee_code.trim().toLowerCase() === empCode.toLowerCase()) || 
-              (e.empId && e.empId.trim().toLowerCase() === empCode.toLowerCase())
-            );
-            if (emp) {
-              defaultShifts[emp.id] = shiftCode;
-              count++;
-            }
-          }
+    this.shiftService.bulkUploadShiftAssignments(file).subscribe({
+      next: (res: any) => {
+        if (res.status === 200 || res.status === 201) {
+          this.notificationService.show(res.message || 'Bulk shift assignments applied successfully', 'success', 3000);
+          this.closeBulkAssignModal();
+          this.selectedEmployeeIds.clear();
+          this.selectedEmployeeIdsForAssign = [];
+          this.loadShiftGroups(); // Refresh count of chips
+          this.GetEmployeeFun(); // Refresh employee table view
+        } else {
+          this.notificationService.show(res.message || 'Failed to upload bulk shift assignments', 'error', 3000);
         }
-        localStorage.setItem('employeeDefaultShifts', JSON.stringify(defaultShifts));
-        this.notificationService.show(`Successfully assigned shifts to ${count} employee(s) from CSV.`, 'success', 3000);
-        this.closeBulkAssignModal();
-        this.loadShiftGroups(); // Refresh count of chips
-        this.GetEmployeeFun(); // Refresh table view
-      } else {
-        this.notificationService.show('CSV file is empty or invalid.', 'error', 3000);
+      },
+      error: (err: any) => {
+        console.error('Bulk shift upload failed:', err);
+        const errMsg = err.error?.message || err.message || 'Something went wrong during upload';
+        this.notificationService.show(errMsg, 'error', 3000);
       }
-    };
-
-    reader.onerror = () => {
-      this.notificationService.show('Failed to read file.', 'error', 3000);
-    };
-
-    reader.readAsText(file);
+    });
   }
 
   downloadBulkAssignSampleFile() {
@@ -951,20 +929,19 @@ export class EmployeeManagementComponent implements OnInit {
 
   openAssignShiftModal(employee?: any) {
     this.assignShiftModalOpen = true;
-    this.loadShifts();
     this.loadAllEmployees();
 
     this.assignShiftType = '';
 
+    let currentGroupName = '';
     if (employee) {
-      this.selectedEmployeeIdsForAssign = [String(employee.id)];
-      const currentGroup = this.getEmployeeShiftGroup(employee.id);
-      if (currentGroup) {
-        this.assignShiftType = currentGroup;
-      }
+      this.selectedEmployeeIdsForAssign = [employee.id];
+      currentGroupName = this.getEmployeeShiftGroup(employee.id);
     } else {
       this.selectedEmployeeIdsForAssign = [];
     }
+
+    this.loadShifts(currentGroupName);
   }
 
   closeAssignShiftModal() {
@@ -975,14 +952,16 @@ export class EmployeeManagementComponent implements OnInit {
 
   areAllAssignEmployeesSelected(): boolean {
     if (!this.allEmployeesList || this.allEmployeesList.length === 0) return false;
-    return this.allEmployeesList.every(emp => this.selectedEmployeeIdsForAssign.includes(String(emp.id)));
+    return this.allEmployeesList.every(emp => 
+      this.selectedEmployeeIdsForAssign.some(selId => String(selId) === String(emp.id))
+    );
   }
 
   toggleAllAssignEmployees() {
     if (this.areAllAssignEmployeesSelected()) {
       this.selectedEmployeeIdsForAssign = [];
     } else {
-      this.selectedEmployeeIdsForAssign = this.allEmployeesList.map(emp => String(emp.id));
+      this.selectedEmployeeIdsForAssign = this.allEmployeesList.map(emp => emp.id);
     }
   }
 
@@ -991,14 +970,29 @@ export class EmployeeManagementComponent implements OnInit {
     this.selectedEmployeeIdsForAssign = [];
   }
 
-  loadShifts() {
+  customSearchFn(term: string, item: any) {
+    term = term.trim().toLowerCase();
+    const name = (item.name || '').toLowerCase();
+    const code = (item.employee_code || item.empId || '').toLowerCase();
+    return name.includes(term) || code.includes(term);
+  }
+
+  loadShifts(employeeCurrentShiftName?: string) {
     this.shiftService.getShifts('all', 1, '').subscribe({
       next: (res: any) => {
         if (res.status === 200 && res.data && res.data.length > 0) {
           this.allShiftsList = res.data.map((s: any) => ({
-            id: s.name.includes('Shift A') ? 'Shift A' : s.name.includes('Shift B') ? 'Shift B' : s.name.includes('Shift C') ? 'Shift C' : s.name,
+            id: s.id,
             name: s.name
           }));
+          if (employeeCurrentShiftName) {
+            const matched = this.allShiftsList.find(s => s.name === employeeCurrentShiftName || s.name.includes(employeeCurrentShiftName));
+            if (matched) {
+              this.assignShiftType = matched.id;
+            } else {
+              this.assignShiftType = employeeCurrentShiftName;
+            }
+          }
         } else {
           this.allShiftsList = [
             { id: 'Shift A', name: 'Shift A (Morning)' },
@@ -1006,6 +1000,9 @@ export class EmployeeManagementComponent implements OnInit {
             { id: 'Shift C', name: 'Shift C (Night)' },
             { id: 'Off', name: 'Weekly Off' }
           ];
+          if (employeeCurrentShiftName) {
+            this.assignShiftType = employeeCurrentShiftName;
+          }
         }
       },
       error: (err) => {
@@ -1016,6 +1013,9 @@ export class EmployeeManagementComponent implements OnInit {
           { id: 'Shift C', name: 'Shift C (Night)' },
           { id: 'Off', name: 'Weekly Off' }
         ];
+        if (employeeCurrentShiftName) {
+          this.assignShiftType = employeeCurrentShiftName;
+        }
       }
     });
   }
@@ -1054,33 +1054,34 @@ export class EmployeeManagementComponent implements OnInit {
       return;
     }
 
-    // Check if all selected employees are already on this shift
-    const allAlreadyOnShift = targetIds.every(id => this.getEmployeeShiftGroup(id) === shiftCode);
-    if (allAlreadyOnShift) {
-      this.notificationService.show(`Selected employee(s) are already assigned to ${shiftCode}.`, 'info', 3000);
-      this.closeAssignShiftModal();
-      return;
-    }
-
     const payload = {
       employee_ids: targetIds,
-      shift_code: shiftCode
+      shift_code: String(shiftCode)
     };
 
     this.shiftService.assignBulkShift(payload).subscribe({
       next: (res: any) => {
-        if (res.status === 200) {
+        if (res.status === 200 || res.status === 201) {
           this.notificationService.show(res.message || 'Shift assigned successfully', 'success', 3000);
           this.closeAssignShiftModal();
           this.loadShiftGroups(); // Refresh count of chips
+          this.GetEmployeeFun(); // Refresh main employee table to show updated shift groups!
         } else {
           this.notificationService.show(res.message || 'Failed to assign shift', 'error', 3000);
         }
       },
       error: (err: any) => {
         console.error('Error assigning bulk shift:', err);
-        this.notificationService.show('Something went wrong while assigning shifts.', 'error', 3000);
+        const errMsg = err?.message || 'Something went wrong while assigning shifts.';
+        this.notificationService.show(errMsg, 'error', 3000);
       }
     });
+  }
+
+  clearAssignSearch(selectComponent: any) {
+    if (selectComponent) {
+      selectComponent.searchTerm = '';
+      selectComponent.filter('');
+    }
   }
 }

@@ -83,14 +83,14 @@
                 <p class="mb-0 text-muted">{{ emp.designation || '--' }}</p>
               </td>
               <td>
-                <span *ngIf="getEmployeeShiftGroup(emp.id)" [ngClass]="{
-                  'shift-tag-a': getEmployeeShiftGroup(emp.id) === 'Shift A',
-                  'shift-tag-b': getEmployeeShiftGroup(emp.id) === 'Shift B',
-                  'shift-tag-c': getEmployeeShiftGroup(emp.id) === 'Shift C'
+                <span *ngIf="emp.shift" [ngClass]="{
+                  'shift-tag-a': emp.shift === 'Shift A',
+                  'shift-tag-b': emp.shift === 'Shift B',
+                  'shift-tag-c': emp.shift === 'Shift C'
                 }" class="shift-group-badge">
-                  {{ getEmployeeShiftGroup(emp.id) }}
+                  {{ emp.shift }}
                 </span>
-                <span *ngIf="!getEmployeeShiftGroup(emp.id)" class="text-muted">--</span>
+                <span *ngIf="!emp.shift" class="text-muted">--</span>
               </td>
               <td>
                 <span [ngClass]="{'active-status': emp.is_active == 1, 'deactive-status': emp.is_active != 1}">
@@ -154,12 +154,12 @@
           </div>
           <div class="mb-1 d-flex align-items-center justify-content-between flex-wrap gap-2">
             <span class="fw-bold fs-5">{{ emp.name }}</span>
-            <span *ngIf="getEmployeeShiftGroup(emp.id)" [ngClass]="{
-              'shift-tag-a': getEmployeeShiftGroup(emp.id) === 'Shift A',
-              'shift-tag-b': getEmployeeShiftGroup(emp.id) === 'Shift B',
-              'shift-tag-c': getEmployeeShiftGroup(emp.id) === 'Shift C'
+            <span *ngIf="emp.shift" [ngClass]="{
+              'shift-tag-a': emp.shift === 'Shift A',
+              'shift-tag-b': emp.shift === 'Shift B',
+              'shift-tag-c': emp.shift === 'Shift C'
             }" class="shift-group-badge">
-              {{ getEmployeeShiftGroup(emp.id) }}
+              {{ emp.shift }}
             </span>
           </div>
           <div class="mb-2 text-muted"><i class="fa-solid fa-phone me-2"></i>{{ emp.mobile }}</div>
@@ -701,8 +701,7 @@
 
 <!-- Upload Modal -->
 <div *ngIf="uploadModalOpen" class="modal-overlay" [@fadeIn]>
-  <div class="modal-dialog bg-white rounded-3 shadow-lg d-flex flex-column"
-    style="max-width: 500px; width: 90%; margin: 1.75rem auto; pointer-events: auto;">
+  <div class="modal-dialog-small bg-white rounded-3 shadow-lg d-flex flex-column">
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
       <h5 class="modal-title fw-bold text-primary mb-0">Bulk Employee Upload</h5>
       <button class="btn bg-transparent border-0 p-0" (click)="closeUploadModal()">
@@ -757,8 +756,7 @@
 
 <!-- Assign Shift Modal -->
 <div *ngIf="assignShiftModalOpen" class="modal-overlay" [@fadeIn]>
-  <div class="modal-dialog bg-white rounded-3 shadow-lg d-flex flex-column"
-    style="max-width: 550px; width: 90%; margin: 1.75rem auto; pointer-events: auto;">
+  <div class="modal-dialog-medium bg-white rounded-3 shadow-lg d-flex flex-column">
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
       <h5 class="modal-title fw-bold text-primary mb-0">
         <i class="fa-solid fa-calendar-check me-2"></i>Assign Shift
@@ -768,7 +766,7 @@
       </button>
     </div>
 
-    <div class="modal-body-custom p-4 overflow-auto">
+    <div class="modal-body-custom p-4 flex-grow-1" style="overflow: visible;">
       <!-- Select Employees -->
       <div class="mb-3">
         <label class="form-label form-lable-custom">Select Employees <span class="text-danger">*</span></label>
@@ -780,7 +778,11 @@
           [multiple]="true"
           [closeOnSelect]="false"
           placeholder="Search & Select Employees"
-          class="custom-ng-select w-100">
+          class="custom-ng-select w-100"
+          [searchFn]="customSearchFn"
+          [virtualScroll]="false"
+          #assignSelect
+          (change)="clearAssignSearch(assignSelect)">
           <ng-template ng-multi-label-tmp let-items="items" let-clear="clear">
             <ng-container *ngIf="items.length === allEmployeesList.length && allEmployeesList.length > 0">
               <div class="ng-value">
@@ -804,8 +806,8 @@
             </div>
           </ng-template>
           <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
-            <div class="d-flex align-items-center gap-2 py-1">
-              <input type="checkbox" class="form-check-input cursor-pointer" [checked]="item$.selected" style="margin-top: 0;" />
+            <div class="d-flex align-items-center gap-2 py-1" style="user-select: none;">
+              <input type="checkbox" class="form-check-input cursor-pointer" [checked]="item$.selected" style="margin-top: 0; pointer-events: none;" />
               <div class="d-flex flex-column text-start">
                 <span class="fw-semibold fs-7">{{ item.name }}</span>
                 <span class="text-muted fs-8">{{ item.employee_code || item.empId }}</span>
@@ -819,7 +821,7 @@
       <div class="mb-3">
         <label class="form-label form-lable-custom">Shift Type <span class="text-danger">*</span></label>
         <ng-select [(ngModel)]="assignShiftType" class="custom-ng-select w-100" [items]="allShiftsList" bindLabel="name"
-          bindValue="id" placeholder="Select Shift" [clearable]="true">
+          bindValue="id" placeholder="Select Shift" [clearable]="true" [virtualScroll]="false">
         </ng-select>
       </div>
 
@@ -847,8 +849,7 @@
 
 <!-- Bulk Assign Shift (Excel/CSV Upload) Modal -->
 <div *ngIf="bulkAssignModalOpen" class="modal-overlay" [@fadeIn]>
-  <div class="modal-dialog bg-white rounded-3 shadow-lg d-flex flex-column"
-    style="max-width: 500px; width: 90%; margin: 1.75rem auto; pointer-events: auto;">
+  <div class="modal-dialog-small bg-white rounded-3 shadow-lg d-flex flex-column">
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
       <h5 class="modal-title fw-bold text-primary mb-0">
         <i class="fa-solid fa-users-gear me-2"></i>Bulk Shift Assignment

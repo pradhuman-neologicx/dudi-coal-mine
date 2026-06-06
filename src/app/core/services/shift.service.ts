@@ -1,6 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { JwtService } from './jwt.service';
 
@@ -12,7 +13,7 @@ export class ShiftService {
     private http: HttpClient,
     private apiservice: ApiService,
     private jwtService: JwtService
-  ) {}
+  ) { }
 
   createShift(requestbody: any): Observable<any> {
     const token = this.jwtService.getToken();
@@ -77,93 +78,105 @@ export class ShiftService {
     return this.apiservice.post(`v1/admin/shift/${id}/status`, body, headers);
   }
 
-  assignBulkShift(payload: { employee_ids: string[], shift_code: string, date?: string, start_date?: string, end_date?: string }): Observable<any> {
-    const stored = localStorage.getItem('shiftAssignments');
-    const assignments = stored ? JSON.parse(stored) : {};
-    const { employee_ids, shift_code } = payload;
-    const startDate = payload.start_date || payload.date || '';
-    const endDate = payload.end_date || startDate;
-
-    if (!startDate || !endDate) {
-      return of({ status: 400, message: 'Please select a valid shift date range.' });
-    }
-
-    const dates = this.getDateRange(startDate, endDate);
-    if (dates.length === 0) {
-      return of({ status: 400, message: 'End date cannot be before start date.' });
-    }
-
-    employee_ids.forEach((empId: string) => {
-      const idStr = String(empId);
-      if (!assignments[idStr]) {
-        assignments[idStr] = {};
-      }
-      dates.forEach(date => {
-        assignments[idStr][date] = shift_code;
-      });
+  assignBulkShift(payload: { employee_ids: string[], shift_code: string }): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
     });
 
-    localStorage.setItem('shiftAssignments', JSON.stringify(assignments));
+    const formData = new FormData();
+    payload.employee_ids.forEach((id: any) => {
+      formData.append('employee_ids[]', String(id));
+    });
+    formData.append('shift_id', String(payload.shift_code));
 
-    return of({ status: 200, message: `Shift "${shift_code}" successfully assigned to ${employee_ids.length} employee(s) from ${startDate} to ${endDate}.` });
+    return this.apiservice.post('v1/admin/employee-shift-assignments', formData, headers);
+  }
+
+  bulkUploadShiftAssignments(file: File): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`
+    });
+
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+
+    return this.apiservice.post('v1/admin/employee-shift-assignments/bulk-upload', formData, headers);
   }
 
   getShiftGroups(): Observable<any> {
-    const storedDefault = localStorage.getItem('employeeDefaultShifts');
-    const defaultShifts = storedDefault ? JSON.parse(storedDefault) : {};
-
-    const employeeIds = new Set<string>();
-    for (const empId in defaultShifts) {
-      employeeIds.add(empId);
-    }
-    ['1', '2', '3', '4', '5', '6'].forEach(id => employeeIds.add(id));
-
-    const groups: { [shiftCode: string]: string[] } = { "Shift A": [], "Shift B": [], "Shift C": [] };
-
-    employeeIds.forEach(empId => {
-      const shiftCode = defaultShifts[empId] || 'Shift A';
-      if (groups[shiftCode] !== undefined) {
-        groups[shiftCode].push(empId);
-      }
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     });
 
-    return of({ status: 200, data: groups });
+    return this.apiservice.get('v1/admin/employees', headers).pipe(
+      map((res: any) => {
+        if (res.status === 200 && res.data) {
+          const groups: { [shiftCode: string]: string[] } = {
+            "Shift A": [],
+            "Shift B": [],
+            "Shift C": []
+          };
+
+          res.data.forEach((emp: any) => {
+            const shiftName = emp.shift || '';
+            if (shiftName) {
+              if (!groups[shiftName]) {
+                groups[shiftName] = [];
+              }
+              groups[shiftName].push(String(emp.id));
+            }
+          });
+
+          return { status: 200, data: groups };
+        }
+        return res;
+      })
+    );
   }
 
   rotateBulkGroup(payload: { source_group: string, target_shift: string }): Observable<any> {
     const { source_group, target_shift } = payload;
-    
-    const storedDefault = localStorage.getItem('employeeDefaultShifts');
-    const defaultShifts = storedDefault ? JSON.parse(storedDefault) : {};
-
-    const employeeIds = new Set<string>();
-    for (const empId in defaultShifts) {
-      employeeIds.add(empId);
-    }
-    ['1', '2', '3', '4', '5', '6'].forEach(id => employeeIds.add(id));
-
-    const targetEmployeeIds: string[] = [];
-    employeeIds.forEach(empId => {
-      const currentDefault = defaultShifts[empId] || 'Shift A';
-      if (currentDefault === source_group) {
-        targetEmployeeIds.push(empId);
-      }
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
     });
 
-    if (targetEmployeeIds.length === 0) {
-      return of({ status: 400, message: `No employees currently have "${source_group}" set as their default shift.` });
-    }
+    // 1. Fetch shifts to find the target shift ID
+    return this.getShifts('all', 1, '').pipe(
+      switchMap((shiftsRes: any) => {
+        const shifts = shiftsRes.data || [];
+        const targetShiftObj = shifts.find((s: any) => 
+          s.name.toLowerCase() === target_shift.toLowerCase() || 
+          String(s.id) === String(target_shift)
+        );
+        if (!targetShiftObj) {
+          return throwError(() => new Error(`Target shift "${target_shift}" not found.`));
+        }
+        const targetShiftId = targetShiftObj.id;
 
-    targetEmployeeIds.forEach(empId => {
-      defaultShifts[empId] = target_shift;
-    });
+        // 2. Fetch employees to find who is currently on the source_group shift
+        return this.apiservice.get('v1/admin/employees', headers).pipe(
+          switchMap((employeesRes: any) => {
+            const employees = employeesRes.data || [];
+            const empIds = employees
+              .filter((emp: any) => emp.shift && emp.shift.toLowerCase() === source_group.toLowerCase())
+              .map((emp: any) => String(emp.id));
 
-    localStorage.setItem('employeeDefaultShifts', JSON.stringify(defaultShifts));
+            if (empIds.length === 0) {
+              return of({ status: 400, message: `No employees currently have "${source_group}" assigned.` });
+            }
 
-    return of({
-      status: 200,
-      message: `Successfully rotated default shift of ${targetEmployeeIds.length} employee(s) from "${source_group}" to "${target_shift}".`
-    });
+            // 3. Perform bulk shift assignment to target shift ID
+            return this.assignBulkShift({ employee_ids: empIds, shift_code: String(targetShiftId) });
+          })
+        );
+      })
+    );
   }
 
   private getDateRange(startDate: string, endDate: string): string[] {

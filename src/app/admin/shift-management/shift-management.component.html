@@ -414,8 +414,7 @@
 
 <!-- Bulk Group Rotation Modal -->
 <div *ngIf="isBulkRotateModalOpen" class="modal-overlay" [@fadeIn]>
-  <div class="modal-dialog bg-white rounded-3 shadow-lg d-flex flex-column"
-    style="max-width: 550px; width: 90%; margin: 1.75rem auto; pointer-events: auto;">
+  <div class="modal-dialog-medium bg-white rounded-3 shadow-lg d-flex flex-column">
     
     <!-- Modal Header -->
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
@@ -429,7 +428,7 @@
 
     <!-- Modal Form -->
     <form [formGroup]="bulkRotateForm" (ngSubmit)="applyBulkRotation()" class="d-flex flex-column overflow-hidden">
-      <div class="modal-body-custom p-4 overflow-auto">
+      <div class="modal-body-custom p-4 flex-grow-1" style="overflow: visible;">
         <div class="row g-3">
           
           <!-- Current Shift Selection -->
@@ -456,7 +455,11 @@
               [multiple]="true"
               [closeOnSelect]="false"
               placeholder="Search & Select Employees"
-              class="custom-ng-select w-100">
+              class="custom-ng-select w-100"
+              [searchFn]="customSearchFn"
+              [virtualScroll]="false"
+              #rotateSelect
+              (change)="clearRotateSearch(rotateSelect)">
               <ng-template ng-multi-label-tmp let-items="items" let-clear="clear">
                 <ng-container *ngIf="items.length === filteredEmployeesForRotation.length && filteredEmployeesForRotation.length > 0">
                   <div class="ng-value">
@@ -480,8 +483,8 @@
                 </div>
               </ng-template>
               <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
-                <div class="d-flex align-items-center gap-2 py-1">
-                  <input type="checkbox" class="form-check-input cursor-pointer" [checked]="item$.selected" style="margin-top: 0;" />
+                <div class="d-flex align-items-center gap-2 py-1" style="user-select: none;">
+                  <input type="checkbox" class="form-check-input cursor-pointer" [checked]="item$.selected" style="margin-top: 0; pointer-events: none;" />
                   <div class="d-flex flex-column text-start">
                     <span class="fw-semibold fs-7">{{ item.name }}</span>
                     <span class="text-muted fs-8">{{ item.employee_code || item.empId }}</span>
