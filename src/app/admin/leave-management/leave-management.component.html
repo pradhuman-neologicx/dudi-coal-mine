@@ -38,12 +38,12 @@
             </span>
           </a>
         </li>
-        <li class="nav-item cursor-pointer">
+        <!-- <li class="nav-item cursor-pointer">
           <a class="nav-link custom-tab" [ngClass]="{'active': activeTab === 'history'}"
             (click)="activeTab = 'history'">
             <i class="fa-solid fa-clock-rotate-left me-2"></i>Leave History
           </a>
-        </li>
+        </li> -->
         <!-- <li class="nav-item cursor-pointer">
           <a class="nav-link custom-tab" [ngClass]="{'active': activeTab === 'balances'}" (click)="activeTab = 'balances'">
             <i class="fa-solid fa-scale-balanced me-2"></i>Leave Balances
@@ -72,12 +72,15 @@
               <form [formGroup]="leaveApplyForm" (ngSubmit)="submitLeaveRequest()">
                 <div class="mb-3">
                   <label class="form-label form-lable-custom">Select Employee <span class="text-danger">*</span></label>
-                  <select class="form-select form-input-custom" formControlName="empId">
-                    <option value="">Choose Employee</option>
-                    <option *ngFor="let emp of employees" [value]="emp.id || emp.user_id">
-                      {{ emp.name || emp.first_name + ' ' + (emp.last_name || '') }} ({{ emp.id || emp.user_id }})
-                    </option>
-                  </select>
+                  <ng-select
+                    [items]="employees"
+                    bindLabel="name"
+                    bindValue="id"
+                    placeholder="-- Choose Employee --"
+                    formControlName="empId"
+                    class="custom-ng-select"
+                    appendTo="body">
+                  </ng-select>
                 </div>
 
                 <div class="row g-3 mb-3">
@@ -93,10 +96,15 @@
 
                 <div class="mb-3">
                   <label class="form-label form-lable-custom">Leave Type <span class="text-danger">*</span></label>
-                  <select class="form-select form-input-custom" formControlName="leaveType">
-                    <option value="">Select Type</option>
-                    <option *ngFor="let type of leaveTypes" [value]="type">{{ type }}</option>
-                  </select>
+                  <ng-select
+                    [items]="leaveTypes"
+                    bindLabel="name"
+                    bindValue="id"
+                    placeholder="-- Select Type --"
+                    formControlName="leaveType"
+                    class="custom-ng-select"
+                    appendTo="body">
+                  </ng-select>
                 </div>
 
                 <div class="mb-4">
@@ -189,15 +197,73 @@
             <span class="ms-1 show-entery-text">entries</span>
           </div>
 
-          <div class="d-flex align-items-center">
-            <span class="me-1 show-entery-text">Search:</span>
+          <div class="d-flex align-items-center gap-2">
             <div class="position-relative">
               <input type="text" class="form-control search-user" [(ngModel)]="searchText"
-                placeholder="Search requests..." autocomplete="off" />
+                placeholder="Search Name/ID..." autocomplete="off" style="border-radius: 6px; padding-right: 30px;" />
               <i *ngIf="searchText" class="fa-solid fa-times position-absolute"
-                style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;"
+                style="right: 10px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;"
                 (click)="searchText = ''"></i>
             </div>
+            <button class="btn text-white d-flex align-items-center justify-content-center shadow-sm" style="height: 38px; width: 42px; background-color: #4A8FA9; border-radius: 6px;">
+              <i class="fa-solid fa-magnifying-glass fs-6"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-light rounded-3 p-3 mb-4 border border-light-subtle">
+          <div class="row g-3 align-items-end">
+            <!-- Month Filter -->
+            <div class="col-md-4">
+              <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
+                <i class="fa-regular fa-calendar me-1"></i> Filter by Month & Year
+              </label>
+              <div class="input-group position-relative">
+                <input class="form-control bg-white" placeholder="Select Month & Year"
+                       [value]="dateValue" readonly style="cursor: pointer;" (click)="dp.open()">
+                <span class="input-group-text bg-white" style="cursor: pointer;" (click)="dp.open()">
+                  <i class="fa-regular fa-calendar"></i>
+                </span>
+                <input [matDatepicker]="dp" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 0; opacity: 0; border: none; padding: 0; pointer-events: none;" readonly tabindex="-1">
+                <mat-datepicker #dp startView="multi-year" yPosition="below"
+                               (monthSelected)="setMonthAndYear($event, dp)">
+                </mat-datepicker>
+              </div>
+            </div>
+
+            <!-- Stage Filter -->
+            <div class="col-md-4">
+              <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
+                <i class="fa-solid fa-layer-group me-1"></i> Filter by Stage
+              </label>
+              <select class="form-select bg-white" [(ngModel)]="filterStage" style="cursor: pointer;">
+                <option value="">All Stages</option>
+                <option value="Pending">Pending</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+
+            <!-- Employee Filter -->
+            <div class="col-md-4">
+              <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
+                <i class="fa-solid fa-users me-1"></i> Filter by Employee
+              </label>
+              <ng-select
+                [items]="employees"
+                bindLabel="displayName"
+                bindValue="id"
+                placeholder="All Employees"
+                [(ngModel)]="filterEmployee"
+                class="custom-ng-select"
+                appendTo="body">
+              </ng-select>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end mt-2" *ngIf="filterMonth || filterYear || filterStage || filterEmployee || searchText">
+             <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0" (click)="filterMonth=''; filterYear=''; filterStage=''; filterEmployee=''; searchText=''; dateValue=''">
+               <i class="fa-solid fa-times me-1"></i> Clear All
+             </button>
           </div>
         </div>
 
@@ -339,7 +405,7 @@
     </div>
 
     <!-- Tab 3: Leave History -->
-    <div class="col-12" *ngIf="activeTab === 'history'">
+    <div class="col-12" *ngIf="false && activeTab === 'history'">
       <div class="card border-0 my-4 px-4 py-4">
         <div class="py-3 mb-2">
           <h5 class="fw-bold text-dark mb-0">
@@ -372,6 +438,55 @@
                 style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;"
                 (click)="searchText = ''"></i>
             </div>
+          </div>
+        </div>
+
+        <div class="bg-light rounded-3 p-3 mb-4 border border-light-subtle">
+          <div class="row g-3 align-items-end">
+            <!-- Month Filter -->
+            <div class="col-md-4">
+              <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
+                <i class="fa-regular fa-calendar me-1"></i> Filter by Month
+              </label>
+              <input type="month" class="form-control bg-white" [(ngModel)]="filterMonth" style="cursor: pointer;">
+            </div>
+
+            <!-- Stage Filter -->
+            <div class="col-md-4">
+              <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
+                <i class="fa-solid fa-layer-group me-1"></i> Filter by Stage
+              </label>
+              <select class="form-select bg-white" [(ngModel)]="filterStage" style="cursor: pointer;">
+                <option value="">All Stages</option>
+                <option value="Pending Supervisor">Pending Supervisor</option>
+                <option value="Pending PM">Pending PM</option>
+                <option value="Pending HR">Pending HR</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+
+            <!-- Employee Filter -->
+            <div class="col-md-4">
+              <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
+                <i class="fa-solid fa-users me-1"></i> Filter by Employee
+              </label>
+              <ng-select
+                [items]="employees"
+                bindLabel="displayName"
+                bindValue="id"
+                placeholder="All Employees"
+                [(ngModel)]="filterEmployee"
+                class="custom-ng-select"
+                appendTo="body">
+              </ng-select>
+            </div>
+          </div>
+          <!-- Clear Filters -->
+          <div class="d-flex justify-content-end mt-2" *ngIf="filterMonth || filterStage || filterEmployee">
+             <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0" (click)="filterMonth=''; filterStage=''; filterEmployee=''">
+               <i class="fa-solid fa-times me-1"></i> Clear Filters
+             </button>
           </div>
         </div>
 

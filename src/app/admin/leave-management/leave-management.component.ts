@@ -1,9 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
-import { EmployeeService } from 'src/app/core/services/Employee.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { NgSelectModule } from '@ng-select/ng-select';
+import { LeaveTypeService } from 'src/app/core/services/leave-type.service';
+import { LeaveManagementService } from 'src/app/core/services/leave-management.service';
+import { EmployeeService } from 'src/app/core/services/Employee.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 interface LeaveRequest {
   id: string;
@@ -11,7 +18,7 @@ interface LeaveRequest {
   empName: string;
   startDate: string;
   endDate: string;
-  leaveType: 'Paid Leave' | 'Unpaid Leave';
+  leaveType: string;
   reason: string;
   status: 'Pending Supervisor' | 'Pending PM' | 'Pending HR' | 'Approved' | 'Rejected';
   appliedDate: string;
@@ -30,21 +37,20 @@ interface LeaveBalance {
 @Component({
   selector: 'app-leave-management',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, NgxPaginationModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPaginationModule, NgSelectModule, MatDatepickerModule, MatNativeDateModule],
   templateUrl: './leave-management.component.html',
   styleUrl: './leave-management.component.scss',
   providers: [DatePipe]
 })
-export class LeaveManagementComponent implements OnInit {
+export class LeaveManagementComponent implements OnInit, OnDestroy {
   activeTab: 'apply' | 'inbox' | 'balances' | 'history' = 'apply';
   simulatedRole: 'Supervisor' | 'Project Manager' | 'HR' = 'Supervisor';
 
   employees: any[] = [];
   leaveRequests: LeaveRequest[] = [];
   leaveBalances: LeaveBalance[] = [];
-  leaveTypes: ('Paid Leave' | 'Unpaid Leave')[] = [
-    'Paid Leave', 'Unpaid Leave'
-  ];
+  leaveTypes: any[] = [];
+  private destroy$ = new Subject<void>();
 
   leaveApplyForm: FormGroup;
   pInbox: number = 1;
@@ -53,15 +59,40 @@ export class LeaveManagementComponent implements OnInit {
 
   showEntries: number = 10;
   searchText: string = '';
+  filterMonth: string = '';
+  filterYear: string = '';
+  filterStage: string = '';
+  filterEmployee: string = '';
+  dateValue: string = '';
+
+  setMonthAndYear(normalizedMonthAndYear: Date, datepicker: MatDatepicker<Date>) {
+    this.filterYear = normalizedMonthAndYear.getFullYear().toString();
+    this.filterMonth = (normalizedMonthAndYear.getMonth() + 1).toString().padStart(2, '0');
+    this.dateValue = `${this.filterMonth}/${this.filterYear}`;
+    
+    // Yahan hum payload bana rahe hain jo backend ko bheja ja sakta hai
+    const payload = {
+      month: this.filterMonth,
+      year: this.filterYear
+    };
+    console.log("Calendar Payload ->", payload);
+    
+    datepicker.close();
+    
+    // Backend API trigger karein
+    this.loadLeaveRequests();
+  }
 
   viewLeaveOpen: boolean = false;
   selectedLeave: LeaveRequest | null = null;
 
   constructor(
     private fb: FormBuilder,
-    private employeeService: EmployeeService,
     private notificationService: NotificationService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private leaveTypeService: LeaveTypeService,
+    private leaveManagementService: LeaveManagementService,
+    private employeeService: EmployeeService
   ) {
     this.leaveApplyForm = this.fb.group({
       empId: ['', Validators.required],
@@ -74,94 +105,122 @@ export class LeaveManagementComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadEmployees();
+    this.loadLeaveTypes();
+    this.loadLeaveRequests();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadEmployees() {
-    this.employeeService.GetStaff('all', 1, '').subscribe({
+    this.leaveManagementService.getEmployees().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
-        if (res.status === 'success' || res.data) {
-          this.employees = res.data || res;
-        } else {
-          this.employees = [
-            { id: 'EMP001', name: 'John Doe', shift: 'A' },
-            { id: 'EMP002', name: 'Jane Smith', shift: 'B' },
-            { id: 'EMP003', name: 'Robert Johnson', shift: 'C' }
-          ];
+        let rawData: any[] = [];
+        if (res && (res.status === 'success' || res.data || res.status === 200)) {
+          rawData = res.data?.data || res.data || res;
+        } else if (Array.isArray(res)) {
+          rawData = res;
         }
-        this.initializeLeaveData();
+        
+        if (Array.isArray(rawData)) {
+          this.employees = rawData.map((emp: any) => {
+            const id = emp.id || emp.user_id;
+            const name = emp.name || (emp.first_name ? (emp.first_name + ' ' + (emp.last_name || '')) : 'Unknown');
+            const code = emp.employee_code || id;
+            return {
+              ...emp,
+              id: id,
+              name: name,
+              displayName: `${name} (${code})`
+            };
+          });
+        } else {
+          this.employees = [];
+        }
+        
+        this.initializeLeaveBalances();
       },
       error: () => {
-        this.employees = [
-          { id: 'EMP001', name: 'John Doe', shift: 'A' },
-          { id: 'EMP002', name: 'Jane Smith', shift: 'B' },
-          { id: 'EMP003', name: 'Robert Johnson', shift: 'C' }
-        ];
-        this.initializeLeaveData();
+        this.employees = [];
+        this.initializeLeaveBalances();
       }
     });
   }
 
-  initializeLeaveData() {
-    // Load from local storage
-    const storedRequests = localStorage.getItem('leave_requests');
-    const storedBalances = localStorage.getItem('leave_balances');
-
-    if (storedRequests && storedBalances) {
-      this.leaveRequests = JSON.parse(storedRequests);
-      this.leaveBalances = JSON.parse(storedBalances);
-    } else {
-      // Create initial default balances
-      this.leaveBalances = this.employees.map(emp => ({
-        empId: emp.id || emp.user_id,
-        empName: emp.name || (emp.first_name + ' ' + (emp.last_name || '')),
-        casual: { total: 12, consumed: 2 },
-        sick: { total: 10, consumed: 1 },
-        paid: { total: 15, consumed: 3 },
-        unpaid: { total: 99, consumed: 0 } // unlimited/large
-      }));
-
-      // Generate some mock history requests
-      const today = new Date();
-      this.leaveRequests = [
-        {
-          id: 'LR001',
-          empId: this.employees[0]?.id || 'EMP001',
-          empName: this.employees[0]?.name || 'John Doe',
-          startDate: this.getOffsetDate(-10),
-          endDate: this.getOffsetDate(-9),
-          leaveType: 'Paid Leave',
-          reason: 'Personal urgent work',
-          status: 'Approved',
-          appliedDate: this.getOffsetDate(-15),
-          comments: 'Approved by HR finally'
-        },
-        {
-          id: 'LR002',
-          empId: this.employees[1]?.id || 'EMP002',
-          empName: this.employees[1]?.name || 'Jane Smith',
-          startDate: this.getOffsetDate(-5),
-          endDate: this.getOffsetDate(-5),
-          leaveType: 'Unpaid Leave',
-          reason: 'Fever and cold',
-          status: 'Approved',
-          appliedDate: this.getOffsetDate(-6),
-          comments: 'Get well soon'
-        },
-        {
-          id: 'LR003',
-          empId: this.employees[2]?.id || 'EMP003',
-          empName: this.employees[2]?.name || 'Robert Johnson',
-          startDate: this.getOffsetDate(2),
-          endDate: this.getOffsetDate(4),
-          leaveType: 'Paid Leave',
-          reason: 'Family function in hometown',
-          status: 'Pending Supervisor',
-          appliedDate: this.getOffsetDate(0)
+  loadLeaveTypes() {
+    this.leaveTypeService.getLeaveTypes('all', 1, '').pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        if (res.status === 200 || res.status === 'success') {
+          this.leaveTypes = res.data;
         }
-      ];
+      },
+      error: (err) => console.error('Failed to load leave types', err)
+    });
+  }
 
-      this.saveToStorage();
+  loadLeaveRequests() {
+    let month_year = '';
+    if (this.filterYear && this.filterMonth) {
+      month_year = `${this.filterYear}-${this.filterMonth}`;
     }
+
+    const filters = {
+      employee_id: this.filterEmployee || '',
+      status: this.filterStage === 'Pending' ? 'pending' : (this.filterStage.toLowerCase() || ''),
+      month_year: month_year
+    };
+
+    this.leaveManagementService.getLeaves('all', 1, this.searchText, filters).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        let rawData: any[] = [];
+        if (res && (res.status === 'success' || res.status === 200 || res.data)) {
+          rawData = res.data?.data || res.data || [];
+        } else if (Array.isArray(res)) {
+          rawData = res;
+        }
+
+        if (Array.isArray(rawData)) {
+          this.leaveRequests = rawData.map((item: any) => ({
+            id: item.id || `LR${Math.floor(Math.random() * 1000)}`,
+            empId: item.employee_id || item.employee?.employee_code || item.employee?.id || 'Unknown',
+            empName: item.employee_name || item.employee?.name || (item.employee?.first_name ? item.employee.first_name + ' ' + (item.employee.last_name || '') : 'Unknown Name'),
+            startDate: item.from_date || item.start_date,
+            endDate: item.to_date || item.end_date,
+            leaveType: item.leave_type_name || item.leave_type?.name || item.leave_type || 'Leave',
+            reason: item.reason || '',
+            status: this.mapApiStatus(item.status),
+            appliedDate: item.created_at || new Date().toISOString(),
+            comments: item.remark || item.comments || ''
+          }));
+        } else {
+          this.leaveRequests = [];
+        }
+      },
+      error: (err) => console.error('Failed to load leave requests', err)
+    });
+  }
+
+  mapApiStatus(status: any): 'Pending Supervisor' | 'Pending PM' | 'Pending HR' | 'Approved' | 'Rejected' {
+    if (!status && status !== 0) return 'Pending Supervisor';
+    const s = String(status).toLowerCase();
+    if (s === '0' || s === 'pending') return 'Pending Supervisor';
+    if (s === '1' || s === 'approved') return 'Approved';
+    if (s === '2' || s === 'rejected') return 'Rejected';
+    return 'Pending Supervisor';
+  }
+
+  initializeLeaveBalances() {
+    // Create initial default balances or fetch from API if available
+    this.leaveBalances = this.employees.map(emp => ({
+      empId: emp.id || emp.user_id,
+      empName: emp.name || (emp.first_name + ' ' + (emp.last_name || '')),
+      casual: { total: 12, consumed: 0 },
+      sick: { total: 10, consumed: 0 },
+      paid: { total: 15, consumed: 0 },
+      unpaid: { total: 99, consumed: 0 } 
+    }));
   }
 
   getOffsetDate(days: number): string {
@@ -199,37 +258,27 @@ export class LeaveManagementComponent implements OnInit {
       return;
     }
 
-    const days = this.getLeaveDays(startDate, endDate);
-    const employee = this.employees.find(e => (e.id || e.user_id) === empId);
-    const empName = employee ? (employee.name || employee.first_name + ' ' + (employee.last_name || '')) : 'Unknown';
+    const formData = new FormData();
+    formData.append('employee_id', empId);
+    formData.append('leave_type_id', leaveType);
+    formData.append('from_date', this.datePipe.transform(startDate, 'yyyy-MM-dd')!);
+    formData.append('to_date', this.datePipe.transform(endDate, 'yyyy-MM-dd')!);
+    formData.append('reason', reason);
 
-    // Verify Balance
-    const balance = this.leaveBalances.find(b => b.empId === empId);
-    if (balance && leaveType !== 'Unpaid Leave') {
-      const typeKey = this.getBalanceKey(leaveType);
-      const limit = balance[typeKey];
-      if (limit.consumed + days > limit.total) {
-        this.notificationService.show(`Insufficient leave balance. Remaining: ${limit.total - limit.consumed} days. Requested: ${days} days.`, 'error', 4000);
-        return;
+    this.leaveManagementService.applyLeave(formData).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        if (res.status === 'success' || res.status === 200 || res.status === 201) {
+          this.notificationService.show('Leave request submitted successfully.', 'success', 3000);
+          this.leaveApplyForm.reset();
+          // Optionally, reload leave history or inbox here
+        } else {
+          this.notificationService.show(res.message || 'Failed to submit leave request.', 'error', 3000);
+        }
+      },
+      error: (err) => {
+        this.notificationService.show('Failed to submit leave request.', 'error', 3000);
       }
-    }
-
-    const newRequest: LeaveRequest = {
-      id: 'LR' + Math.floor(Math.random() * 10000).toString().padStart(4, '0'),
-      empId,
-      empName,
-      startDate,
-      endDate,
-      leaveType,
-      reason,
-      status: 'Pending Supervisor',
-      appliedDate: this.datePipe.transform(new Date(), 'yyyy-MM-dd') || ''
-    };
-
-    this.leaveRequests.unshift(newRequest);
-    this.saveToStorage();
-    this.notificationService.show('Leave request submitted successfully for Supervisor approval.', 'success', 3000);
-    this.leaveApplyForm.reset();
+    });
   }
 
   getBalanceKey(type: string): 'casual' | 'sick' | 'paid' | 'unpaid' {
@@ -242,7 +291,7 @@ export class LeaveManagementComponent implements OnInit {
   }
 
   getInboxRequests(): LeaveRequest[] {
-    const list = this.leaveRequests.filter(req => {
+    let list = this.leaveRequests.filter(req => {
       if (this.simulatedRole === 'Supervisor') {
         return req.status === 'Pending Supervisor';
       } else if (this.simulatedRole === 'Project Manager') {
@@ -252,67 +301,130 @@ export class LeaveManagementComponent implements OnInit {
       }
       return false;
     });
-    if (!this.searchText) return list;
-    const txt = this.searchText.toLowerCase();
-    return list.filter(req =>
-      req.empName.toLowerCase().includes(txt) ||
-      req.empId.toLowerCase().includes(txt) ||
-      req.leaveType.toLowerCase().includes(txt) ||
-      req.reason.toLowerCase().includes(txt)
-    );
+
+    if (this.filterMonth) {
+      list = list.filter(req => {
+        if (!req.startDate) return false;
+        const date = new Date(req.startDate);
+        const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+        return mm === this.filterMonth;
+      });
+    }
+
+    if (this.filterYear) {
+      list = list.filter(req => {
+        if (!req.startDate) return false;
+        const date = new Date(req.startDate);
+        const yyyy = date.getFullYear().toString();
+        return yyyy === this.filterYear;
+      });
+    }
+
+    if (this.filterStage) {
+      if (this.filterStage === 'Pending') {
+        list = list.filter(req => req.status && req.status.startsWith('Pending'));
+      } else {
+        list = list.filter(req => req.status === this.filterStage);
+      }
+    }
+
+    if (this.filterEmployee) {
+      list = list.filter(req => req.empId === this.filterEmployee);
+    }
+
+    if (this.searchText) {
+      const txt = this.searchText.toLowerCase();
+      list = list.filter(req =>
+        (req.empName || '').toLowerCase().includes(txt) ||
+        (req.empId || '').toLowerCase().includes(txt) ||
+        (req.leaveType || '').toLowerCase().includes(txt) ||
+        (req.reason || '').toLowerCase().includes(txt) ||
+        (req.status || '').toLowerCase().includes(txt)
+      );
+    }
+    
+    return list;
   }
 
   getHistoryRequests(): LeaveRequest[] {
-    const list = this.leaveRequests.filter(req => req.status === 'Approved' || req.status === 'Rejected');
-    if (!this.searchText) return list;
-    const txt = this.searchText.toLowerCase();
-    return list.filter(req =>
-      req.empName.toLowerCase().includes(txt) ||
-      req.empId.toLowerCase().includes(txt) ||
-      req.leaveType.toLowerCase().includes(txt) ||
-      req.reason.toLowerCase().includes(txt)
-    );
-  }
+    let list = this.leaveRequests.filter(req => req.status === 'Approved' || req.status === 'Rejected');
 
-  approveRequest(req: LeaveRequest) {
-    let nextStatus: LeaveRequest['status'] = req.status;
-    let notifyMsg = '';
-
-    if (this.simulatedRole === 'Supervisor' && req.status === 'Pending Supervisor') {
-      nextStatus = 'Pending PM';
-      notifyMsg = 'Approved by Supervisor. Request forwarded to Project Manager.';
-    } else if (this.simulatedRole === 'Project Manager' && req.status === 'Pending PM') {
-      nextStatus = 'Pending HR';
-      notifyMsg = 'Approved by Project Manager. Request forwarded to HR.';
-    } else if (this.simulatedRole === 'HR' && req.status === 'Pending HR') {
-      nextStatus = 'Approved';
-      notifyMsg = 'Request fully approved. Attendance synced and balances updated.';
-
-      // Update balances
-      const days = this.getLeaveDays(req.startDate, req.endDate);
-      const balance = this.leaveBalances.find(b => b.empId === req.empId);
-      if (balance) {
-        const typeKey = this.getBalanceKey(req.leaveType);
-        balance[typeKey].consumed += days;
-      }
-
-      // Sync to attendance
-      this.syncLeaveToAttendance(req);
+    if (this.filterMonth) {
+      list = list.filter(req => {
+        if (!req.startDate) return false;
+        const date = new Date(req.startDate);
+        const mm = (date.getMonth() + 1).toString().padStart(2, '0');
+        return mm === this.filterMonth;
+      });
     }
 
-    req.status = nextStatus;
-    req.comments = `Approved by ${this.simulatedRole}`;
+    if (this.filterYear) {
+      list = list.filter(req => {
+        if (!req.startDate) return false;
+        const date = new Date(req.startDate);
+        const yyyy = date.getFullYear().toString();
+        return yyyy === this.filterYear;
+      });
+    }
 
-    this.saveToStorage();
-    this.notificationService.show(notifyMsg, 'success', 3000);
+    if (this.filterStage) {
+      if (this.filterStage === 'Pending') {
+        list = list.filter(req => req.status && req.status.startsWith('Pending'));
+      } else {
+        list = list.filter(req => req.status === this.filterStage);
+      }
+    }
+
+    if (this.filterEmployee) {
+      list = list.filter(req => req.empId === this.filterEmployee);
+    }
+
+    if (this.searchText) {
+      const txt = this.searchText.toLowerCase();
+      list = list.filter(req =>
+        (req.empName || '').toLowerCase().includes(txt) ||
+        (req.empId || '').toLowerCase().includes(txt) ||
+        (req.leaveType || '').toLowerCase().includes(txt) ||
+        (req.reason || '').toLowerCase().includes(txt) ||
+        (req.status || '').toLowerCase().includes(txt)
+      );
+    }
+
+    return list;
   }
 
-  rejectRequest(req: LeaveRequest) {
-    req.status = 'Rejected';
-    req.comments = `Rejected by ${this.simulatedRole}`;
+  approveRequest(req: any) {
+    this.leaveManagementService.updateLeaveStatus(req.id, 'approved').pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        if (res && (res.status === 200 || res.status === 'success')) {
+          this.notificationService.show(res.message || 'Leave approved successfully!', 'success');
+          this.loadLeaveRequests(); // Refresh the list from backend
+        } else {
+          this.notificationService.show('Failed to approve leave', 'error');
+        }
+      },
+      error: (err: any) => {
+        this.notificationService.show('Failed to approve leave', 'error');
+        console.error(err);
+      }
+    });
+  }
 
-    this.saveToStorage();
-    this.notificationService.show(`Request rejected by ${this.simulatedRole}.`, 'info', 3000);
+  rejectRequest(req: any) {
+    this.leaveManagementService.updateLeaveStatus(req.id, 'rejected').pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        if (res && (res.status === 200 || res.status === 'success')) {
+          this.notificationService.show(res.message || 'Leave rejected successfully!', 'info');
+          this.loadLeaveRequests(); // Refresh the list from backend
+        } else {
+          this.notificationService.show('Failed to reject leave', 'error');
+        }
+      },
+      error: (err: any) => {
+        this.notificationService.show('Failed to reject leave', 'error');
+        console.error(err);
+      }
+    });
   }
 
   openViewModal(req: LeaveRequest): void {
