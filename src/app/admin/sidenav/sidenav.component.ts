@@ -192,12 +192,12 @@ export class SidenavComponent {
             }
           ]
         },
-        // {
-        //   index: 10,
-        //   icon: 'model_training',
-        //   label: 'Training Mgt.',
-        //   route: '/admin/training-management',
-        // },
+        {
+          index: 10,
+          icon: 'model_training',
+          label: 'Training Mgt.',
+          route: '/admin/training-management',
+        },
         // {
         //   index: 10,
         //   icon: 'local_gas_station',

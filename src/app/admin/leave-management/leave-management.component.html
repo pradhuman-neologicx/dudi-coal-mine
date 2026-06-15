@@ -6,8 +6,12 @@
       <p class="text-muted mb-0 fs-6">Manage employee leaves, track balances, and handle approvals.</p>
     </div>
 
-    <!-- Bulk Upload Leaves Button -->
+    <!-- Action Buttons -->
     <div class="d-flex gap-2">
+      <button class="btn btn-custom-outline-primary px-4 py-2 bg-white"
+        style="border: 1px solid #4A8FA9; color: #4A8FA9;" (click)="openApplyLeaveModal()">
+        <i class="fa-solid fa-pen-to-square me-2"></i>Apply Leave
+      </button>
       <button class="btn btn-custom-primary px-4 py-2" (click)="openBulkUploadModal()">
         <i class="fa-solid fa-cloud-arrow-up me-2"></i>Bulk Upload Leaves
       </button>
@@ -26,45 +30,13 @@
     </div> -->
   </div>
 
-  <!-- Navigation Tabs -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
-      <ul class="nav nav-tabs border-bottom-0">
-        <li class="nav-item cursor-pointer">
-          <a class="nav-link custom-tab" [ngClass]="{'active': activeTab === 'apply'}" (click)="activeTab = 'apply'">
-            <i class="fa-solid fa-pen-to-square me-2"></i>Apply Leave
-          </a>
-        </li>
-        <li class="nav-item cursor-pointer">
-          <a class="nav-link custom-tab position-relative" [ngClass]="{'active': activeTab === 'inbox'}"
-            (click)="activeTab = 'inbox'">
-            <i class="fa-solid fa-inbox me-2"></i>Approval Inbox
-            <span *ngIf="getInboxRequests().length > 0"
-              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger fs-9">
-              {{ getInboxRequests().length }}
-            </span>
-          </a>
-        </li>
-        <!-- <li class="nav-item cursor-pointer">
-          <a class="nav-link custom-tab" [ngClass]="{'active': activeTab === 'history'}"
-            (click)="activeTab = 'history'">
-            <i class="fa-solid fa-clock-rotate-left me-2"></i>Leave History
-          </a>
-        </li> -->
-        <!-- <li class="nav-item cursor-pointer">
-          <a class="nav-link custom-tab" [ngClass]="{'active': activeTab === 'balances'}" (click)="activeTab = 'balances'">
-            <i class="fa-solid fa-scale-balanced me-2"></i>Leave Balances
-          </a>
-        </li> -->
-      </ul>
-    </div>
-  </div>
+
 
   <!-- Tab Views -->
   <div class="row g-4">
 
-    <!-- Tab 1: Apply Leave -->
-    <div class="col-12" *ngIf="activeTab === 'apply'">
+    <!-- Tab 1: Apply Leave (Hidden) -->
+    <div class="col-12" *ngIf="false">
       <div class="row g-4">
 
         <!-- Left: Form -->
@@ -79,14 +51,8 @@
               <form [formGroup]="leaveApplyForm" (ngSubmit)="submitLeaveRequest()">
                 <div class="mb-3">
                   <label class="form-label form-lable-custom">Select Employee <span class="text-danger">*</span></label>
-                  <ng-select
-                    [items]="employees"
-                    bindLabel="name"
-                    bindValue="id"
-                    placeholder="-- Choose Employee --"
-                    formControlName="empId"
-                    class="custom-ng-select"
-                    appendTo="body">
+                  <ng-select [items]="employees" bindLabel="name" bindValue="id" placeholder="-- Choose Employee --"
+                    formControlName="empId" class="custom-ng-select" appendTo="body">
                   </ng-select>
                 </div>
 
@@ -103,14 +69,8 @@
 
                 <div class="mb-3">
                   <label class="form-label form-lable-custom">Leave Type <span class="text-danger">*</span></label>
-                  <ng-select
-                    [items]="leaveTypes"
-                    bindLabel="name"
-                    bindValue="id"
-                    placeholder="-- Select Type --"
-                    formControlName="leaveType"
-                    class="custom-ng-select"
-                    appendTo="body">
+                  <ng-select [items]="leaveTypes" bindLabel="name" bindValue="id" placeholder="-- Select Type --"
+                    formControlName="leaveType" class="custom-ng-select" appendTo="body">
                   </ng-select>
                 </div>
 
@@ -179,20 +139,21 @@
     </div>
 
     <!-- Tab 2: Approval Inbox -->
-    <div class="col-12" *ngIf="activeTab === 'inbox'">
+    <div class="col-12">
       <div class="card border-0 my-4 px-4 py-4">
         <!-- Inbox top title & Simulator information -->
         <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
           <h5 class="fw-bold text-dark mb-0">
             <i class="fa-solid fa-inbox text-primary me-2"></i>
-            Incoming Requests (Simulating: {{ simulatedRole }})
+            Leave Requests
           </h5>
         </div>
 
         <div class="d-md-flex justify-content-between align-items-center my-3">
           <div class="d-flex align-items-center mb-md-0 mb-2">
             <span class="me-1 show-entery-text">Show</span>
-            <select class="form-control form-select show-entries-select" [ngModel]="showEntries" (ngModelChange)="onShowEntriesChange($event)" style="width: auto;">
+            <select class="form-control form-select show-entries-select" [ngModel]="showEntries"
+              (ngModelChange)="onShowEntriesChange($event)" style="width: auto;">
               <option [ngValue]="5">5</option>
               <option [ngValue]="10">10</option>
               <option [ngValue]="15">15</option>
@@ -206,13 +167,14 @@
 
           <div class="d-flex align-items-center gap-2">
             <div class="position-relative">
-              <input type="text" class="form-control search-user" [(ngModel)]="searchText" (ngModelChange)="onSearchChange()"
+              <input type="text" class="form-control search-user" [(ngModel)]="searchText" (keyup.enter)="onSearch()"
                 placeholder="Search Name/ID..." autocomplete="off" style="border-radius: 6px; padding-right: 30px;" />
               <i *ngIf="searchText" class="fa-solid fa-times position-absolute"
                 style="right: 10px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;"
-                (click)="searchText = ''; onSearchChange()"></i>
+                (click)="clearSearch()"></i>
             </div>
-            <button class="btn text-white d-flex align-items-center justify-content-center shadow-sm" style="height: 38px; width: 42px; background-color: #4A8FA9; border-radius: 6px;" (click)="onSearchChange()">
+            <button class="btn text-white d-flex align-items-center justify-content-center shadow-sm"
+              style="height: 38px; width: 42px; background-color: #4A8FA9; border-radius: 6px;" (click)="onSearch()">
               <i class="fa-solid fa-magnifying-glass fs-6"></i>
             </button>
           </div>
@@ -226,14 +188,16 @@
                 <i class="fa-regular fa-calendar me-1"></i> Filter by Month & Year
               </label>
               <div class="input-group position-relative">
-                <input class="form-control bg-white" placeholder="Select Month & Year"
-                       [value]="dateValue" readonly style="cursor: pointer;" (click)="dp.open()">
+                <input class="form-control bg-white" placeholder="Select Month & Year" [value]="dateValue" readonly
+                  style="cursor: pointer;" (click)="dp.open()">
                 <span class="input-group-text bg-white" style="cursor: pointer;" (click)="dp.open()">
                   <i class="fa-regular fa-calendar"></i>
                 </span>
-                <input [matDatepicker]="dp" style="position: absolute; bottom: 0; left: 0; width: 100%; height: 0; opacity: 0; border: none; padding: 0; pointer-events: none;" readonly tabindex="-1">
+                <input [matDatepicker]="dp"
+                  style="position: absolute; bottom: 0; left: 0; width: 100%; height: 0; opacity: 0; border: none; padding: 0; pointer-events: none;"
+                  readonly tabindex="-1">
                 <mat-datepicker #dp startView="multi-year" yPosition="below"
-                               (monthSelected)="setMonthAndYear($event, dp)">
+                  (monthSelected)="setMonthAndYear($event, dp)">
                 </mat-datepicker>
               </div>
             </div>
@@ -243,12 +207,8 @@
               <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
                 <i class="fa-solid fa-layer-group me-1"></i> Filter by Stage
               </label>
-              <ng-select
-                [items]="['Pending', 'Approved', 'Rejected']"
-                placeholder="All Stages"
-                [(ngModel)]="filterStage"
-                class="custom-ng-select"
-                appendTo="body">
+              <ng-select [items]="['Pending', 'Approved', 'Rejected']" placeholder="All Stages"
+                [(ngModel)]="filterStage" (change)="onSearch()" class="custom-ng-select" appendTo="body">
               </ng-select>
             </div>
 
@@ -257,21 +217,17 @@
               <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
                 <i class="fa-solid fa-users me-1"></i> Filter by Employee
               </label>
-              <ng-select
-                [items]="employees"
-                bindLabel="displayName"
-                bindValue="id"
-                placeholder="All Employees"
-                [(ngModel)]="filterEmployee"
-                class="custom-ng-select"
-                appendTo="body">
+              <ng-select [items]="employees" bindLabel="displayName" bindValue="id" placeholder="All Employees"
+                [(ngModel)]="filterEmployee" (change)="onSearch()" class="custom-ng-select" appendTo="body">
               </ng-select>
             </div>
           </div>
-          <div class="d-flex justify-content-end mt-2" *ngIf="filterMonth || filterYear || filterStage || filterEmployee || searchText">
-             <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0" (click)="filterMonth=''; filterYear=''; filterStage=null; filterEmployee=null; searchText=''; dateValue=''; pInbox=1; loadLeaveRequests()">
-               <i class="fa-solid fa-times me-1"></i> Clear All
-             </button>
+          <div class="d-flex justify-content-end mt-2"
+            *ngIf="filterMonth || filterYear || filterStage || filterEmployee || searchText">
+            <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0"
+              (click)="filterMonth=''; filterYear=''; filterStage=null; filterEmployee=null; searchText=''; dateValue=''; pInbox=1; loadLeaveRequests()">
+              <i class="fa-solid fa-times me-1"></i> Clear All
+            </button>
           </div>
         </div>
 
@@ -308,7 +264,8 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let req of getInboxRequests() | paginate: { id: 'inbox-pagination', itemsPerPage: showEntries, currentPage: pInbox, totalItems: totalItems }; index as i">
+                <tr
+                  *ngFor="let req of getInboxRequests() | paginate: { id: 'inbox-pagination', itemsPerPage: showEntries, currentPage: pInbox, totalItems: totalItems }; index as i">
                   <td>
                     {{ req.id }}
                   </td>
@@ -402,8 +359,8 @@
             *ngIf="getInboxRequests().length > 0">
             <span class="showalltext">Showing
               {{ showEntries * (pInbox - 1) > 0 ? showEntries * (pInbox - 1) + 1 : 1 }} to
-              {{ showEntries * pInbox <= totalItems ? showEntries * pInbox : totalItems }}
-                of {{ totalItems }} entries</span>
+              {{ showEntries * pInbox <= totalItems ? showEntries * pInbox : totalItems }} of {{ totalItems }}
+                entries</span>
                 <pagination-controls id="inbox-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
                   (pageChange)="onPageChange($event)" target="_top"></pagination-controls>
           </div>
@@ -412,7 +369,7 @@
     </div>
 
     <!-- Tab 3: Leave History -->
-    <div class="col-12" *ngIf="false && activeTab === 'history'">
+    <div class="col-12" *ngIf="false">
       <div class="card border-0 my-4 px-4 py-4">
         <div class="py-3 mb-2">
           <h5 class="fw-bold text-dark mb-0">
@@ -439,11 +396,11 @@
           <div class="d-flex align-items-center">
             <span class="me-1 show-entery-text">Search:</span>
             <div class="position-relative">
-              <input type="text" class="form-control search-user" [(ngModel)]="searchText" (ngModelChange)="onSearchChange()"
+              <input type="text" class="form-control search-user" [(ngModel)]="searchText" (keyup.enter)="onSearch()"
                 placeholder="Search requests..." autocomplete="off" />
               <i *ngIf="searchText" class="fa-solid fa-times position-absolute"
                 style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;"
-                (click)="searchText = ''; onSearchChange()"></i>
+                (click)="clearSearch()"></i>
             </div>
           </div>
         </div>
@@ -463,12 +420,8 @@
               <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
                 <i class="fa-solid fa-layer-group me-1"></i> Filter by Stage
               </label>
-              <ng-select
-                [items]="['Pending Supervisor', 'Pending PM', 'Pending HR', 'Approved', 'Rejected']"
-                placeholder="All Stages"
-                [(ngModel)]="filterStage"
-                class="custom-ng-select"
-                appendTo="body">
+              <ng-select [items]="['Pending Supervisor', 'Pending PM', 'Pending HR', 'Approved', 'Rejected']"
+                placeholder="All Stages" [(ngModel)]="filterStage" class="custom-ng-select" appendTo="body">
               </ng-select>
             </div>
 
@@ -477,22 +430,17 @@
               <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
                 <i class="fa-solid fa-users me-1"></i> Filter by Employee
               </label>
-              <ng-select
-                [items]="employees"
-                bindLabel="displayName"
-                bindValue="id"
-                placeholder="All Employees"
-                [(ngModel)]="filterEmployee"
-                class="custom-ng-select"
-                appendTo="body">
+              <ng-select [items]="employees" bindLabel="displayName" bindValue="id" placeholder="All Employees"
+                [(ngModel)]="filterEmployee" class="custom-ng-select" appendTo="body">
               </ng-select>
             </div>
           </div>
           <!-- Clear Filters -->
           <div class="d-flex justify-content-end mt-2" *ngIf="filterMonth || filterStage || filterEmployee">
-             <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0" (click)="filterMonth=''; filterStage=null; filterEmployee=null">
-               <i class="fa-solid fa-times me-1"></i> Clear Filters
-             </button>
+            <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0"
+              (click)="filterMonth=''; filterStage=null; filterEmployee=null">
+              <i class="fa-solid fa-times me-1"></i> Clear Filters
+            </button>
           </div>
         </div>
 
@@ -634,7 +582,7 @@
     </div>
 
     <!-- Tab 4: Leave Balances -->
-    <!-- <div class="col-12" *ngIf="activeTab === 'balances'">
+    <!-- <div class="col-12" *ngIf="false">
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-4 pt-0">
           <div class="d-flex justify-content-between align-items-center flex-wrap py-3 mb-2">
@@ -933,10 +881,67 @@
   </div>
 </div>
 
+<!-- Apply Leave Modal -->
+<div class="modal-overlay" *ngIf="applyLeaveModalOpen">
+  <div class="modal-contenttop modal-content-50">
+    <div class="card border-0">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center pb-2 border-bottom">
+        <div>
+          <h5 class="modal-title pt-1 mb-0"><i class="fa-solid fa-paper-plane text-primary me-2"></i>Submit Leave
+            Application</h5>
+        </div>
+        <button class="cross-btn-icon border-0 p-0" type="button" (click)="closeApplyLeaveModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="card-body p-4 pt-3">
+        <form [formGroup]="leaveApplyForm" (ngSubmit)="submitLeaveRequest()">
+          <div class="mb-3">
+            <label class="form-label form-lable-custom">Select Employee <span class="text-danger">*</span></label>
+            <ng-select [items]="employees" bindLabel="displayName" bindValue="id" placeholder="-- Choose Employee --"
+              formControlName="empId" class="custom-ng-select" appendTo="body">
+            </ng-select>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label form-lable-custom">Start Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control form-input-custom" formControlName="startDate">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label form-lable-custom">End Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control form-input-custom" formControlName="endDate">
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label form-lable-custom">Leave Type <span class="text-danger">*</span></label>
+            <ng-select [items]="leaveTypes" bindLabel="name" bindValue="id" placeholder="-- Select Type --"
+              formControlName="leaveType" class="custom-ng-select" appendTo="body">
+            </ng-select>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label form-lable-custom">Reason for Leave <span class="text-danger">*</span></label>
+            <textarea class="form-control form-input-custom" formControlName="reason" rows="3"
+              placeholder="Explain the reason for leave..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-custom-primary w-100 py-3 fw-bold hover-up"
+            [disabled]="leaveApplyForm.invalid">
+            <i class="fa-solid fa-paper-plane me-2"></i> Submit Leave Request
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Bulk Upload Leaves Modal -->
 <div *ngIf="bulkUploadModalOpen" class="modal-overlay">
-  <div class="modal-content-custom max-w-700 w-100 mx-3 p-0 border-0 shadow-lg position-relative" style="max-width: 500px;">
-    
+  <div class="modal-content-custom max-w-700 w-100 mx-3 p-0 border-0 shadow-lg position-relative"
+    style="max-width: 500px;">
+
     <!-- Header -->
     <div class="p-3 bg-white border-bottom d-flex align-items-center justify-content-between">
       <h5 class="fw-bold mb-0" style="color: #468faf; font-size: 1.2rem;">Bulk Leaves Upload</h5>
@@ -944,11 +949,11 @@
         <i class="fa-solid fa-xmark fs-4"></i>
       </button>
     </div>
-    
+
     <!-- Body -->
     <div class="modal-body p-4 bg-white">
       <h6 class="fw-bold mb-3 text-dark fs-6" style="font-size: 15px !important;">Upload File</h6>
-      
+
       <form [formGroup]="bulkUploadForm">
         <div class="p-5 text-center rounded-4 transition"
           style="background-color: #f6f9fb; border: 1px solid #e2e8f0; min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;"
@@ -956,15 +961,18 @@
           (dragover)="$event.preventDefault(); $event.stopPropagation(); isDragging = true"
           (dragleave)="$event.preventDefault(); $event.stopPropagation(); isDragging = false"
           (drop)="$event.preventDefault(); $event.stopPropagation(); isDragging = false; onBulkUploadFileSelected({target: {files: $event.dataTransfer?.files}})">
-          
+
           <input type="file" #bulkUploadFileInput class="d-none" (change)="onBulkUploadFileSelected($event)"
             accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
 
           <div *ngIf="!selectedBulkUploadFile">
             <!-- Icon -->
-            <div class="mx-auto mb-3" style="width: 60px; height: 60px; background-color: #e3eff4; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
-              <div style="background-color: #468faf; border-radius: 50%; width: 34px; height: 34px; display: flex; justify-content: center; align-items: center;">
-                <i class="fa-solid fa-arrow-up fs-6 text-white" style="position: absolute; transform: translateY(-3px); font-size: 12px;"></i>
+            <div class="mx-auto mb-3"
+              style="width: 60px; height: 60px; background-color: #e3eff4; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
+              <div
+                style="background-color: #468faf; border-radius: 50%; width: 34px; height: 34px; display: flex; justify-content: center; align-items: center;">
+                <i class="fa-solid fa-arrow-up fs-6 text-white"
+                  style="position: absolute; transform: translateY(-3px); font-size: 12px;"></i>
                 <i class="fa-solid fa-cloud fs-5 text-white"></i>
               </div>
             </div>
@@ -988,15 +996,14 @@
 
     <!-- Footer -->
     <div class="p-4 border-top bg-white d-flex gap-3">
-      <button class="btn flex-grow-1 py-2 fw-medium transition hover-up" 
-        style="background-color: #717d84; color: white; border-radius: 6px;" 
-        (click)="closeBulkUploadModal()">
+      <button class="btn flex-grow-1 py-2 fw-medium transition hover-up"
+        style="background-color: #717d84; color: white; border-radius: 6px;" (click)="closeBulkUploadModal()">
         Cancel
       </button>
-      <button class="btn flex-grow-1 py-2 fw-medium transition hover-up d-flex justify-content-center align-items-center gap-2" 
-        style="background-color: #ffffff; color: #6c757d; border: 1px solid #cbd5e1; border-radius: 6px;" 
-        [disabled]="!selectedBulkUploadFile"
-        (click)="uploadBulkFile()">
+      <button
+        class="btn flex-grow-1 py-2 fw-medium transition hover-up d-flex justify-content-center align-items-center gap-2"
+        style="background-color: #ffffff; color: #6c757d; border: 1px solid #cbd5e1; border-radius: 6px;"
+        [disabled]="!selectedBulkUploadFile" (click)="uploadBulkFile()">
         <i class="fa-solid fa-arrow-up-from-bracket"></i> Start Import Process
       </button>
     </div>

@@ -8,7 +8,7 @@ import { LeaveTypeService } from 'src/app/core/services/leave-type.service';
 import { LeaveManagementService } from 'src/app/core/services/leave-management.service';
 import { EmployeeService } from 'src/app/core/services/Employee.service';
 import { Subject } from 'rxjs';
-import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 
@@ -43,8 +43,19 @@ interface LeaveBalance {
   providers: [DatePipe]
 })
 export class LeaveManagementComponent implements OnInit, OnDestroy {
-  activeTab: 'apply' | 'inbox' | 'balances' | 'history' = 'apply';
   simulatedRole: 'Supervisor' | 'Project Manager' | 'HR' = 'Supervisor';
+
+  applyLeaveModalOpen: boolean = false;
+
+  openApplyLeaveModal() {
+    this.applyLeaveModalOpen = true;
+    this.leaveApplyForm.reset();
+  }
+
+  closeApplyLeaveModal() {
+    this.applyLeaveModalOpen = false;
+    this.leaveApplyForm.reset();
+  }
 
   employees: any[] = [];
   leaveRequests: LeaveRequest[] = [];
@@ -66,7 +77,6 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   showEntries: number = 10;
   totalItems: number = 0;
   searchText: string = '';
-  searchSubject = new Subject<string>();
   filterMonth: string = '';
   filterYear: string = '';
   filterStage: string | null = null;
@@ -119,19 +129,17 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
     this.loadEmployees();
     this.loadLeaveTypes();
     this.loadLeaveRequests();
-
-    this.searchSubject.pipe(
-      debounceTime(300),
-      distinctUntilChanged(),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      this.pInbox = 1;
-      this.loadLeaveRequests();
-    });
   }
 
-  onSearchChange() {
-    this.searchSubject.next(this.searchText);
+  onSearch() {
+    this.pInbox = 1;
+    this.loadLeaveRequests();
+  }
+
+  clearSearch() {
+    this.searchText = '';
+    this.pInbox = 1;
+    this.loadLeaveRequests();
   }
 
   onPageChange(page: number) {
@@ -313,7 +321,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
       next: (res: any) => {
         if (res.status === 'success' || res.status === 200 || res.status === 201) {
           this.notificationService.show('Leave request submitted successfully.', 'success', 3000);
-          this.leaveApplyForm.reset();
+          this.closeApplyLeaveModal();
           this.loadLeaveRequests(); // Reload leave history and inbox
         } else {
           this.notificationService.show(res.message || 'Failed to submit leave request.', 'error', 3000);
