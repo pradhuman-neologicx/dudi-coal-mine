@@ -126,14 +126,22 @@ export class SidenavComponent {
         {
           index: 3,
           icon: 'people',
-          label: 'Employee Mgt.',
-          route: '/admin/employee-management',
-        },
-        {
-          index: 4,
-          icon: 'account_balance_wallet',
-          label: 'Employee Payroll',
-          route: '/admin/employee-payroll',
+          label: 'Employee',
+          route: '/admin/employee',
+          subItems: [
+            {
+              index: 1,
+              icon: 'manage_accounts',
+              label: 'Employee Mgt.',
+              route: '/admin/employee-management',
+            },
+            {
+              index: 2,
+              icon: 'account_balance_wallet',
+              label: 'Employee Payroll',
+              route: '/admin/employee-payroll',
+            }
+          ]
         },
         {
           index: 4,
@@ -144,21 +152,29 @@ export class SidenavComponent {
 
         {
           index: 5,
-          icon: 'how_to_reg',
-          label: 'Attendance Mgt.',
-          route: '/admin/attendance-management',
-        },
-        {
-          index: 6,
-          icon: 'event_busy',
-          label: 'Leave Mgt.',
-          route: '/admin/leave-management',
-        },
-        {
-          index: 7,
-          icon: 'payments',
-          label: 'Payroll Mgt.',
-          route: '/admin/payroll-management',
+          icon: 'business_center',
+          label: 'Workforce Mgt.',
+          route: '/admin/workforce',
+          subItems: [
+            {
+              index: 1,
+              icon: 'how_to_reg',
+              label: 'Attendance Mgt.',
+              route: '/admin/attendance-management',
+            },
+            {
+              index: 2,
+              icon: 'event_busy',
+              label: 'Leave Mgt.',
+              route: '/admin/leave-management',
+            },
+            {
+              index: 3,
+              icon: 'payments',
+              label: 'Payroll Mgt.',
+              route: '/admin/payroll-management',
+            }
+          ]
         },
         // {
         //   index: 8,
@@ -224,34 +240,34 @@ export class SidenavComponent {
         //     // }
         //   ]
         // },
-        // {
-        //   index: 11,
-        //   icon: 'local_shipping',
-        //   label: 'Vehicle Management',
-        //   route: '/admin/vehicle-management',
-        //   subItems: [
-        //     {
-        //       index: 1,
-        //       icon: 'directions_car',
-        //       label: 'Vehicle Master',
-        //       route: '/admin/vehicle-management/vehicle-master',
-        //     },
-        //     {
-        //       index: 2,
-        //       icon: 'local_taxi',
-        //       label: 'Vehicles',
-        //       route: '/admin/vehicle-management/vehicles',
-        //     },
-        //     // {
-        //     //   index: 3,
-        //     //   icon: 'person_pin',
-        //     //   label: 'Driver Mapping',
-        //     //   route: '/admin/vehicle-management/driver-mapping',
-        //     // },
+        {
+          index: 11,
+          icon: 'local_shipping',
+          label: 'Equipment Management',
+          route: '/admin/vehicle-management',
+          subItems: [
+            {
+              index: 1,
+              icon: 'directions_car',
+              label: 'Equipment Master',
+              route: '/admin/vehicle-management/vehicle-master',
+            },
+            {
+              index: 2,
+              icon: 'local_taxi',
+              label: 'Equipments',
+              route: '/admin/vehicle-management/vehicles',
+            },
+            // {
+            //   index: 3,
+            //   icon: 'person_pin',
+            //   label: 'Driver Mapping',
+            //   route: '/admin/vehicle-management/driver-mapping',
+            // },
 
 
-        //   ]
-        // },
+          ]
+        },
 
 
 

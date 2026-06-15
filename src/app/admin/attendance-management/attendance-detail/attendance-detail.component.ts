@@ -133,6 +133,7 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
       this.employee.name = data.employee.name || 'N/A';
       this.employee.department = data.employee.department || 'N/A';
       this.employee.designation = data.employee.designation || 'N/A';
+      this.employee.empId = data.employee.employee_code || data.employee.employee_id || this.employeeId;
     }
 
     if (data && data.history && Array.isArray(data.history)) {
@@ -162,9 +163,10 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
       case 'rest_day':
       case 'rest-day':
       case 'rest day':
+      case 'weekend':
         return 'Rest Day';
       case 'exception': return 'Exception';
-      default: return 'Present';
+      default: return backendStatus;
     }
   }
 

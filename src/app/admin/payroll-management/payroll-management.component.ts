@@ -8,6 +8,8 @@ import { NgxPrintModule } from 'ngx-print';
 import { EmployeeService } from 'src/app/core/services/Employee.service';
 import { EmployeeManagementService } from 'src/app/core/services/employee-management.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
+import { SiteService } from 'src/app/core/services/site.service';
+import { DepartmentService } from 'src/app/core/services/department.service';
 
 interface PayrollRecord {
   empId: string;
@@ -37,7 +39,9 @@ interface PayrollRecord {
   totalEarnings: number;
   totalDeductions: number;
   netSalary: number;
-  createdAt: Date;
+  monthly_salary?: number;
+  status?: string;
+  createdAt?: Date;
 }
 
 @Component({
@@ -62,8 +66,8 @@ export class PayrollManagementComponent implements OnInit {
   
   // Filters
   currentMonth: string = '';
-  selectedSite: string | null = null;
-  selectedDept: string | null = null;
+  selectedSite: number | null = null;
+  selectedDept: number | null = null;
   filterSearch: string = '';
   
   // State Machine
@@ -100,15 +104,17 @@ export class PayrollManagementComponent implements OnInit {
   selectedBulkFile: File | null = null;
   
   // Dropdown options
-  mockSites: string[] = ['East Mine', 'West Mine', 'North Sector'];
-  departments: string[] = ['Mining', 'HR', 'Safety', 'Operations', 'Finance'];
+  sites: any[] = [];
+  departments: any[] = [];
 
   constructor(
     private fb: FormBuilder,
     private employeeService: EmployeeService,
     private employeeManagementService: EmployeeManagementService,
     private notificationService: NotificationService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private siteService: SiteService,
+    private departmentService: DepartmentService
   ) {
     this.editForm = this.fb.group({
       empId: [{ value: '', disabled: true }],
@@ -150,7 +156,29 @@ export class PayrollManagementComponent implements OnInit {
     const today = new Date();
     this.currentMonth = this.datePipe.transform(today, 'yyyy-MM') || '';
     this.loadEmployeesForDropdown();
+    this.loadSites();
+    this.loadDepartments();
     this.loadPayrollData();
+  }
+
+  loadSites(): void {
+    this.siteService.getAllSites().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) {
+          this.sites = res.data || [];
+        }
+      }
+    });
+  }
+
+  loadDepartments(): void {
+    this.departmentService.getAllDepartments().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) {
+          this.departments = res.data || [];
+        }
+      }
+    });
   }
 
   loadEmployeesForDropdown(): void {
@@ -202,6 +230,7 @@ export class PayrollManagementComponent implements OnInit {
               totalEarnings: emp.gross_salary || 0,
               totalDeductions: (emp.pf_deduction || 0) + (emp.mess_deduction || 0) + (emp.leave_deduction || 0) + (emp.other_deduction || 0) + (emp.penalty_amount || 0),
               netSalary: emp.net_salary || 0,
+              monthly_salary: emp.monthly_salary || 0,
               createdAt: emp.created_at || new Date()
             };
           });

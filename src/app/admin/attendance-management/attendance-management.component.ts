@@ -280,7 +280,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
                 checkOut: record.check_out || null,
                 shift: record.shift_name || '',
                 status: this.mapStatusToFrontend(record.attendance_status),
-                site: record.site || ''
+                site: record.site_name || ''
               }));
               
               if (response.summary) {
