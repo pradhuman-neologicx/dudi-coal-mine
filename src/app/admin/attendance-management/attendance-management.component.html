@@ -115,7 +115,7 @@
         <form [formGroup]="searchbarform" class="d-flex align-items-center">
           <div class="position-relative flex-grow-1">
             <input type="text" class="form-control form-input-custom py-2" placeholder="Search Name/ID..."
-              autocomplete="off" formControlName="searchbar" (keyup.enter)="searchfun()" />
+              autocomplete="off" formControlName="searchbar" (keyup.enter)="searchfun()" style="height: 42px;" />
           </div>
           <button class="btn btn-primary search-btn ms-2" (click)="searchfun()" type="button" style="height: 42px;">
             <span><i class="fa-solid fa-magnifying-glass text-white"></i></span>
@@ -130,11 +130,11 @@
       <!-- Date Filter (Daily) -->
       <div class="col-md-3 col-sm-12" *ngIf="viewMode === 'daily'">
         <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Select Date</label>
-        <div class="input-group">
-          <span class="input-group-text bg-white text-muted border-end-0 py-2">
+        <div class="input-group" style="height: 42px;">
+          <span class="input-group-text bg-white text-muted border-end-0 py-2 d-flex align-items-center">
             <i class="fa-solid fa-calendar-day"></i>
           </span>
-          <input type="date" class="form-control form-input-custom border-start-0 ps-0 py-2"
+          <input type="date" class="form-control form-input-custom border-start-0 ps-0 py-2 h-100"
             [(ngModel)]="filterDate" (change)="applyFilters()">
         </div>
       </div>
@@ -142,11 +142,11 @@
       <!-- Month Filter (Monthly) -->
       <div class="col-md-3 col-sm-12" *ngIf="viewMode === 'monthly'">
         <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Select Month</label>
-        <div class="input-group">
-          <span class="input-group-text bg-white text-muted border-end-0 py-2">
+        <div class="input-group" style="height: 42px;">
+          <span class="input-group-text bg-white text-muted border-end-0 py-2 d-flex align-items-center">
             <i class="fa-solid fa-calendar-days"></i>
           </span>
-          <input type="month" class="form-control form-input-custom border-start-0 ps-0 py-2"
+          <input type="month" class="form-control form-input-custom border-start-0 ps-0 py-2 h-100"
             [(ngModel)]="filterMonth" (change)="applyFilters()">
         </div>
       </div>
@@ -162,23 +162,25 @@
       -->
 
       <!-- Status Filter -->
-      <div class="col-md-2 col-sm-6">
+      <div class="col-md-3 col-sm-6">
         <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Status Filter</label>
-        <select class="form-select form-input-custom py-2" [(ngModel)]="filterStatus" (change)="applyFilters()">
-          <option value="">All Statuses</option>
-          <option value="Present">Present</option>
-          <option value="Absent">Absent</option>
-          <option value="Half Day">Half Day</option>
-          <option value="Exception">Exception</option>
-        </select>
+        <ng-select
+          [items]="['Present', 'Absent', 'Half Day', 'Exception']"
+          placeholder="All Statuses"
+          [(ngModel)]="filterStatus"
+          (change)="applyFilters()"
+          class="custom-ng-select"
+          appendTo="body">
+        </ng-select>
       </div>
 
       <!-- Reset Button -->
-      <div class="col-md-1 col-sm-12">
+      <div class="col-md-3 col-sm-12">
+        <label class="form-label form-lable-custom mb-1 d-none d-md-block" style="visibility: hidden;">Reset</label>
         <button
-          class="btn btn-outline-secondary w-100 py-2 d-flex align-items-center justify-content-center gap-2 hover-up px-1"
-          (click)="resetFilters()" style="height: 42px;" title="Reset Filters">
-          <i class="fa-solid fa-rotate-right"></i> <span class="d-md-none d-xl-inline">Reset</span>
+          class="btn btn-outline-secondary py-2 d-flex align-items-center justify-content-center gap-2 hover-up px-4"
+          (click)="resetFilters()" style="height: 42px; border-color: #ced4da;" title="Reset Filters">
+          <i class="fa-solid fa-rotate-right text-muted"></i> <span class="d-md-none d-xl-inline text-muted fw-medium">Reset</span>
         </button>
       </div>
     </div>
@@ -560,13 +562,13 @@
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Status <span class="text-danger">*</span></label>
-            <select class="form-select form-input-custom" formControlName="status">
-              <option value="">Select Status</option>
-              <option value="Present">Present</option>
-              <option value="Absent">Absent</option>
-              <option value="Half Day">Half Day</option>
-              <option value="Exception">Exception</option>
-            </select>
+            <ng-select
+              [items]="['Present', 'Absent', 'Half Day', 'Exception']"
+              placeholder="Select Status"
+              formControlName="status"
+              class="custom-ng-select"
+              appendTo="body">
+            </ng-select>
             <div class="text-danger fs-8 mt-1"
               *ngIf="correctionForm.get('status')?.invalid && correctionForm.get('status')?.touched">
               Status is required.
@@ -574,10 +576,13 @@
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Site <span class="text-danger">*</span></label>
-            <select class="form-select form-input-custom" formControlName="site">
-              <option value="">Select Site</option>
-              <option *ngFor="let s of mockSites" [value]="s">{{ s }}</option>
-            </select>
+            <ng-select
+              [items]="mockSites"
+              placeholder="Select Site"
+              formControlName="site"
+              class="custom-ng-select"
+              appendTo="body">
+            </ng-select>
             <div class="text-danger fs-8 mt-1"
               *ngIf="correctionForm.get('site')?.invalid && correctionForm.get('site')?.touched">
               Site is required.

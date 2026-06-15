@@ -173,9 +173,9 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     });
 
     this.filterForm = this.formBuilder.group({
-      siteFilter: [''],
-      deptFilter: [''],
-      designationFilter: [''],
+      siteFilter: [null],
+      deptFilter: [null],
+      designationFilter: [null],
     });
 
     this.uploadForm = this.formBuilder.group({
@@ -499,8 +499,12 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
   }
 
   resetsearchbar() {
-    this.searchbarform.reset();
-    this.filterForm.reset();
+    this.searchbarform.reset({ searchbar: '' });
+    this.filterForm.reset({
+      siteFilter: null,
+      deptFilter: null,
+      designationFilter: null
+    });
     this.showreset = false;
     this.page = 1;
     this.GetEmployeeFun();
@@ -539,6 +543,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             emergencyContact: emp.emergency_contact,
             joiningDate: emp.joining_date,
             restDay: emp.rest_day || '',
+            relay: emp.relay_shift || emp.relay || '',
             empType: emp.employee_type === 'permanent' ? 'Permanent' : (emp.employee_type === 'daily_wage' ? 'Daily Wage' : emp.employee_type),
             salaryType: emp.salary_type === 'monthly' ? 'Monthly' : (emp.salary_type === 'daily_wage' ? 'Daily Wage' : emp.salary_type),
             basicSalary: emp.salary_type === 'monthly' ? emp.basic_salary : emp.daily_wage,
@@ -601,6 +606,12 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             desigId = emp.designation_id;
           }
 
+          let rawRelay = String(emp.relay_shift || emp.relay || 'General').trim();
+          let formattedRelay = 'General';
+          if (rawRelay.toLowerCase() === 'relay 1') formattedRelay = 'Relay 1';
+          else if (rawRelay.toLowerCase() === 'relay 2') formattedRelay = 'Relay 2';
+          else if (rawRelay.toLowerCase() === 'relay 3') formattedRelay = 'Relay 3';
+
           const formData = {
             empId: emp.employee_code || '',
             name: emp.name || '',
@@ -614,7 +625,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             empType: emp.employee_type === 'permanent' ? 'Permanent' : (emp.employee_type === 'daily_wage' ? 'Daily Wage' : ''),
             department: deptId,
             designation: desigId,
-            relay: emp.relay || 'General'
+            relay: formattedRelay
           };
 
           this.employeeForm.patchValue(formData);
@@ -648,25 +659,14 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       formData.append('address', empData.address || '');
       formData.append('father_name', empData.fatherName || '');
 
-      const employeeType = empData.empType === 'Permanent' ? 'permanent' : (empData.empType === 'Daily Wage' ? 'daily_wage' : '');
-      formData.append('employee_type', employeeType);
+      let formattedRelayShift = '';
+      if (empData.relay === 'Relay 1') formattedRelayShift = 'relay_1';
+      else if (empData.relay === 'Relay 2') formattedRelayShift = 'relay_2';
+      else if (empData.relay === 'Relay 3') formattedRelayShift = 'relay_3';
+      else if (empData.relay === 'General') formattedRelayShift = 'general';
+      else formattedRelayShift = empData.relay ? empData.relay.toLowerCase() : '';
 
-      // Passing blank/default values for payroll since they are now handled in employee-payroll module
-      formData.append('salary_type', '');
-      formData.append('basic_salary', '0.00');
-      formData.append('daily_wage', '0.00');
-      formData.append('relay', empData.relay || '');
-      formData.append('rest_day', '');
-      formData.append('pf_applicable', '0');
-      formData.append('pf_amount', '0.00');
-      formData.append('pf_number', '');
-      formData.append('bank_name', '');
-      formData.append('bank_account_number', '');
-      formData.append('ifsc_code', '');
-      formData.append('mess_deduction_applicable', '0');
-      formData.append('mess_deduction', '0.00');
-      formData.append('other_deduction_appliacble', '0');
-      formData.append('other_deduction', '0.00');
+      formData.append('relay_shift', formattedRelayShift);
 
       if (this.isEditMode) {
         formData.append('_method', 'PUT');
@@ -840,19 +840,29 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
 
   openAssignShiftModal(employee?: any) {
     this.assignShiftModalOpen = true;
-    this.loadAllEmployees();
-
     this.assignShiftType = '';
 
-    let currentGroupName = '';
     if (employee) {
       this.selectedEmployeeIdsForAssign = [employee.id];
-      currentGroupName = this.getEmployeeShiftGroup(employee.id);
+      // Senior Approach: Use the existing employee data passed from the table row
+      // No need to call getEmployeeById API because we already have all required data!
+      this.allEmployeesList = [{
+        id: employee.id,
+        name: employee.name,
+        employee_code: employee.employee_code || employee.empId || ''
+      }];
+
+      if (employee.shift_id) {
+        this.loadShifts(employee.shift_id);
+      } else {
+        let currentGroupName = this.getEmployeeShiftGroup(employee.id);
+        this.loadShifts(currentGroupName);
+      }
     } else {
       this.selectedEmployeeIdsForAssign = [];
+      this.loadAllEmployees();
+      this.loadShifts();
     }
-
-    this.loadShifts(currentGroupName);
   }
 
   closeAssignShiftModal() {
@@ -888,7 +898,12 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     return name.includes(term) || code.includes(term);
   }
 
-  loadShifts(employeeCurrentShiftName?: string) {
+  loadShifts(preselectShift?: any) {
+    if (this.allShiftsList && this.allShiftsList.length > 0) {
+      this.handlePreselectShift(preselectShift);
+      return;
+    }
+
     this.shiftService.getAllShifts().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res.status === 200 && res.data && res.data.length > 0) {
@@ -896,17 +911,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             id: s.id,
             name: s.shift_name || s.name
           }));
-          if (employeeCurrentShiftName) {
-            const matched = this.allShiftsList.find(s => s.name === employeeCurrentShiftName || s.name.includes(employeeCurrentShiftName));
-            if (matched) {
-              this.assignShiftType = matched.id;
-            } else {
-              this.assignShiftType = employeeCurrentShiftName;
-            }
-          }
-          if (employeeCurrentShiftName) {
-            this.assignShiftType = employeeCurrentShiftName;
-          }
+          this.handlePreselectShift(preselectShift);
         }
       },
       error: (err) => {
@@ -917,21 +922,36 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
           { id: 'Shift C', name: 'Shift C (Night)' },
           { id: 'Off', name: 'Weekly Off' }
         ];
-        if (employeeCurrentShiftName) {
-          this.assignShiftType = employeeCurrentShiftName;
+        if (preselectShift) {
+          this.assignShiftType = preselectShift;
         }
       }
     });
   }
 
+  handlePreselectShift(preselectShift?: any) {
+    if (preselectShift) {
+      const matchedById = this.allShiftsList.find(s => String(s.id) === String(preselectShift));
+      if (matchedById) {
+        this.assignShiftType = matchedById.id;
+      } else {
+        const matchedByName = this.allShiftsList.find(s => s.name === preselectShift || s.name.includes(String(preselectShift)));
+        if (matchedByName) {
+          this.assignShiftType = matchedByName.id;
+        } else {
+          this.assignShiftType = preselectShift;
+        }
+      }
+    }
+  }
+
   loadAllEmployees() {
-    this.employeeManagementService.getEmployees('all', 1).pipe(takeUntil(this.destroy$)).subscribe({
+    this.employeeManagementService.getAllEmployees().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
-        if (res.status === 200 && res.data && res.data.length > 0) {
-          this.allEmployeesList = res.data.filter((emp: any) => {
-            const activeVal = emp.status !== undefined ? emp.status : emp.is_active;
-            return activeVal == 1;
-          });
+        if (res.status === 200 && res.data && Array.isArray(res.data)) {
+          this.allEmployeesList = res.data;
+        } else if (res.status === 200 && res.data && res.data.data && Array.isArray(res.data.data)) {
+          this.allEmployeesList = res.data.data;
         } else {
           this.allEmployeesList = this.employeeList.filter(emp => emp.is_active == 1);
         }

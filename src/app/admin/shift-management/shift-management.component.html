@@ -258,46 +258,93 @@
             <label class="form-label form-lable-custom">
               {{ overrideForm.get('type')?.value === 'standby' ? 'Original Employee' : 'Employee' }} *
             </label>
-            <select class="form-select form-input-custom" formControlName="employeeId"
+            <ng-select
+              [items]="employees"
+              bindLabel="name"
+              bindValue="id"
+              placeholder="Select Employee"
+              formControlName="employeeId"
+              class="custom-ng-select"
+              appendTo="body"
               [ngClass]="{'is-invalid': overrideForm.get('employeeId')?.invalid && overrideForm.get('employeeId')?.touched}">
-              <option value="">Select Employee</option>
-              <option *ngFor="let emp of employees" [value]="emp.id">{{ emp.name }} ({{ emp.designation }})</option>
-            </select>
-            <div class="invalid-feedback">Employee selection is required.</div>
+              <ng-template ng-option-tmp let-item="item">
+                {{ item.name }} ({{ item.employee_code || item.empId }})
+              </ng-template>
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.name }} ({{ item.employee_code || item.empId }})
+              </ng-template>
+            </ng-select>
+            <div class="text-danger fs-8 mt-1" *ngIf="overrideForm.get('employeeId')?.invalid && overrideForm.get('employeeId')?.touched">
+              Employee selection is required.
+            </div>
           </div>
 
           <!-- Type Specific Controls -->
 
           <!-- 1. Change Shift: Target Shift Dropdown -->
           <div class="col-md-12 animate-fade" *ngIf="overrideForm.get('type')?.value === 'change'">
-            <label class="form-label form-lable-custom">New Assigned Shift *</label>
-            <select class="form-select form-input-custom" formControlName="newShift"
+            <label class="form-label form-lable-custom">New Assigned Shift <span class="text-danger">*</span></label>
+            <ng-select
+              [items]="allShiftsList"
+              bindLabel="name"
+              bindValue="id"
+              placeholder="Select Target Shift"
+              formControlName="newShift"
+              class="custom-ng-select"
+              appendTo="body"
               [ngClass]="{'is-invalid': overrideForm.get('newShift')?.invalid && overrideForm.get('newShift')?.touched}">
-              <option *ngFor="let shift of shifts" [value]="shift.code">{{ shift.name }} ({{ shift.time }})</option>
-            </select>
-            <div class="invalid-feedback">Target shift is required.</div>
+            </ng-select>
+            <div class="text-danger fs-8 mt-1" *ngIf="overrideForm.get('newShift')?.invalid && overrideForm.get('newShift')?.touched">
+              Target shift is required.
+            </div>
           </div>
 
           <!-- 2. Swap Shifts: Swap With Employee Dropdown -->
           <div class="col-md-12 animate-fade" *ngIf="overrideForm.get('type')?.value === 'swap'">
             <label class="form-label form-lable-custom">Swap With Employee *</label>
-            <select class="form-select form-input-custom" formControlName="swapEmployeeId"
+            <ng-select
+              [items]="employees"
+              bindLabel="name"
+              bindValue="id"
+              placeholder="Select Employee to Swap With"
+              formControlName="swapEmployeeId"
+              class="custom-ng-select"
+              appendTo="body"
               [ngClass]="{'is-invalid': overrideForm.get('swapEmployeeId')?.invalid && overrideForm.get('swapEmployeeId')?.touched}">
-              <option value="">Select Employee to Swap With</option>
-              <option *ngFor="let emp of employees" [value]="emp.id">{{ emp.name }} ({{ emp.designation }})</option>
-            </select>
-            <div class="invalid-feedback">Please select an employee to swap shifts with.</div>
+              <ng-template ng-option-tmp let-item="item">
+                {{ item.name }} ({{ item.employee_code || item.empId }})
+              </ng-template>
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.name }} ({{ item.employee_code || item.empId }})
+              </ng-template>
+            </ng-select>
+            <div class="text-danger fs-8 mt-1" *ngIf="overrideForm.get('swapEmployeeId')?.invalid && overrideForm.get('swapEmployeeId')?.touched">
+              Please select an employee to swap shifts with.
+            </div>
           </div>
 
           <!-- 3. Assign Standby: Standby Employee Dropdown -->
           <div class="col-md-12 animate-fade" *ngIf="overrideForm.get('type')?.value === 'standby'">
             <label class="form-label form-lable-custom">Select Standby Employee *</label>
-            <select class="form-select form-input-custom" formControlName="standbyEmployeeId"
+            <ng-select
+              [items]="employees"
+              bindLabel="name"
+              bindValue="id"
+              placeholder="Select Standby Worker"
+              formControlName="standbyEmployeeId"
+              class="custom-ng-select"
+              appendTo="body"
               [ngClass]="{'is-invalid': overrideForm.get('standbyEmployeeId')?.invalid && overrideForm.get('standbyEmployeeId')?.touched}">
-              <option value="">Select Standby Worker</option>
-              <option *ngFor="let emp of employees" [value]="emp.id">{{ emp.name }} ({{ emp.designation }})</option>
-            </select>
-            <div class="invalid-feedback">Standby worker selection is required.</div>
+              <ng-template ng-option-tmp let-item="item">
+                {{ item.name }} ({{ item.employee_code || item.empId }})
+              </ng-template>
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.name }} ({{ item.employee_code || item.empId }})
+              </ng-template>
+            </ng-select>
+            <div class="text-danger fs-8 mt-1" *ngIf="overrideForm.get('standbyEmployeeId')?.invalid && overrideForm.get('standbyEmployeeId')?.touched">
+              Standby worker selection is required.
+            </div>
           </div>
         </div>
       </div>
@@ -512,12 +559,29 @@
           <!-- Target Shift Selection -->
           <div class="col-md-12">
             <label class="form-label form-lable-custom">Target Shift <span class="text-danger">*</span></label>
-            <select class="form-select form-input-custom" formControlName="targetShift"
+            <ng-select
+              [items]="allShiftsList"
+              bindLabel="name"
+              bindValue="id"
+              placeholder="Select Target Shift"
+              formControlName="targetShift"
+              class="custom-ng-select"
+              appendTo="body"
               [ngClass]="{'is-invalid': bulkRotateForm.get('targetShift')?.invalid && bulkRotateForm.get('targetShift')?.touched}">
-              <option value="">Select Target Shift</option>
-              <option *ngFor="let shift of shifts" [value]="shift.code">{{ shift.name }}</option>
-            </select>
-            <div class="invalid-feedback">Please select the target shift.</div>
+            </ng-select>
+            <div class="text-danger fs-8 mt-1" *ngIf="bulkRotateForm.get('targetShift')?.invalid && bulkRotateForm.get('targetShift')?.touched">
+              Please select the target shift.
+            </div>
+          </div>
+
+          <!-- Apply Override Checkbox -->
+          <div class="col-md-12 mt-3">
+            <div class="form-check form-switch d-flex align-items-center">
+              <input class="form-check-input mt-0" type="checkbox" id="overrideSwitch" formControlName="override" style="transform: scale(1.1); cursor: pointer;">
+              <label class="form-check-label ms-2 form-lable-custom mb-0 cursor-pointer" for="overrideSwitch">
+                Apply Override <span class="text-muted fw-normal fs-8">(Force rotate for non-relay/inactive employees)</span>
+              </label>
+            </div>
           </div>
         </div>
       </div>

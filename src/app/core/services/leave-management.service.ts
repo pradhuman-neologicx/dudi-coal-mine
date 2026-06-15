@@ -53,4 +53,12 @@ export class LeaveManagementService {
   getEmployees(): Observable<any> {
     return this.apiservice.get(`v1/admin/employees`, this.getHeaders());
   }
+
+  getActiveEmployees(): Observable<any> {
+    return this.apiservice.get(`v1/active-employees`, this.getHeaders());
+  }
+
+  uploadBulkLeaves(formData: FormData): Observable<any> {
+    return this.apiservice.post(`v1/admin/leaves/bulk-upload`, formData, this.getHeaders());
+  }
 }

@@ -713,3 +713,46 @@
     }
   }
 }
+
+/* Modal and Upload Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+}
+
+.modal-content-custom {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-drop-zone {
+  border: 2px dashed #cbd5e1;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #468faf;
+    background-color: rgba(70, 143, 175, 0.03);
+  }
+
+  &.has-file {
+    border-color: #10b981;
+    background-color: rgba(16, 185, 129, 0.02);
+  }
+}

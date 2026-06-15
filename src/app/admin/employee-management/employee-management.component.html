@@ -31,11 +31,12 @@
       </div>
 
       <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">
-        <form [formGroup]="filterForm" class="d-flex gap-2">
-          <select class="form-control form-select" formControlName="deptFilter" (change)="searchfun()">
-            <option value="">All Departments</option>
-            <option *ngFor="let dept of departmentsList" [value]="dept.id">{{ dept.name }}</option>
-          </select>
+        <form [formGroup]="filterForm" class="d-flex gap-2" style="min-width: 200px;">
+          <ng-select class="custom-ng-select w-100" formControlName="deptFilter" (change)="searchfun()"
+            placeholder="All Departments" [searchable]="true" [clearable]="true">
+            <ng-option [value]="null">All Departments</ng-option>
+            <ng-option *ngFor="let dept of departmentsList" [value]="dept.id" title="{{ dept.name }}">{{ dept.name }}</ng-option>
+          </ng-select>
         </form>
 
         <form [formGroup]="searchbarform" class="d-flex align-items-center ms-2">
@@ -83,7 +84,7 @@
                 <p class="mb-0 text-muted">{{ emp.designation || '--' }}</p>
               </td>
               <td>
-                <p class="mb-0 text-muted">{{ emp.relay || '--' }}</p>
+                <p class="mb-0 text-muted text-capitalize">{{ emp.relay_shift || emp.relay || '--' }}</p>
               </td>
               <td>
                 <span *ngIf="emp.shift" [ngClass]="{
@@ -171,6 +172,8 @@
                 class="fa-solid fa-sitemap me-1 text-muted"></i>{{ emp.department || '--' }}</span>
             <span class="badge bg-light text-dark border px-2 py-1"><i
                 class="fa-solid fa-id-badge me-1 text-muted"></i>{{ emp.designation || '--' }}</span>
+            <span class="badge bg-light text-dark border px-2 py-1 text-capitalize"><i
+                class="fa-solid fa-clock me-1 text-muted"></i>{{ emp.relay_shift || emp.relay || '--' }}</span>
           </div>
           <div>
             <span [ngClass]="{'active-status': emp.is_active == 1, 'deactive-status': emp.is_active != 1}">
@@ -236,14 +239,14 @@
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Gender *</label>
-            <select class="form-select form-input-custom" formControlName="gender"
+            <ng-select class="custom-ng-select w-100" formControlName="gender"
+              placeholder="Select Gender" [searchable]="false" [clearable]="true"
               [ngClass]="{'is-invalid': employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched}">
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-            <div class="invalid-feedback">Gender is required.</div>
+              <ng-option value="Male">Male</ng-option>
+              <ng-option value="Female">Female</ng-option>
+              <ng-option value="Other">Other</ng-option>
+            </ng-select>
+            <div class="invalid-feedback" [class.d-block]="employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched">Gender is required.</div>
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Mobile Number *</label>
@@ -294,21 +297,19 @@
           -->
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Department *</label>
-            <select class="form-select form-input-custom" formControlName="department"
+            <ng-select class="custom-ng-select w-100" formControlName="department"
+              placeholder="Select Department" [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="departmentsList"
               [ngClass]="{'is-invalid': employeeForm.get('department')?.invalid && employeeForm.get('department')?.touched}">
-              <option value="">Select Department</option>
-              <option *ngFor="let dept of departmentsList" [value]="dept.id">{{ dept.name }}</option>
-            </select>
-            <div class="invalid-feedback">Department is required.</div>
+            </ng-select>
+            <div class="invalid-feedback" [class.d-block]="employeeForm.get('department')?.invalid && employeeForm.get('department')?.touched">Department is required.</div>
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Designation *</label>
-            <select class="form-select form-input-custom" formControlName="designation"
+            <ng-select class="custom-ng-select w-100" formControlName="designation"
+              placeholder="Select Designation" [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="designationsList"
               [ngClass]="{'is-invalid': employeeForm.get('designation')?.invalid && employeeForm.get('designation')?.touched}">
-              <option value="">Select Designation</option>
-              <option *ngFor="let desig of designationsList" [value]="desig.id">{{ desig.name }}</option>
-            </select>
-            <div class="invalid-feedback">Designation is required.</div>
+            </ng-select>
+            <div class="invalid-feedback" [class.d-block]="employeeForm.get('designation')?.invalid && employeeForm.get('designation')?.touched">Designation is required.</div>
           </div>
           <div class="col-md-12 mt-3">
             <label class="form-label form-lable-custom d-block mb-2">Workforce Group *</label>

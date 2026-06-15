@@ -6,6 +6,13 @@
       <p class="text-muted mb-0 fs-6">Manage employee leaves, track balances, and handle approvals.</p>
     </div>
 
+    <!-- Bulk Upload Leaves Button -->
+    <div class="d-flex gap-2">
+      <button class="btn btn-custom-primary px-4 py-2" (click)="openBulkUploadModal()">
+        <i class="fa-solid fa-cloud-arrow-up me-2"></i>Bulk Upload Leaves
+      </button>
+    </div>
+
     <!-- Simulator Role Picker -->
     <!-- <div class="d-flex align-items-center gap-2 bg-light border p-2 rounded-3">
       <span class="text-muted fs-8 fw-bold text-uppercase me-1"><i class="fa-solid fa-flask text-primary me-1"></i>Test
@@ -199,13 +206,13 @@
 
           <div class="d-flex align-items-center gap-2">
             <div class="position-relative">
-              <input type="text" class="form-control search-user" [(ngModel)]="searchText"
+              <input type="text" class="form-control search-user" [(ngModel)]="searchText" (ngModelChange)="onSearchChange()"
                 placeholder="Search Name/ID..." autocomplete="off" style="border-radius: 6px; padding-right: 30px;" />
               <i *ngIf="searchText" class="fa-solid fa-times position-absolute"
                 style="right: 10px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;"
-                (click)="searchText = ''"></i>
+                (click)="searchText = ''; onSearchChange()"></i>
             </div>
-            <button class="btn text-white d-flex align-items-center justify-content-center shadow-sm" style="height: 38px; width: 42px; background-color: #4A8FA9; border-radius: 6px;">
+            <button class="btn text-white d-flex align-items-center justify-content-center shadow-sm" style="height: 38px; width: 42px; background-color: #4A8FA9; border-radius: 6px;" (click)="onSearchChange()">
               <i class="fa-solid fa-magnifying-glass fs-6"></i>
             </button>
           </div>
@@ -236,12 +243,13 @@
               <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
                 <i class="fa-solid fa-layer-group me-1"></i> Filter by Stage
               </label>
-              <select class="form-select bg-white" [(ngModel)]="filterStage" style="cursor: pointer;">
-                <option value="">All Stages</option>
-                <option value="Pending">Pending</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-              </select>
+              <ng-select
+                [items]="['Pending', 'Approved', 'Rejected']"
+                placeholder="All Stages"
+                [(ngModel)]="filterStage"
+                class="custom-ng-select"
+                appendTo="body">
+              </ng-select>
             </div>
 
             <!-- Employee Filter -->
@@ -261,7 +269,7 @@
             </div>
           </div>
           <div class="d-flex justify-content-end mt-2" *ngIf="filterMonth || filterYear || filterStage || filterEmployee || searchText">
-             <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0" (click)="filterMonth=''; filterYear=''; filterStage=''; filterEmployee=''; searchText=''; dateValue=''; pInbox=1; loadLeaveRequests()">
+             <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0" (click)="filterMonth=''; filterYear=''; filterStage=null; filterEmployee=null; searchText=''; dateValue=''; pInbox=1; loadLeaveRequests()">
                <i class="fa-solid fa-times me-1"></i> Clear All
              </button>
           </div>
@@ -431,11 +439,11 @@
           <div class="d-flex align-items-center">
             <span class="me-1 show-entery-text">Search:</span>
             <div class="position-relative">
-              <input type="text" class="form-control search-user" [(ngModel)]="searchText"
+              <input type="text" class="form-control search-user" [(ngModel)]="searchText" (ngModelChange)="onSearchChange()"
                 placeholder="Search requests..." autocomplete="off" />
               <i *ngIf="searchText" class="fa-solid fa-times position-absolute"
                 style="right: 15px; top: 12px; color: #8898aa; font-size: 14px; cursor: pointer;"
-                (click)="searchText = ''"></i>
+                (click)="searchText = ''; onSearchChange()"></i>
             </div>
           </div>
         </div>
@@ -455,14 +463,13 @@
               <label class="form-label fs-8 fw-bold text-muted text-uppercase mb-1">
                 <i class="fa-solid fa-layer-group me-1"></i> Filter by Stage
               </label>
-              <select class="form-select bg-white" [(ngModel)]="filterStage" style="cursor: pointer;">
-                <option value="">All Stages</option>
-                <option value="Pending Supervisor">Pending Supervisor</option>
-                <option value="Pending PM">Pending PM</option>
-                <option value="Pending HR">Pending HR</option>
-                <option value="Approved">Approved</option>
-                <option value="Rejected">Rejected</option>
-              </select>
+              <ng-select
+                [items]="['Pending Supervisor', 'Pending PM', 'Pending HR', 'Approved', 'Rejected']"
+                placeholder="All Stages"
+                [(ngModel)]="filterStage"
+                class="custom-ng-select"
+                appendTo="body">
+              </ng-select>
             </div>
 
             <!-- Employee Filter -->
@@ -483,7 +490,7 @@
           </div>
           <!-- Clear Filters -->
           <div class="d-flex justify-content-end mt-2" *ngIf="filterMonth || filterStage || filterEmployee">
-             <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0" (click)="filterMonth=''; filterStage=''; filterEmployee=''">
+             <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0" (click)="filterMonth=''; filterStage=null; filterEmployee=null">
                <i class="fa-solid fa-times me-1"></i> Clear Filters
              </button>
           </div>
@@ -705,10 +712,9 @@
   </div>
 </div>
 
-<!-- Premium View Details Modal -->
-<div *ngIf="viewLeaveOpen" class="your-animation-class modal-container premium-detail-modal"
-  aria-labelledby="modal-title" role="dialog" aria-modal="true">
-  <div class="modal-contenttop modal-content-50" [@fadeIn]>
+<!-- View Leave Details Modal -->
+<div class="modal-overlay" *ngIf="viewLeaveOpen">
+  <div class="modal-contenttop modal-content-50">
     <div class="card">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <div>
@@ -924,5 +930,76 @@
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Bulk Upload Leaves Modal -->
+<div *ngIf="bulkUploadModalOpen" class="modal-overlay">
+  <div class="modal-content-custom max-w-700 w-100 mx-3 p-0 border-0 shadow-lg position-relative" style="max-width: 500px;">
+    
+    <!-- Header -->
+    <div class="p-3 bg-white border-bottom d-flex align-items-center justify-content-between">
+      <h5 class="fw-bold mb-0" style="color: #468faf; font-size: 1.2rem;">Bulk Leaves Upload</h5>
+      <button class="btn bg-transparent border-0 p-0 text-muted" (click)="closeBulkUploadModal()">
+        <i class="fa-solid fa-xmark fs-4"></i>
+      </button>
+    </div>
+    
+    <!-- Body -->
+    <div class="modal-body p-4 bg-white">
+      <h6 class="fw-bold mb-3 text-dark fs-6" style="font-size: 15px !important;">Upload File</h6>
+      
+      <form [formGroup]="bulkUploadForm">
+        <div class="p-5 text-center rounded-4 transition"
+          style="background-color: #f6f9fb; border: 1px solid #e2e8f0; min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;"
+          [ngClass]="{ 'border-success': selectedBulkUploadFile }" (click)="bulkUploadFileInput.click()"
+          (dragover)="$event.preventDefault(); $event.stopPropagation(); isDragging = true"
+          (dragleave)="$event.preventDefault(); $event.stopPropagation(); isDragging = false"
+          (drop)="$event.preventDefault(); $event.stopPropagation(); isDragging = false; onBulkUploadFileSelected({target: {files: $event.dataTransfer?.files}})">
+          
+          <input type="file" #bulkUploadFileInput class="d-none" (change)="onBulkUploadFileSelected($event)"
+            accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+
+          <div *ngIf="!selectedBulkUploadFile">
+            <!-- Icon -->
+            <div class="mx-auto mb-3" style="width: 60px; height: 60px; background-color: #e3eff4; border-radius: 50%; display: flex; justify-content: center; align-items: center;">
+              <div style="background-color: #468faf; border-radius: 50%; width: 34px; height: 34px; display: flex; justify-content: center; align-items: center;">
+                <i class="fa-solid fa-arrow-up fs-6 text-white" style="position: absolute; transform: translateY(-3px); font-size: 12px;"></i>
+                <i class="fa-solid fa-cloud fs-5 text-white"></i>
+              </div>
+            </div>
+            <!-- Text -->
+            <h6 class="fw-bold text-dark mb-0 fs-6">Click to select file</h6>
+          </div>
+
+          <div *ngIf="selectedBulkUploadFile">
+            <i class="fa-solid fa-file-csv text-success mb-3" style="font-size: 3rem;"></i>
+            <h6 class="fw-bold text-dark mb-1">
+              {{ selectedBulkUploadFileName }}
+            </h6>
+            <button class="btn btn-sm mt-3 px-3 rounded-pill text-danger" style="background: rgba(220,53,69,0.1);"
+              (click)="$event.stopPropagation(); removeBulkUploadFile(bulkUploadFileInput)">
+              <i class="fa-solid fa-trash me-2"></i> Remove File
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Footer -->
+    <div class="p-4 border-top bg-white d-flex gap-3">
+      <button class="btn flex-grow-1 py-2 fw-medium transition hover-up" 
+        style="background-color: #717d84; color: white; border-radius: 6px;" 
+        (click)="closeBulkUploadModal()">
+        Cancel
+      </button>
+      <button class="btn flex-grow-1 py-2 fw-medium transition hover-up d-flex justify-content-center align-items-center gap-2" 
+        style="background-color: #ffffff; color: #6c757d; border: 1px solid #cbd5e1; border-radius: 6px;" 
+        [disabled]="!selectedBulkUploadFile"
+        (click)="uploadBulkFile()">
+        <i class="fa-solid fa-arrow-up-from-bracket"></i> Start Import Process
+      </button>
+    </div>
+
   </div>
 </div>

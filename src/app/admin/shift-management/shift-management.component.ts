@@ -209,9 +209,9 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
   }
 
   loadLiveEmployees() {
-    this.employeeManagementService.getAllEmployees().pipe(takeUntil(this.destroy$)).subscribe({
+    this.employeeManagementService.getActiveEmployees().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
-        const empData = res.data?.data || res.data || [];
+        const empData = res.data || [];
         if (res.status === 200 && empData && empData.length > 0) {
           this.employees = empData.map((emp: any) => ({
             ...emp,
@@ -860,7 +860,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     this.overrideForm.reset({
       type: type,
       employeeId: empId || '',
-      newShift: 'Shift A',
+      newShift: this.allShiftsList.length > 0 ? this.allShiftsList[0].id : '',
       swapEmployeeId: '',
       standbyEmployeeId: ''
     });
@@ -890,7 +890,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
       }
 
       const targetShiftObj = this.allShiftsList.find(s =>
-        s.name.toLowerCase() === newShift.toLowerCase() ||
+        (typeof newShift === 'string' && s.name.toLowerCase() === newShift.toLowerCase()) ||
         String(s.id) === String(newShift)
       );
 
@@ -899,7 +899,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.shiftService.assignBulkShift({ employee_ids: [String(employeeId)], shift_code: String(targetShiftObj.id) }).pipe(takeUntil(this.destroy$)).subscribe({
+      this.shiftService.rotateShiftBulk({ employee_ids: [String(employeeId)], target_shift_id: String(targetShiftObj.id), override: true }).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.rotationLogs.unshift({
             id: Math.floor(1000 + Math.random() * 9000).toString(),
@@ -941,9 +941,9 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.shiftService.assignBulkShift({ employee_ids: [String(employeeId)], shift_code: String(targetShift1.id) }).pipe(takeUntil(this.destroy$)).subscribe({
+      this.shiftService.rotateShiftBulk({ employee_ids: [String(employeeId)], target_shift_id: String(targetShift1.id), override: true }).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
-          this.shiftService.assignBulkShift({ employee_ids: [String(swapEmployeeId)], shift_code: String(targetShift2.id) }).pipe(takeUntil(this.destroy$)).subscribe({
+          this.shiftService.rotateShiftBulk({ employee_ids: [String(swapEmployeeId)], target_shift_id: String(targetShift2.id), override: true }).pipe(takeUntil(this.destroy$)).subscribe({
             next: (res: any) => {
               this.rotationLogs.unshift({
                 id: Math.floor(1000 + Math.random() * 9000).toString(),
@@ -986,7 +986,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
       }
 
       // 1. Assign original shift to standby employee
-      this.shiftService.assignBulkShift({ employee_ids: [String(standbyEmployeeId)], shift_code: String(originalShiftObj.id) }).pipe(takeUntil(this.destroy$)).subscribe({
+      this.shiftService.rotateShiftBulk({ employee_ids: [String(standbyEmployeeId)], target_shift_id: String(originalShiftObj.id), override: true }).pipe(takeUntil(this.destroy$)).subscribe({
         next: () => {
           // 2. Assign off shift (if exists)
           const nextFn = () => {
@@ -1004,8 +1004,8 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
           };
 
           if (offShiftObj) {
-            this.shiftService.assignBulkShift({ employee_ids: [String(employeeId)], shift_code: String(offShiftObj.id) }).pipe(takeUntil(this.destroy$)).subscribe({
-              next: nextFn,
+            this.shiftService.rotateShiftBulk({ employee_ids: [String(employeeId)], target_shift_id: String(offShiftObj.id), override: true }).pipe(takeUntil(this.destroy$)).subscribe({
+              next: () => nextFn(),
               error: () => nextFn()
             });
           } else {
@@ -1084,7 +1084,8 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
   initBulkRotateForm() {
     this.bulkRotateForm = this.formBuilder.group({
       employeeIds: [[], Validators.required],
-      targetShift: ['', Validators.required]
+      targetShift: ['', Validators.required],
+      override: [false]
     });
 
     this.bulkRotateForm.get('employeeIds')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(val => {
@@ -1168,7 +1169,8 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
   openBulkRotationModal() {
     this.bulkRotateForm.reset({
       employeeIds: [],
-      targetShift: ''
+      targetShift: '',
+      override: false
     });
     this.filteredEmployeesForRotation = [...this.employees];
     this.selectedEmployeeIdsForRotation = [];
@@ -1187,7 +1189,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const { currentShift, employeeIds, targetShift } = this.bulkRotateForm.value;
+    const { currentShift, employeeIds, targetShift, override } = this.bulkRotateForm.value;
 
     if (currentShift === targetShift) {
       this.notificationService.show('Current shift and target shift cannot be the same.', 'error', 3000);
@@ -1195,7 +1197,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     }
 
     const targetShiftObj = this.allShiftsList.find(s =>
-      s.name.toLowerCase() === targetShift.toLowerCase() ||
+      (typeof targetShift === 'string' && s.name.toLowerCase() === targetShift.toLowerCase()) ||
       String(s.id) === String(targetShift)
     );
 
@@ -1206,7 +1208,8 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
 
     const payload = {
       employee_ids: employeeIds.map((id: any) => String(id)),
-      target_shift_id: String(targetShiftObj.id)
+      target_shift_id: String(targetShiftObj.id),
+      override: override ? true : false
     };
 
     this.shiftService.rotateShiftBulk(payload).pipe(takeUntil(this.destroy$)).subscribe({

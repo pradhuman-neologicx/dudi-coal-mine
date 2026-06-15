@@ -8,7 +8,7 @@ import { LeaveTypeService } from 'src/app/core/services/leave-type.service';
 import { LeaveManagementService } from 'src/app/core/services/leave-management.service';
 import { EmployeeService } from 'src/app/core/services/Employee.service';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 
@@ -53,6 +53,12 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   leaveApplyForm: FormGroup;
+  bulkUploadForm!: FormGroup;
+  bulkUploadModalOpen: boolean = false;
+  selectedBulkUploadFile: any = null;
+  selectedBulkUploadFileName: string = '';
+  isDragging: boolean = false;
+
   pInbox: number = 1;
   pHistory: number = 1;
   pBalances: number = 1;
@@ -60,10 +66,11 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   showEntries: number = 10;
   totalItems: number = 0;
   searchText: string = '';
+  searchSubject = new Subject<string>();
   filterMonth: string = '';
   filterYear: string = '';
-  filterStage: string = '';
-  filterEmployee: string = '';
+  filterStage: string | null = null;
+  filterEmployee: string | null = null;
   dateValue: string = '';
 
   setMonthAndYear(normalizedMonthAndYear: Date, datepicker: MatDatepicker<Date>) {
@@ -102,12 +109,29 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
       leaveType: ['', Validators.required],
       reason: ['', Validators.required]
     });
+
+    this.bulkUploadForm = this.fb.group({
+      file: [null, Validators.required]
+    });
   }
 
   ngOnInit(): void {
     this.loadEmployees();
     this.loadLeaveTypes();
     this.loadLeaveRequests();
+
+    this.searchSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.pInbox = 1;
+      this.loadLeaveRequests();
+    });
+  }
+
+  onSearchChange() {
+    this.searchSubject.next(this.searchText);
   }
 
   onPageChange(page: number) {
@@ -127,7 +151,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   }
 
   loadEmployees() {
-    this.leaveManagementService.getEmployees().pipe(takeUntil(this.destroy$)).subscribe({
+    this.leaveManagementService.getActiveEmployees().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         let rawData: any[] = [];
         if (res && (res.status === 'success' || res.data || res.status === 200)) {
@@ -144,6 +168,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
             return {
               ...emp,
               id: id,
+              attachment: [null],
               name: name,
               displayName: `${name} (${code})`
             };
@@ -289,7 +314,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
         if (res.status === 'success' || res.status === 200 || res.status === 201) {
           this.notificationService.show('Leave request submitted successfully.', 'success', 3000);
           this.leaveApplyForm.reset();
-          // Optionally, reload leave history or inbox here
+          this.loadLeaveRequests(); // Reload leave history and inbox
         } else {
           this.notificationService.show(res.message || 'Failed to submit leave request.', 'error', 3000);
         }
@@ -458,6 +483,87 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
     });
     this.saveToStorage();
     this.notificationService.show('Leave balances reset successfully for the new year.', 'info', 3000);
+  }
+
+  // --- Bulk Upload Logic ---
+  openBulkUploadModal() {
+    this.bulkUploadModalOpen = true;
+    this.selectedBulkUploadFile = null;
+    this.selectedBulkUploadFileName = '';
+    this.bulkUploadForm.reset();
+  }
+
+  closeBulkUploadModal() {
+    this.bulkUploadModalOpen = false;
+    this.selectedBulkUploadFile = null;
+    this.selectedBulkUploadFileName = '';
+    this.bulkUploadForm.reset();
+  }
+
+  onBulkUploadFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedBulkUploadFile = file;
+      this.selectedBulkUploadFileName = file.name;
+      this.bulkUploadForm.patchValue({ file: file });
+      this.bulkUploadForm.get('file')?.markAsTouched();
+      this.bulkUploadForm.get('file')?.updateValueAndValidity();
+    }
+  }
+
+  removeBulkUploadFile(fileInput: any) {
+    this.selectedBulkUploadFile = null;
+    this.selectedBulkUploadFileName = '';
+    this.bulkUploadForm.reset();
+    if (fileInput) {
+      fileInput.value = '';
+    }
+  }
+
+  uploadBulkFile() {
+    if (this.bulkUploadForm.invalid || !this.selectedBulkUploadFile) {
+      this.bulkUploadForm.markAllAsTouched();
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', this.selectedBulkUploadFile);
+
+    // Assuming a leaveService exists or using leaveManagementService
+    (this.leaveManagementService as any).uploadBulkLeaves(formData).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) {
+          this.notificationService.show(res.message || 'Leaves uploaded successfully', 'success', 3000);
+          this.closeBulkUploadModal();
+          this.loadLeaveRequests();
+        } else {
+          this.notificationService.show(res.message || 'Failed to upload leaves', 'error', 3000);
+        }
+      },
+      error: (err: any) => {
+        console.error('Bulk upload failed:', err);
+        const errorMsg = err.error?.message || 'An error occurred during upload';
+        this.notificationService.show(errorMsg, 'error', 3000);
+      }
+    });
+  }
+
+  downloadBulkUploadSampleFile() {
+    const csvContent = "empId,startDate,endDate,leaveType,reason\nEMP001,2026-06-15,2026-06-16,Casual Leave,Personal Work\nEMP002,2026-06-20,2026-06-20,Sick Leave,Fever";
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'leave_bulk_upload_sample.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  // Helper Methods
+  getAvatarText(name: string): string {
+    return name.charAt(0).toUpperCase();
   }
 
   getStatusClass(status: string): string {

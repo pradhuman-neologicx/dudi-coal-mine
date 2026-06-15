@@ -215,6 +215,28 @@
   }
 }
 
+// NgSelect Custom Height Override to match 42px inputs
+::ng-deep .custom-ng-select {
+  .ng-select-container {
+    height: 42px !important;
+    min-height: 42px !important;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+    color: #1e293b;
+    box-shadow: none;
+    
+    &:hover {
+      border-color: var(--primary-color, #007bff);
+    }
+  }
+
+  &.ng-select-focused .ng-select-container {
+    border-color: var(--primary-color, #007bff) !important;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15) !important;
+  }
+}
+
 // Pagination overrides
 ::ng-deep .my-pagination {
   .ngx-pagination {

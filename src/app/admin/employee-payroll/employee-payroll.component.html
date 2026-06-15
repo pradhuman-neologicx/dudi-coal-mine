@@ -21,12 +21,13 @@
       </div>
 
       <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">
-        <form [formGroup]="filterForm" class="d-flex gap-2">
-          <select class="form-control form-select" formControlName="deptFilter" (change)="searchfun()">
-            <option value="">All Departments</option>
-            <option *ngFor="let dept of departmentsList" [value]="dept.id">{{ dept.name }}</option>
-          </select>
-        </form>
+        <!-- <form [formGroup]="filterForm" class="d-flex gap-2" style="min-width: 200px;">
+          <ng-select class="custom-ng-select w-100" formControlName="deptFilter" (change)="searchfun()"
+            placeholder="All Departments" [searchable]="true" [clearable]="true">
+            <ng-option [value]="null">All Departments</ng-option>
+            <ng-option *ngFor="let dept of departmentsList" [value]="dept.id" title="{{ dept.name }}">{{ dept.name }}</ng-option>
+          </ng-select>
+        </form> -->
 
         <form [formGroup]="searchbarform" class="d-flex align-items-center ms-2">
           <div class="position-relative">
@@ -60,16 +61,11 @@
               <td>{{ (page - 1) * (tableSize === 'all' ? totalRecords : +tableSize) + i + 1 }}</td>
               <td>{{ emp.empId || emp.employee_code }}</td>
               <td>
-                <span class="fw-bold">{{ emp.name }}</span>
+                <span class="fw-bold">{{ emp.employee_name || emp.name }}</span>
               </td>
-              <td>
+              <!-- <td>
                 <p class="mb-0 text-muted">{{ emp.department || '--' }}</p>
-              </td>
-              <td>
-                <span class="badge" [ngClass]="emp.basic_salary > 0 || emp.daily_wage > 0 ? 'bg-success' : 'bg-warning text-dark'">
-                  {{ (emp.basic_salary > 0 || emp.daily_wage > 0) ? 'Configured' : 'Pending' }}
-                </span>
-              </td>
+              </td> -->
               <td>
                 <button class="btn-action edit-btn me-2" (click)="openPayrollModal(emp)" title="Edit Payroll">
                   <i class="fa-solid fa-pen-to-square"></i>
@@ -112,10 +108,22 @@
         <div class="row g-3 mb-3">
           <div class="col-md-12" *ngIf="isTopLevelAdd">
             <label class="form-label form-lable-custom">Select Employee *</label>
-            <select class="form-control form-select form-input-custom" (change)="onEmployeeSelect($event)">
-              <option value="">-- Select Employee --</option>
-              <option *ngFor="let emp of allEmployeeList" [value]="emp.id">{{ emp.name }} ({{ emp.employee_code || emp.empId }})</option>
-            </select>
+            <ng-select
+              [items]="allEmployeeList"
+              bindLabel="name"
+              bindValue="id"
+              placeholder="-- Select Employee --"
+              class="custom-ng-select w-100"
+              (change)="onEmployeeSelect($event)"
+              [searchable]="true"
+              [clearable]="true">
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.name }} ({{ item.employee_code || item.empId }})
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                {{ item.name }} ({{ item.employee_code || item.empId }})
+              </ng-template>
+            </ng-select>
           </div>
           <div class="col-md-12" *ngIf="!isTopLevelAdd">
             <label class="form-label form-lable-custom">Employee Name</label>

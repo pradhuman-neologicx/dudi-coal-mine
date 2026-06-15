@@ -95,64 +95,39 @@ export class ApiService {
   put(path: string, body: any, header: any): Observable<any> {
     return this.http
       .put(`${environment.api_url}${path}`, body, { headers: header })
-      .pipe(
-        catchError(this.formatErrors),
-        retry(1),
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
   putWithoutHeader(path: string, body: any): Observable<any> {
     return this.http
       .put(`${environment.api_url}${path}`, body)
-      .pipe(
-        catchError(this.formatErrors),
-        retry(1),
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
   post(path: string, body: any, headers: any): Observable<any> {
     return this.http
       .post(`${environment.api_url}${path}`, body, { headers })
-      .pipe(
-        catchError(this.formatErrors),
-        retry(1),
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
   postwithoutbody(path: string, headers: HttpHeaders): Observable<any> {
     return this.http
       .post(`${environment.api_url}${path}`, {}, { headers }) // Correct placement of headers
-      .pipe(
-        catchError(this.formatErrors),
-        retry(1),
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
 
   postWithoutHeader(path: string, body: any): Observable<any> {
     return this.http
       .post(`${environment.api_url}${path}`, body)
-      .pipe(
-        catchError(this.formatErrors),
-        retry(1),
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
   delete(path: string, body: Object = {}): Observable<any> {
     return this.http
       .delete(`${environment.api_url}${path}`)
-      .pipe(
-        catchError(this.formatErrors),
-        retry(1),
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
   deleteFun(
     path: string,
     options: { headers?: HttpHeaders } = {}
   ): Observable<any> {
     return this.http.delete(`${environment.api_url}${path}`, options).pipe(
-      retry(1), // Optional: Retry once if the request fails (consider removing if not needed)
       catchError((error) => {
         console.error('Delete request failed:', error);
         return this.handleError(error); // Use your custom error handler
@@ -163,11 +138,7 @@ export class ApiService {
     const options = headers ? { headers } : {};
     return this.http
       .patch(`${environment.api_url}${path}`, body, options)
-      .pipe(
-        catchError(this.formatErrors),
-        retry(1),
-        catchError(this.handleError)
-      );
+      .pipe(catchError(this.handleError));
   }
   handleError = (error: any) => {
     let errorMessage = '';
@@ -195,14 +166,12 @@ export class ApiService {
       let errorMessage = '';
       const errorsObj = error.error?.errors || error.errors;
       if (errorsObj && typeof errorsObj === 'object') {
-        const errorKeys = Object.keys(errorsObj);
-        if (errorKeys.length > 0) {
-          const firstKey = errorKeys[0];
-          const messages = errorsObj[firstKey];
-          if (Array.isArray(messages) && messages.length > 0) {
-            errorMessage = messages[0];
-          } else if (typeof messages === 'string') {
-            errorMessage = messages;
+        const messagesArray = Object.values(errorsObj).flat();
+        if (messagesArray.length > 0) {
+          if (typeof messagesArray[0] === 'object' && messagesArray[0] !== null) {
+            errorMessage = error.error?.message || error.message || 'Validation failed';
+          } else {
+            errorMessage = messagesArray.join(' | ');
           }
         }
       }

@@ -1,4 +1,3 @@
-<p>attendance-detail works!</p>
 <div class="container-fluid attendance-detail-container mb-4">
     <!-- Page Header -->
     <div class="page-header mb-4">
@@ -27,8 +26,10 @@
     <div class="row">
         <!-- Left Column: Calendar -->
         <div class="col-lg-5 mb-4">
-            <mat-card class="calendar-card border-0 mat-elevation-z0 p-0 shadow-sm" style="border-radius: 12px; overflow: hidden;">
-                <mat-calendar [selected]="selectedDate" (selectedChange)="onDateSelected($event)" (monthSelected)="onMonthSelected($event)"></mat-calendar>
+            <mat-card class="calendar-card border-0 mat-elevation-z0 p-0 shadow-sm"
+                style="border-radius: 12px; overflow: hidden;">
+                <mat-calendar [selected]="selectedDate" (selectedChange)="onDateSelected($event)"
+                    (monthSelected)="onMonthSelected($event)"></mat-calendar>
             </mat-card>
         </div>
 

@@ -108,19 +108,11 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
   }
 
   loadMonthData() {
-    const year = this.currentMonth.getFullYear();
-    const month = this.currentMonth.getMonth() + 1;
-    const firstDay = new Date(year, month - 1, 1);
-    const lastDay = new Date(year, month, 0);
-
-    const fromDate = `${year}-${month.toString().padStart(2, '0')}-01`;
-    const toDate = `${year}-${month.toString().padStart(2, '0')}-${lastDay.getDate().toString().padStart(2, '0')}`;
-
-    this.attendanceService.getAttendance('all', 1, this.employeeId, fromDate, toDate, '')
+    this.attendanceService.getEmployeeAttendanceDetails(this.employeeId)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res.status === 200 || res.success) {
-            this.processApiRecords(res.data || []);
+            this.processApiRecords(res.data);
           } else {
              this.notificationService.show(res.message || 'Failed to load attendance', 'error', 3000);
              this.generateMockRecords(); // fallback
@@ -134,55 +126,26 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
       });
   }
 
-  processApiRecords(data: any[]) {
+  processApiRecords(data: any) {
     this.attendanceRecords = [];
-    const totalDays = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 0).getDate();
     
-    // Create a map of date (YYYY-MM-DD) to record
-    const apiRecordsMap = new Map();
-    data.forEach(item => {
-      if (item.date) {
-         apiRecordsMap.set(item.date, item);
-      }
-    });
+    if (data && data.employee) {
+      this.employee.name = data.employee.name || 'N/A';
+      this.employee.department = data.employee.department || 'N/A';
+      this.employee.designation = data.employee.designation || 'N/A';
+    }
 
-    for (let i = 1; i <= totalDays; i++) {
-      const dd = i < 10 ? '0' + i : i.toString();
-      const mm = (this.currentMonth.getMonth() + 1).toString().padStart(2, '0');
-      const yyyy = this.currentMonth.getFullYear().toString();
-      const backendDateStr = `${yyyy}-${mm}-${dd}`;
-      const displayDateStr = `${dd}/${mm}/${yyyy}`;
-      
-      const dayOfWeek = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), i).getDay();
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      
-      const apiRec = apiRecordsMap.get(backendDateStr);
-
-      if (apiRec) {
-          if (apiRec.employee_name && this.employee.name === 'Loading...') {
-              this.employee.name = apiRec.employee_name;
-              this.employee.department = apiRec.site || 'N/A';
-          }
-
-          this.attendanceRecords.push({
-            id: apiRec.id,
-            date: displayDateStr,
-            status: this.mapStatusToFrontend(apiRec.attendance_status),
-            checkIn: apiRec.check_in || '-',
-            checkOut: apiRec.check_out || '-',
-            duration: '-',
-            remarks: apiRec.remarks || ''
-          });
-      } else {
-          this.attendanceRecords.push({
-            date: displayDateStr,
-            status: isWeekend ? 'Weekend' : '-',
-            checkIn: '-',
-            checkOut: '-',
-            duration: '-',
-            remarks: ''
-          });
-      }
+    if (data && data.history && Array.isArray(data.history)) {
+      this.attendanceRecords = data.history.map((record: any) => ({
+        id: record.attendance_processed_id,
+        date: record.formatted_date || record.date,
+        backendDate: record.date,
+        status: this.mapStatusToFrontend(record.status),
+        checkIn: record.check_in || '--:--',
+        checkOut: record.check_out || '--:--',
+        duration: record.duration_label || record.duration || '-',
+        remarks: record.remarks || ''
+      }));
     }
   }
 
@@ -274,40 +237,39 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
       const newCheckOut = formValue.checkOut && formValue.checkOut !== '-' ? formValue.checkOut : null;
       const reason = formValue.remarks;
 
-      if (this.editingRecord.id) {
-         // It's an existing record, update it via API
-         const formData = new FormData();
-         formData.append('_method', 'PUT');
-         if (newCheckIn) formData.append('check_in', newCheckIn);
-         if (newCheckOut) formData.append('check_out', newCheckOut);
-         formData.append('attendance_status', newStatus.toLowerCase());
-         if (reason) formData.append('remarks', reason);
-
-         this.attendanceService.updateAttendance(this.editingRecord.id, formData).pipe(takeUntil(this.destroy$)).subscribe({
-           next: (response: any) => {
-             if (response.status === 200 || response.success) {
-               this.notificationService.show('Attendance updated successfully.', 'success', 3000);
-               this.closeEditModal();
-               this.loadMonthData(); // reload
-             } else {
-               this.notificationService.show(response.message || 'Failed to update attendance', 'error', 3000);
-             }
-           },
-           error: (err: any) => {
-             this.notificationService.show(err.message || 'Error updating attendance', 'error', 3000);
-           }
-         });
-      } else {
-         // Note: If no ID exists, it means the user was absent/weekend with no record in DB yet. 
-         // In a full implementation, you might need an endpoint to create a new attendance record.
-         // For now, update locally if we don't have an ID.
-         this.editingRecord.status = formValue.status;
-         this.editingRecord.checkIn = formValue.checkIn || '-';
-         this.editingRecord.checkOut = formValue.checkOut || '-';
-         this.editingRecord.remarks = formValue.remarks;
-         this.notificationService.show('Record updated locally (No DB ID found to update).', 'info', 3000);
-         this.closeEditModal();
+      const formData = new FormData();
+      formData.append('_method', 'PUT');
+      if (newCheckIn) formData.append('check_in', newCheckIn);
+      if (newCheckOut) formData.append('check_out', newCheckOut);
+      formData.append('attendance_status', newStatus.toLowerCase());
+      if (reason) formData.append('remarks', reason);
+      formData.append('employee_id', this.employeeId.toString());
+      let formattedDate = this.editingRecord.backendDate;
+      if (!formattedDate && this.editingRecord.date) {
+        // Parse DD/MM/YYYY to YYYY-MM-DD
+        const parts = this.editingRecord.date.split('/');
+        if (parts.length === 3) {
+          formattedDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+        } else {
+          formattedDate = this.editingRecord.date;
+        }
       }
+      formData.append('date', formattedDate);
+
+      this.attendanceService.updateAttendance(formData).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.success) {
+            this.notificationService.show('Attendance updated successfully.', 'success', 3000);
+            this.closeEditModal();
+            this.loadMonthData(); // reload
+          } else {
+            this.notificationService.show(response.message || 'Failed to update attendance', 'error', 3000);
+          }
+        },
+        error: (err: any) => {
+          this.notificationService.show(err.message || 'Error updating attendance', 'error', 3000);
+        }
+      });
     }
   }
 

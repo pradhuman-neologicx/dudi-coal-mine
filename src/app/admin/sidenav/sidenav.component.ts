@@ -192,66 +192,66 @@ export class SidenavComponent {
             }
           ]
         },
-        {
-          index: 10,
-          icon: 'model_training',
-          label: 'Training Mgt.',
-          route: '/admin/training-management',
-        },
-        {
-          index: 10,
-          icon: 'local_gas_station',
-          label: 'Fuel',
-          route: '/admin/fuel',
-          subItems: [
-            {
-              index: 1,
-              icon: 'ev_station',
-              label: 'Fuel Stations',
-              route: '/admin/fuel/fuel-stations',
-            },
-            {
-              index: 2,
-              icon: 'settings_input_component',
-              label: 'Fuel Management',
-              route: '/admin/fuel/fuel-management',
-            },
-            // {
-            //   index: 3,
-            //   icon: 'receipt_long',
-            //   label: 'Fuel Report',
-            //   route: '/admin/fuel/fuel-report',
-            // }
-          ]
-        },
-        {
-          index: 11,
-          icon: 'local_shipping',
-          label: 'Vehicle Management',
-          route: '/admin/vehicle-management',
-          subItems: [
-            {
-              index: 1,
-              icon: 'directions_car',
-              label: 'Vehicle Master',
-              route: '/admin/vehicle-management/vehicle-master',
-            },
-            {
-              index: 2,
-              icon: 'local_taxi',
-              label: 'Vehicles',
-              route: '/admin/vehicle-management/vehicles',
-            },
-            // {
-            //   index: 3,
-            //   icon: 'person_pin',
-            //   label: 'Driver Mapping',
-            //   route: '/admin/vehicle-management/driver-mapping',
-            // },
+        // {
+        //   index: 10,
+        //   icon: 'model_training',
+        //   label: 'Training Mgt.',
+        //   route: '/admin/training-management',
+        // },
+        // {
+        //   index: 10,
+        //   icon: 'local_gas_station',
+        //   label: 'Fuel',
+        //   route: '/admin/fuel',
+        //   subItems: [
+        //     {
+        //       index: 1,
+        //       icon: 'ev_station',
+        //       label: 'Fuel Stations',
+        //       route: '/admin/fuel/fuel-stations',
+        //     },
+        //     {
+        //       index: 2,
+        //       icon: 'settings_input_component',
+        //       label: 'Fuel Management',
+        //       route: '/admin/fuel/fuel-management',
+        //     },
+        //     // {
+        //     //   index: 3,
+        //     //   icon: 'receipt_long',
+        //     //   label: 'Fuel Report',
+        //     //   route: '/admin/fuel/fuel-report',
+        //     // }
+        //   ]
+        // },
+        // {
+        //   index: 11,
+        //   icon: 'local_shipping',
+        //   label: 'Vehicle Management',
+        //   route: '/admin/vehicle-management',
+        //   subItems: [
+        //     {
+        //       index: 1,
+        //       icon: 'directions_car',
+        //       label: 'Vehicle Master',
+        //       route: '/admin/vehicle-management/vehicle-master',
+        //     },
+        //     {
+        //       index: 2,
+        //       icon: 'local_taxi',
+        //       label: 'Vehicles',
+        //       route: '/admin/vehicle-management/vehicles',
+        //     },
+        //     // {
+        //     //   index: 3,
+        //     //   icon: 'person_pin',
+        //     //   label: 'Driver Mapping',
+        //     //   route: '/admin/vehicle-management/driver-mapping',
+        //     // },
 
 
-          ]
-        },
+        //   ]
+        // },
 
 
 

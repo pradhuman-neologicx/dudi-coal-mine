@@ -4,6 +4,7 @@ import { trigger, state, style, transition, animate } from '@angular/animations'
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { CommonModule } from '@angular/common';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { ProductService } from 'src/app/core/services/product.service';
 import { InventoryService } from 'src/app/core/services/inventory.service';
 import { DepartmentService } from 'src/app/core/services/department.service';
@@ -23,7 +24,7 @@ interface InventoryItem {
 @Component({
   selector: 'app-inventory',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, NgxPaginationModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NgxPaginationModule, NgSelectModule],
   templateUrl: './inventory.component.html',
   styleUrl: './inventory.component.scss',
   animations: [
@@ -188,12 +189,12 @@ export class InventoryComponent implements OnInit, OnDestroy {
     });
 
     this.assignForm = this.formBuilder.group({
-      productName: ['', Validators.required],
+      productName: [null, Validators.required],
       category: [{ value: '', disabled: true }],
       subCategory: [{ value: '', disabled: true }],
-      site: ['', Validators.required],
-      department: ['', Validators.required],
-      employeeId: [{ value: '', disabled: true }, Validators.required],
+      site: [null, Validators.required],
+      department: [null, Validators.required],
+      employeeId: [{ value: null, disabled: true }, Validators.required],
       quantity: ['', [Validators.required, Validators.min(1)]],
       issueDate: [new Date().toISOString().substring(0, 10), Validators.required]
     });
@@ -511,12 +512,12 @@ export class InventoryComponent implements OnInit, OnDestroy {
   // --- Assign Product to Employee Logic ---
   openAssignModal() {
     this.assignForm.reset({
-      productName: '',
+      productName: null,
       category: '',
       subCategory: '',
-      site: '',
-      department: '',
-      employeeId: '',
+      site: null,
+      department: null,
+      employeeId: null,
       quantity: '',
       issueDate: new Date().toISOString().substring(0, 10)
     });
@@ -526,7 +527,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   onAssignProductChange(event: any) {
-    const productName = event.target.value;
+    const productName = typeof event === 'string' ? event : (event?.target?.value || event?.name || '');
     const selectedProduct = this.productList.find(item => item.name === productName);
     const selectedInventoryItem = this.inventoryItems.find(item => item.productName === productName);
 

@@ -111,12 +111,15 @@ export class ShiftService {
     return this.apiservice.post('v1/admin/employee-shift-assignments', formData, this.getHeaders());
   }
 
-  rotateShiftBulk(payload: { employee_ids: string[], target_shift_id: string }): Observable<any> {
+  rotateShiftBulk(payload: { employee_ids: string[], target_shift_id: string, override?: boolean }): Observable<any> {
     const formData = new FormData();
     payload.employee_ids.forEach((id: any) => {
       formData.append('employee_ids[]', String(id));
     });
     formData.append('target_shift_id', String(payload.target_shift_id));
+    if (payload.override) {
+      formData.append('override', '1');
+    }
 
     return this.apiservice.post('v1/admin/shift-rotation', formData, this.getHeaders());
   }

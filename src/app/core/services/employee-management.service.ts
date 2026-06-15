@@ -76,6 +76,10 @@ export class EmployeeManagementService {
     return this.apiservice.get(`v1/employees`, this.getHeaders());
   }
 
+  getActiveEmployees(): Observable<any> {
+    return this.apiservice.get(`v1/active-employees`, this.getHeaders());
+  }
+
   getEmployeeById(id: any): Observable<any> {
     return this.apiservice.get(`v1/admin/employees/${id}`, this.getHeaders());
   }
@@ -98,5 +102,44 @@ export class EmployeeManagementService {
 
   updateEmployeePayroll(id: any, requestbody: any): Observable<any> {
     return this.apiservice.post(`v1/admin/employee-payrolls/${id}`, requestbody, this.getHeaders());
+  }
+
+  getPayroll(month?: any, year?: any, limit?: any, page?: any, search?: string, departmentId?: any, siteId?: any): Observable<any> {
+    let params = new HttpParams();
+
+    if (month) params = params.set('month', String(month));
+    if (year) params = params.set('year', String(year));
+    if (limit && limit !== 'all') {
+      params = params.set('limit', String(limit)).set('page', String(page));
+    }
+    if (search && search.trim().length > 0) {
+      params = params.set('search', search.trim());
+    }
+    if (departmentId) {
+      params = params.set('department_id', String(departmentId));
+    }
+    if (siteId) {
+      params = params.set('site_id', String(siteId));
+    }
+
+    return this.apiservice.get(`v1/admin/payroll`, this.getHeaders(), params);
+  }
+
+  addPenalty(requestbody: any): Observable<any> {
+    return this.apiservice.post(`v1/admin/penalties`, requestbody, this.getHeaders());
+  }
+
+  uploadBulkPenalties(formData: FormData): Observable<any> {
+    return this.apiservice.post(`v1/admin/penalties/bulk-upload`, formData, this.getHeaders());
+  }
+
+  getEmployeePenalties(employeeId: any, month: any, year: any): Observable<any> {
+    let params = new HttpParams().set('month', String(month)).set('year', String(year));
+    return this.apiservice.get(`v1/admin/payroll/${employeeId}/penalties`, this.getHeaders(), params);
+  }
+
+  getPayrollDetail(employeeId: any, month: any, year: any): Observable<any> {
+    let params = new HttpParams().set('month', String(month)).set('year', String(year));
+    return this.apiservice.get(`v1/admin/payroll/${employeeId}/detail`, this.getHeaders(), params);
   }
 }

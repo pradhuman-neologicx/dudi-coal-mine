@@ -180,7 +180,7 @@ export class AttendanceManagementService {
     return this.apiservice.postWithoutHeader(url, body);
   }
 
-  getAttendance(limit: any, page: any, search: string, fromDate: string, toDate: string, status: string): Observable<any> {
+  getAttendance(limit: any, page: any, search: string, fromDate: string, toDate: string, status: string, viewType?: string, month?: string, year?: string): Observable<any> {
     const headers = this.getHeaders().set('Content-Type', 'application/json');
     let params = new HttpParams().set('limit', String(limit)).set('page', String(page));
 
@@ -194,7 +194,16 @@ export class AttendanceManagementService {
       params = params.set('to_date', toDate);
     }
     if (status) {
-      params = params.set('status', status.toLowerCase());
+      params = params.set('attendance_status', status.toLowerCase());
+    }
+    if (viewType) {
+      params = params.set('view_type', viewType);
+    }
+    if (month) {
+      params = params.set('month', month);
+    }
+    if (year) {
+      params = params.set('year', year);
     }
 
     return this.apiservice.get(`v1/admin/attendance`, headers, params);
@@ -206,12 +215,17 @@ export class AttendanceManagementService {
     return this.apiservice.post('v1/admin/attendance/bulk-upload', formData, this.getHeaders());
   }
 
+  getEmployeeAttendanceDetails(employeeId: string): Observable<any> {
+    const headers = this.getHeaders().set('Content-Type', 'application/json');
+    return this.apiservice.get(`v1/admin/attendance/employee/${employeeId}`, headers);
+  }
+
   getAttendanceById(id: string): Observable<any> {
     return this.apiservice.get(`v1/admin/attendance/${id}`, this.getHeaders());
   }
 
-  updateAttendance(id: string, formData: FormData): Observable<any> {
-    return this.apiservice.post(`v1/admin/attendance/${id}`, formData, this.getHeaders());
+  updateAttendance(formData: FormData): Observable<any> {
+    return this.apiservice.post(`v1/admin/attendance/correction`, formData, this.getHeaders());
   }
 
   updateBulkAttendanceStatus(formData: FormData): Observable<any> {

@@ -356,14 +356,17 @@
         <div class="row g-3 mb-3">
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Select Product <span class="text-danger">*</span></label>
-            <select class="form-select form-input-custom w-100" formControlName="productName" (change)="onAssignProductChange($event)"
-                    [ngClass]="{'is-invalid': assignForm.get('productName')?.invalid && assignForm.get('productName')?.touched}">
-              <option value="">-- Choose Product --</option>
-              <!-- Show products from API -->
-              <option *ngFor="let item of productList" [value]="item.name">
-                {{ item.name }}
-              </option>
-            </select>
+            <ng-select
+              [items]="productList"
+              bindLabel="name"
+              bindValue="name"
+              placeholder="-- Choose Product --"
+              formControlName="productName"
+              (change)="onAssignProductChange($event)"
+              [ngClass]="{'is-invalid': assignForm.get('productName')?.invalid && assignForm.get('productName')?.touched}"
+              class="custom-ng-select"
+              appendTo="body">
+            </ng-select>
             <div class="text-muted fs-8 mt-1 fw-medium text-success" *ngIf="selectedProductMaxStock > 0">
               <i class="fa-solid fa-circle-info me-1"></i> Available Stock: {{ selectedProductMaxStock }} units
             </div>
@@ -418,11 +421,16 @@
 
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Select Department <span class="text-danger">*</span></label>
-            <select class="form-select form-input-custom w-100" formControlName="department"
-                    [ngClass]="{'is-invalid': assignForm.get('department')?.invalid && assignForm.get('department')?.touched}">
-              <option value="">-- Choose Department --</option>
-              <option *ngFor="let dept of departmentList" [value]="dept.id">{{ dept.name }}</option>
-            </select>
+            <ng-select
+              [items]="departmentList"
+              bindLabel="name"
+              bindValue="id"
+              placeholder="-- Choose Department --"
+              formControlName="department"
+              [ngClass]="{'is-invalid': assignForm.get('department')?.invalid && assignForm.get('department')?.touched}"
+              class="custom-ng-select"
+              appendTo="body">
+            </ng-select>
             <div class="invalid-feedback" *ngIf="assignForm.get('department')?.invalid && assignForm.get('department')?.touched">
               Department selection is required.
             </div>
@@ -432,13 +440,22 @@
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Select Employee <span class="text-danger">*</span></label>
-            <select class="form-select form-input-custom w-100" formControlName="employeeId"
-                    [ngClass]="{'is-invalid': assignForm.get('employeeId')?.invalid && assignForm.get('employeeId')?.touched}">
-              <option value="">-- Choose Employee --</option>
-              <option *ngFor="let emp of getFilteredEmployees()" [value]="emp.id">
-                {{ emp.name }} ({{ emp.id }})
-              </option>
-            </select>
+            <ng-select
+              [items]="getFilteredEmployees()"
+              bindLabel="name"
+              bindValue="id"
+              placeholder="-- Choose Employee --"
+              formControlName="employeeId"
+              [ngClass]="{'is-invalid': assignForm.get('employeeId')?.invalid && assignForm.get('employeeId')?.touched}"
+              class="custom-ng-select"
+              appendTo="body">
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.name }} ({{ item.id }})
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                {{ item.name }} ({{ item.id }})
+              </ng-template>
+            </ng-select>
             <div class="text-muted fs-8 mt-1" *ngIf="assignForm.get('employeeId')?.disabled">
               <i class="fa-solid fa-lock me-1 text-warning"></i> Select Department to unlock employees.
             </div>

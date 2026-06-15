@@ -4,11 +4,14 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { MaterialModule } from 'src/app/mat/mat.module';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { NgxPrintModule } from 'ngx-print';
 import { EmployeeService } from 'src/app/core/services/Employee.service';
+import { EmployeeManagementService } from 'src/app/core/services/employee-management.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 
 interface PayrollRecord {
   empId: string;
+  dbId?: number;
   empName: string;
   designation: string;
   department: string;
@@ -46,7 +49,8 @@ interface PayrollRecord {
     ReactiveFormsModule,
     MaterialModule,
     NgxPaginationModule,
-    NgSelectModule
+    NgSelectModule,
+    NgxPrintModule
   ],
   templateUrl: './payroll-management.component.html',
   styleUrl: './payroll-management.component.scss',
@@ -58,8 +62,8 @@ export class PayrollManagementComponent implements OnInit {
   
   // Filters
   currentMonth: string = '';
-  selectedSite: string = '';
-  selectedDept: string = '';
+  selectedSite: string | null = null;
+  selectedDept: string | null = null;
   filterSearch: string = '';
   
   // State Machine
@@ -72,6 +76,7 @@ export class PayrollManagementComponent implements OnInit {
   // Pagination
   p: number = 1;
   showEntries: number = 10;
+  totalRecords: number = 0;
   
   // Selected Payslip for A4 Print/Preview
   selectedPayslipRecord: PayrollRecord | null = null;
@@ -92,6 +97,7 @@ export class PayrollManagementComponent implements OnInit {
   penaltyForm!: FormGroup;
   viewPenaltyModalOpen: boolean = false;
   selectedPenaltyEmployee: any = null;
+  selectedBulkFile: File | null = null;
   
   // Dropdown options
   mockSites: string[] = ['East Mine', 'West Mine', 'North Sector'];
@@ -100,6 +106,7 @@ export class PayrollManagementComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private employeeService: EmployeeService,
+    private employeeManagementService: EmployeeManagementService,
     private notificationService: NotificationService,
     private datePipe: DatePipe
   ) {
@@ -133,7 +140,7 @@ export class PayrollManagementComponent implements OnInit {
 
     this.penaltyForm = this.fb.group({
       employeeId: ['', Validators.required],
-      penaltyMonth: ['', Validators.required],
+      penaltyDate: ['', Validators.required],
       reason: ['', Validators.required],
       amount: [null, [Validators.required, Validators.min(1)]]
     });
@@ -142,304 +149,105 @@ export class PayrollManagementComponent implements OnInit {
   ngOnInit(): void {
     const today = new Date();
     this.currentMonth = this.datePipe.transform(today, 'yyyy-MM') || '';
-    this.loadEmployees();
+    this.loadEmployeesForDropdown();
+    this.loadPayrollData();
   }
 
-  loadEmployees(): void {
+  loadEmployeesForDropdown(): void {
     this.employeeService.GetStaff('all', 1, '').subscribe({
       next: (res: any) => {
         if (res && (res.status === 'success' || res.data)) {
           const rawData = res.data || res;
           this.employees = rawData.map((emp: any) => ({
-            id: emp.id || emp.user_id || 'EMP' + Math.floor(Math.random() * 1000),
-            name: emp.name || (emp.first_name + ' ' + (emp.last_name || '')),
-            designation: emp.designation || 'Specialist',
-            department: emp.department || this.departments[Math.floor(Math.random() * this.departments.length)],
-            site: emp.site || this.mockSites[Math.floor(Math.random() * this.mockSites.length)],
-            basicSalary: emp.basicSalary || this.getRandomBasicSalary(),
-            shiftAllowance: 1500,
-            shift: emp.shift || 'A'
+            id: emp.id || emp.user_id,
+            name: emp.name || (emp.first_name + ' ' + (emp.last_name || ''))
           }));
-        } else {
-          this.useFallbackEmployees();
         }
-        this.loadAttendanceAndCalculate();
+      }
+    });
+  }
+
+  loadPayrollData(): void {
+    const [year, month] = this.currentMonth.split('-').map(Number);
+    this.employeeManagementService.getPayroll(month, year, this.showEntries, this.p, this.filterSearch, this.selectedDept, this.selectedSite).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) {
+          const apiData = res.data || [];
+          this.payrollRecords = apiData.map((emp: any) => {
+            return {
+              empId: emp.employee_code,
+              dbId: emp.id || emp.employee_id,
+              empName: emp.name,
+              designation: emp.designation || 'N/A',
+              department: emp.department || 'N/A',
+              site: emp.site || 'N/A',
+              basicSalary: emp.basic_salary || 0,
+              shiftAllowance: emp.shift_allowance || 0,
+              totalDays: emp.days_in_month || 0,
+              presentCount: emp.present_days || 0,
+              halfDayCount: emp.half_days || 0,
+              exceptionCount: 0,
+              absentCount: emp.absent_days || 0,
+              leaveCount: emp.paid_leave_days || 0,
+              unpaidLeaveCount: emp.unpaid_leave_days || 0,
+              restDayCount: emp.rest_days || 0,
+              payableDays: (emp.present_days || 0) + (emp.rest_days || 0) + (emp.paid_leave_days || 0) + ((emp.half_days || 0) * 0.5),
+              pfDeduction: emp.pf_deduction || 0,
+              messDeduction: emp.mess_deduction || 0,
+              leaveDeduction: emp.leave_deduction || 0,
+              othersDeduction: emp.other_deduction || 0,
+              incentives: emp.incentives || 0,
+              penalties: [],
+              penaltyTotalAmount: emp.penalty_amount || 0,
+              totalEarnings: emp.gross_salary || 0,
+              totalDeductions: (emp.pf_deduction || 0) + (emp.mess_deduction || 0) + (emp.leave_deduction || 0) + (emp.other_deduction || 0) + (emp.penalty_amount || 0),
+              netSalary: emp.net_salary || 0,
+              createdAt: emp.created_at || new Date()
+            };
+          });
+          this.filteredPayrollRecords = [...this.payrollRecords];
+          this.totalRecords = res.pagination?.total || this.payrollRecords.length;
+        } else {
+          this.payrollRecords = [];
+          this.filteredPayrollRecords = [];
+          this.totalRecords = 0;
+        }
       },
       error: () => {
-        this.useFallbackEmployees();
-        this.loadAttendanceAndCalculate();
+        this.payrollRecords = [];
+        this.filteredPayrollRecords = [];
+        this.totalRecords = 0;
+        this.notificationService.show('Failed to fetch payroll data', 'error', 3000);
       }
     });
-  }
-
-  useFallbackEmployees(): void {
-    this.employees = [
-      { id: 'EMP001', name: 'John Doe', designation: 'Mining Engineer', department: 'Mining', site: 'East Mine', basicSalary: 45000, shiftAllowance: 1500, shift: 'A' },
-      { id: 'EMP002', name: 'Jane Smith', designation: 'HR Manager', department: 'HR', site: 'West Mine', basicSalary: 38000, shiftAllowance: 1500, shift: 'B' },
-      { id: 'EMP003', name: 'Robert Johnson', designation: 'Safety Officer', department: 'Safety', site: 'East Mine', basicSalary: 30000, shiftAllowance: 1500, shift: 'C' },
-      { id: 'EMP004', name: 'Michael Brown', designation: 'Excavator Operator', department: 'Operations', site: 'East Mine', basicSalary: 25000, shiftAllowance: 1500, shift: 'A' },
-      { id: 'EMP005', name: 'William Davis', designation: 'Accountant', department: 'Finance', site: 'West Mine', basicSalary: 32000, shiftAllowance: 1500, shift: 'B' }
-    ];
-  }
-
-  getRandomBasicSalary(): number {
-    const salaries = [22000, 25000, 30000, 35000, 42000, 45000];
-    return salaries[Math.floor(Math.random() * salaries.length)];
-  }
-
-  loadAttendanceAndCalculate(): void {
-    const stored = localStorage.getItem('attendance_records');
-    let currentRecords = stored ? JSON.parse(stored) : [];
-    
-    // Check if there are records for the selected month
-    const hasRecords = currentRecords.some((r: any) => r.date.startsWith(this.currentMonth));
-    if (!hasRecords) {
-      this.generateMockAttendanceForMonth(this.currentMonth);
-    } else {
-      this.allAttendanceRecords = currentRecords;
-    }
-
-    // Load Month State
-    const stateKey = 'payroll_state_' + this.currentMonth;
-    const storedState = localStorage.getItem(stateKey);
-    this.payrollState = (storedState as 'Draft' | 'Pending Verification' | 'Finalized') || 'Draft';
-
-    this.calculatePayroll();
-  }
-
-  generateMockAttendanceForMonth(monthStr: string): void {
-    const [year, month] = monthStr.split('-').map(Number);
-    const daysInMonth = new Date(year, month, 0).getDate();
-    const stored = localStorage.getItem('attendance_records');
-    const existingRecords = stored ? JSON.parse(stored) : [];
-    const otherMonthRecords = existingRecords.filter((r: any) => !r.date.startsWith(monthStr));
-    const newRecords: any[] = [];
-
-    this.employees.forEach(emp => {
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateString = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        
-        let status: 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' = 'Present';
-        let checkIn = '08:00';
-        let checkOut = '17:00';
-        
-        const rand = Math.random();
-        if (rand < 0.05) {
-          status = 'Absent';
-          checkIn = '--:--';
-          checkOut = '--:--';
-        } else if (rand < 0.12) {
-          status = 'Half Day';
-          checkIn = '08:00';
-          checkOut = '12:30';
-        } else if (rand < 0.16) {
-          status = 'Exception';
-          checkIn = '08:20';
-          checkOut = '--:--';
-        } else if (rand < 0.20) {
-          status = 'Leave'; // Approved Leave
-          checkIn = '--:--';
-          checkOut = '--:--';
-        }
-
-        newRecords.push({
-          id: 'PAY-' + emp.id + '-' + dateString,
-          empId: emp.id,
-          empName: emp.name,
-          date: dateString,
-          checkIn: checkIn,
-          checkOut: checkOut,
-          shift: emp.shift || 'A',
-          status: status,
-          site: emp.site || 'East Mine'
-        });
-      }
-    });
-
-    const updated = [...otherMonthRecords, ...newRecords];
-    localStorage.setItem('attendance_records', JSON.stringify(updated));
-    this.allAttendanceRecords = updated;
-  }
-
-  calculatePayroll(): void {
-    const [year, month] = this.currentMonth.split('-').map(Number);
-    const daysInMonth = new Date(year, month, 0).getDate();
-
-    // Load adjustments
-    const adjKey = 'payroll_adjustments_' + this.currentMonth;
-    const storedAdj = localStorage.getItem(adjKey);
-    const adjustments = storedAdj ? JSON.parse(storedAdj) : {};
-
-    const autoRecords = this.employees.map(emp => {
-      const empId = emp.id;
-      const empRecords = this.allAttendanceRecords.filter(r => r.empId === empId && r.date.startsWith(this.currentMonth));
-
-      // Aggregate counts
-      const presentCount = empRecords.filter(r => r.status === 'Present').length;
-      const halfDayCount = empRecords.filter(r => r.status === 'Half Day').length;
-      const exceptionCount = empRecords.filter(r => r.status === 'Exception').length;
-      const absentCount = empRecords.filter(r => r.status === 'Absent').length;
-      const leaveCount = empRecords.filter(r => r.status === 'Leave').length; // Paid Leave
-      const unpaidLeaveCount = empRecords.filter(r => r.status === 'Unpaid Leave').length;
-      const restDayCount = empRecords.filter(r => r.status === 'Rest Day').length;
-
-      const payableDays = presentCount + restDayCount + leaveCount + (halfDayCount * 0.5);
-
-      // Adjustments (PF, Mess, Incentives)
-      const empAdj = adjustments[empId] || {};
-      const pfDeduction = empAdj.pf !== undefined ? empAdj.pf : Math.round(emp.basicSalary * 0.1);
-      const messDeduction = empAdj.mess !== undefined ? empAdj.mess : 1000;
-      const othersDeduction = empAdj.others !== undefined ? empAdj.others : 0;
-      const incentives = empAdj.incentives !== undefined ? empAdj.incentives : 0;
-
-      // Calculations
-      const dailyRate = emp.basicSalary / daysInMonth;
-      
-      // Leave Deductions: Absent & Unpaid Leave = 1.0 day rate; Half Day & Exception = 0.5 day rate
-      const leaveDeduction = dailyRate * ((absentCount + unpaidLeaveCount) + 0.5 * (halfDayCount + exceptionCount));
-
-      const shiftAllowance = emp.shiftAllowance || 1500;
-      // Mock Penalties Logic
-      let penalties: any[] = [];
-      let penaltyTotalAmount = 0;
-      
-      // Force assign penalty to the first employee so it's always visible for testing
-      if (empId === this.employees[0]?.id) {
-        penalties = [
-          { date: new Date(year, month - 1, 12), reason: 'Uninformed absence from shift', amount: 500 }
-        ];
-        penaltyTotalAmount = 500;
-      }
-
-      const totalEarnings = emp.basicSalary + shiftAllowance + incentives;
-      // Subtract penalty from net salary via deductions
-      const totalDeductions = pfDeduction + messDeduction + leaveDeduction + othersDeduction + penaltyTotalAmount;
-      const netSalary = Math.max(0, totalEarnings - totalDeductions);
-
-      return {
-        empId,
-        empName: emp.name,
-        designation: emp.designation,
-        department: emp.department,
-        site: emp.site,
-        basicSalary: emp.basicSalary,
-        shiftAllowance,
-        totalDays: daysInMonth,
-        presentCount,
-        halfDayCount,
-        exceptionCount,
-        absentCount,
-        leaveCount,
-        unpaidLeaveCount,
-        restDayCount,
-        payableDays,
-        pfDeduction,
-        messDeduction,
-        leaveDeduction: Math.round(leaveDeduction * 100) / 100,
-        othersDeduction,
-        incentives,
-        penalties,
-        penaltyTotalAmount,
-        totalEarnings: Math.round(totalEarnings),
-        totalDeductions: Math.round(totalDeductions),
-        netSalary: Math.round(netSalary),
-        createdAt: (() => {
-          const date = new Date();
-          date.setDate(15); // Mocked middle of the month
-          date.setHours(9, 15, 0, 0);
-          return date;
-        })()
-      };
-    });
-
-    // Load manual records
-    const manualKey = 'payroll_manual_records_' + this.currentMonth;
-    const storedManual = localStorage.getItem(manualKey);
-    const manualRecordsList = storedManual ? JSON.parse(storedManual) : [];
-
-    // Map manual records and calculate
-    const processedManualRecords = manualRecordsList.map((m: any) => {
-      const dailyRate = m.basicSalary / daysInMonth;
-      const leaveDeduction = dailyRate * (m.absentCount + 0.5 * m.halfDayCount);
-
-      // Check adjustments for overrides on this manual record
-      const empAdj = adjustments[m.empId] || {};
-      const pfDeduction = empAdj.pf !== undefined ? empAdj.pf : m.pfDeduction;
-      const messDeduction = empAdj.mess !== undefined ? empAdj.mess : m.messDeduction;
-      const othersDeduction = empAdj.others !== undefined ? empAdj.others : (m.othersDeduction || 0);
-      const incentives = empAdj.incentives !== undefined ? empAdj.incentives : m.incentives;
-
-      const totalEarnings = m.basicSalary + m.shiftAllowance + incentives;
-      const totalDeductions = pfDeduction + messDeduction + leaveDeduction + othersDeduction;
-      const netSalary = Math.max(0, totalEarnings - totalDeductions);
-
-      return {
-        empId: m.empId,
-        empName: m.empName,
-        designation: m.designation || 'Contract Worker',
-        department: m.department || 'Operations',
-        site: m.site || 'East Mine',
-        basicSalary: m.basicSalary,
-        shiftAllowance: m.shiftAllowance,
-        totalDays: daysInMonth,
-        presentCount: m.presentCount || 0,
-        halfDayCount: m.halfDayCount || 0,
-        exceptionCount: 0,
-        absentCount: m.absentCount || 0,
-        leaveCount: 0,
-        unpaidLeaveCount: 0,
-        restDayCount: 0,
-        payableDays: (m.presentCount || 0) + ((m.halfDayCount || 0) * 0.5),
-        pfDeduction,
-        messDeduction,
-        leaveDeduction: Math.round(leaveDeduction * 100) / 100,
-        othersDeduction,
-        incentives,
-        penalties: [],
-        penaltyTotalAmount: 0,
-        totalEarnings: Math.round(totalEarnings),
-        totalDeductions: Math.round(totalDeductions),
-        netSalary: Math.round(netSalary),
-        createdAt: m.createdAt ? new Date(m.createdAt) : new Date()
-      };
-    });
-
-    // Combine they: auto calculations + manuals (manual record override matching ids, though they should be distinct)
-    const combined = [...autoRecords];
-    processedManualRecords.forEach((mr: any) => {
-      if (!combined.some(r => r.empId === mr.empId)) {
-        combined.push(mr);
-      }
-    });
-
-    this.payrollRecords = combined;
-    this.applyFilters();
   }
 
   applyFilters(): void {
-    this.filteredPayrollRecords = this.payrollRecords.filter(rec => {
-      const matchSite = !this.selectedSite || rec.site === this.selectedSite;
-      const matchDept = !this.selectedDept || rec.department === this.selectedDept;
-      
-      const search = this.filterSearch.toLowerCase().trim();
-      const matchSearch = !search ||
-        rec.empName.toLowerCase().includes(search) ||
-        rec.empId.toLowerCase().includes(search);
-
-      return matchSite && matchDept && matchSearch;
-    });
     this.p = 1;
+    this.loadPayrollData();
   }
 
   resetFilters(): void {
-    this.selectedSite = '';
-    this.selectedDept = '';
+    this.selectedSite = null;
+    this.selectedDept = null;
     this.filterSearch = '';
-    this.applyFilters();
+    this.p = 1;
+    this.loadPayrollData();
   }
 
   onMonthChange(): void {
-    this.loadAttendanceAndCalculate();
+    this.p = 1;
+    this.loadPayrollData();
+  }
+
+  onPageChange(page: number): void {
+    this.p = page;
+    this.loadPayrollData();
+  }
+
+  onShowEntriesChange(): void {
+    this.p = 1;
+    this.loadPayrollData();
   }
 
   // Workflow transitions
@@ -557,7 +365,7 @@ export class PayrollManagementComponent implements OnInit {
 
       this.notificationService.show(`Manual payroll record added for ${rawVal.empName}`, 'success', 3000);
       this.closeAddModal();
-      this.calculatePayroll();
+      this.loadPayrollData();
     } else {
       this.addForm.markAllAsTouched();
     }
@@ -589,7 +397,7 @@ export class PayrollManagementComponent implements OnInit {
       }
 
       this.notificationService.show('Manual payroll record deleted.', 'success', 3000);
-      this.calculatePayroll();
+      this.loadPayrollData();
     }
   }
 
@@ -631,14 +439,64 @@ export class PayrollManagementComponent implements OnInit {
       localStorage.setItem(adjKey, JSON.stringify(adjustments));
       this.notificationService.show(`Adjustments saved for ${this.currentEditingRecord.empName}`, 'success', 3000);
       this.closeEditModal();
-      this.calculatePayroll();
+      this.loadPayrollData();
     }
   }
 
   // Payslip Actions
   viewPayslip(rec: PayrollRecord): void {
-    this.selectedPayslipRecord = rec;
-    this.showPayslipModal = true;
+    if (!rec.dbId) {
+      this.selectedPayslipRecord = rec;
+      this.showPayslipModal = true;
+      return;
+    }
+    const [year, month] = this.currentMonth.split('-').map(Number);
+    this.employeeManagementService.getPayrollDetail(rec.dbId, month, year).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200 && res.data) {
+          const emp = res.data;
+          this.selectedPayslipRecord = {
+            empId: emp.employee_code || rec.empId,
+            dbId: emp.id || rec.dbId,
+            empName: emp.name || rec.empName,
+            designation: emp.designation || rec.designation,
+            department: emp.department || rec.department,
+            site: emp.site || rec.site,
+            basicSalary: emp.basic_salary || rec.basicSalary,
+            shiftAllowance: emp.shift_allowance || rec.shiftAllowance,
+            totalDays: emp.days_in_month || rec.totalDays,
+            presentCount: emp.present_days || rec.presentCount,
+            halfDayCount: emp.half_days || rec.halfDayCount,
+            exceptionCount: 0,
+            absentCount: emp.absent_days || rec.absentCount,
+            leaveCount: emp.paid_leave_days || rec.leaveCount,
+            unpaidLeaveCount: emp.unpaid_leave_days || rec.unpaidLeaveCount,
+            restDayCount: emp.rest_days || rec.restDayCount,
+            payableDays: (emp.present_days || 0) + (emp.rest_days || 0) + (emp.paid_leave_days || 0) + ((emp.half_days || 0) * 0.5),
+            pfDeduction: emp.pf_deduction || rec.pfDeduction,
+            messDeduction: emp.mess_deduction || rec.messDeduction,
+            leaveDeduction: emp.leave_deduction || rec.leaveDeduction,
+            othersDeduction: emp.other_deduction || rec.othersDeduction,
+            incentives: emp.incentives || rec.incentives,
+            penalties: [],
+            penaltyTotalAmount: emp.penalty_amount || rec.penaltyTotalAmount,
+            totalEarnings: emp.gross_salary || rec.totalEarnings,
+            totalDeductions: (emp.pf_deduction || 0) + (emp.mess_deduction || 0) + (emp.leave_deduction || 0) + (emp.other_deduction || 0) + (emp.penalty_amount || 0),
+            netSalary: emp.net_salary || rec.netSalary,
+            createdAt: emp.created_at || rec.createdAt
+          };
+          this.showPayslipModal = true;
+        } else {
+          this.selectedPayslipRecord = rec;
+          this.showPayslipModal = true;
+        }
+      },
+      error: () => {
+        this.selectedPayslipRecord = rec;
+        this.showPayslipModal = true;
+        this.notificationService.show('Failed to fetch updated payslip details', 'error', 3000);
+      }
+    });
   }
 
   closePayslipModal(): void {
@@ -740,9 +598,9 @@ This is a computer-generated payslip and does not require an authorized signatur
   // Penalty Modals Logic
   openPenaltyModal(): void {
     const today = new Date();
-    const defaultMonth = this.datePipe.transform(today, 'yyyy-MM') || '';
+    const defaultDate = this.datePipe.transform(today, 'yyyy-MM-dd') || '';
     this.penaltyForm.reset({
-      penaltyMonth: defaultMonth
+      penaltyDate: defaultDate
     });
     this.penaltyModalOpen = true;
   }
@@ -753,23 +611,96 @@ This is a computer-generated payslip and does not require an authorized signatur
 
   savePenalty(): void {
     if (this.penaltyForm.valid) {
-      this.notificationService.show('Penalty added successfully!', 'success', 3000);
-      this.closePenaltyModal();
+      const formValue = this.penaltyForm.value;
+      const payload = {
+        employee_id: formValue.employeeId,
+        penalty_date: formValue.penaltyDate,
+        reason: formValue.reason,
+        amount: formValue.amount
+      };
+
+      this.employeeManagementService.addPenalty(payload).subscribe({
+        next: (res: any) => {
+          if (res && res.status === 200) {
+            this.notificationService.show('Penalty applied successfully!', 'success', 3000);
+            this.closePenaltyModal();
+            this.loadPayrollData();
+          } else {
+            this.notificationService.show(res.message || 'Failed to apply penalty', 'error', 3000);
+          }
+        },
+        error: (err: any) => {
+          this.notificationService.show(err?.error?.message || 'Failed to apply penalty', 'error', 3000);
+        }
+      });
     } else {
       this.penaltyForm.markAllAsTouched();
     }
   }
 
   openBulkPenaltyModal(): void {
+    this.selectedBulkFile = null;
     this.bulkPenaltyModalOpen = true;
   }
 
   closeBulkPenaltyModal(): void {
     this.bulkPenaltyModalOpen = false;
+    this.selectedBulkFile = null;
+  }
+
+  onBulkFileChange(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedBulkFile = file;
+    }
+  }
+
+  uploadBulkPenalty(): void {
+    if (!this.selectedBulkFile) {
+      this.notificationService.show('Please select a file to upload', 'error', 3000);
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', this.selectedBulkFile);
+
+    this.employeeManagementService.uploadBulkPenalties(formData).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) {
+          this.notificationService.show('Bulk penalties applied successfully!', 'success', 3000);
+          this.closeBulkPenaltyModal();
+          this.loadPayrollData();
+        } else {
+          this.notificationService.show(res.message || 'Failed to apply bulk penalties', 'error', 3000);
+        }
+      },
+      error: (err: any) => {
+        this.notificationService.show(err?.error?.message || 'Failed to apply bulk penalties', 'error', 3000);
+      }
+    });
   }
 
   openViewPenaltyModal(rec: PayrollRecord): void {
     this.selectedPenaltyEmployee = rec;
+    this.selectedPenaltyEmployee.penalties = []; // Clear old/initial data
+    const [year, month] = this.currentMonth.split('-').map(Number);
+    
+    if (rec.dbId) {
+      this.employeeManagementService.getEmployeePenalties(rec.dbId, month, year).subscribe({
+        next: (res: any) => {
+          if (res && res.status === 200 && res.data) {
+            this.selectedPenaltyEmployee.penalties = res.data.penalties.map((p: any) => ({
+              date: p.penalty_date,
+              reason: p.reason,
+              amount: p.amount
+            }));
+          }
+        },
+        error: () => {
+          this.notificationService.show('Failed to fetch penalty details', 'error', 3000);
+        }
+      });
+    }
+
     this.viewPenaltyModalOpen = true;
   }
 

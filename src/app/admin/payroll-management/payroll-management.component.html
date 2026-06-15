@@ -33,19 +33,27 @@
         <!-- Site Filter -->
         <div class="col-md-2">
           <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Site</label>
-          <select class="form-select form-input-custom py-2" [(ngModel)]="selectedSite" (change)="applyFilters()">
-            <option value="">All Sites</option>
-            <option *ngFor="let s of mockSites" [value]="s">{{ s }}</option>
-          </select>
+          <ng-select
+            [items]="mockSites"
+            placeholder="All Sites"
+            [(ngModel)]="selectedSite"
+            (change)="applyFilters()"
+            class="custom-ng-select"
+            appendTo="body">
+          </ng-select>
         </div>
 
         <!-- Department Filter -->
         <div class="col-md-2">
           <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Department</label>
-          <select class="form-select form-input-custom py-2" [(ngModel)]="selectedDept" (change)="applyFilters()">
-            <option value="">All Departments</option>
-            <option *ngFor="let d of departments" [value]="d">{{ d }}</option>
-          </select>
+          <ng-select
+            [items]="departments"
+            placeholder="All Departments"
+            [(ngModel)]="selectedDept"
+            (change)="applyFilters()"
+            class="custom-ng-select"
+            appendTo="body">
+          </ng-select>
         </div>
 
         <!-- Search Filter -->
@@ -57,7 +65,8 @@
               <i class="fa-solid fa-magnifying-glass"></i>
             </span>
             <input type="text" class="form-control form-input-custom border-start-0 ps-0 py-2"
-              [(ngModel)]="filterSearch" (input)="applyFilters()" placeholder="Search Name or ID...">
+              [(ngModel)]="filterSearch" placeholder="Search Name or ID..." (keyup.enter)="applyFilters()">
+            <button class="btn btn-custom-primary px-3" type="button" (click)="applyFilters()">Search</button>
           </div>
         </div>
 
@@ -79,7 +88,7 @@
     <div class="d-flex align-items-center justify-content-between mb-4">
       <div class="d-flex align-items-center">
         <span class="me-1 show-entery-text">Show</span>
-        <select class="form-control form-select show-entries-select" [(ngModel)]="showEntries" style="width: auto;">
+        <select class="form-control form-select show-entries-select" [(ngModel)]="showEntries" (change)="onShowEntriesChange()" style="width: auto;">
           <option [ngValue]="5">5</option>
           <option [ngValue]="10">10</option>
           <option [ngValue]="15">15</option>
@@ -142,7 +151,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let rec of filteredPayrollRecords | paginate: { itemsPerPage: showEntries, currentPage: p }">
+            <tr *ngFor="let rec of filteredPayrollRecords | paginate: { itemsPerPage: showEntries, currentPage: p, totalItems: totalRecords }">
               <td class="ps-3">
                 <div class="fw-bold text-dark fs-7">{{ rec.empName }}</div>
                 <div class="text-muted fs-8">ID: {{ rec.empId }} | {{ rec.designation }}</div>
@@ -238,7 +247,7 @@
       <!-- Card View for below lg -->
       <div class="lg:hidden space-y-4">
         <div
-          *ngFor="let rec of filteredPayrollRecords | paginate: { itemsPerPage: showEntries, currentPage: p }; index as i"
+          *ngFor="let rec of filteredPayrollRecords | paginate: { itemsPerPage: showEntries, currentPage: p, totalItems: totalRecords }; index as i"
           class="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
             <div>
@@ -327,12 +336,12 @@
       </div>
 
       <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center"
-        *ngIf="filteredPayrollRecords.length > 0">
+        *ngIf="totalRecords > 0">
         <span class="showalltext">Showing
           {{ showEntries * (p - 1) > 0 ? showEntries * (p - 1) + 1 : 1 }} to
-          {{ showEntries * p <= filteredPayrollRecords.length ? showEntries * p : filteredPayrollRecords.length }} of {{
-            filteredPayrollRecords.length }} entries</span>
-            <pagination-controls (pageChange)="p = $event" class="my-pagination"></pagination-controls>
+          {{ showEntries * p <= totalRecords ? showEntries * p : totalRecords }} of {{
+            totalRecords }} entries</span>
+            <pagination-controls (pageChange)="onPageChange($event)" class="my-pagination"></pagination-controls>
       </div>
     </div>
   </div>
@@ -452,7 +461,7 @@
     </div>
 
     <!-- Payslip View Area (This is targeted by @media print) -->
-    <div class="modal-body p-5 payslip-print-container">
+    <div id="payslip-print-section" class="modal-body p-5 payslip-print-container">
       <!-- Payslip Header -->
       <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom-double header-branding">
         <!-- Brand Logo Only -->
@@ -614,7 +623,9 @@
       </button>
       <button type="button"
         class="btn btn-custom-primary px-4 py-2 rounded-pill fw-bold hover-up d-flex align-items-center gap-2"
-        (click)="printPayslip()">
+        printSectionId="payslip-print-section"
+        [useExistingCss]="true"
+        ngxPrint>
         <i class="fa-solid fa-print"></i> Print Statement
       </button>
     </div>
@@ -793,10 +804,10 @@
         </div>
 
         <div class="mb-3">
-          <label class="form-label form-lable-custom">Penalty Month *</label>
-          <input type="month" class="form-control form-input-custom" formControlName="penaltyMonth"
-            [ngClass]="{'is-invalid': penaltyForm.get('penaltyMonth')?.invalid && penaltyForm.get('penaltyMonth')?.touched}" />
-          <div class="invalid-feedback">Month is required.</div>
+          <label class="form-label form-lable-custom">Penalty Date *</label>
+          <input type="date" class="form-control form-input-custom" formControlName="penaltyDate"
+            [ngClass]="{'is-invalid': penaltyForm.get('penaltyDate')?.invalid && penaltyForm.get('penaltyDate')?.touched}" />
+          <div class="invalid-feedback">Date is required.</div>
         </div>
 
         <div class="mb-3">
@@ -841,14 +852,14 @@
       <p class="text-muted">Download the template, fill in employee details and penalty amounts, and upload.</p>
       
       <div class="mb-4">
-        <input type="file" class="form-control form-input-custom" accept=".csv" />
+        <input type="file" class="form-control form-input-custom" accept=".csv, .xlsx" (change)="onBulkFileChange($event)" />
       </div>
 
-      <a href="#" class="text-primary text-decoration-none"><i class="fa-solid fa-download me-1"></i>Download Template</a>
+      <a href="/assets/templates/bulk_penalty_template.csv" download class="text-primary text-decoration-none"><i class="fa-solid fa-download me-1"></i>Download Template</a>
     </div>
     <div class="px-4 py-3 border-top bg-light d-flex justify-content-end align-items-center gap-2">
       <button class="btn btn-secondary px-4 py-2" (click)="closeBulkPenaltyModal()">Cancel</button>
-      <button class="btn btn-danger px-4 py-2"><i class="fa-solid fa-upload me-2"></i>Upload & Apply</button>
+      <button class="btn btn-danger px-4 py-2" (click)="uploadBulkPenalty()" [disabled]="!selectedBulkFile"><i class="fa-solid fa-upload me-2"></i>Upload & Apply</button>
     </div>
   </div>
 </div>

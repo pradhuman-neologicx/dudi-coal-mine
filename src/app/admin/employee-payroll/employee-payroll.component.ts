@@ -52,7 +52,7 @@ export class EmployeePayrollComponent implements OnInit {
   allEmployeeList: any[] = [];
   departmentsList: any[] = [];
   
-  table_heading = ['S.No.', 'Emp ID', 'Name', 'Department', 'Payroll Status', 'Action'];
+  table_heading = ['S.No.', 'Emp ID', 'Name', 'Action'];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -67,7 +67,7 @@ export class EmployeePayrollComponent implements OnInit {
     });
 
     this.filterForm = this.formBuilder.group({
-      deptFilter: [''],
+      deptFilter: [null],
     });
 
     this.initPayrollForm();
@@ -87,15 +87,15 @@ export class EmployeePayrollComponent implements OnInit {
     this.payrollForm = this.formBuilder.group({
       basicSalary: ['', [Validators.required, Validators.min(0)]],
       restDays: ['', [Validators.required, Validators.min(0)]],
-      isPfApplicable: [null, [Validators.required]],
+      isPfApplicable: ['No', [Validators.required]],
       pfAmount: [''],
       pfNumber: [''],
       bankName: ['', [Validators.required]],
       accountNumber: ['', [Validators.required]],
       ifscCode: ['', [Validators.required]],
-      isMessApplicable: [null, [Validators.required]],
+      isMessApplicable: ['No', [Validators.required]],
       messDeductionAmount: [''],
-      isOthersDeductionApplicable: [null, [Validators.required]],
+      isOthersDeductionApplicable: ['No', [Validators.required]],
       othersDeductionAmount: [''],
     });
 
@@ -205,7 +205,11 @@ export class EmployeePayrollComponent implements OnInit {
   openPayrollModal(employee: any) {
     this.isTopLevelAdd = false;
     this.currentEmployeeId = employee.id;
-    this.payrollForm.reset();
+    this.payrollForm.reset({
+      isPfApplicable: 'No',
+      isMessApplicable: 'No',
+      isOthersDeductionApplicable: 'No'
+    });
     
     this.employeeManagementService.getEmployeePayrollById(employee.id).subscribe({
       next: (response: any) => {
@@ -259,9 +263,13 @@ export class EmployeePayrollComponent implements OnInit {
     this.isTopLevelAdd = true;
     this.currentEmployeeId = null;
     this.selectedEmployeeData = null;
-    this.payrollForm.reset();
+    this.payrollForm.reset({
+      isPfApplicable: 'No',
+      isMessApplicable: 'No',
+      isOthersDeductionApplicable: 'No'
+    });
     
-    this.employeeManagementService.getAllEmployees().subscribe({
+    this.employeeManagementService.getActiveEmployees().subscribe({
       next: (response: any) => {
         if (response.status === 200) {
           this.allEmployeeList = response.data || [];
@@ -273,7 +281,15 @@ export class EmployeePayrollComponent implements OnInit {
   }
 
   onEmployeeSelect(event: any) {
-    const empId = event.target.value;
+    let empId = null;
+    if (event && event.target) {
+      empId = event.target.value; // For native select
+    } else if (event && event.id !== undefined) {
+      empId = event.id; // For ng-select where it emits the whole object
+    } else {
+      empId = event; // Fallback
+    }
+    
     if (empId) {
       this.currentEmployeeId = empId;
       this.employeeManagementService.getEmployeeById(empId).subscribe({
@@ -322,6 +338,8 @@ export class EmployeePayrollComponent implements OnInit {
 
     if (this.payrollForm.invalid) {
       this.payrollForm.markAllAsTouched();
+      this.notificationService.show('Please fill all required fields correctly.', 'error', 3000);
+      console.log('Form is invalid', this.payrollForm.errors, this.payrollForm.value);
       return;
     }
 
