@@ -97,8 +97,32 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.employeeId = this.route.snapshot.paramMap.get('id');
     this.employee.empId = this.employeeId;
-    this.currentMonth = new Date();
-    this.selectedDate = new Date();
+    
+    const queryParams = this.route.snapshot.queryParamMap;
+    const dateParam = queryParams.get('date');
+    const monthParam = queryParams.get('month');
+    const yearParam = queryParams.get('year');
+
+    if (dateParam) {
+      // e.g. "15 Jun 2026" or "2026-06-15"
+      const parsedDate = new Date(dateParam);
+      if (!isNaN(parsedDate.getTime())) {
+        this.currentMonth = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1);
+        this.selectedDate = parsedDate;
+      } else {
+        this.currentMonth = new Date();
+        this.selectedDate = new Date();
+      }
+    } else if (monthParam && yearParam) {
+      const m = parseInt(monthParam, 10);
+      const y = parseInt(yearParam, 10);
+      this.currentMonth = new Date(y, m - 1, 1);
+      this.selectedDate = new Date(y, m - 1, 1); // Select 1st of the month
+    } else {
+      this.currentMonth = new Date();
+      this.selectedDate = new Date();
+    }
+    
     this.loadMonthData();
   }
 
@@ -108,7 +132,10 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
   }
 
   loadMonthData() {
-    this.attendanceService.getEmployeeAttendanceDetails(this.employeeId)
+    const month = this.currentMonth.getMonth() + 1;
+    const year = this.currentMonth.getFullYear();
+    
+    this.attendanceService.getEmployeeAttendanceDetails(this.employeeId, month, year)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res.status === 200 || res.success) {
@@ -163,8 +190,9 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
       case 'rest_day':
       case 'rest-day':
       case 'rest day':
-      case 'weekend':
         return 'Rest Day';
+      case 'weekend':
+        return 'Weekend';
       case 'exception': return 'Exception';
       default: return backendStatus;
     }

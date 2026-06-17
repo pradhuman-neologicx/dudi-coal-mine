@@ -1,0 +1,114 @@
+<div class="bg-[#f0f2f5] min-h-screen font-sans p-3 print:bg-white print:p-0">
+
+    <!-- Header Section (Hidden in print) -->
+    <div class="flex justify-between items-center mb-6 print:hidden">
+        <div>
+            <a routerLink="/admin/fuel-mgt"
+                class="text-sm font-bold text-gray-500 hover:text-gray-800 flex items-center gap-2 mb-2 transition-colors">
+                <i class="fas fa-arrow-left"></i> Back to Fuel Management
+            </a>
+            <h1 class="text-2xl font-bold text-gray-800">Fuel Reports</h1>
+        </div>
+    </div>
+
+    <!-- Filters Section (Hidden in print) -->
+    <div class="bg-white border border-gray-200 rounded p-6 shadow-sm mb-6 print:hidden">
+        <h2 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Report Filters</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div>
+                <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">From
+                    Date</label>
+                <input type="date" [(ngModel)]="fromDate"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">To Date</label>
+                <input type="date" [(ngModel)]="toDate"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Shift</label>
+                <ng-select [(ngModel)]="selectedShift" [items]="shifts" bindLabel="label" bindValue="value"
+                    [clearable]="false"
+                    class="w-full border border-gray-300 rounded text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+                </ng-select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Machine Type</label>
+                <ng-select [(ngModel)]="selectedMachine" [items]="machines" bindLabel="label" bindValue="value"
+                    [clearable]="false"
+                    class="w-full border border-gray-300 rounded text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+                </ng-select>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button (click)="generateReport()"
+                class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-sm font-semibold py-2 px-6 rounded flex items-center gap-2 transition-colors">
+                <i class="fas fa-file-alt text-xs"></i> Generate Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Generated Report Area -->
+    <div id="print-section" *ngIf="isReportGenerated"
+        class="bg-white border border-gray-200 rounded shadow-sm flex flex-col print:border-0 print:shadow-none">
+
+        <!-- Report Header -->
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 print:border-black print:pb-2">
+            <div>
+                <h2 class="text-lg font-bold text-[#0f2a4a] print:text-black print:text-xl">Fuel Issue & Consumption Report</h2>
+                <div class="text-xs text-gray-500 mt-1 print:text-black">
+                    Period: {{ fromDate || 'Start' }} to {{ toDate || 'Present' }}
+                </div>
+            </div>
+            <div class="flex gap-4 text-gray-500 print:hidden">
+                <button ngxPrint printSectionId="print-section" [useExistingCss]="true"
+                    class="bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 text-sm font-semibold py-1.5 px-4 rounded flex items-center gap-2 transition-colors">
+                    <i class="fas fa-print"></i> Print PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto print:overflow-visible">
+            <table
+                class="w-full text-left text-sm text-gray-700 whitespace-nowrap print:whitespace-normal print:border-collapse">
+                <thead
+                    class="text-[10px] text-gray-500 font-bold uppercase bg-gray-50 border-b border-gray-200 print:bg-transparent print:text-black print:border-black">
+                    <tr>
+                        <th class="px-6 py-4 print:border-b print:border-black">Date</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Shift</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Machine</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Opening (L)</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Issued (L)</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Closing (L)</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Consumption (L)</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Fuel/BCM</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 print:divide-gray-400">
+                    <tr *ngIf="filteredFuelData.length === 0">
+                        <td colspan="8" class="px-6 py-8 text-center text-gray-500 italic">No fuel data found for the
+                            selected criteria.</td>
+                    </tr>
+                    <tr *ngFor="let item of filteredFuelData" class="hover:bg-gray-50 print:hover:bg-transparent">
+                        <td class="px-6 py-4 text-gray-600 print:py-2 print:text-black">{{item.date}}</td>
+                        <td class="px-6 py-4 text-gray-600 print:py-2 print:text-black">{{item.shift}}</td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-900 print:text-black">{{item.machineId}}</div>
+                            <div class="text-[11px] text-gray-500 print:text-black">{{item.machineDesc}}</div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600 print:py-2 print:text-black">{{item.opening}}</td>
+                        <td class="px-6 py-4 text-gray-600 font-bold print:py-2 print:text-black">{{item.issued}}</td>
+                        <td class="px-6 py-4 text-gray-600 print:py-2 print:text-black">{{item.closing}}</td>
+                        <td class="px-6 py-4 text-[#0f2a4a] font-bold print:py-2 print:text-black">{{item.consumption}}</td>
+                        <td class="px-6 py-4 text-gray-600 print:py-2 print:text-black">{{item.fuelBcm}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>

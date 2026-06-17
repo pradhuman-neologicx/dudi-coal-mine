@@ -1,0 +1,423 @@
+<div *ngIf="openSecondsuccess" class="modal-container-success fixed top-4 right-4 z-50 max-w-sm" [@slideIn]
+    role="dialog">
+    <div class="bg-green-50 border border-green-200 rounded-lg shadow-lg">
+        <div class="p-4 flex items-center space-x-3">
+            <span class="text-green-600 text-xl"><i class="fa-solid fa-check"></i></span>
+            <p class="text-green-800 font-semibold text-lg">Login successful!</p>
+        </div>
+    </div>
+</div>
+
+<div class="bg-[#f4f6f8] min-h-screen p-4 text-[#0f2a4a] font-sans">
+
+    <!-- Welcome Header -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6 relative overflow-hidden">
+        <!-- Decorative background gradient -->
+        <div
+            class="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-[#0f2a4a]/5 to-transparent pointer-events-none">
+        </div>
+
+        <div class="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div
+                class="w-12 h-12 rounded-full bg-gradient-to-br from-[#0f2a4a] to-[#1e4b85] text-white flex items-center justify-center text-xl shadow-md shrink-0">
+                <i class="fas fa-hand-sparkles"></i>
+            </div>
+            <div class="flex-1">
+                <h1 class="text-xl sm:text-2xl font-bold text-[#0f2a4a] mb-1">
+                    Welcome Back{{ name ? ', ' + name : '' }}!
+                </h1>
+                <p class="text-xs sm:text-sm text-gray-500 max-w-3xl leading-relaxed">
+                    Manage your employees, track equipment usage, and schedule training programs seamlessly to ensure
+                    efficient
+                    and safe operations across the Dudi Coal Mine.
+                </p>
+            </div>
+            <div
+                class="hidden lg:flex items-center gap-3 px-4 py-2 bg-green-50 border border-green-100 rounded-lg shrink-0 shadow-sm">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-[10px] font-bold text-green-700 tracking-widest uppercase">System Online</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header / Filters -->
+    <div class="flex justify-between items-end mb-6">
+        <div class="flex gap-4">
+            <div>
+                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">DATE
+                    RANGE</label>
+                <select class="border border-gray-300 rounded px-3 py-1.5 text-xs focus:outline-none bg-white">
+                    <option>Weekly</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">MINE SITE</label>
+                <select class="border border-gray-300 rounded px-3 py-1.5 text-xs focus:outline-none bg-white">
+                    <option>Site Alpha</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">BLOCK ID</label>
+                <select class="border border-gray-300 rounded px-3 py-1.5 text-xs focus:outline-none bg-white">
+                    <option>Central-C2</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">SHIFT</label>
+                <select class="border border-gray-300 rounded px-3 py-1.5 text-xs focus:outline-none bg-white">
+                    <option>Shift B (Current)</option>
+                </select>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-xs text-gray-500 italic">Last Updated: 14:22:05</span>
+            <button
+                class="bg-[#0f2a4a] text-white px-4 py-1.5 rounded text-xs flex items-center gap-2 hover:bg-[#0c223c]">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Row 1: KPI Cards -->
+    <div class="grid grid-cols-6 gap-4 mb-6">
+        <!-- Card 1 -->
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-4">
+            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">PRODUCTION TODAY</div>
+            <div class="text-2xl font-bold mb-2">42,850 <span class="text-[10px] font-normal text-gray-500">BCM</span>
+            </div>
+            <div class="text-[10px] font-bold text-gray-600 flex items-center gap-1">
+                <i class="fas fa-arrow-trend-up"></i> 4.2% vs Plan
+            </div>
+        </div>
+        <!-- Card 2 -->
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-4">
+            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">OB REMOVAL</div>
+            <div class="text-2xl font-bold mb-2">78.4%</div>
+            <div class="text-[10px] font-bold text-gray-600">Progress Stable</div>
+        </div>
+        <!-- Card 3 -->
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-4">
+            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">EQPT RUNNING</div>
+            <div class="text-2xl font-bold mb-2">112 <span class="text-[10px] font-normal text-gray-500">Assets</span>
+            </div>
+            <div class="text-[10px] font-bold bg-gray-100 text-gray-600 px-2 py-0.5 rounded inline-block">92%
+                Availability
+            </div>
+        </div>
+        <!-- Card 4 -->
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-4">
+            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">BREAKDOWNS</div>
+            <div class="text-2xl font-bold text-red-600 mb-2">04</div>
+            <div class="text-[10px] font-bold bg-red-50 text-red-600 px-2 py-0.5 rounded inline-block">High Risk</div>
+        </div>
+        <!-- Card 5 -->
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-4">
+            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">TOTAL TRIPS</div>
+            <div class="text-2xl font-bold mb-2">1,244</div>
+            <div class="text-[10px] font-bold text-gray-600">Avg Cycle : 14.2m</div>
+        </div>
+        <!-- Card 6 -->
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-4">
+            <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">FUEL EFFICIENCY</div>
+            <div class="text-2xl font-bold mb-2">12.4k <span class="text-[10px] font-normal text-gray-500">L/Sh</span>
+            </div>
+            <div class="text-[10px] font-bold text-gray-600">0.82 L/BCM</div>
+        </div>
+    </div>
+
+    <!-- Row 2: Charts -->
+    <div class="grid grid-cols-3 gap-6 mb-6">
+        <div class="col-span-2 bg-white border border-gray-200 rounded shadow-sm p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xs font-bold uppercase tracking-widest">PRODUCTION VS TARGET TREND</h2>
+                <div class="flex items-center gap-4 text-[10px] text-gray-500">
+                    <div class="flex items-center gap-1">
+                        <div class="w-3 h-3 bg-[#0f2a4a] rounded-sm"></div> Actual
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <div class="w-3 h-3 bg-gray-200 rounded-sm"></div> Target
+                    </div>
+                </div>
+            </div>
+            <div class="h-64 relative w-full">
+                <canvas id="productionChart"></canvas>
+            </div>
+        </div>
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-6">
+            <h2 class="text-xs font-bold uppercase tracking-widest mb-6">OB MILESTONE PROGRESS</h2>
+            <div class="relative w-40 h-40 mx-auto mb-8">
+                <canvas id="obProgressChart"></canvas>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <div class="text-3xl font-bold">78%</div>
+                    <div class="text-[8px] font-bold text-gray-500 uppercase tracking-widest">PLAN REACH</div>
+                </div>
+            </div>
+            <div class="flex justify-between text-xs font-bold mb-2">
+                <span>Remaining BCM</span>
+                <span>88,240</span>
+            </div>
+            <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mb-2">
+                <div class="h-full bg-[#0f2a4a]" style="width: 78%;"></div>
+            </div>
+            <div class="flex justify-between text-[10px] text-gray-500">
+                <span>Current: 312k</span>
+                <span>Target: 400k</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 3: Equipment Health & Delay -->
+    <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xs font-bold uppercase tracking-widest">EQUIPMENT HEALTH BY FLEET</h2>
+                <span class="text-[10px] font-bold text-gray-500">MTBF: 142 hrs</span>
+            </div>
+
+            <!-- Excavators -->
+            <div class="mb-5">
+                <div class="flex justify-between text-[10px] font-bold mb-2">
+                    <span>Excavators (EXC)</span>
+                    <span>92% Avail</span>
+                </div>
+                <div class="h-4 w-full flex rounded overflow-hidden">
+                    <div class="bg-green-800" style="width: 92%"></div>
+                    <div class="bg-gray-500" style="width: 5%"></div>
+                    <div class="bg-red-600" style="width: 3%"></div>
+                </div>
+            </div>
+
+            <!-- Dumpers -->
+            <div class="mb-5">
+                <div class="flex justify-between text-[10px] font-bold mb-2">
+                    <span>Dumpers (DUM)</span>
+                    <span>88% Avail</span>
+                </div>
+                <div class="h-4 w-full flex rounded overflow-hidden">
+                    <div class="bg-green-800" style="width: 88%"></div>
+                    <div class="bg-gray-500" style="width: 8%"></div>
+                    <div class="bg-red-600" style="width: 4%"></div>
+                </div>
+            </div>
+
+            <!-- Dozers -->
+            <div class="mb-8">
+                <div class="flex justify-between text-[10px] font-bold mb-2">
+                    <span>Dozers (DOZ)</span>
+                    <span>74% Avail</span>
+                </div>
+                <div class="h-4 w-full flex rounded overflow-hidden">
+                    <div class="bg-green-800" style="width: 74%"></div>
+                    <div class="bg-gray-500" style="width: 6%"></div>
+                    <div class="bg-red-600" style="width: 20%"></div>
+                </div>
+            </div>
+
+            <div class="flex gap-4 text-[9px] font-bold text-gray-600 uppercase tracking-widest">
+                <div class="flex items-center gap-1">
+                    <div class="w-2 h-2 rounded-full bg-green-800"></div> WORKING
+                </div>
+                <div class="flex items-center gap-1">
+                    <div class="w-2 h-2 rounded-full bg-gray-500"></div> STANDBY
+                </div>
+                <div class="flex items-center gap-1">
+                    <div class="w-2 h-2 rounded-full bg-red-600"></div> BREAKDOWN
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-6">
+            <h2 class="text-xs font-bold uppercase tracking-widest mb-6">SHIFT DELAY ANALYSIS</h2>
+            <div class="flex items-center justify-between">
+                <div class="relative w-40 h-40">
+                    <canvas id="shiftDelayChart"></canvas>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                        <div class="text-xl font-bold">124m</div>
+                        <div
+                            class="text-[6px] font-bold text-gray-500 uppercase tracking-widest leading-tight text-center">
+                            TOTAL
+                            DELAY</div>
+                    </div>
+                </div>
+                <div class="flex-1 ml-8">
+                    <div class="flex justify-between text-xs font-bold mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-sm bg-[#1e3a8a]"></div> Meal/Rest
+                        </div>
+                        <span>58m</span>
+                    </div>
+                    <div class="flex justify-between text-xs font-bold mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-sm bg-gray-500"></div> Refueling
+                        </div>
+                        <span>42m</span>
+                    </div>
+                    <div class="flex justify-between text-xs font-bold mb-6">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-sm bg-red-600"></div> Unplanned
+                        </div>
+                        <span>24m</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500 leading-relaxed">Total downtime is 12% higher than previous
+                        week.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 4: Shift Perf & Fleet Prod -->
+    <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-0">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h2 class="text-xs font-bold uppercase tracking-widest">SHIFT PERFORMANCE COMPARISON</h2>
+                <span
+                    class="text-[10px] font-bold text-gray-500 uppercase tracking-widest cursor-pointer">DETAILS</span>
+            </div>
+            <table class="w-full text-xs text-left">
+                <thead
+                    class="bg-gray-50 text-[9px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3">SHIFT NAME</th>
+                        <th class="px-6 py-3">TARGET</th>
+                        <th class="px-6 py-3">ACTUAL</th>
+                        <th class="px-6 py-3">ACH%</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr>
+                        <td class="px-6 py-4 font-bold">Shift A (Morning)</td>
+                        <td class="px-6 py-4 text-gray-600">12.0k</td>
+                        <td class="px-6 py-4 text-gray-600">12.4k</td>
+                        <td class="px-6 py-4 font-bold">103.3%</td>
+                    </tr>
+                    <tr class="bg-gray-50/50">
+                        <td class="px-6 py-4 font-bold flex items-center gap-2">Shift B (Active) <div
+                                class="w-1.5 h-1.5 bg-[#0f2a4a] rounded-full"></div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">14.5k</td>
+                        <td class="px-6 py-4 text-gray-600">13.2k</td>
+                        <td class="px-6 py-4 font-bold">91.0%</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 font-bold">Shift C (Night)</td>
+                        <td class="px-6 py-4 text-gray-600">10.0k</td>
+                        <td class="px-6 py-4 text-gray-600">7.2k</td>
+                        <td class="px-6 py-4 font-bold text-red-600">72.0%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded shadow-sm p-6">
+            <h2 class="text-xs font-bold uppercase tracking-widest mb-6">FLEET PRODUCTIVITY SUMMARY</h2>
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Panel 1 -->
+                <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                    <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">PAYLOAD COMPLIANCE
+                    </div>
+                    <div class="text-xl font-bold mb-2 flex items-baseline gap-2">
+                        94.8% <span class="text-[9px] text-green-700">+1.2%</span>
+                    </div>
+                    <p class="text-[9px] text-gray-500">Average 234 tons per load across all HDTs.</p>
+                </div>
+                <!-- Panel 2 -->
+                <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                    <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">UTILIZATION INDEX
+                    </div>
+                    <div class="text-xl font-bold mb-2 flex items-baseline gap-2">
+                        82.1% <span class="text-[9px] text-red-600">-3.4%</span>
+                    </div>
+                    <p class="text-[9px] text-gray-500">Impacted by queuing at Dump-Site North.</p>
+                </div>
+                <!-- Panel 3 -->
+                <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                    <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">EFFECTIVE HAUL TIME
+                    </div>
+                    <div class="text-xl font-bold mb-2">
+                        16.4 <span class="text-xs text-gray-500 font-normal">h/day</span>
+                    </div>
+                    <p class="text-[9px] text-gray-500">Productive hours per active equipment.</p>
+                </div>
+                <!-- Panel 4 -->
+                <div class="bg-gray-50 border border-gray-200 rounded p-4">
+                    <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2">SPEED COMPLIANCE
+                    </div>
+                    <div class="text-xl font-bold mb-2">99.2%</div>
+                    <p class="text-[9px] text-gray-500">Safe operations within ramp limits.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 5: Top Perf Equip -->
+    <div class="grid grid-cols-2 gap-6 mb-6">
+        <div class="bg-white border border-gray-200 rounded shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xs font-bold uppercase tracking-widest">TOP PERFORMING EXCAVATORS</h2>
+            </div>
+            <table class="w-full text-xs text-left">
+                <thead
+                    class="bg-gray-50 text-[9px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3">ASSET ID</th>
+                        <th class="px-6 py-3">OP NAME</th>
+                        <th class="px-6 py-3 text-right">AVG BCM/H</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr>
+                        <td class="px-6 py-4 font-bold">EX-209</td>
+                        <td class="px-6 py-4 text-gray-600">M. Richardson</td>
+                        <td class="px-6 py-4 font-bold text-right">1,240</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 font-bold">EX-112</td>
+                        <td class="px-6 py-4 text-gray-600">S. Gupta</td>
+                        <td class="px-6 py-4 font-bold text-right">1,180</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 font-bold">EX-205</td>
+                        <td class="px-6 py-4 text-gray-600">J. Peterson</td>
+                        <td class="px-6 py-4 font-bold text-right">1,155</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="bg-white border border-gray-200 rounded shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xs font-bold uppercase tracking-widest">TOP PERFORMING DUMPERS</h2>
+            </div>
+            <table class="w-full text-xs text-left">
+                <thead
+                    class="bg-gray-50 text-[9px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3">ASSET ID</th>
+                        <th class="px-6 py-3">OP NAME</th>
+                        <th class="px-6 py-3 text-right">TRIPS/SHIFT</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr>
+                        <td class="px-6 py-4 font-bold">DT-442</td>
+                        <td class="px-6 py-4 text-gray-600">L. Thompson</td>
+                        <td class="px-6 py-4 font-bold text-right">22</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 font-bold">DT-109</td>
+                        <td class="px-6 py-4 text-gray-600">K. Miller</td>
+                        <td class="px-6 py-4 font-bold text-right">21</td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 font-bold">DT-338</td>
+                        <td class="px-6 py-4 text-gray-600">R. Santos</td>
+                        <td class="px-6 py-4 font-bold text-right">19</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+</div>

@@ -27,7 +27,7 @@ interface DailyAttendance {
   checkIn: string | null;
   checkOut: string | null;
   shift: string;
-  status: 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day';
+  status: 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day' | 'Weekend';
   site: string;
 }
 
@@ -244,8 +244,8 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
 
   loadAttendance() {
-    let limit = this.showEntries;
-    const page = this.p;
+    let limit = 'all'; // Fetch all records for client-side pagination
+    const page = 1;
     const search = this.searchbarform?.get('searchbar')?.value || '';
     const status = this.filterStatus || '';
     
@@ -273,6 +273,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
               this.attendanceRecords = (response.data || []).map((record: any) => ({
                 ...record,
                 id: record.id?.toString() || '',
+                employee_id: record.employee_id,
                 empId: record.employee_code || '',
                 empName: record.employee_name || '',
                 date: record.date || '',
@@ -357,7 +358,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
   // Aggregate method removed since backend provides aggregated data
 
-  mapStatusToFrontend(backendStatus: string): 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day' {
+  mapStatusToFrontend(backendStatus: string): 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day' | 'Weekend' {
     if (!backendStatus) return 'Absent';
     switch (backendStatus.toLowerCase()) {
       case 'present': return 'Present';
@@ -371,6 +372,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       case 'rest-day':
       case 'rest day':
         return 'Rest Day';
+      case 'weekend': return 'Weekend';
       case 'exception': return 'Exception';
       default: return 'Present';
     }
@@ -625,6 +627,17 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
   viewRecord(record: any) {
     const idToPass = record.employee_id || record.empId || record.id;
-    this.router.navigate(['/admin/attendance-management/attendance-detail', idToPass]);
+    const queryParams: any = {};
+    
+    // Check if it's from daily view (has date) or monthly view
+    if (record.date) {
+      queryParams.date = record.date;
+    } else {
+      const [year, month] = this.filterMonth.split('-');
+      queryParams.month = month;
+      queryParams.year = year;
+    }
+    
+    this.router.navigate(['/admin/attendance-management/attendance-detail', idToPass], { queryParams });
   }
 }

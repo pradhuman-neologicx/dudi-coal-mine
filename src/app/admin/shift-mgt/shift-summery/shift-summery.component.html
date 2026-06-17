@@ -1,0 +1,296 @@
+<div *ngIf="selectedShift" class="bg-[#f4f6f8] min-h-screen p-2 md:p-6 font-sans relative pb-24 text-gray-800">
+    <div class="bg-white w-full  rounded shadow-sm border border-gray-200">
+        <!-- Modal Header -->
+        <div class="bg-white px-6 py-4 border-b border-gray-200 flex justify-between items-start">
+            <div>
+                <h2 class="text-2xl font-bold text-[#468faf] mb-1">Shift Summary - {{ selectedShift.date.replace(',\n',
+                    ', ')
+                    }} (Shift {{ selectedShift.shiftCode }})</h2>
+                <div class="flex items-center gap-4 text-sm font-medium text-gray-500">
+                    <span
+                        class="flex items-center gap-1.5 text-green-700 bg-green-50 px-2 py-0.5 rounded text-xs font-bold tracking-widest uppercase">
+                        <div class="w-1.5 h-1.5 rounded-full bg-green-600"></div> CLOSED
+                    </span>
+                    <span class="flex items-center gap-1"><i class="far fa-clock"></i> 18:00 - 06:00 (Night
+                        Shift)</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button (click)="goBack()"
+                    class="border border-gray-300 bg-white text-gray-700 px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-gray-50"><i
+                        class="fas fa-arrow-left"></i> Back</button>
+                <button
+                    class="border border-gray-300 bg-white text-gray-700 px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-gray-50"><i
+                        class="far fa-file-pdf"></i> Export</button>
+                <button
+                    class="border border-gray-300 bg-white text-gray-700 px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-gray-50"><i
+                        class="fas fa-print"></i> Print</button>
+            </div>
+        </div>
+
+        <!-- Page Body -->
+        <div class="p-6">
+
+            <!-- Top 4 KPI Cards -->
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Total Production
+                        </div>
+                        <i class="far fa-hdd text-blue-300 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-[#468faf] mb-1">45,200 <span
+                            class="text-xs text-gray-500 font-normal">BCM</span></div>
+                    <div class="text-xs text-gray-500 mb-2">Target: 44,500 BCM</div>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="bg-green-100 text-green-800 font-bold px-1.5 py-0.5 rounded">102%</span>
+                        <span class="text-gray-500">Above target</span>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Eq. Availability
+                        </div>
+                        <i class="fas fa-cog text-blue-300 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-[#468faf] mb-4">94%</div>
+                    <div class="flex items-center gap-1 text-xs text-green-600 font-bold mb-1">
+                        <i class="fas fa-arrow-trend-up"></i> 2% <span class="text-gray-400 font-normal">vs Prev
+                            Shift</span>
+                    </div>
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Breakdown: <span
+                            class="text-red-600">4.2 hrs</span></div>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Safety Incidents
+                        </div>
+                        <i class="fas fa-shield-alt text-blue-300 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-[#468faf] mb-5">0</div>
+                    <span
+                        class="bg-green-800 text-white font-bold px-2 py-1 rounded text-[10px] tracking-widest uppercase">Safe</span>
+                </div>
+
+                <div class="bg-white border border-gray-200 p-4 rounded shadow-sm">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Fuel Consumption
+                        </div>
+                        <i class="fas fa-gas-pump text-blue-300 text-lg"></i>
+                    </div>
+                    <div class="text-3xl font-bold text-[#468faf] mb-4">12,400 <span
+                            class="text-xs text-gray-500 font-normal">Liters</span></div>
+                    <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="h-full bg-[#468faf] w-[75%] rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Excavator & Fleet Performance -->
+            <div class="grid grid-cols-3 gap-6 mb-6">
+                <div class="col-span-2 bg-white border border-gray-200 rounded shadow-sm">
+                    <div class="px-5 py-3 border-b border-gray-200 flex justify-between items-center">
+                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Excavator Performance
+                        </h3>
+                        <a href="javascript:void(0)" class="text-xs font-bold text-[#468faf] hover:underline">View
+                            Detailed Logs
+                            &rarr;</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs whitespace-nowrap">
+                            <thead
+                                class="bg-gray-50 text-[9px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
+                                <tr>
+                                    <th class="px-5 py-3">Asset ID</th>
+                                    <th class="px-5 py-3">Operator</th>
+                                    <th class="px-5 py-3">Target (BCM)</th>
+                                    <th class="px-5 py-3">Actual (BCM)</th>
+                                    <th class="px-5 py-3">Efficiency</th>
+                                    <th class="px-5 py-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                <tr>
+                                    <td class="px-5 py-3 font-bold text-[#468faf]">EX-01</td>
+                                    <td class="px-5 py-3 text-gray-600">M. Thorne</td>
+                                    <td class="px-5 py-3 text-gray-600">12,000</td>
+                                    <td class="px-5 py-3 font-bold">12,500</td>
+                                    <td class="px-5 py-3 font-bold text-green-600">104% <i
+                                            class="fas fa-arrow-up text-[9px]"></i></td>
+                                    <td class="px-5 py-3"><span
+                                            class="text-[9px] font-bold text-green-700 tracking-widest uppercase">Active</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-5 py-3 font-bold text-[#468faf]">EX-02</td>
+                                    <td class="px-5 py-3 text-gray-600">R. Simmons</td>
+                                    <td class="px-5 py-3 text-gray-600">15,000</td>
+                                    <td class="px-5 py-3 font-bold">14,800</td>
+                                    <td class="px-5 py-3 font-bold text-gray-600">98%</td>
+                                    <td class="px-5 py-3"><span
+                                            class="text-[9px] font-bold text-green-700 tracking-widest uppercase">Active</span>
+                                    </td>
+                                </tr>
+                                <tr class="bg-red-50/30">
+                                    <td class="px-5 py-3 font-bold text-red-600">EX-04</td>
+                                    <td class="px-5 py-3 text-gray-400 italic">N/A</td>
+                                    <td class="px-5 py-3 text-gray-600">10,000</td>
+                                    <td class="px-5 py-3 font-bold text-red-600">0</td>
+                                    <td class="px-5 py-3 font-bold text-red-600">0%</td>
+                                    <td class="px-5 py-3"><span
+                                            class="bg-red-600 text-white px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase">Breakdown</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-5 py-3 font-bold text-[#468faf]">EX-07</td>
+                                    <td class="px-5 py-3 text-gray-600">K. Lopez</td>
+                                    <td class="px-5 py-3 text-gray-600">11,000</td>
+                                    <td class="px-5 py-3 font-bold">11,200</td>
+                                    <td class="px-5 py-3 font-bold text-green-600">102%</td>
+                                    <td class="px-5 py-3"><span
+                                            class="text-[9px] font-bold text-green-700 tracking-widest uppercase">Active</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Fleet Performance -->
+                <div class="bg-[#051c30] rounded shadow-sm p-6 text-white relative overflow-hidden">
+                    <h3 class="text-[10px] font-bold text-blue-200 uppercase tracking-widest mb-6">Fleet Performance
+                    </h3>
+
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            <div class="text-4xl font-bold mb-1">24</div>
+                            <div class="text-xs text-blue-200">Active Dumpers</div>
+                        </div>
+                        <div
+                            class="w-16 h-16 rounded-full border-4 border-green-400 border-r-transparent flex items-center justify-center transform -rotate-45 relative">
+                            <div class="transform rotate-45 text-sm font-bold text-white">92%</div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-blue-200">Haul Cycle Avg</span>
+                                <span class="font-bold">14.2 min</span>
+                            </div>
+                            <div class="w-full h-1 bg-blue-900 rounded-full">
+                                <div class="w-[80%] h-full bg-green-400 rounded-full"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1">
+                                <span class="text-blue-200">Payload Avg</span>
+                                <span class="font-bold">188 t</span>
+                            </div>
+                            <div class="w-full h-1 bg-blue-900 rounded-full">
+                                <div class="w-[90%] h-full bg-green-400 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dumper Performance -->
+            <div class="bg-white border border-gray-200 rounded shadow-sm mb-6">
+                <div class="px-5 py-3 border-b border-gray-200 flex justify-between items-center">
+                    <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Dumper Performance</h3>
+                    <a href="javascript:void(0)" class="text-xs font-bold text-[#468faf] hover:underline">View Detailed
+                        Logs
+                        &rarr;</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs whitespace-nowrap">
+                        <thead
+                            class="bg-gray-50 text-[9px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
+                            <tr>
+                                <th class="px-5 py-3">Dumper ID</th>
+                                <th class="px-5 py-3 text-center">Cycles / Trips</th>
+                                <th class="px-5 py-3">Avg. Cycle Time</th>
+                                <th class="px-5 py-3 text-right">Total Quantity (BCM)</th>
+                                <th class="px-5 py-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr>
+                                <td class="px-5 py-3 font-bold text-[#468faf]">DMP-104</td>
+                                <td class="px-5 py-3 text-center text-gray-600">24</td>
+                                <td class="px-5 py-3 text-gray-600">12.5 min</td>
+                                <td class="px-5 py-3 font-bold text-right">360</td>
+                                <td class="px-5 py-3"><span
+                                        class="text-[9px] font-bold text-green-700 tracking-widest uppercase">Active</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-5 py-3 font-bold text-[#468faf]">DMP-089</td>
+                                <td class="px-5 py-3 text-center text-gray-600">22</td>
+                                <td class="px-5 py-3 text-gray-600">13.8 min</td>
+                                <td class="px-5 py-3 font-bold text-right">330</td>
+                                <td class="px-5 py-3"><span
+                                        class="text-[9px] font-bold text-green-700 tracking-widest uppercase">Active</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-5 py-3 font-bold text-[#468faf]">DMP-112</td>
+                                <td class="px-5 py-3 text-center text-gray-600">26</td>
+                                <td class="px-5 py-3 text-gray-600">11.2 min</td>
+                                <td class="px-5 py-3 font-bold text-right">390</td>
+                                <td class="px-5 py-3"><span
+                                        class="text-[9px] font-bold text-green-700 tracking-widest uppercase">Active</span>
+                                </td>
+                            </tr>
+                            <tr class="bg-blue-50/30">
+                                <td class="px-5 py-3 font-bold text-[#468faf]">DMP-056</td>
+                                <td class="px-5 py-3 text-center text-gray-600">18</td>
+                                <td class="px-5 py-3 text-gray-600">15.4 min</td>
+                                <td class="px-5 py-3 font-bold text-right">270</td>
+                                <td class="px-5 py-3"><span
+                                        class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase">Delayed</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Supervisor Remarks -->
+            <div class="bg-white border border-gray-200 rounded shadow-sm p-6">
+                <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2 mb-4">
+                    <i class="fas fa-comment-dots text-lg"></i> Shift Supervisor Remarks
+                </h3>
+                <div class="border-l-4 border-[#468faf] pl-4 py-2 mb-6">
+                    <p class="text-sm text-gray-600 italic leading-relaxed">
+                        "Overall production targets met. EX-04 underwent scheduled maintenance after a hydraulic leak
+                        was
+                        identified at 02:00. No safety incidents reported. Fleet mobilization remained steady throughout
+                        the night
+                        despite low visibility during the 03:00 fog event."
+                    </p>
+                </div>
+                <div class="flex justify-between items-end border-t border-gray-100 pt-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded border border-gray-200 bg-gray-50 flex items-center justify-center text-gray-400">
+                            <i class="fas fa-signature"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-[#468faf] text-sm">J. Harrison</div>
+                            <div class="text-xs text-gray-500">Shift Supervisor - Northern Basin</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-[9px] font-bold text-gray-500 tracking-widest uppercase mb-1">Digitally Signed
+                        </div>
+                        <div class="text-xs text-blue-400 font-medium">OCT 24, 2023 06:15 UTC+10</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

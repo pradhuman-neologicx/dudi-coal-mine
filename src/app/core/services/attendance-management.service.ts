@@ -182,7 +182,11 @@ export class AttendanceManagementService {
 
   getAttendance(limit: any, page: any, search: string, fromDate: string, toDate: string, status: string, viewType?: string, month?: string, year?: string): Observable<any> {
     const headers = this.getHeaders().set('Content-Type', 'application/json');
-    let params = new HttpParams().set('limit', String(limit)).set('page', String(page));
+    let params = new HttpParams();
+
+    if (limit !== 'all') {
+      params = params.set('limit', String(limit)).set('page', String(page));
+    }
 
     if (search && search.trim().length > 0) {
       params = params.set('search', search.trim());
@@ -215,9 +219,11 @@ export class AttendanceManagementService {
     return this.apiservice.post('v1/admin/attendance/bulk-upload', formData, this.getHeaders());
   }
 
-  getEmployeeAttendanceDetails(employeeId: string): Observable<any> {
-    const headers = this.getHeaders().set('Content-Type', 'application/json');
-    return this.apiservice.get(`v1/admin/attendance/employee/${employeeId}`, headers);
+  getEmployeeAttendanceDetails(employeeId: string, month?: number, year?: number): Observable<any> {
+    let params = new HttpParams();
+    if (month) params = params.set('month', month.toString());
+    if (year) params = params.set('year', year.toString());
+    return this.apiservice.get(`v1/admin/attendance/employee/${employeeId}`, this.getHeaders(), params);
   }
 
   getAttendanceById(id: string): Observable<any> {

@@ -230,9 +230,9 @@ $border-color: #e2e8f0;
     }
   }
 
-  // Strictly NO scrollbar - content is compact enough to fit perfectly
+  // Allow scrolling if the content gets too long (especially on mobile)
   .payslip-print-container {
-    overflow: hidden !important; /* Disables all scrollbars */
+    overflow-y: auto !important; /* Enable vertical scroll for responsiveness */
     flex: 1 1 auto;
     padding: 16px 20px !important; /* Highly compact padding */
   }

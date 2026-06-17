@@ -1,0 +1,230 @@
+.dashboard-wrapper {
+    padding: 10px;
+    // background-color: #f4f6f9;
+    min-height: 100%;
+}
+
+/* Header */
+.dashboard-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a2b3c;
+    margin-bottom: 4px;
+}
+
+.dashboard-subtitle {
+    font-size: 14px;
+    color: #6b7c93;
+    margin-bottom: 0;
+}
+
+.date-badge {
+    background: #fff;
+    border: 1px solid #e0e6ed;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    color: #6b7c93;
+    font-weight: 500;
+}
+
+/* Section label */
+.section-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #6b7c93;
+    display: flex;
+    align-items: center;
+}
+
+/* Quick Action Cards */
+.quick-card {
+    border-radius: 14px;
+    padding: 20px 16px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 130px;
+
+    &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    &::before {
+        content: '';
+        position: absolute;
+        top: -20px;
+        right: -20px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+    }
+}
+
+.quick-card-icon {
+    font-size: 26px;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.quick-card-content {
+    h5 {
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+
+    p {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 12px;
+        margin: 0;
+        line-height: 1.4;
+    }
+}
+
+.quick-card-arrow {
+    position: absolute;
+    bottom: 14px;
+    right: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    transition: transform 0.2s;
+}
+
+.quick-card:hover .quick-card-arrow {
+    transform: translateX(4px);
+}
+
+/* Module Cards */
+.module-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+
+    &:hover {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    }
+}
+
+.module-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-left: 4px solid #468faf;
+    background: #fafbfc;
+    border-bottom: 1px solid #f0f2f5;
+}
+
+.module-icon {
+    font-size: 18px;
+}
+
+.module-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a2b3c;
+    margin: 0;
+}
+
+.module-items {
+    padding: 4px 0;
+}
+
+.module-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid #f5f7fa;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &:hover {
+        background: #f4f6f9;
+
+        .module-item-arrow {
+            opacity: 1;
+            transform: translateX(3px);
+        }
+    }
+}
+
+.module-item-icon {
+    font-size: 14px;
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.module-item-label {
+    font-size: 13px;
+    color: #3a4a5c;
+    font-weight: 500;
+    flex: 1;
+}
+
+.module-item-arrow {
+    font-size: 11px;
+    color: #aab4c0;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+/* Operations - 2 column grid layout */
+.module-items-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    .module-item {
+        border-right: 1px solid #f5f7fa;
+
+        &:nth-child(even) {
+            border-right: none;
+        }
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .module-items-grid {
+        grid-template-columns: 1fr;
+
+        .module-item {
+            border-right: none;
+        }
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-wrapper {
+        padding: 16px;
+    }
+
+    .quick-card {
+        min-height: 110px;
+    }
+
+    .quick-card-content h5 {
+        font-size: 13px;
+    }
+
+    .quick-card-content p {
+        display: none;
+    }
+}

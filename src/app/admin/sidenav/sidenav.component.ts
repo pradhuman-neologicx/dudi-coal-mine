@@ -52,13 +52,19 @@ export class SidenavComponent {
     this.roles = this.jwtService.getadmiRole();
     this.menuItems = [];
 
-    if (this.roles == 'admin') {
+    if (this.roles == 'admin' || this.roles == 'System-Administrator') {
       this.menuItems = [
         {
           index: 1,
           icon: 'home',
           label: 'Dashboard',
           route: 'dashboard',
+        },
+        {
+          index: 111,
+          icon: 'home',
+          label: 'Dashboard 2',
+          route: 'dashboard2',
         },
         {
           index: 2,
@@ -96,12 +102,12 @@ export class SidenavComponent {
               label: 'Leave Type',
               route: '/admin/master/leave-type',
             },
-            {
-              index: 6,
-              icon: 'payments',
-              label: 'Salary Structure',
-              route: '/admin/master/salary-structure',
-            },
+            // {
+            //   index: 6,
+            //   icon: 'payments',
+            //   label: 'Salary Structure',
+            //   route: '/admin/master/salary-structure',
+            // },
             {
               index: 7,
               icon: 'celebration',
@@ -176,12 +182,7 @@ export class SidenavComponent {
             }
           ]
         },
-        // {
-        //   index: 8,
-        //   icon: 'inventory',
-        //   label: 'Equipment Mgt.',
-        //   route: '/admin/equipment-management',
-        // },
+
         {
           index: 9,
           icon: 'store',
@@ -240,32 +241,90 @@ export class SidenavComponent {
         //     // }
         //   ]
         // },
+        // {
+        //   index: 11,
+        //   icon: 'local_shipping',
+        //   label: 'Vehicle Management',
+        //   route: '/admin/vehicle-management',
+        //   subItems: [
+        //     {
+        //       index: 1,
+        //       icon: 'directions_car',
+        //       label: 'Vehicle Master',
+        //       route: '/admin/vehicle-management/vehicle-master',
+        //     },
+        //     {
+        //       index: 2,
+        //       icon: 'local_taxi',
+        //       label: 'Vehicle',
+        //       route: '/admin/vehicle-management/vehicles',
+        //     },
+        //     {
+        //       index: 3,
+        //       icon: 'person_pin',
+        //       label: 'Driver Mapping',
+        //       route: '/admin/vehicle-management/driver-mapping',
+        //     },
+
+
+        //   ]
+        // },
         {
           index: 11,
           icon: 'local_shipping',
           label: 'Equipment Management',
-          route: '/admin/vehicle-management',
+          route: '/admin/equipment-management',
           subItems: [
             {
               index: 1,
               icon: 'directions_car',
               label: 'Equipment Master',
-              route: '/admin/vehicle-management/vehicle-master',
+              route: '/admin/equipment-management/equipment-master',
             },
             {
               index: 2,
               icon: 'local_taxi',
               label: 'Equipments',
-              route: '/admin/vehicle-management/vehicles',
+              route: '/admin/equipment-management/equipments',
             },
-            // {
-            //   index: 3,
-            //   icon: 'person_pin',
-            //   label: 'Driver Mapping',
-            //   route: '/admin/vehicle-management/driver-mapping',
-            // },
-
-
+          ]
+        },
+        {
+          index: 12,
+          icon: 'engineering',
+          label: 'Operations',
+          route: '/admin/operations',
+          subItems: [
+            {
+              index: 1,
+              icon: 'build',
+              label: 'Breakdown & Maintenance',
+              route: '/admin/breakdown-and-maintenance',
+            },
+            {
+              index: 2,
+              icon: 'local_gas_station',
+              label: 'Fuel Mgt.',
+              route: '/admin/fuel-mgt',
+            },
+            {
+              index: 3,
+              icon: 'report_problem',
+              label: 'Delay Report',
+              route: '/admin/delay-report',
+            },
+            {
+              index: 4,
+              icon: 'schedule',
+              label: 'Shift Mgt.',
+              route: '/admin/shift-mgt',
+            },
+            {
+              index: 5,
+              icon: 'health_and_safety',
+              label: 'Safety Management',
+              route: '/admin/safety-management',
+            }
           ]
         },
 

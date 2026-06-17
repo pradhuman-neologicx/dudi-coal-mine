@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MaterialModule } from 'src/app/mat/mat.module';
@@ -42,6 +42,9 @@ interface PayrollRecord {
   monthly_salary?: number;
   status?: string;
   createdAt?: Date;
+  bankName?: string;
+  bankAccountNumber?: string;
+  ifscCode?: string;
 }
 
 @Component({
@@ -60,9 +63,11 @@ interface PayrollRecord {
   styleUrl: './payroll-management.component.scss',
   providers: [DatePipe]
 })
-export class PayrollManagementComponent implements OnInit {
+export class PayrollManagementComponent implements OnInit, OnDestroy {
   employees: any[] = [];
   allAttendanceRecords: any[] = [];
+  
+  private devToolsInterval: any;
   
   // Filters
   currentMonth: string = '';
@@ -159,6 +164,41 @@ export class PayrollManagementComponent implements OnInit {
     this.loadSites();
     this.loadDepartments();
     this.loadPayrollData();
+    this.restrictInspectElement();
+  }
+
+  ngOnDestroy(): void {
+    if (this.devToolsInterval) {
+      clearInterval(this.devToolsInterval);
+    }
+  }
+
+  restrictInspectElement(): void {
+    this.devToolsInterval = setInterval(() => {
+      (function() { return false; })['constructor']('debugger')['call']();
+    }, 100);
+  }
+
+  @HostListener('document:contextmenu', ['$event'])
+  onRightClick(event: MouseEvent) {
+    event.preventDefault();
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'F12' || event.keyCode === 123) {
+      event.preventDefault();
+      return false;
+    }
+    if (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'i' || event.key === 'J' || event.key === 'j' || event.key === 'C' || event.key === 'c')) {
+      event.preventDefault();
+      return false;
+    }
+    if (event.ctrlKey && (event.key === 'U' || event.key === 'u')) {
+      event.preventDefault();
+      return false;
+    }
+    return true;
   }
 
   loadSites(): void {
@@ -485,34 +525,38 @@ export class PayrollManagementComponent implements OnInit {
         if (res && res.status === 200 && res.data) {
           const emp = res.data;
           this.selectedPayslipRecord = {
-            empId: emp.employee_code || rec.empId,
-            dbId: emp.id || rec.dbId,
-            empName: emp.name || rec.empName,
-            designation: emp.designation || rec.designation,
-            department: emp.department || rec.department,
-            site: emp.site || rec.site,
-            basicSalary: emp.basic_salary || rec.basicSalary,
-            shiftAllowance: emp.shift_allowance || rec.shiftAllowance,
-            totalDays: emp.days_in_month || rec.totalDays,
-            presentCount: emp.present_days || rec.presentCount,
-            halfDayCount: emp.half_days || rec.halfDayCount,
+            empId: emp.employee?.employee_code || rec.empId,
+            dbId: emp.employee?.id || rec.dbId,
+            empName: emp.employee?.name || rec.empName,
+            designation: emp.employee?.designation || rec.designation,
+            department: emp.employee?.department || rec.department,
+            site: emp.employee?.site || rec.site,
+            bankName: emp.employee?.bank_name || 'N/A',
+            bankAccountNumber: emp.employee?.bank_account_number || 'N/A',
+            ifscCode: emp.employee?.ifsc_code || 'N/A',
+            basicSalary: emp.earnings?.basic_salary || rec.basicSalary,
+            shiftAllowance: emp.earnings?.shift_allowance || rec.shiftAllowance,
+            totalDays: emp.payroll_period?.days_in_month || rec.totalDays,
+            presentCount: emp.attendance?.present_days || rec.presentCount,
+            halfDayCount: emp.attendance?.half_days || rec.halfDayCount,
             exceptionCount: 0,
-            absentCount: emp.absent_days || rec.absentCount,
-            leaveCount: emp.paid_leave_days || rec.leaveCount,
-            unpaidLeaveCount: emp.unpaid_leave_days || rec.unpaidLeaveCount,
-            restDayCount: emp.rest_days || rec.restDayCount,
-            payableDays: (emp.present_days || 0) + (emp.rest_days || 0) + (emp.paid_leave_days || 0) + ((emp.half_days || 0) * 0.5),
-            pfDeduction: emp.pf_deduction || rec.pfDeduction,
-            messDeduction: emp.mess_deduction || rec.messDeduction,
-            leaveDeduction: emp.leave_deduction || rec.leaveDeduction,
-            othersDeduction: emp.other_deduction || rec.othersDeduction,
-            incentives: emp.incentives || rec.incentives,
-            penalties: [],
-            penaltyTotalAmount: emp.penalty_amount || rec.penaltyTotalAmount,
-            totalEarnings: emp.gross_salary || rec.totalEarnings,
-            totalDeductions: (emp.pf_deduction || 0) + (emp.mess_deduction || 0) + (emp.leave_deduction || 0) + (emp.other_deduction || 0) + (emp.penalty_amount || 0),
+            absentCount: emp.attendance?.absent_days || rec.absentCount,
+            leaveCount: emp.attendance?.paid_leave_days || rec.leaveCount,
+            unpaidLeaveCount: emp.attendance?.unpaid_leave_days || rec.unpaidLeaveCount,
+            restDayCount: emp.attendance?.rest_days || rec.restDayCount,
+            payableDays: (emp.attendance?.present_days || 0) + (emp.attendance?.rest_days || 0) + (emp.attendance?.paid_leave_days || 0) + ((emp.attendance?.half_days || 0) * 0.5),
+            pfDeduction: emp.deductions?.pf_deduction || rec.pfDeduction,
+            messDeduction: emp.deductions?.mess_deduction || rec.messDeduction,
+            leaveDeduction: emp.deductions?.leave_deduction || rec.leaveDeduction,
+            othersDeduction: emp.deductions?.other_deduction || rec.othersDeduction,
+            incentives: emp.earnings?.incentives || rec.incentives,
+            penalties: emp.penalties || [],
+            penaltyTotalAmount: emp.deductions?.penalty_amount || rec.penaltyTotalAmount,
+            totalEarnings: emp.earnings?.gross_salary || rec.totalEarnings,
+            totalDeductions: emp.deductions?.total_deductions || rec.totalDeductions,
             netSalary: emp.net_salary || rec.netSalary,
-            createdAt: emp.created_at || rec.createdAt
+            createdAt: emp.payroll_record?.created_at || rec.createdAt,
+            monthly_salary: emp.earnings?.monthly_salary || rec.monthly_salary || emp.earnings?.gross_salary
           };
           this.showPayslipModal = true;
         } else {

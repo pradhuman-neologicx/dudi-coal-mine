@@ -455,12 +455,12 @@
     <!-- Payslip View Area (This is targeted by @media print) -->
     <div id="payslip-print-section" class="modal-body p-5 payslip-print-container">
       <!-- Payslip Header -->
-      <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom-double header-branding">
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 pb-3 border-bottom-double header-branding gap-3">
         <!-- Brand Logo Only -->
         <img src="assets/logo.png" alt="Coal Mine Logo" class="payslip-logo"
           style="height: 60px; max-height: 70px; object-fit: contain;">
         <!-- Statement Month -->
-        <div class="text-end">
+        <div class="text-start text-sm-end">
           <span class="statement-month fw-bold text-secondary"
             style="font-size: 1.1rem; font-family: 'Montserrat', sans-serif;">{{ formatMonthName(currentMonth) }}</span>
         </div>
@@ -503,12 +503,12 @@
             <span class="detail-label text-muted uppercase fw-bold"
               style="font-size: 0.725rem; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">BANK ACCOUNT
               NO</span>
-            <span class="detail-value fw-bold text-dark fs-6">SBI 30291039201</span>
+            <span class="detail-value fw-bold text-dark fs-6">{{ selectedPayslipRecord.bankName }} {{ selectedPayslipRecord.bankAccountNumber }}</span>
           </div>
           <div>
             <span class="detail-label text-muted uppercase fw-bold"
               style="font-size: 0.725rem; letter-spacing: 0.05em; display: block; margin-bottom: 2px;">IFSC CODE</span>
-            <span class="detail-value fw-bold text-dark fs-6">SBIN0003029</span>
+            <span class="detail-value fw-bold text-dark fs-6">{{ selectedPayslipRecord.ifscCode }}</span>
           </div>
         </div>
       </div>
@@ -591,14 +591,13 @@
       </div>
 
       <!-- Net Salary Block -->
-      <div class="p-3 border rounded-3 d-flex justify-content-between align-items-center mb-4 net-salary-box">
+      <div class="p-3 border rounded-3 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 net-salary-box gap-3">
         <div>
           <h5 class="mb-0 fw-bold uppercase net-salary-title">NET SALARY PAYOUT</h5>
           <span class="text-secondary fs-8 fw-semibold">Transferred electronically to bank account</span>
         </div>
-        <div class="text-end">
-          <h2 class="mb-0 fw-extrabold net-salary-amount">₹{{ (selectedPayslipRecord.basicSalary -
-            selectedPayslipRecord.totalDeductions).toLocaleString() }}</h2>
+        <div class="text-start text-sm-end">
+          <h2 class="mb-0 fw-extrabold net-salary-amount">₹{{ selectedPayslipRecord.netSalary.toLocaleString() }}</h2>
         </div>
       </div>
 

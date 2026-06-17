@@ -1,0 +1,360 @@
+<div class="px-2 bg-[#f0f2f5] min-h-screen font-sans">
+  <!-- Header -->
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 mb-1">Asset Health & Reliability</h1>
+      <p class="text-gray-500 text-sm">Real-time breakdown monitoring and maintenance scheduling.</p>
+    </div>
+    <button (click)="openModal()" class="btn-custom-primary flex items-center gap-2 rounded px-4 py-2 border-0">
+      <i class="fas fa-plus"></i> Breakdown & Maintenance Entry
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+    <!-- Card 1 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm relative overflow-hidden">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        OPEN TICKETS
+        <span class="text-red-500 border border-red-500 rounded px-[4px] py-[1px]"><i
+            class="fas fa-exclamation"></i></span>
+      </div>
+      <div class="text-4xl font-bold text-gray-900 mb-2">4</div>
+      <div class="text-xs font-medium text-red-500 flex items-center gap-1">
+        <i class="fas fa-arrow-trend-up"></i> +1 vs Yesterday
+      </div>
+      <!-- Decorative icon in background -->
+      <div class="absolute -right-3 -bottom-3 text-gray-100 opacity-50 text-7xl">
+        <i class="fas fa-clipboard-list"></i>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        CLOSED TODAY
+        <span class="text-green-600 border border-green-600 rounded-full px-[3px] py-[1px]"><i
+            class="fas fa-check"></i></span>
+      </div>
+      <div class="text-4xl font-bold text-gray-900 mb-2">2</div>
+      <div class="text-xs font-medium text-green-600 flex items-center gap-1">
+        <i class="fas fa-check-circle"></i> On Target
+      </div>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        TOTAL DOWNTIME
+        <span class="text-gray-600"><i class="far fa-clock text-lg"></i></span>
+      </div>
+      <div class="text-4xl font-bold text-gray-900 mb-2">12h</div>
+      <div class="text-xs font-medium text-gray-500 flex items-center gap-1">
+        <i class="fas fa-info-circle"></i> Shift B Accumulated
+      </div>
+    </div>
+
+    <!-- Card 4 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        MTTR (AVG)
+        <span class="text-blue-400"><i class="fas fa-tachometer-alt text-lg"></i></span>
+      </div>
+      <div class="text-4xl font-bold text-gray-900 mb-2">3.5h</div>
+      <div class="text-xs font-medium text-green-600 flex items-center gap-1">
+        <i class="fas fa-arrow-trend-down"></i> -12% Optimization
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <div class="bg-white rounded border border-gray-200 shadow-sm">
+    <!-- Table Header / Tabs -->
+    <div class="flex justify-between items-center border-b border-gray-200 px-4 py-3">
+      <h2 class="text-lg font-bold text-[#0f2a4a] ml-2">All Tickets</h2>
+      <div class="flex items-center gap-4 text-gray-600">
+        <button (click)="toggleFilter()" class="hover:text-[var(--primary-color)] focus:outline-none transition-colors"
+          [ngClass]="{'text-[var(--primary-color)]': isFilterOpen}"><i class="fas fa-filter text-lg"></i></button>
+        <button routerLink="/admin/breakdown-and-maintenance/report" class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-semibold py-1.5 px-4 rounded flex items-center gap-2 transition-colors">
+          <i class="fas fa-file-alt"></i> Report
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Panel -->
+    <div *ngIf="isFilterOpen" class="bg-gray-50 border-b border-gray-200 px-4 py-3 flex gap-4 items-end transition-all">
+      <div class="flex-1">
+        <label class="block text-xs font-bold text-gray-500 mb-1 tracking-wide">CATEGORY</label>
+        <select
+          class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]"
+          [(ngModel)]="selectedCategory">
+          <option value="">All Categories</option>
+          <option value="HYDRAULIC">Hydraulic</option>
+          <option value="MECHANICAL">Mechanical</option>
+          <option value="ELECTRICAL">Electrical</option>
+        </select>
+      </div>
+      <div class="flex-1">
+        <label class="block text-xs font-bold text-gray-500 mb-1 tracking-wide">PRIORITY</label>
+        <select
+          class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]"
+          [(ngModel)]="selectedPriority">
+          <option value="">All Priorities</option>
+          <option value="CRITICAL">Critical</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+      </div>
+      <div class="flex-1">
+        <label class="block text-xs font-bold text-gray-500 mb-1 tracking-wide">STATUS</label>
+        <select
+          class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]"
+          [(ngModel)]="selectedStatus">
+          <option value="">All Statuses</option>
+          <option value="OPEN">Open</option>
+          <option value="IN PROGRESS">In Progress</option>
+          <option value="CLOSED">Closed</option>
+        </select>
+      </div>
+      <div class="flex-1">
+        <label class="block text-xs font-bold text-gray-500 mb-1 tracking-wide">SHIFT</label>
+        <select
+          class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]"
+          [(ngModel)]="selectedShift">
+          <option value="">All Shifts</option>
+          <option value="A (Day)">A (Day)</option>
+          <option value="B (Night)">B (Night)</option>
+          <option value="C (Swing)">C (Swing)</option>
+        </select>
+      </div>
+      <div>
+        <button (click)="clearFilters()"
+          class="px-4 py-1.5 bg-gray-200 text-gray-700 rounded text-sm font-bold hover:bg-gray-300 transition-colors h-[34px]">Clear</button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm text-gray-600">
+        <thead class="text-xs text-gray-500 uppercase font-bold border-b border-gray-200 bg-gray-50/50">
+          <tr>
+            <th class="px-4 py-4 font-bold">TICKET NO</th>
+            <th class="px-4 py-4 font-bold">MACHINE</th>
+            <th class="px-4 py-4 font-bold">BREAKDOWN TIME</th>
+            <th class="px-4 py-4 font-bold">SHIFT</th>
+            <th class="px-4 py-4 font-bold">CATEGORY</th>
+            <th class="px-4 py-4 font-bold">PRIORITY</th>
+            <th class="px-4 py-4 font-bold">STATUS</th>
+            <th class="px-4 py-4 font-bold text-right">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let ticket of filteredTickets" class="hover:bg-gray-50">
+            <td class="px-4 py-5 font-medium text-gray-800 whitespace-nowrap">{{ticket.ticketNo}}</td>
+            <td class="px-4 py-5">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-gray-100 flex items-center justify-center text-gray-600">
+                  <i *ngIf="ticket.machineType === 'excavator'" class="fas fa-tractor"></i>
+                  <i *ngIf="ticket.machineType === 'dump-truck'" class="fas fa-truck-monster"></i>
+                  <i *ngIf="ticket.machineType === 'dozer'" class="fas fa-hammer"></i>
+                </div>
+                <span class="font-bold text-gray-900 text-[15px]">{{ticket.machineId}}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 text-gray-600">{{ticket.breakdownTime}}</td>
+            <td class="px-6 py-4 text-gray-600">{{ticket.shift}}</td>
+            <td class="px-6 py-4 text-gray-600">
+              <span class="bg-[#eef2f6] text-[#42618a] text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap">
+                {{ticket.category}}
+              </span>
+            </td>
+            <td class="px-4 py-5">
+              <div class="flex items-center gap-1.5 font-bold text-xs uppercase"
+                [ngClass]="{'text-red-600': ticket.priority === 'CRITICAL', 'text-green-600': ticket.priority === 'MEDIUM', 'text-[#7da9d1]': ticket.priority === 'HIGH'}">
+                <div class="w-2 h-2 rounded-full"
+                  [ngClass]="{'bg-red-600': ticket.priority === 'CRITICAL', 'bg-green-600': ticket.priority === 'MEDIUM', 'bg-[#7da9d1]': ticket.priority === 'HIGH'}">
+                </div>
+                {{ticket.priority}}
+              </div>
+            </td>
+            <td class="px-4 py-5">
+              <span class="text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap uppercase tracking-wider"
+                [ngClass]="{
+                      'bg-red-100 text-red-600': ticket.status === 'OPEN', 
+                      'bg-[#e2e8f0] text-[#475569]': ticket.status === 'IN PROGRESS', 
+                      'bg-green-200 text-green-700': ticket.status === 'CLOSED'}">
+                {{ticket.status}}
+              </span>
+            </td>
+            <td class="px-4 py-5 text-right">
+              <button (click)="openModal()" class="text-gray-400 hover:text-blue-600 transition-colors"
+                title="Edit Entry">
+                <i class="fas fa-edit text-lg"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer / Pagination -->
+    <div class="flex justify-between items-center px-4 py-3 border-t border-gray-200">
+      <div class="text-xs font-bold text-gray-500 tracking-wide">
+        SHOWING {{filteredTickets.length}} OF 48 TICKETS
+      </div>
+      <div class="flex items-center space-x-1">
+        <button
+          class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50">
+          <i class="fas fa-chevron-left text-xs"></i>
+        </button>
+        <button class="w-8 h-8 flex items-center justify-center rounded bg-custom-primary text-white font-bold">
+          1
+        </button>
+        <button
+          class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 font-bold hover:bg-gray-50">
+          2
+        </button>
+        <button
+          class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50">
+          <i class="fas fa-chevron-right text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div *ngIf="isModalOpen"
+    class="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center font-sans overflow-y-auto py-10">
+    <!-- Modal Content -->
+    <div class="bg-white w-full max-w-3xl rounded shadow-2xl overflow-hidden relative">
+      <!-- Header -->
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
+        <div class="flex items-center gap-2 text-[#0f2a4a] font-bold tracking-wide">
+          <i class="fas fa-exclamation-triangle text-lg"></i>
+          BREAKDOWN & MAINTENANCE ENTRY
+        </div>
+        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
+          <i class="fas fa-times text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="px-6 py-6 space-y-4 max-h-[70vh] overflow-y-auto">
+
+        <!-- Section 1: Equipment Info -->
+        <section>
+          <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-4">Equipment Information</h3>
+          <div class="grid grid-cols-2 gap-6">
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Machine Name</label>
+              <select
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+                <option value="">Select Asset Type</option>
+                <option value="excavator">Excavator</option>
+                <option value="dump-truck">Dump Truck</option>
+                <option value="dozer">Dozer</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Machine Number</label>
+              <input type="text" placeholder="E.G. EX-204-N"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+            </div>
+          </div>
+        </section>
+
+        <hr class="border-gray-200">
+
+        <!-- Section 2: Breakdown Event -->
+        <section>
+          <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-4">Breakdown Event</h3>
+          <div class="grid grid-cols-3 gap-6 mb-4">
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Date & Time of Breakdown</label>
+              <input type="datetime-local"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Shift</label>
+              <select class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+                  <option value="">Select Shift</option>
+                  <option value="A (Day)">A (Day)</option>
+                  <option value="B (Night)">B (Night)</option>
+                  <option value="C (Swing)">C (Swing)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Reported By</label>
+              <div class="relative">
+                <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+                <input type="text" placeholder="Search operator name..."
+                  class="w-full border border-gray-300 rounded pl-9 pr-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-gray-700 mb-1">Problem Description</label>
+            <textarea rows="3" placeholder="Describe the mechanical or electrical fault in detail..."
+              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)] resize-none"></textarea>
+          </div>
+        </section>
+
+        <hr class="border-gray-200">
+
+        <!-- Section 3: Maintenance Window -->
+        <section>
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Maintenance Window</h3>
+            <div
+              class="flex items-center gap-2 bg-blue-50 text-blue-800 text-xs font-semibold px-3 py-1 rounded border border-blue-200">
+              <i class="far fa-clock"></i>
+              Total Down Time: <span class="bg-white px-1 border border-blue-200 rounded">4.5</span> Hours
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-6 mb-4">
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Repair Start Time</label>
+              <input type="datetime-local"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Repair End Time</label>
+              <input type="datetime-local"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+            </div>
+          </div>
+          <div class="mb-6">
+            <label class="block text-[11px] font-bold text-gray-700 mb-1">Action Taken</label>
+            <textarea rows="3"
+              placeholder="Document the steps taken to resolve the issue (e.g. replaced hydraulic hose)..."
+              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)] resize-none"></textarea>
+          </div>
+
+          <!-- Alert -->
+          <div class="bg-red-50 border border-red-200 rounded p-4 flex items-start gap-3">
+            <i class="fas fa-exclamation-triangle text-red-600 mt-0.5"></i>
+            <div>
+              <h4 class="text-xs font-bold text-red-700 mb-0.5">Safety Critical Notification</h4>
+              <p class="text-xs text-red-600">Submitting this entry will flag Asset <span
+                  class="font-bold">EX-204-N</span> as 'Out of Service' across the Production and Shift Planning
+                modules.</p>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end items-center gap-4">
+        <button (click)="closeModal()"
+          class="text-xs font-bold text-gray-500 hover:text-gray-800 transition-colors tracking-widest uppercase">Cancel</button>
+        <button
+          class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold px-6 py-2.5 rounded flex items-center gap-2 transition-colors uppercase tracking-widest shadow">
+          <i class="fas fa-save"></i> Submit Entry
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

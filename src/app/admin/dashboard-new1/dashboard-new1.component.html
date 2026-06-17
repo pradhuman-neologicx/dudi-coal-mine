@@ -1,0 +1,101 @@
+<div class="dashboard-wrapper">
+
+    <!-- Page Header -->
+    <div class="dashboard-header mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <h1 class="dashboard-title">Dashboard</h1>
+                <p class="dashboard-subtitle">Welcome back! Here's your quick overview.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="date-badge">
+                    <i class="fa-regular fa-calendar me-1"></i>
+                    {{ todayStr }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Action Cards -->
+    <div class="section-label mb-3">
+        <i class="fa-solid fa-bolt me-2"></i> Quick Actions
+    </div>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3" *ngFor="let card of quickCards">
+            <div class="quick-card" [style.background]="card.bg" (click)="navigate(card.route)">
+                <div class="quick-card-icon">
+                    <i [class]="card.icon"></i>
+                </div>
+                <div class="quick-card-content">
+                    <h5>{{ card.title }}</h5>
+                    <p>{{ card.description }}</p>
+                </div>
+                <div class="quick-card-arrow">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Module Sections -->
+    <div class="section-label mb-3">
+        <i class="fa-solid fa-th-large me-2"></i> All Modules
+    </div>
+
+    <!-- Row 1: Workforce + Operations (wide) -->
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-md-4">
+            <div class="module-card" *ngIf="modules[0]">
+                <div class="module-card-header" [style.border-left-color]="modules[0].color">
+                    <span class="module-icon" [style.color]="modules[0].color"><i [class]="modules[0].icon"></i></span>
+                    <h6 class="module-title">{{ modules[0].title }}</h6>
+                </div>
+                <div class="module-items">
+                    <div class="module-item" *ngFor="let item of modules[0].items" (click)="navigate(item.route)">
+                        <span class="module-item-icon" [style.color]="modules[0].color"><i
+                                [class]="item.icon"></i></span>
+                        <span class="module-item-label">{{ item.label }}</span>
+                        <i class="fa-solid fa-chevron-right module-item-arrow"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-8">
+            <div class="module-card" *ngIf="modules[1]">
+                <div class="module-card-header" [style.border-left-color]="modules[1].color">
+                    <span class="module-icon" [style.color]="modules[1].color"><i [class]="modules[1].icon"></i></span>
+                    <h6 class="module-title">{{ modules[1].title }}</h6>
+                </div>
+                <div class="module-items module-items-grid">
+                    <div class="module-item" *ngFor="let item of modules[1].items" (click)="navigate(item.route)">
+                        <span class="module-item-icon" [style.color]="modules[1].color"><i
+                                [class]="item.icon"></i></span>
+                        <span class="module-item-label">{{ item.label }}</span>
+                        <i class="fa-solid fa-chevron-right module-item-arrow"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 2: Equipment + Employee + Inventory + Training -->
+    <div class="row g-3">
+        <div class="col-12 col-md-3" *ngFor="let module of modules | slice:2">
+            <div class="module-card">
+                <div class="module-card-header" [style.border-left-color]="module.color">
+                    <span class="module-icon" [style.color]="module.color"><i [class]="module.icon"></i></span>
+                    <h6 class="module-title">{{ module.title }}</h6>
+                </div>
+                <div class="module-items">
+                    <div class="module-item" *ngFor="let item of module.items" (click)="navigate(item.route)">
+                        <span class="module-item-icon" [style.color]="module.color"><i [class]="item.icon"></i></span>
+                        <span class="module-item-label">{{ item.label }}</span>
+                        <i class="fa-solid fa-chevron-right module-item-arrow"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

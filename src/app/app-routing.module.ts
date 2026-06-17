@@ -40,6 +40,10 @@ import { FuelComponent } from './admin/fuel/fuel.component';
 import { FuelStationsComponent } from './admin/fuel/fuel-stations/fuel-stations.component';
 import { FuelManagementComponent } from './admin/fuel/fuel-management/fuel-management.component';
 import { AttendanceDetailComponent } from './admin/attendance-management/attendance-detail/attendance-detail.component';
+import { DashboardNewComponent } from './admin/dashboard-new/dashboard-new.component';
+import { DelayReportComponent } from './admin/delay-report/delay-report.component';
+import { FuelMgtComponent } from './admin/fuel-mgt/fuel-mgt.component';
+import { DashboardNew1Component } from './admin/dashboard-new1/dashboard-new1.component';
 
 const routes: Routes = [
   {
@@ -65,7 +69,12 @@ const routes: Routes = [
       { path: '', redirectTo: 'DashboardComponent', pathMatch: 'full' },
       {
         path: 'dashboard',
-        component: DashboardComponent,
+        component: DashboardNewComponent,
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'dashboard2',
+        component: DashboardNew1Component,
         canActivate: [AuthGuard],
       },
 
@@ -126,6 +135,11 @@ const routes: Routes = [
         path: 'equipment-management',
         component: EquipmentManagementComponent,
         canActivate: [AuthGuard],
+        children: [
+          { path: '', redirectTo: 'equipment-master', pathMatch: 'full' },
+          { path: 'equipment-master', loadComponent: () => import('./admin/equipment-management/equipment-master/equipment-master.component').then(m => m.EquipmentMasterComponent) },
+          { path: 'equipments', loadComponent: () => import('./admin/equipment-management/equipments/equipments.component').then(m => m.EquipmentsComponent) }
+        ]
       },
       {
         path: 'inventory-management/categories',
@@ -191,6 +205,61 @@ const routes: Routes = [
       {
         path: 'training-management',
         component: TrainingManagementComponent,
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'breakdown-and-maintenance',
+        loadComponent: () => import('./admin/breakdown-and-maintenance/breakdown-and-maintenance.component').then(m => m.BreakdownAndMaintenanceComponent),
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'breakdown-and-maintenance/report',
+        loadComponent: () => import('./admin/breakdown-and-maintenance/report/report.component').then(m => m.ReportComponent),
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'fuel-mgt',
+        component: FuelMgtComponent,
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'fuel-mgt/report',
+        component: FuelMgtComponent,
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'delay-report',
+        component: DelayReportComponent,
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'shift-mgt',
+        loadComponent: () => import('./admin/shift-mgt/shift-mgt.component').then(m => m.ShiftMgtComponent),
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'shift-mgt/add',
+        loadComponent: () => import('./admin/shift-mgt/shift-add/shift-add.component').then(m => m.ShiftAddComponent),
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'shift-mgt/edit/:id',
+        loadComponent: () => import('./admin/shift-mgt/shift-add/shift-add.component').then(m => m.ShiftAddComponent),
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'shift-mgt/summary/:id',
+        loadComponent: () => import('./admin/shift-mgt/shift-summery/shift-summery.component').then(m => m.ShiftSummeryComponent),
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'safety-management',
+        loadComponent: () => import('./admin/safety-management/safety-management.component').then(m => m.SafetyManagementComponent),
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'safety-management/report',
+        loadComponent: () => import('./admin/safety-management/report/report.component').then(m => m.ReportComponent),
         canActivate: [AuthGuard],
       },
       {

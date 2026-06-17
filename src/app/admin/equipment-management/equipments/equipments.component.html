@@ -1,0 +1,118 @@
+<div class="container mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+    <h1 class="text-primary table-heading-detail">Equipments</h1>
+    <div>
+      <button class="btn btn-custom-primary px-4 py-2 me-2" (click)="openAddModal()">
+        Add Equipment
+      </button>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm table-card px-4 py-4">
+    <!-- Top Controls: Show Entries & Advanced Filters -->
+    <div class="row align-items-center mb-3 g-2">
+      <div class="col-md-2 d-flex align-items-center">
+        <span class="me-1">Show</span>
+        <select class="form-select form-control mx-1" style="width: auto;" (change)="onTableSizeChange($event)">
+          <option *ngFor="let size of tableSizes" [ngValue]="size">{{ size }}</option>
+        </select>
+        <span class="ms-1">entries</span>
+      </div>
+
+      <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">
+        <select class="form-select form-control" [(ngModel)]="filterCategory" (change)="onFilterChange()" style="width: 200px;">
+          <option value="">All Master Categories</option>
+          <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+        </select>
+
+        <div class="d-flex align-items-center ms-2">
+          <input type="text" class="form-control" placeholder="Search Equipment..." [(ngModel)]="filterSearch" autocomplete="off" (keyup)="onFilterChange()" />
+          <button class="btn btn-primary ms-2" (click)="onFilterChange()">
+            <i class="fa-solid fa-magnifying-glass text-white"></i>
+          </button>
+          <button class="btn btn-secondary ms-2" (click)="resetFilter()" type="button" *ngIf="filterSearch || filterCategory">
+            <i class="fa-solid fa-rotate-right text-white"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards View -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-2">
+      <div class="col" *ngFor="let eq of filteredEquipments | paginate : { itemsPerPage: tableSize, currentPage: page, totalItems: totalRecords }; index as i">
+        <div class="card h-100 shadow-sm border-0 table-card p-3">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h5 class="card-title fw-bold text-primary mb-1">{{ eq.name }}</h5>
+                <span class="badge bg-secondary">{{ eq.categoryName }}</span>
+              </div>
+              <span class="badge" [ngClass]="eq.isActive ? 'bg-success' : 'bg-danger'">
+                {{ eq.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <div class="mt-auto d-flex justify-content-between align-items-center">
+              <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(eq)">
+                <i class="fa-solid fa-edit me-1"></i> Edit
+              </button>
+              <button class="btn btn-sm" [ngClass]="eq.isActive ? 'btn-outline-danger' : 'btn-outline-success'" (click)="toggleActiveStatus(eq)">
+                <i class="fa-solid" [ngClass]="eq.isActive ? 'fa-ban' : 'fa-check-circle'"></i>
+                {{ eq.isActive ? 'Deactivate' : 'Activate' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-12 text-center py-4 text-muted" *ngIf="filteredEquipments.length === 0">
+        No equipment found.
+      </div>
+    </div>
+
+      <div class="d-md-flex justify-content-between align-items-center mt-3">
+        <span>
+          Showing {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : (totalRecords > 0 ? 1 : 0) }} 
+          to {{ (tableSize * page) <= totalRecords ? (tableSize * page) : totalRecords }} 
+          of {{ totalRecords }} entries
+        </span>
+        <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true" (pageChange)="onTableDataChange($event)"></pagination-controls>
+      </div>
+  </div>
+</div>
+
+<!-- Modal for Add/Edit -->
+<div *ngIf="isModalOpen" class="modal-container">
+  <div class="bg-white rounded-3 shadow-lg d-flex flex-column" style="width: 500px; max-width: 90%;">
+    <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
+      <h4 class="mb-0 text-primary fw-bold">{{ isEditMode ? 'Edit Equipment' : 'Add New Equipment' }}</h4>
+      <button class="btn bg-transparent border-0 p-0" (click)="closeModal()">
+        <i class="fa-solid fa-xmark fs-4 text-muted"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="equipmentForm" (ngSubmit)="saveEquipment()">
+      <div class="modal-body-custom px-4 py-4">
+        <div class="mb-3">
+          <label class="form-label form-lable-custom">Equipment Name *</label>
+          <input type="text" class="form-control form-input-custom" formControlName="name" [ngClass]="{'is-invalid': equipmentForm.get('name')?.invalid && equipmentForm.get('name')?.touched}">
+          <div class="invalid-feedback">Equipment Name is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label form-lable-custom">Master Category *</label>
+          <select class="form-select form-input-custom" formControlName="categoryId" [ngClass]="{'is-invalid': equipmentForm.get('categoryId')?.invalid && equipmentForm.get('categoryId')?.touched}">
+            <option value="">-- Select Master Category --</option>
+            <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.name }}</option>
+          </select>
+          <div class="invalid-feedback">Master Category is required.</div>
+        </div>
+
+      </div>
+      <div class="px-4 py-3 border-top bg-light text-end">
+        <button class="btn btn-secondary px-4 py-2 me-3" type="button" (click)="closeModal()">Cancel</button>
+        <button class="btn btn-custom-primary px-4 py-2" type="submit">
+          {{ isEditMode ? 'Update' : 'Save' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

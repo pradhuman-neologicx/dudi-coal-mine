@@ -1,0 +1,339 @@
+<div class="bg-[#f4f6f8] min-h-screen p-2 md:p-6 font-sans relative pb-24 text-gray-800">
+
+    <div class="mb-4 flex items-center">
+        <button (click)="goBack()"
+            class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded text-sm font-bold flex items-center gap-2 shadow-sm transition-colors">
+            <i class="fas fa-arrow-left"></i> Back to Shift Management
+        </button>
+    </div>
+
+    <!-- Top Form Card -->
+    <div class="bg-white border border-gray-200 rounded shadow-sm p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+            <!-- Planning Date -->
+            <div>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Planning
+                    Date</label>
+                <div class="relative">
+                    <input type="date" [(ngModel)]="shiftForm.planningDate"
+                        class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50">
+                </div>
+            </div>
+
+            <!-- Shift -->
+            <div>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Shift</label>
+                <div class="flex">
+                    <button (click)="setShift('A')"
+                        [ngClass]="shiftForm.shift === 'A' ? 'bg-[#468faf] text-white border-[#468faf]' : 'bg-white text-gray-700 border-gray-300'"
+                        class="flex-1 py-2.5 text-sm font-bold border-y border-l rounded-l transition-colors">A</button>
+                    <button (click)="setShift('B')"
+                        [ngClass]="shiftForm.shift === 'B' ? 'bg-[#468faf] text-white border-[#468faf] z-10' : 'bg-white text-gray-700 border-gray-300'"
+                        class="flex-1 py-2.5 text-sm font-bold border transition-colors">B</button>
+                    <button (click)="setShift('C')"
+                        [ngClass]="shiftForm.shift === 'C' ? 'bg-[#468faf] text-white border-[#468faf]' : 'bg-white text-gray-700 border-gray-300'"
+                        class="flex-1 py-2.5 text-sm font-bold border-y border-r rounded-r transition-colors">C</button>
+                </div>
+            </div>
+
+            <!-- Location / Block -->
+            <div>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Location /
+                    Block</label>
+                <select [(ngModel)]="shiftForm.location"
+                    class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50 appearance-none">
+                    <option>Block-04 West / Bench-120</option>
+                    <option>Block-02 North / Bench-140</option>
+                    <option>Block-05 East / Bench-105</option>
+                </select>
+            </div>
+
+            <!-- Target BCM -->
+            <div>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Target
+                    BCM</label>
+                <div class="relative">
+                    <input type="number" [(ngModel)]="shiftForm.targetBcm"
+                        class="w-full border border-gray-300 rounded pl-4 pr-10 py-2.5 text-sm text-gray-700 font-bold focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50">
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">M3</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Supervisor -->
+            <div>
+                <label
+                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Supervisor</label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><i
+                            class="far fa-user"></i></span>
+                    <input type="text" [(ngModel)]="shiftForm.supervisor"
+                        class="w-full border border-gray-300 rounded pl-10 pr-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50">
+                </div>
+            </div>
+            <!-- Site Incharge -->
+            <div>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Site
+                    Incharge</label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><i
+                            class="fas fa-shield-alt"></i></span>
+                    <input type="text" [(ngModel)]="shiftForm.siteIncharge"
+                        class="w-full border border-gray-300 rounded pl-10 pr-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Equipment Allocation Header -->
+    <div class="flex flex-wrap justify-between items-end mb-4">
+        <div>
+            <h2 class="text-xl font-bold text-[#468faf] mb-1">Equipment Allocation</h2>
+            <p class="text-sm text-gray-500">Map dumpers to primary excavators for the active shift.</p>
+        </div>
+        <div class="flex items-center gap-3 mt-4 md:mt-0">
+            <button
+                class="bg-[#468faf] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0] shadow-sm"
+                (click)="allocateNewUnit()"><i class="fas fa-plus"></i> ADD MACHINERY</button>
+        </div>
+    </div>
+
+    <!-- Equipment Allocation Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div *ngFor="let eq of equipments" class="bg-white border border-gray-200 rounded shadow-sm flex flex-col">
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-tools text-[#468faf] text-xl"></i>
+                    <span class="text-lg font-bold">{{ eq.id }}</span>
+                </div>
+                <span class="px-3 py-1 text-[9px] font-bold tracking-widest rounded uppercase"
+                    [ngClass]="eq.status === 'OPTIMAL' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                    {{ eq.status }}
+                </span>
+            </div>
+            <div class="p-5 flex-1">
+                <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Assigned Dumpers</div>
+                <div class="flex flex-wrap gap-2">
+                    <div *ngFor="let dmp of eq.assignedDumpers"
+                        class="bg-[#eef5f9] text-[#2c7da0] text-xs font-bold px-3 py-1.5 rounded">{{ dmp }}</div>
+                    <button (click)="addDumper(eq)"
+                        class="border border-dashed border-gray-400 text-gray-500 text-xs font-bold px-3 py-1.5 rounded hover:bg-gray-50 transition-colors"><i
+                            class="fas fa-plus text-[10px]"></i> ADD</button>
+                </div>
+            </div>
+            <div
+                class="px-5 py-3 border-t border-gray-200 flex justify-between items-center text-xs font-bold bg-gray-50/50">
+                <span class="text-gray-600">Est. Production: {{ eq.estProd }}</span>
+                <span [ngClass]="eq.variance.includes('+') ? 'text-green-600' : 'text-red-600'">{{ eq.variance }}</span>
+            </div>
+        </div>
+
+        <!-- Add Machinery Placeholder -->
+        <div (click)="allocateNewUnit()"
+            class="bg-transparent border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center p-8 text-gray-400 hover:text-[#468faf] hover:border-[#468faf] hover:bg-white transition-all cursor-pointer min-h-[220px]">
+            <i class="far fa-plus-square text-3xl mb-3"></i>
+            <span class="text-xs font-bold tracking-widest uppercase">Add Machinery</span>
+        </div>
+    </div>
+
+    <!-- Employee Deployment Header -->
+    <div class="flex flex-wrap justify-between items-end mb-4">
+        <div>
+            <h2 class="text-xl font-bold text-[#468faf] mb-1">Employee Deployment</h2>
+            <p class="text-sm text-gray-500">Bulk assignment of operators and support staff.</p>
+        </div>
+        <div class="flex items-center gap-3 mt-4 md:mt-0">
+            <!-- Employee Workforce Metrics -->
+            <div class="flex bg-white border border-gray-200 rounded shadow-sm text-[10px] font-bold uppercase tracking-widest text-center mr-2">
+                <div class="px-3 py-1.5 border-r border-gray-200 bg-gray-50/50 flex flex-col justify-center">
+                    <div class="text-gray-500 mb-0.5">Planned</div>
+                    <div class="text-sm text-gray-800">25</div>
+                </div>
+                <div class="px-3 py-1.5 border-r border-gray-200 bg-green-50/30 flex flex-col justify-center">
+                    <div class="text-gray-500 mb-0.5">Present</div>
+                    <div class="text-sm text-green-600">22</div>
+                </div>
+                <div class="px-3 py-1.5 border-r border-gray-200 bg-red-50/30 flex flex-col justify-center">
+                    <div class="text-gray-500 mb-0.5">Leave</div>
+                    <div class="text-sm text-red-500">2</div>
+                </div>
+                <div class="px-3 py-1.5 bg-blue-50/30 flex flex-col justify-center">
+                    <div class="text-gray-500 mb-0.5">Borrowed</div>
+                    <div class="text-sm text-[#468faf]">3</div>
+                </div>
+            </div>
+
+            <button (click)="openAddEmployeeModal()" class="bg-[#468faf] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0] shadow-sm transition-colors">
+                <i class="fas fa-plus"></i> ADD EMPLOYEE
+            </button>
+
+            <div
+                class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-2 text-sm text-gray-700 cursor-pointer min-w-[180px] shadow-sm">
+                <i class="fas fa-filter text-gray-400"></i>
+                <span class="flex-1 font-medium">All Designations</span>
+                <i class="fas fa-caret-down text-gray-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Deployment Table -->
+    <div class="bg-white border border-gray-200 rounded shadow-sm mb-6">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead
+                    class="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 w-12 text-center">
+                            <input type="checkbox" class="rounded text-[#468faf] focus:ring-primary">
+                        </th>
+                        <th class="px-6 py-4">Employee Name</th>
+                        <th class="px-6 py-4">Designation</th>
+                        <th class="px-6 py-4">Machine Assigned</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr *ngFor="let emp of employees" class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-6 py-4 text-center">
+                            <input type="checkbox" [(ngModel)]="emp.selected"
+                                class="rounded text-[#468faf] focus:ring-primary w-4 h-4">
+                        </td>
+                        <td class="px-6 py-4 font-bold text-gray-800">{{ emp.name }}</td>
+                        <td class="px-6 py-4 text-gray-600 font-medium">{{ emp.designation }}</td>
+                        <td class="px-6 py-4 text-gray-600">{{ emp.machine }}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-0.5 text-[9px] font-bold tracking-widest rounded uppercase" [ngClass]="{
+                      'bg-green-100 text-green-700': emp.status === 'AVAILABLE',
+                      'bg-[#0f2a4a] text-white': emp.status === 'ASSIGNED',
+                      'bg-gray-100 text-blue-700': emp.status === 'ON BREAK'
+                    }">
+                                {{ emp.status }}
+                            </span>
+                        </td>
+                        <td (click)="searchAssets()"
+                            class="px-6 py-4 text-right text-gray-400 hover:text-gray-600 text-lg cursor-pointer">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Footer / Pagination -->
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center bg-gray-50/50">
+            <div class="text-sm text-gray-500">Showing {{ (currentPage - 1) * 4 + 1 }}-{{ currentPage * 4 }} of 128
+                employees</div>
+            <div class="flex gap-2">
+                <button (click)="prevPage()" [disabled]="currentPage === 1"
+                    [ngClass]="{'opacity-50 cursor-not-allowed': currentPage === 1}"
+                    class="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button (click)="nextPage()" [disabled]="currentPage === totalPages"
+                    [ngClass]="{'opacity-50 cursor-not-allowed': currentPage === totalPages}"
+                    class="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Action Buttons -->
+    <div class="flex items-center justify-end gap-4 mt-6 mb-8 px-6">
+        <button
+            class="border border-gray-300 bg-white text-gray-700 px-6 py-2.5 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
+            (click)="saveDraft()">Cancel</button>
+        <button
+            class="bg-[#468faf] text-white px-6 py-2.5 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0] transition-colors"
+            (click)="publishShift()">
+            <i class="fas fa-rocket"></i> PUBLISH SHIFT PLAN
+        </button>
+    </div>
+
+</div>
+
+<!-- Add Machinery Modal -->
+<div *ngIf="showAddMachineryModal"
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden my-auto border border-gray-200 mt-10">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-gray-800">Add Machinery</h2>
+            <button class="text-gray-400 hover:text-gray-600 text-xl leading-none"
+                (click)="closeAddMachineryModal()">&times;</button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Machine Type</label>
+                <select [(ngModel)]="newMachine.type"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                    <option value="" disabled selected>Select Type</option>
+                    <option value="Excavator">Excavator</option>
+                    <option value="Dumper">Dumper</option>
+                    <option value="Dozer">Dozer</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Machine</label>
+                <select [(ngModel)]="newMachine.id"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                    <option value="" disabled selected>Select Machine</option>
+                    <option value="EX-01">EX-01</option>
+                    <option value="EX-02">EX-02</option>
+                    <option value="DMP-104">DMP-104</option>
+                    <option value="DMP-089">DMP-089</option>
+                    <option value="DZ-05">DZ-05</option>
+                </select>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+            <button class="text-gray-600 font-bold text-sm px-4 py-2" (click)="closeAddMachineryModal()">Cancel</button>
+            <button class="bg-[#468faf] text-white font-bold text-sm px-6 py-2 rounded hover:bg-[#2c7da0]"
+                (click)="addMachineToShift()">Add</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Employee Modal -->
+<div *ngIf="showAddEmployeeModal"
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden my-auto border border-gray-200 mt-10">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-gray-800">Add Employee to Shift</h2>
+            <button class="text-gray-400 hover:text-gray-600 text-xl leading-none"
+                (click)="closeAddEmployeeModal()">&times;</button>
+        </div>
+        <div class="p-6 space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Shift</label>
+                <select [(ngModel)]="newEmployee.shift"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf] bg-gray-50">
+                    <option value="A">Shift A</option>
+                    <option value="B">Shift B</option>
+                    <option value="C">Shift C</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Employee</label>
+                <ng-select [(ngModel)]="newEmployee.employeeId"
+                    [items]="availableEmployees"
+                    bindLabel="name"
+                    bindValue="id"
+                    placeholder="Select Employee"
+                    class="w-full text-sm">
+                    <ng-template ng-option-tmp let-item="item">
+                        <div class="font-medium text-gray-800">{{item.name}} <span class="text-xs text-gray-400 font-normal">({{item.designation}})</span></div>
+                    </ng-template>
+                    <ng-template ng-label-tmp let-item="item">
+                        <div class="font-medium text-gray-800">{{item.name}} <span class="text-xs text-gray-400 font-normal">({{item.designation}})</span></div>
+                    </ng-template>
+                </ng-select>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+            <button class="text-gray-600 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded transition-colors" (click)="closeAddEmployeeModal()">Cancel</button>
+            <button class="bg-[#468faf] text-white font-bold text-sm px-6 py-2 rounded hover:bg-[#2c7da0]"
+                (click)="addEmployeeToShift()">Done</button>
+        </div>
+    </div>
+</div>

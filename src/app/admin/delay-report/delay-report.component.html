@@ -1,0 +1,313 @@
+<div class="bg-[#f0f2f5] min-h-screen font-sans p-3 text-gray-800">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6 print:hidden">
+    <div>
+      <h1 class="text-2xl font-bold text-[#0f2a4a]">Delay Analysis Report</h1>
+      <p class="text-sm text-gray-500">Real-time operational downtime and bottleneck identification.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div
+        class="bg-white border border-gray-300 rounded px-3 py-2 flex items-center gap-2 text-sm text-gray-700 font-medium cursor-pointer shadow-sm min-w-[200px]">
+        <i class="far fa-calendar-alt text-gray-400"></i>
+        <ng-select [(ngModel)]="selectedShiftFilter" (change)="applyFilter()" [items]="shiftFilters" bindLabel="label"
+          bindValue="value" [clearable]="false" [searchable]="false" class="flex-1 -my-2 text-sm">
+        </ng-select>
+      </div>
+      <button (click)="isFilterOpen = !isFilterOpen"
+        [ngClass]="isFilterOpen ? 'bg-gray-100 border-gray-400 text-gray-900' : 'bg-white border-gray-300 text-gray-700'"
+        class="rounded px-4 py-2 flex items-center gap-2 text-sm font-medium hover:bg-gray-50 shadow-sm transition-colors border">
+        <i class="fas fa-filter" [ngClass]="isFilterOpen ? 'text-gray-700' : 'text-gray-400'"></i> Filter All
+      </button>
+      <button ngxPrint printSectionId="print-section" [useExistingCss]="true"
+        class="bg-white border border-gray-300 rounded px-4 py-2 flex items-center gap-2 text-sm text-gray-700 font-medium hover:bg-gray-50 shadow-sm transition-colors">
+        <i class="fas fa-file-export text-gray-400"></i> Export PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <!-- Left Column (Main Content) -->
+    <div class="lg:col-span-2 space-y-6">
+
+      <!-- Table Card -->
+      <div id="print-section" class="bg-white border border-gray-200 rounded shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <h2 class="text-xs font-bold text-gray-600 uppercase tracking-widest">Downtime & Delay Log</h2>
+          <button (click)="openModal()"
+            class="text-sm font-bold text-[#0f2a4a] hover:text-[#0c223c] flex items-center gap-1">
+            <i class="fas fa-plus"></i> Log Manual Delay
+          </button>
+        </div>
+
+        <!-- Filter Dropdown -->
+        <div *ngIf="isFilterOpen"
+          class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex gap-4 items-end transition-all">
+          <div class="flex-1">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">STATUS</label>
+            <select
+              class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
+              [(ngModel)]="filterStatus" (change)="applyFilter()">
+              <option value="">All Statuses</option>
+              <option value="CRITICAL">Critical</option>
+              <option value="PLANNED">Planned</option>
+              <option value="MONITOR">Monitor</option>
+              <option value="NORMAL">Normal</option>
+              <option value="ROUTINE">Routine</option>
+            </select>
+          </div>
+          <div class="flex-1">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">DELAY TYPE</label>
+            <input type="text" placeholder="Search delay type..." [(ngModel)]="filterDelayType" (input)="applyFilter()"
+              class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]">
+          </div>
+          <div>
+            <button (click)="clearFilters()"
+              class="px-4 py-1.5 bg-gray-200 text-gray-700 rounded text-sm font-bold hover:bg-gray-300 transition-colors h-[34px]">Clear</button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm whitespace-nowrap">
+            <thead class="text-[10px] font-bold text-gray-500 uppercase border-b border-gray-200 bg-gray-50">
+              <tr>
+                <th class="px-6 py-2">Shift</th>
+                <th class="px-6 py-2">Delay Type</th>
+                <th class="px-6 py-2">Hours Lost</th>
+                <th class="px-6 py-2">Remarks</th>
+                <th class="px-6 py-2">Status</th>
+                <th class="px-6 py-2 text-center print:hidden">Action</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              <tr *ngFor="let log of filteredLogs | paginate: { itemsPerPage: 10, currentPage: p }; let i = index" class="hover:bg-gray-50/50">
+                <td class="px-6 py-2 font-medium text-gray-700">{{log.shift}}</td>
+                <td class="px-6 py-2 font-bold text-[#0f2a4a]">{{log.delayType}}</td>
+                <td class="px-6 py-2 text-gray-600">{{log.hoursLost | number:'1.2-2'}}</td>
+                <td class="px-6 py-2 text-gray-600 text-xs max-w-xs whitespace-normal leading-relaxed">{{log.remarks}}
+                </td>
+                <td class="px-6 py-2">
+                  <span class="px-2.5 py-1 text-[10px] font-bold tracking-widest rounded-full uppercase" [ngClass]="{
+                      'bg-red-100 text-red-600': log.status === 'CRITICAL',
+                      'bg-blue-100 text-blue-600': log.status === 'PLANNED' || log.status === 'ROUTINE',
+                      'bg-green-100 text-green-600': log.status === 'MONITOR',
+                      'bg-gray-200 text-gray-600': log.status === 'NORMAL'
+                    }">
+                    {{log.status}}
+                  </span>
+                </td>
+                <td class="px-6 py-2 text-center print:hidden">
+                  <button (click)="openModal(log, i)"
+                    class="text-[#0f2a4a] hover:text-[#0c223c] p-1 rounded hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end print:hidden">
+          <pagination-controls (pageChange)="p = $event" class="text-sm"></pagination-controls>
+        </div>
+      </div>
+
+      <!-- Chart Card -->
+      <div class="bg-white border border-gray-200 rounded shadow-sm p-6">
+        <h2 class="text-lg font-bold text-[#0f2a4a] mb-6">Delay Distribution (By Category)</h2>
+        <div class="h-64 mt-4 relative w-full">
+          <canvas id="delayChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right Column (Stats) -->
+    <div class="space-y-6">
+
+      <!-- Stat 1 -->
+      <div class="bg-white border border-gray-200 rounded shadow-sm p-6 relative">
+        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-lg mb-4">
+          <i class="far fa-clock"></i>
+        </div>
+        <div
+          class="absolute top-6 right-6 bg-red-50 text-red-600 text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
+          <i class="fas fa-arrow-trend-up"></i> +14% Shift Avg
+        </div>
+        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Delay Hours</div>
+        <div class="text-4xl font-bold text-[#0f2a4a]">12.45 <span class="text-lg text-gray-500 font-normal">Hrs</span>
+        </div>
+        <div class="mt-4 w-full h-1 bg-gray-200 rounded-full overflow-hidden">
+          <div class="h-full bg-[#0f2a4a] w-[65%]"></div>
+        </div>
+      </div>
+
+      <!-- Stat 2 -->
+      <div class="bg-white border border-gray-200 rounded shadow-sm p-6">
+        <div class="text-red-500 text-2xl mb-4">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Largest Delay Reason</div>
+        <div class="text-2xl font-bold text-red-600 mb-2">Mechanical Fail</div>
+        <p class="text-xs text-gray-600 leading-relaxed">Responsible for 42% of total downtime.</p>
+      </div>
+
+      <!-- Stat 3 -->
+      <div class="bg-white border border-gray-200 rounded shadow-sm p-6">
+        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-lg mb-4">
+          <i class="fas fa-box"></i>
+        </div>
+        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Production Lost (Est.)</div>
+        <div class="text-4xl font-bold text-[#0f2a4a] mb-2">3.8k <span
+            class="text-lg text-gray-500 font-normal">Tons</span></div>
+        <p class="text-xs text-gray-600 leading-relaxed">Compared to 3.2k targeted max delay loss.</p>
+      </div>
+
+      <!-- Stat 4 -->
+      <div class="bg-white border border-gray-200 rounded shadow-sm p-6">
+        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-lg mb-4">
+          <i class="far fa-bell"></i>
+        </div>
+        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Delay Events</div>
+        <div class="text-4xl font-bold text-[#0f2a4a]">18 <span class="text-lg text-gray-500 font-normal">Events</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal Overlay -->
+<div *ngIf="isModalOpen"
+  class="fixed inset-0 bg-[#8fa4af]/50 backdrop-blur-sm z-[100] flex items-center justify-center font-sans">
+  <!-- Modal Content -->
+  <div class="bg-white w-full max-w-2xl rounded shadow-2xl flex flex-col">
+    <!-- Header -->
+    <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+      <div class="flex items-center gap-3">
+        <div class="w-1.5 h-6 bg-[#0f2a4a]"></div>
+        <h2 class="text-lg font-bold text-[#0f2a4a]">Log Manual Delay</h2>
+      </div>
+      <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 transition-colors focus:outline-none">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-6 overflow-y-auto" style="max-height: calc(100vh - 200px);">
+
+      <!-- Top Row -->
+      <div class="flex gap-6 mb-6">
+        <div class="flex-1">
+          <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-2">Shift</label>
+          <ng-select [(ngModel)]="selectedShift" [items]="shifts" bindLabel="label" bindValue="value"
+            placeholder="Select Shift"
+            class="w-full border border-gray-300 rounded text-sm outline-none focus:border-[#0f2a4a]">
+          </ng-select>
+        </div>
+        <div class="flex-1">
+          <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-2">Total Working
+            Hours</label>
+          <div class="relative">
+            <input type="number" [(ngModel)]="totalWorkingHours"
+              class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#0f2a4a]">
+            <span
+              class="absolute right-3 top-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hrs</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delay Type -->
+      <div class="mb-6">
+        <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-2">Delay Type</label>
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Option 1 -->
+          <label
+            class="border border-gray-200 rounded p-3 flex items-center gap-3 cursor-pointer hover:border-gray-300 transition-colors"
+            [ngClass]="{'border-[#0f2a4a] bg-blue-50/30': selectedDelayType === 'Rain'}">
+            <input type="radio" name="delayType" value="Rain" [(ngModel)]="selectedDelayType"
+              class="w-4 h-4 text-[#0f2a4a] focus:ring-[#0f2a4a] border-gray-300">
+            <span class="text-sm text-gray-700 font-medium">Rain</span>
+          </label>
+          <!-- Option 2 -->
+          <label
+            class="border border-gray-200 rounded p-3 flex items-center gap-3 cursor-pointer hover:border-gray-300 transition-colors"
+            [ngClass]="{'border-[#0f2a4a] bg-blue-50/30': selectedDelayType === 'Road Condition'}">
+            <input type="radio" name="delayType" value="Road Condition" [(ngModel)]="selectedDelayType"
+              class="w-4 h-4 text-[#0f2a4a] focus:ring-[#0f2a4a] border-gray-300">
+            <span class="text-sm text-gray-700 font-medium">Road Condition</span>
+          </label>
+          <!-- Option 3 -->
+          <label
+            class="border border-gray-200 rounded p-3 flex items-center gap-3 cursor-pointer hover:border-gray-300 transition-colors"
+            [ngClass]="{'border-[#0f2a4a] bg-blue-50/30': selectedDelayType === 'Machine Breakdown'}">
+            <input type="radio" name="delayType" value="Machine Breakdown" [(ngModel)]="selectedDelayType"
+              class="w-4 h-4 text-[#0f2a4a] focus:ring-[#0f2a4a] border-gray-300">
+            <span class="text-sm text-gray-700 font-medium">Machine Breakdown</span>
+          </label>
+          <!-- Option 4 -->
+          <label
+            class="border border-gray-200 rounded p-3 flex items-center gap-3 cursor-pointer hover:border-gray-300 transition-colors"
+            [ngClass]="{'border-[#0f2a4a] bg-blue-50/30': selectedDelayType === 'Operator Delay'}">
+            <input type="radio" name="delayType" value="Operator Delay" [(ngModel)]="selectedDelayType"
+              class="w-4 h-4 text-[#0f2a4a] focus:ring-[#0f2a4a] border-gray-300">
+            <span class="text-sm text-gray-700 font-medium">Operator Delay</span>
+          </label>
+          <!-- Option 5 -->
+          <label
+            class="border border-gray-200 rounded p-3 flex items-center gap-3 cursor-pointer hover:border-gray-300 transition-colors"
+            [ngClass]="{'border-[#0f2a4a] bg-blue-50/30': selectedDelayType === 'Traffic Jam'}">
+            <input type="radio" name="delayType" value="Traffic Jam" [(ngModel)]="selectedDelayType"
+              class="w-4 h-4 text-[#0f2a4a] focus:ring-[#0f2a4a] border-gray-300">
+            <span class="text-sm text-gray-700 font-medium">Traffic Jam</span>
+          </label>
+          <!-- Option 6 -->
+          <label
+            class="border border-gray-200 rounded p-3 flex items-center gap-3 cursor-pointer hover:border-gray-300 transition-colors"
+            [ngClass]="{'border-[#0f2a4a] bg-blue-50/30': selectedDelayType === 'At Excavator'}">
+            <input type="radio" name="delayType" value="At Excavator" [(ngModel)]="selectedDelayType"
+              class="w-4 h-4 text-[#0f2a4a] focus:ring-[#0f2a4a] border-gray-300">
+            <span class="text-sm text-gray-700 font-medium">At Excavator</span>
+          </label>
+          <!-- Option 7 -->
+          <label
+            class="col-span-2 border border-gray-200 rounded p-3 flex items-center gap-3 cursor-pointer hover:border-gray-300 transition-colors"
+            [ngClass]="{'border-[#0f2a4a] bg-blue-50/30': selectedDelayType === 'Other Reason'}">
+            <input type="radio" name="delayType" value="Other Reason" [(ngModel)]="selectedDelayType"
+              class="w-4 h-4 text-[#0f2a4a] focus:ring-[#0f2a4a] border-gray-300">
+            <span class="text-sm text-gray-700 font-medium">Other Reason</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Time Lost -->
+      <div class="mb-6">
+        <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-2">Time Lost</label>
+        <div class="relative">
+          <i class="far fa-clock absolute left-3 top-2.5 text-gray-400"></i>
+          <input type="text" [(ngModel)]="timeLost" placeholder="01:30 (HH:MM)"
+            class="w-full border border-gray-300 rounded pl-9 pr-3 py-2 text-sm bg-gray-50/50 outline-none focus:border-[#0f2a4a] focus:bg-white font-mono">
+        </div>
+      </div>
+
+      <!-- Remark -->
+      <div>
+        <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-2">Remark</label>
+        <textarea [(ngModel)]="remark" rows="3" placeholder="Provide detailed context for the operational delay..."
+          class="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[#0f2a4a] resize-none"></textarea>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 bg-gray-50/50">
+      <button (click)="closeModal()"
+        class="px-6 py-2 border border-gray-300 rounded text-xs font-bold text-gray-700 uppercase tracking-widest hover:bg-white transition-colors bg-transparent">
+        Cancel
+      </button>
+      <button (click)="saveDelay()"
+        class="px-6 py-2 bg-[#0f2a4a] rounded text-xs font-bold text-white uppercase tracking-widest hover:bg-[#0c223c] transition-colors flex items-center gap-2">
+        <i class="fas fa-save"></i> Save Delay
+      </button>
+    </div>
+  </div>
+</div>

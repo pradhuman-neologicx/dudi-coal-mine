@@ -73,7 +73,7 @@ export class SigninComponent implements OnInit {
     private jwtService: JwtService,
     private notificationService: NotificationService,
     private loginService: LoginService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.signIn = this.formBuilder.group({
@@ -117,7 +117,7 @@ export class SigninComponent implements OnInit {
             this.jwtService.savepanelUserId(response.user.id.toString());
             this.jwtService.saveadminame(response.user.email || 'Admin User');
             this.jwtService.saveAdminToken(response.access_token);
-            this.jwtService.saveAdminRole('admin');
+            this.jwtService.saveAdminRole(response.role);
             this.jwtService.isLoggedIn(true);
 
             setTimeout(() => {
@@ -138,9 +138,9 @@ export class SigninComponent implements OnInit {
         },
         error: (err: any) => {
           console.log('Login error received:', err);
-          
+
           let errorMsg = '';
-          
+
           if (typeof err === 'string') {
             if (err.includes('Message:')) {
               errorMsg = err.split('Message:')[1].trim();

@@ -1,0 +1,462 @@
+<div class="bg-[#f0f2f5] min-h-screen font-sans flex relative overflow-hidden">
+
+  <!-- Main Content Area -->
+  <div class="flex-1 p-3 transition-all duration-300" [ngClass]="{'mr-[400px]': isDetailsPanelOpen}">
+
+    <!-- Top Header & Actions -->
+    <div class="flex justify-between items-end mb-6">
+      <div>
+        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Safety Performance Dashboard</h3>
+        <h1 class="text-2xl font-bold text-gray-800">Safety & Incident Management</h1>
+      </div>
+      <div class="flex gap-3">
+        <button (click)="toggleFilter()" [ngClass]="isFilterOpen ? 'bg-gray-100 border-gray-400 text-gray-900' : 'bg-white border-gray-300 text-gray-700'"
+          class="hover:bg-gray-50 text-sm font-semibold py-2 px-5 rounded flex items-center gap-2 transition-colors border">
+          <i class="fas fa-filter text-xs"></i> Filters
+        </button>
+        <button (click)="openModal()"
+          class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-sm font-semibold py-2 px-5 rounded flex items-center gap-2 transition-colors">
+          <i class="fas fa-plus text-xs"></i> Log New Incident
+        </button>
+      </div>
+    </div>
+
+    <!-- Filter Dropdown -->
+    <div *ngIf="isFilterOpen" class="bg-gray-50 border border-gray-200 rounded px-5 py-4 flex gap-4 items-end mb-6 shadow-sm transition-all">
+      <div class="flex-1">
+        <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">SEVERITY LEVEL</label>
+        <select class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]" [(ngModel)]="selectedSeverity">
+          <option value="">All Severities</option>
+          <option value="LOW">Low</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="HIGH">High</option>
+        </select>
+      </div>
+      <div class="flex-1">
+        <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">INCIDENT TYPE</label>
+        <select class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]" [(ngModel)]="selectedType">
+          <option value="">All Types</option>
+          <option value="Near Miss">Near Miss</option>
+          <option value="Property Damage">Property Damage</option>
+          <option value="Injury">Injury</option>
+        </select>
+      </div>
+      <div>
+        <button (click)="clearFilters()" class="px-5 py-2 bg-gray-200 text-gray-700 rounded text-sm font-bold hover:bg-gray-300 transition-colors h-[38px]">Clear</button>
+      </div>
+    </div>
+
+    <!-- 3 KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+      <!-- Card 1: Total Incidents (Dark) -->
+      <div class="bg-[#0f2a4a] text-white rounded p-5 relative overflow-hidden flex flex-col justify-between shadow-sm">
+        <!-- Background decorative icon -->
+        <i
+          class="fas fa-exclamation-triangle absolute -right-6 -bottom-6 text-7xl text-white/5 pointer-events-none"></i>
+
+        <div class="flex justify-between items-start mb-6">
+          <div class="w-10 h-10 border border-white/20 bg-white/10 rounded flex items-center justify-center">
+            <i class="fas fa-chart-bar text-white"></i>
+          </div>
+          <!-- <div class="text-right">
+            <div class="text-[10px] font-bold text-blue-200 uppercase tracking-wider">Target: 0</div>
+            <div class="text-[10px] text-gray-400">MTD Performance</div>
+          </div> -->
+        </div>
+
+        <div>
+          <div class="text-5xl font-bold mb-1">0</div>
+          <div class="text-sm font-medium text-gray-300 mb-4">Total Incidents This Month</div>
+          <div class="text-xs font-bold text-green-400 flex items-center gap-1">
+            <i class="fas fa-arrow-trend-down"></i> 100% IMPROVEMENT FROM APR
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Safe Days Record -->
+      <div class="bg-white border border-gray-200 rounded p-5 flex flex-col shadow-sm relative">
+        <div class="absolute right-5 top-5 text-right">
+          <div class="text-xs font-bold text-gray-600 uppercase tracking-widest">Record</div>
+          <div class="text-sm font-bold text-gray-900">310 Days</div>
+        </div>
+
+        <div class="w-10 h-10 bg-green-50 border border-green-100 rounded flex items-center justify-center mb-4">
+          <i class="fas fa-shield-alt text-green-600"></i>
+        </div>
+
+        <div class="mb-4">
+          <div class="text-4xl font-bold text-gray-900 mb-1">124 <span
+              class="text-sm text-gray-500 uppercase tracking-widest font-bold">Days</span></div>
+          <div class="text-sm text-gray-600">Since Last Lost Time Injury</div>
+        </div>
+
+        <div class="mt-auto">
+          <div class="flex justify-between text-[10px] font-bold text-gray-500 uppercase mb-2">
+            <span>Current Streak</span>
+            <span>Next Milestone: 200</span>
+          </div>
+          <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+            <div class="bg-green-500 h-full w-[60%]"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Incident Distribution -->
+      <div class="bg-white border border-gray-200 rounded p-5 flex flex-col shadow-sm">
+        <div class="flex justify-between items-center mb-6">
+          <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Incident Distribution</div>
+          <i class="fas fa-ellipsis-v text-gray-400 cursor-pointer"></i>
+        </div>
+
+        <div class="flex items-center gap-6 mb-4 flex-1">
+          <!-- Fake Pie Chart -->
+          <div
+            class="relative w-24 h-24 rounded-full border-[12px] border-[#0f2a4a] border-r-blue-300 border-b-green-400 flex items-center justify-center shrink-0">
+            <div class="text-center">
+              <div class="text-xl font-bold text-gray-900 leading-none">12</div>
+              <div class="text-[8px] font-bold text-gray-500 uppercase">Total YTD</div>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="flex-1 space-y-2 text-xs font-semibold text-gray-700">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-[#0f2a4a]"></div> Near Miss
+              </div>
+              <span>45%</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-blue-300"></div> Prop. Damage
+              </div>
+              <span>30%</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-green-400"></div> Injury (FAI)
+              </div>
+              <span>25%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-[11px] font-bold text-red-600 mt-auto flex items-center gap-2">
+          <i class="fas fa-exclamation text-red-600"></i> 2 CRITICAL ACTIONS OPEN
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Table Section -->
+    <div class="bg-white border border-gray-200 rounded shadow-sm flex flex-col">
+      <!-- Header -->
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg font-bold text-[#0f2a4a]">Incident Register</h2>
+        <div class="flex gap-4 text-gray-500">
+          <button routerLink="/admin/safety-management/report" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-bold uppercase tracking-widest py-1.5 px-4 rounded flex items-center gap-2 transition-colors">
+            <i class="fas fa-file-alt"></i> Report
+          </button>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-700 whitespace-nowrap">
+          <thead class="text-[10px] text-gray-500 font-bold uppercase bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-4">Date</th>
+              <th class="px-6 py-4">Shift</th>
+              <th class="px-6 py-4">Incident Type</th>
+              <th class="px-6 py-4 text-center">Severity</th>
+              <th class="px-6 py-4">Location</th>
+              <th class="px-6 py-4">Status</th>
+              <th class="px-6 py-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            <tr *ngFor="let inc of filteredIncidents" class="hover:bg-gray-50">
+              <td class="px-6 py-4 font-medium text-gray-900">{{inc.date}}</td>
+              <td class="px-6 py-4 text-gray-600">{{inc.shift}}</td>
+              <td class="px-6 py-4 text-gray-600">{{inc.type}}</td>
+              <td class="px-6 py-4 text-center">
+                <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded" [ngClass]="{
+                    'bg-green-100 text-green-700': inc.severity === 'LOW',
+                    'bg-blue-100 text-blue-700': inc.severity === 'MEDIUM',
+                    'bg-red-100 text-red-700': inc.severity === 'HIGH'
+                  }">
+                  {{inc.severity}}
+                </span>
+              </td>
+              <td class="px-6 py-4 text-gray-600">{{inc.location}}</td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2 text-xs font-bold text-gray-700">
+                  <div class="w-2 h-2 rounded-full" [ngClass]="{
+                      'bg-gray-400': inc.status === 'Under Review',
+                      'bg-red-500': inc.status === 'Action Required',
+                      'bg-green-500': inc.status === 'Investigation Closed'
+                    }"></div>
+                  {{inc.status}}
+                </div>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <button (click)="viewDetails(inc)" class="text-sm font-semibold text-[#0f2a4a] hover:underline">View
+                  Details</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Right Details Drawer Panel -->
+  <div id="drawer-print-section" class="fixed top-0 right-0 h-full w-[400px] bg-white border-l border-gray-200 shadow-2xl transform transition-transform duration-300 z-40 overflow-y-auto print:static print:w-full print:transform-none print:border-none print:shadow-none print:overflow-visible print:h-auto print:block"
+    [ngClass]="isDetailsPanelOpen ? 'translate-x-0' : 'translate-x-full'">
+
+    <div *ngIf="selectedIncident" class="p-6">
+
+      <!-- Drawer Header -->
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <div class="text-[10px] font-bold text-red-600 mb-1">{{selectedIncident.id}}</div>
+          <h2 class="text-lg font-bold text-gray-900 leading-tight">{{selectedIncident.type}} -
+            {{selectedIncident.location}}</h2>
+        </div>
+        <button (click)="closeDetailsPanel()" class="text-gray-400 hover:text-gray-800 text-xl transition-colors print:hidden">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Occurrence Info -->
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-gray-50 rounded p-3 border border-gray-100">
+          <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Occurrence Date</div>
+          <div class="text-sm font-semibold text-gray-800">May 08, 2024 | 14:35</div>
+        </div>
+        <div class="bg-gray-50 rounded p-3 border border-gray-100">
+          <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Reported By</div>
+          <div class="text-sm font-semibold text-gray-800">{{selectedIncident.reporter}}</div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="mb-6">
+        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Incident Description</h3>
+        <p class="text-sm text-gray-700 leading-relaxed border-b border-gray-100 pb-4">
+          Worker was performing routine maintenance on the hydraulic pump of Haul Truck #42. While loosening a pressure
+          line, a small residual pressure spray caused the worker's hand to slip, resulting in a minor abrasion against
+          the metal housing. First aid was administered on-site. No loss of time occurred.
+        </p>
+      </div>
+
+      <!-- Persons Involved -->
+      <div class="mb-6">
+        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Persons Involved</h3>
+        <div class="flex items-center justify-between p-3 border border-gray-200 rounded">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-100 text-blue-800 font-bold text-sm rounded flex items-center justify-center">
+              MJ</div>
+            <div>
+              <div class="text-sm font-bold text-gray-900">Marcus Johnson</div>
+              <div class="text-xs text-gray-500">Maintenance Technician</div>
+            </div>
+          </div>
+          <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Injured Party</div>
+        </div>
+      </div>
+
+      <!-- Investigation Notes -->
+      <div class="mb-6">
+        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Investigation Notes</h3>
+        <div class="bg-gray-50 border border-gray-200 rounded p-4 relative">
+          <div class="flex items-start gap-3 text-sm text-gray-700 italic mb-3">
+            <i class="fas fa-info-circle text-gray-400 mt-0.5"></i>
+            <p>"Root cause identified as inadequate depressurization procedure for the specific hydraulic model variant.
+              Lock-out/Tag-out was applied, but residual pressure check was bypassed."</p>
+          </div>
+          
+          <!-- Dynamic Notes -->
+          <div *ngFor="let note of selectedIncident.notes" class="flex items-start gap-3 text-sm text-gray-700 italic border-t border-gray-200 pt-3 mt-3">
+            <i class="fas fa-sticky-note text-blue-400 mt-0.5"></i>
+            <p>{{ note }}</p>
+          </div>
+
+          <button (click)="addNote()"
+            class="text-[10px] font-bold text-[#0f2a4a] uppercase tracking-widest mt-4 flex items-center gap-1 ml-auto hover:underline print:hidden">
+            <i class="fas fa-plus"></i> Add Investigation Note
+          </button>
+        </div>
+      </div>
+
+      <!-- Attachments -->
+      <div class="mb-8">
+        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Attachments</h3>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="h-24 bg-gray-200 rounded overflow-hidden relative group print:break-inside-avoid">
+            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=200&fit=crop"
+              class="w-full h-full object-cover">
+          </div>
+          <div (click)="fileInput.click()"
+            class="h-24 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-50 transition-colors print:hidden">
+            <i class="fas fa-upload mb-1 text-lg"></i>
+            <span class="text-[10px] font-bold uppercase tracking-widest">Upload Files</span>
+          </div>
+          <input type="file" #fileInput style="display: none;" (change)="onFileSelected($event)" multiple>
+        </div>
+      </div>
+
+      <!-- Drawer Footer -->
+      <div class="flex gap-3 pt-4 border-t border-gray-200 bg-white print:hidden">
+        <button ngxPrint printSectionId="drawer-print-section" [useExistingCss]="true"
+          class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold text-sm py-2.5 rounded transition-colors hover:bg-gray-50">Generate
+          Report</button>
+        <button (click)="closeCase()"
+          class="flex-1 bg-[#0f2a4a] text-white font-bold text-sm py-2.5 rounded transition-colors hover:bg-[#0c223c]">Close
+          Case</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div *ngIf="isModalOpen"
+    class="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center font-sans overflow-y-auto py-10">
+    <div class="bg-white w-full max-w-3xl rounded shadow-2xl relative">
+
+      <!-- Modal Header -->
+      <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 bg-red-100 text-red-500 rounded flex items-center justify-center border border-red-200">
+            <i class="fas fa-exclamation-triangle text-lg"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-gray-900 tracking-wide mb-0.5">LOG NEW INCIDENT</h2>
+            <p class="text-[11px] text-gray-500 tracking-wide font-medium">Safety & Operational Compliance Reporting</p>
+          </div>
+        </div>
+        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-800 text-xl transition-colors">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="px-8 py-6 space-y-8 max-h-[70vh] overflow-y-auto">
+
+        <!-- General Incident Data -->
+        <section>
+          <div class="border-b border-gray-200 pb-2 mb-4">
+            <h3 class="text-[10px] font-bold text-gray-800 tracking-widest">General Incident Data</h3>
+          </div>
+          <div class="grid grid-cols-3 gap-4 mb-4">
+            <div>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident
+                Date</label>
+              <input type="date"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500">
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Shift</label>
+              <select
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 appearance-none bg-white">
+                <option>Select Shift</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident
+                Type</label>
+              <select
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 appearance-none bg-white">
+                <option>Select Category</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Location</label>
+              <div class="relative">
+                <i class="fas fa-map-marker-alt absolute left-3 top-2.5 text-gray-400"></i>
+                <input type="text" placeholder="Search location..."
+                  class="w-full border border-gray-300 rounded pl-9 pr-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500">
+              </div>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Person
+                Involved</label>
+              <div class="relative">
+                <i class="fas fa-user absolute left-3 top-2.5 text-gray-400"></i>
+                <input type="text" placeholder="Search by name or Employee ID..."
+                  class="w-full border border-gray-300 rounded pl-9 pr-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500">
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Incident Narrative -->
+        <section>
+          <div class="border-b border-gray-200 pb-2 mb-4">
+            <h3 class="text-[10px] font-bold text-gray-800 tracking-widest">Incident Narrative</h3>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident
+              Description</label>
+            <textarea rows="4"
+              placeholder="Detail the sequence of events, environmental conditions, and immediate findings..."
+              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"></textarea>
+          </div>
+        </section>
+
+        <!-- Actions -->
+        <section>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Action
+                Taken</label>
+              <textarea rows="3" placeholder="Immediate corrective actions taken at the scene..."
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"></textarea>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Preventive
+                Measures</label>
+              <textarea rows="3" placeholder="Recommended long-term steps to prevent recurrence..."
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- Supporting Media -->
+        <section>
+          <div class="border-b border-gray-200 pb-2 mb-4">
+            <h3 class="text-[10px] font-bold text-gray-800 tracking-widest">Supporting Media</h3>
+          </div>
+          <div
+            class="w-full h-32 border-2 border-dashed border-gray-300 rounded bg-gray-50 flex flex-col items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors">
+            <i class="fas fa-cloud-upload-alt text-2xl mb-2"></i>
+            <span class="text-sm font-medium">Drag and drop images or incident reports...</span>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-8 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center rounded-b">
+        <div class="flex items-center gap-2 text-[10px] font-bold text-green-700 uppercase tracking-widest">
+          <i class="fas fa-lock"></i>
+          Secure Form Submission
+        </div>
+        <div class="flex items-center gap-4">
+          <button (click)="closeModal()"
+            class="text-xs font-bold text-gray-500 hover:text-gray-800 transition-colors tracking-widest uppercase">Cancel</button>
+          <button
+            class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold px-6 py-2.5 rounded flex items-center gap-2 transition-colors uppercase tracking-widest shadow">
+            <i class="fas fa-save"></i> Save Incident
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>

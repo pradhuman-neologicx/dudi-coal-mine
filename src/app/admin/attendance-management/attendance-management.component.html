@@ -283,7 +283,7 @@
           </thead>
           <tbody>
             <tr
-              *ngFor="let record of attendanceRecords | paginate: { itemsPerPage: showEntries != 'all' ? showEntries : totalRecords, currentPage: p, totalItems: totalRecords }"
+              *ngFor="let record of attendanceRecords | paginate: { itemsPerPage: showEntries != 'all' ? showEntries : totalRecords, currentPage: p }"
               class="hover-bg-light transition">
               <td class="text-center">
                 <div class="custom-control custom-checkbox d-flex align-items-center justify-content-center">
@@ -475,7 +475,7 @@
                 <td><span class="badge bg-info-subtle text-info fs-8 px-2 py-1">{{ summary.leave }}</span></td>
                 <td><p class="fw-medium text-dark">{{ summary.payableDays }}</p></td>
                 <td class="text-center">
-                  <button class="btn btn-sm btn-outline-primary py-1 px-3 fs-8 fw-semibold rounded-pill" (click)="viewRecord({id: summary.empId})" title="View Details">
+                  <button class="btn btn-sm btn-outline-primary py-1 px-3 fs-8 fw-semibold rounded-pill" (click)="viewRecord(summary)" title="View Details">
                     <i class="fa-solid fa-calendar-days me-1"></i> View Details
                   </button>
                 </td>

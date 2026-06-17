@@ -1,0 +1,146 @@
+<div class="bg-[#f0f2f5] min-h-screen font-sans p-3 print:bg-white print:p-0">
+
+    <!-- Header Section (Hidden in print) -->
+    <div class="flex justify-between items-center mb-6 print:hidden">
+        <div>
+            <a routerLink="/admin/breakdown-and-maintenance"
+                class="text-sm font-bold text-gray-500 hover:text-gray-800 flex items-center gap-2 mb-2 transition-colors">
+                <i class="fas fa-arrow-left"></i> Back to Breakdown & Maint.
+            </a>
+            <h1 class="text-2xl font-bold text-gray-800">Maintenance Reports</h1>
+        </div>
+    </div>
+
+    <!-- Filters Section (Hidden in print) -->
+    <div class="bg-white border border-gray-200 rounded p-6 shadow-sm mb-6 print:hidden">
+        <h2 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Report Filters</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+            <div>
+                <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">From
+                    Date</label>
+                <input type="date" [(ngModel)]="fromDate"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">To Date</label>
+                <input type="date" [(ngModel)]="toDate"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Shift</label>
+                <ng-select [(ngModel)]="selectedShift" [items]="shifts" bindLabel="label" bindValue="value"
+                    [clearable]="false"
+                    class="w-full border border-gray-300 rounded text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+                </ng-select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Category</label>
+                <ng-select [(ngModel)]="selectedCategory" [items]="categories" bindLabel="label" bindValue="value"
+                    [clearable]="false"
+                    class="w-full border border-gray-300 rounded text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+                </ng-select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Priority</label>
+                <ng-select [(ngModel)]="selectedPriority" [items]="priorities" bindLabel="label" bindValue="value"
+                    [clearable]="false"
+                    class="w-full border border-gray-300 rounded text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+                </ng-select>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button (click)="generateReport()"
+                class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-sm font-semibold py-2 px-6 rounded flex items-center gap-2 transition-colors">
+                <i class="fas fa-file-alt text-xs"></i> Generate Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Generated Report Area -->
+    <div id="print-section" *ngIf="isReportGenerated"
+        class="bg-white border border-gray-200 rounded shadow-sm flex flex-col print:border-0 print:shadow-none">
+
+        <!-- Report Header -->
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 print:border-black print:pb-2">
+            <div>
+                <h2 class="text-lg font-bold text-[#0f2a4a] print:text-black print:text-xl">Breakdown & Maintenance
+                    Report</h2>
+                <div class="text-xs text-gray-500 mt-1 print:text-black">
+                    Period: {{ fromDate || 'Start' }} to {{ toDate || 'Present' }}
+                </div>
+            </div>
+            <div class="flex gap-4 text-gray-500 print:hidden">
+                <button ngxPrint printSectionId="print-section" [useExistingCss]="true"
+                    class="bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 text-sm font-semibold py-1.5 px-4 rounded flex items-center gap-2 transition-colors">
+                    <i class="fas fa-print"></i> Print PDF
+                </button>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto print:overflow-visible">
+            <table
+                class="w-full text-left text-sm text-gray-700 whitespace-nowrap print:whitespace-normal print:border-collapse">
+                <thead
+                    class="text-[10px] text-gray-500 font-bold uppercase bg-gray-50 border-b border-gray-200 print:bg-transparent print:text-black print:border-black">
+                    <tr>
+                        <th class="px-6 py-4 print:border-b print:border-black">Ticket No</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Machine</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Breakdown Time</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Shift</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Category</th>
+                        <th class="px-6 py-4 text-center print:border-b print:border-black">Priority</th>
+                        <th class="px-6 py-4 print:border-b print:border-black">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 print:divide-gray-400">
+                    <tr *ngIf="filteredTickets.length === 0">
+                        <td colspan="6" class="px-6 py-8 text-center text-gray-500 italic">No tickets found for the
+                            selected criteria.</td>
+                    </tr>
+                    <tr *ngFor="let t of filteredTickets" class="hover:bg-gray-50 print:hover:bg-transparent">
+                        <td class="px-6 py-4 font-bold text-gray-900 print:py-2">{{t.ticketNo}}</td>
+                        <td class="px-6 py-4 text-gray-900 font-semibold print:py-2 print:text-black">{{t.machineId}}
+                        </td>
+                        <td class="px-6 py-4 text-gray-600 print:py-2 print:text-black">{{t.breakdownTime}}</td>
+                        <td class="px-6 py-4 text-gray-600 print:py-2 print:text-black">{{t.shift}}</td>
+                        <td class="px-6 py-4 text-gray-600 print:py-2 print:text-black">
+                            <span
+                                class="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[10px] font-bold tracking-widest print:bg-transparent">{{t.category}}</span>
+                        </td>
+                        <td class="px-6 py-4 text-center print:py-2 print:text-black">
+                            <div class="flex items-center justify-center gap-1.5 text-[10px] font-bold tracking-widest"
+                                [ngClass]="{
+                  'text-red-600': t.priority === 'CRITICAL',
+                  'text-orange-500': t.priority === 'HIGH',
+                  'text-blue-500': t.priority === 'MEDIUM',
+                  'text-gray-500': t.priority === 'LOW'
+                }">
+                                <div class="w-1.5 h-1.5 rounded-full" [ngClass]="{
+                    'bg-red-600': t.priority === 'CRITICAL',
+                    'bg-orange-500': t.priority === 'HIGH',
+                    'bg-blue-500': t.priority === 'MEDIUM',
+                    'bg-gray-500': t.priority === 'LOW'
+                  }"></div>
+                                {{t.priority}}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600 print:py-2 print:text-black">
+                            <span class="px-2 py-1 text-[10px] font-bold tracking-widest rounded print:bg-transparent"
+                                [ngClass]="{
+                  'bg-red-100 text-red-700': t.status === 'OPEN',
+                  'bg-gray-200 text-gray-700': t.status === 'IN PROGRESS',
+                  'bg-green-100 text-green-700': t.status === 'CLOSED'
+                }">
+                                {{t.status}}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
