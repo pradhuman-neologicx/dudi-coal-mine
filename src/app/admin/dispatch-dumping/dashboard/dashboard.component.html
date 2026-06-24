@@ -1,0 +1,179 @@
+<div class="space-y-6">
+
+    <!-- Page Header -->
+    <div class="flex justify-between items-center bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                <i class="fas fa-chart-line text-[#468faf]"></i>
+                Dispatch Dashboard
+            </h1>
+            <p class="text-sm text-gray-500 mt-1 font-medium tracking-wide">Monitor live fleet productivity and material movement</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded text-sm font-bold transition-colors flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i> Refresh Data
+            </button>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Total Trips -->
+        <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div class="flex justify-between items-start relative z-10">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Trips</p>
+                    <h3 class="text-3xl font-black text-gray-800">{{ kpis.totalTrips }}</h3>
+                </div>
+                <div class="w-10 h-10 rounded bg-[#468faf]/10 text-[#468faf] flex items-center justify-center">
+                    <i class="fas fa-route text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-xs">
+                <span class="text-green-600 font-bold flex items-center gap-1"><i class="fas fa-arrow-up"></i> 12%</span>
+                <span class="text-gray-400 ml-2 font-medium">vs last shift</span>
+            </div>
+        </div>
+
+        <!-- Total Quantity -->
+        <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div class="flex justify-between items-start relative z-10">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Quantity Moved</p>
+                    <h3 class="text-3xl font-black text-gray-800">{{ kpis.totalQuantity }} <span class="text-sm text-gray-500 font-medium">BCM</span></h3>
+                </div>
+                <div class="w-10 h-10 rounded bg-purple-100 text-purple-600 flex items-center justify-center">
+                    <i class="fas fa-cubes text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-xs">
+                <span class="text-green-600 font-bold flex items-center gap-1"><i class="fas fa-arrow-up"></i> 5%</span>
+                <span class="text-gray-400 ml-2 font-medium">vs last shift</span>
+            </div>
+        </div>
+
+        <!-- Avg Cycle Time -->
+        <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-orange-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div class="flex justify-between items-start relative z-10">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Avg Cycle Time</p>
+                    <h3 class="text-3xl font-black text-gray-800">{{ kpis.avgCycleTime }} <span class="text-sm text-gray-500 font-medium">min</span></h3>
+                </div>
+                <div class="w-10 h-10 rounded bg-orange-100 text-orange-600 flex items-center justify-center">
+                    <i class="fas fa-stopwatch text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-xs">
+                <span class="text-green-600 font-bold flex items-center gap-1"><i class="fas fa-arrow-down"></i> 2.1m</span>
+                <span class="text-gray-400 ml-2 font-medium">faster than avg</span>
+            </div>
+        </div>
+
+        <!-- Active Dumpers -->
+        <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div class="absolute -right-4 -top-4 w-24 h-24 bg-green-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div class="flex justify-between items-start relative z-10">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Dumpers</p>
+                    <h3 class="text-3xl font-black text-gray-800">{{ kpis.activeDumpers }}</h3>
+                </div>
+                <div class="w-10 h-10 rounded bg-green-100 text-green-600 flex items-center justify-center">
+                    <i class="fas fa-truck-moving text-xl"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-xs">
+                <span class="text-gray-600 font-bold">100%</span>
+                <span class="text-gray-400 ml-2 font-medium">fleet utilization</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Top Performers -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Mock Chart Area -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm lg:col-span-2">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-chart-area text-gray-400"></i> Fleet Productivity Trend</h3>
+                <select class="text-xs border-gray-200 rounded text-gray-600 focus:ring-[#468faf] focus:border-[#468faf]">
+                    <option>Today (Hourly)</option>
+                    <option>Last 7 Days</option>
+                </select>
+            </div>
+            <div class="p-6 h-[300px] w-full rounded-b-lg">
+                <canvas #productivityChart></canvas>
+            </div>
+        </div>
+
+        <!-- Top Dumpers -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-trophy text-yellow-500"></i> Top Performing Dumpers</h3>
+            </div>
+            <div class="p-0">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                        <tr>
+                            <th class="px-6 py-3">Dumper</th>
+                            <th class="px-6 py-3 text-center">Trips</th>
+                            <th class="px-6 py-3 text-right">BCM</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr *ngFor="let d of topDumpers" class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-3 font-bold text-gray-800">{{ d.id }}</td>
+                            <td class="px-6 py-3 text-center text-[#468faf] font-bold">{{ d.trips }}</td>
+                            <td class="px-6 py-3 text-right font-mono text-gray-600">{{ d.quantity }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t border-gray-100 text-center">
+                <a routerLink="../fleet-performance" class="text-xs font-bold text-[#468faf] hover:underline cursor-pointer">View Full Fleet Performance <i class="fas fa-arrow-right ml-1"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Trips -->
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-history text-gray-400"></i> Recent Trip Activity</h3>
+            <a routerLink="../register" class="text-xs font-bold text-[#468faf] hover:underline cursor-pointer">View Dispatch Register</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left whitespace-nowrap">
+                <thead class="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                    <tr>
+                        <th class="px-6 py-4">Trip Ref</th>
+                        <th class="px-6 py-4">Equipment</th>
+                        <th class="px-6 py-4">Driver</th>
+                        <th class="px-6 py-4">Quantity</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Time</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr *ngFor="let trip of recentTrips" class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 font-mono text-[#468faf] font-bold">{{ trip.ref }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-gray-800">{{ trip.dumper }}</span>
+                                <span class="text-gray-400 text-xs"><i class="fas fa-arrow-right mx-1"></i>{{ trip.excavator }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600 font-medium">{{ trip.driver }}</td>
+                        <td class="px-6 py-4 font-bold text-gray-800">{{ trip.quantity }} <span class="text-xs text-gray-500 font-normal">BCM</span></td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded text-[10px] font-bold tracking-widest uppercase bg-green-100 text-green-700" *ngIf="trip.status === 'COMPLETED'">Completed</span>
+                            <span class="px-2 py-1 rounded text-[10px] font-bold tracking-widest uppercase bg-blue-100 text-blue-700" *ngIf="trip.status === 'LOGGED'">Logged</span>
+                        </td>
+                        <td class="px-6 py-4 text-right text-xs text-gray-500 font-medium">{{ trip.time }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

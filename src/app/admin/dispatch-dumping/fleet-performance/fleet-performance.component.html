@@ -1,0 +1,151 @@
+<div class="space-y-6">
+
+    <!-- Page Header -->
+    <div class="flex justify-between items-center bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                <i class="fas fa-truck text-[#468faf]"></i>
+                Fleet Performance
+            </h1>
+            <p class="text-sm text-gray-500 mt-1 font-medium tracking-wide">Analyze equipment utilization, cycle times, and comparative productivity</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-600 px-4 py-2 rounded text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+                <i class="fas fa-calendar-day"></i> Today
+            </button>
+            <button class="bg-[#468faf] hover:bg-[#3a7892] text-white px-4 py-2 rounded text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+                <i class="fas fa-download"></i> Export Report
+            </button>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <!-- Active Dumpers -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Dumpers</p>
+            <h3 class="text-2xl font-black text-[#468faf]">{{ kpis.activeDumpers }} <span class="text-xs text-gray-400 font-medium">/ 12</span></h3>
+        </div>
+        <!-- Total Trips -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Trips</p>
+            <h3 class="text-2xl font-black text-[#468faf]">{{ kpis.totalTrips }}</h3>
+        </div>
+        <!-- Total Quantity -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Quantity Moved</p>
+            <h3 class="text-2xl font-black text-[#468faf]">{{ kpis.totalQuantity }} <span class="text-xs text-gray-400 font-medium">BCM</span></h3>
+        </div>
+        <!-- Avg Cycle Time -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Avg Cycle Time</p>
+            <h3 class="text-2xl font-black text-[#468faf]">{{ kpis.avgCycleTime }} <span class="text-xs text-gray-400 font-medium">min</span></h3>
+        </div>
+        <!-- Fleet Utilization -->
+        <div class="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Utilization</p>
+            <h3 class="text-2xl font-black text-green-600">{{ kpis.utilization }}</h3>
+        </div>
+    </div>
+
+    <!-- Highlight KPIs -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-700 text-white rounded-lg p-5 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-blue-100 uppercase tracking-widest mb-1">Highest Quantity</p>
+                <h3 class="text-xl font-bold">DMP-07 <span class="text-sm font-normal opacity-80">(4,250 BCM)</span></h3>
+            </div>
+            <i class="fas fa-trophy text-4xl opacity-50"></i>
+        </div>
+        <div class="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white rounded-lg p-5 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-indigo-100 uppercase tracking-widest mb-1">Highest Trip Count</p>
+                <h3 class="text-xl font-bold">DMP-07 <span class="text-sm font-normal opacity-80">(42 Trips)</span></h3>
+            </div>
+            <i class="fas fa-layer-group text-4xl opacity-50"></i>
+        </div>
+        <div class="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white rounded-lg p-5 shadow-sm flex items-center justify-between">
+            <div>
+                <p class="text-xs font-bold text-emerald-100 uppercase tracking-widest mb-1">Fastest Dumper</p>
+                <h3 class="text-xl font-bold">DMP-07 <span class="text-sm font-normal opacity-80">(10.8 Mins)</span></h3>
+            </div>
+            <i class="fas fa-shipping-fast text-4xl opacity-50"></i>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Productivity Trend -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-chart-line text-gray-400"></i> Productivity Trend</h3>
+            </div>
+            <div class="p-4 h-[250px] w-full">
+                <canvas #prodChart></canvas>
+            </div>
+        </div>
+        
+        <!-- Dumper Comparison -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-chart-bar text-gray-400"></i> Quantity by Dumper</h3>
+            </div>
+            <div class="p-4 h-[250px] w-full">
+                <canvas #compChart></canvas>
+            </div>
+        </div>
+
+        <!-- Cycle Time -->
+        <div class="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-stopwatch text-gray-400"></i> Cycle Time Analysis</h3>
+            </div>
+            <div class="p-4 h-[250px] w-full">
+                <canvas #cycleChart></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fleet Register Table -->
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-list-ul text-gray-400"></i> Fleet Performance Register</h3>
+            <button class="text-xs font-bold text-gray-500 hover:text-[#468faf] border border-gray-300 rounded px-3 py-1"><i class="fas fa-download mr-1"></i> Export</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left whitespace-nowrap">
+                <thead class="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-center">Rank</th>
+                        <th class="px-6 py-4">Dumper / Driver</th>
+                        <th class="px-6 py-4 text-center">Trips</th>
+                        <th class="px-6 py-4 text-right">Quantity (BCM)</th>
+                        <th class="px-6 py-4 text-center">Avg Cycle Time</th>
+                        <th class="px-6 py-4 text-right">Dist (KM)</th>
+                        <th class="px-6 py-4 text-right">BCM / Trip</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr *ngFor="let f of fleetData" class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 text-center">
+                            <div class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                                 [ngClass]="{'bg-yellow-100 text-yellow-700': f.rank === 1, 'bg-gray-100 text-gray-700': f.rank !== 1}">
+                                {{ f.rank }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-800">{{ f.dumper }}</div>
+                            <div class="text-[10px] text-gray-500 mt-1">{{ f.driver }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-center font-bold text-[#468faf]">{{ f.trips }}</td>
+                        <td class="px-6 py-4 text-right font-mono font-bold text-gray-800">{{ f.bcm }}</td>
+                        <td class="px-6 py-4 text-center text-gray-600">{{ f.cycle }}m</td>
+                        <td class="px-6 py-4 text-right text-gray-600">{{ f.dist }}</td>
+                        <td class="px-6 py-4 text-right text-gray-600">{{ f.prod }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>

@@ -26,6 +26,8 @@ import { NgxPaginationModule } from 'ngx-pagination';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NavbarComponent } from './website/navbar/navbar.component';
 import { EmployeePayrollComponent } from './admin/employee-payroll/employee-payroll.component';
+import { IncidentTypeComponent } from './admin/masters/incident-type/incident-type.component';
+import { SeverityLevelComponent } from './admin/masters/severity-level/severity-level.component';
 
 
 
@@ -43,6 +45,8 @@ import { EmployeePayrollComponent } from './admin/employee-payroll/employee-payr
     HomeComponent,
     NavbarComponent,
     EmployeePayrollComponent,
+    IncidentTypeComponent,
+    SeverityLevelComponent,
   ],
   imports: [
     BrowserModule,

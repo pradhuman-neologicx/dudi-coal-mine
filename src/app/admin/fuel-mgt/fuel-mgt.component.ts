@@ -114,7 +114,11 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
 
   constructor() { }
 
+  maxDate: string = '';
+
   ngOnInit(): void {
+    const today = new Date();
+    this.maxDate = today.toISOString().split('T')[0];
   }
 
   ngAfterViewInit(): void {

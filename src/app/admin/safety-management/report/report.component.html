@@ -15,7 +15,7 @@
     <div class="bg-white border border-gray-200 rounded p-6 shadow-sm mb-6 print:hidden">
         <h2 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">Report Filters</h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
             <div>
                 <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">From
                     Date</label>
@@ -45,6 +45,16 @@
                     <option value="Crushing Plant">Crushing Plant</option>
                     <option value="East Pit">East Pit</option>
                     <option value="Maintenance Workshop">Maintenance Workshop</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident Type</label>
+                <select [(ngModel)]="selectedType"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+                    <option value="">All Types</option>
+                    <option value="Near Miss">Near Miss</option>
+                    <option value="Property Damage">Property Damage</option>
+                    <option value="Injury">Injury</option>
                 </select>
             </div>
         </div>

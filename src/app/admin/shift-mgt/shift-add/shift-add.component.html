@@ -66,10 +66,13 @@
                 <label
                     class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Supervisor</label>
                 <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><i
-                            class="far fa-user"></i></span>
-                    <input type="text" [(ngModel)]="shiftForm.supervisor"
-                        class="w-full border border-gray-300 rounded pl-10 pr-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50">
+                    <ng-select [(ngModel)]="shiftForm.supervisorId" [items]="supervisors" bindLabel="name"
+                        bindValue="id" placeholder="Select Supervisor" class="w-full text-sm">
+                        <ng-template ng-option-tmp let-item="item">
+                            <div class="font-medium text-gray-800">{{item.name}} <span
+                                    class="text-xs text-gray-400 font-normal">({{item.code}})</span></div>
+                        </ng-template>
+                    </ng-select>
                 </div>
             </div>
             <!-- Site Incharge -->
@@ -77,12 +80,21 @@
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Site
                     Incharge</label>
                 <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"><i
-                            class="fas fa-shield-alt"></i></span>
-                    <input type="text" [(ngModel)]="shiftForm.siteIncharge"
-                        class="w-full border border-gray-300 rounded pl-10 pr-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50">
+                    <ng-select [(ngModel)]="shiftForm.siteInchargeId" [items]="siteIncharges" bindLabel="name"
+                        bindValue="id" placeholder="Select Site Incharge" class="w-full text-sm">
+                        <ng-template ng-option-tmp let-item="item">
+                            <div class="font-medium text-gray-800">{{item.name}} <span
+                                    class="text-xs text-gray-400 font-normal">({{item.code}})</span></div>
+                        </ng-template>
+                    </ng-select>
                 </div>
             </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button
+                class="bg-[#468faf] text-white font-bold text-sm px-6 py-2 rounded hover:bg-[#2c7da0] transition-colors shadow-sm"
+                (click)="savePlan()">Save Plan</button>
         </div>
     </div>
 
@@ -107,26 +119,38 @@
                     <i class="fas fa-tools text-[#468faf] text-xl"></i>
                     <span class="text-lg font-bold">{{ eq.id }}</span>
                 </div>
-                <span class="px-3 py-1 text-[9px] font-bold tracking-widest rounded uppercase"
-                    [ngClass]="eq.status === 'OPTIMAL' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
-                    {{ eq.status }}
-                </span>
+                <div class="flex items-center gap-3">
+                    <span class="px-3 py-1 text-[9px] font-bold tracking-widest rounded uppercase"
+                        [ngClass]="eq.status === 'OPTIMAL' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">
+                        {{ eq.status }}
+                    </span>
+                    <button (click)="removeEquipment(eq)" title="Remove Equipment"
+                        class="text-gray-400 hover:text-red-500 transition-colors">
+                        <i class="far fa-trash-alt"></i>
+                    </button>
+                </div>
             </div>
             <div class="p-5 flex-1">
                 <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Assigned Dumpers</div>
                 <div class="flex flex-wrap gap-2">
                     <div *ngFor="let dmp of eq.assignedDumpers"
-                        class="bg-[#eef5f9] text-[#2c7da0] text-xs font-bold px-3 py-1.5 rounded">{{ dmp }}</div>
+                        class="bg-[#eef5f9] text-[#2c7da0] text-xs font-bold px-3 py-1.5 rounded flex items-center gap-2">
+                        {{ dmp }}
+                        <button (click)="removeDumper(eq, dmp)"
+                            class="text-[#2c7da0] hover:text-red-500 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                     <button (click)="addDumper(eq)"
                         class="border border-dashed border-gray-400 text-gray-500 text-xs font-bold px-3 py-1.5 rounded hover:bg-gray-50 transition-colors"><i
                             class="fas fa-plus text-[10px]"></i> ADD</button>
                 </div>
             </div>
-            <div
+            <!-- <div
                 class="px-5 py-3 border-t border-gray-200 flex justify-between items-center text-xs font-bold bg-gray-50/50">
                 <span class="text-gray-600">Est. Production: {{ eq.estProd }}</span>
                 <span [ngClass]="eq.variance.includes('+') ? 'text-green-600' : 'text-red-600'">{{ eq.variance }}</span>
-            </div>
+            </div> -->
         </div>
 
         <!-- Add Machinery Placeholder -->
@@ -145,7 +169,8 @@
         </div>
         <div class="flex items-center gap-3 mt-4 md:mt-0">
             <!-- Employee Workforce Metrics -->
-            <div class="flex bg-white border border-gray-200 rounded shadow-sm text-[10px] font-bold uppercase tracking-widest text-center mr-2">
+            <div
+                class="flex bg-white border border-gray-200 rounded shadow-sm text-[10px] font-bold uppercase tracking-widest text-center mr-2">
                 <div class="px-3 py-1.5 border-r border-gray-200 bg-gray-50/50 flex flex-col justify-center">
                     <div class="text-gray-500 mb-0.5">Planned</div>
                     <div class="text-sm text-gray-800">25</div>
@@ -164,57 +189,80 @@
                 </div>
             </div>
 
-            <button (click)="openAddEmployeeModal()" class="bg-[#468faf] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0] shadow-sm transition-colors">
+            <button (click)="openAddEmployeeModal()"
+                class="bg-[#468faf] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0] shadow-sm transition-colors">
                 <i class="fas fa-plus"></i> ADD EMPLOYEE
             </button>
 
-            <div
+            <!-- <div
                 class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-2 text-sm text-gray-700 cursor-pointer min-w-[180px] shadow-sm">
                 <i class="fas fa-filter text-gray-400"></i>
                 <span class="flex-1 font-medium">All Designations</span>
                 <i class="fas fa-caret-down text-gray-400"></i>
-            </div>
+            </div> -->
         </div>
     </div>
 
     <!-- Employee Deployment Table -->
     <div class="bg-white border border-gray-200 rounded shadow-sm mb-6">
+        <!-- Table Controls -->
+        <div class="p-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center text-sm text-gray-600 font-medium">
+                <span class="mr-2">Show</span>
+                <select class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-[#468faf] bg-white text-gray-700 cursor-pointer">
+                    <option value="4">4</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </select>
+                <span class="ml-2">entries</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="relative">
+                    <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="applySearch()" placeholder="Search employees..." class="border border-gray-300 rounded pl-9 pr-9 py-1.5 text-sm focus:outline-none focus:border-[#468faf] w-full sm:w-64 text-gray-700">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <i *ngIf="isSearchActive || searchQuery" class="fas fa-times absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-red-500 transition-colors" (click)="resetSearch()"></i>
+                </div>
+                <button (click)="applySearch()" class="bg-[#468faf] text-white px-4 py-1.5 rounded text-sm font-bold hover:bg-[#2c7da0] transition-colors shadow-sm">
+                    Search
+                </button>
+            </div>
+        </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm whitespace-nowrap">
                 <thead
                     class="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-4 w-12 text-center">
-                            <input type="checkbox" class="rounded text-[#468faf] focus:ring-primary">
-                        </th>
+                        <th class="px-6 py-4 w-12 text-center">S.No.</th>
                         <th class="px-6 py-4">Employee Name</th>
                         <th class="px-6 py-4">Designation</th>
                         <th class="px-6 py-4">Machine Assigned</th>
-                        <th class="px-6 py-4">Status</th>
                         <th class="px-6 py-4 text-right">Action</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
-                    <tr *ngFor="let emp of employees" class="hover:bg-gray-50/50 transition-colors">
-                        <td class="px-6 py-4 text-center">
-                            <input type="checkbox" [(ngModel)]="emp.selected"
-                                class="rounded text-[#468faf] focus:ring-primary w-4 h-4">
+                    <tr *ngFor="let emp of employees; let i = index" class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-6 py-4 text-center text-gray-600 font-medium">
+                            {{ (currentPage - 1) * 4 + i + 1 }}
                         </td>
-                        <td class="px-6 py-4 font-bold text-gray-800">{{ emp.name }}</td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-800 flex items-center gap-2">
+                                {{ emp.name }}
+                                <span *ngIf="emp.isBorrowed"
+                                    class="bg-blue-100 text-blue-700 text-[9px] font-bold px-2 py-0.5 rounded tracking-widest uppercase">Borrowed</span>
+                            </div>
+                        </td>
                         <td class="px-6 py-4 text-gray-600 font-medium">{{ emp.designation }}</td>
                         <td class="px-6 py-4 text-gray-600">{{ emp.machine }}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-0.5 text-[9px] font-bold tracking-widest rounded uppercase" [ngClass]="{
-                      'bg-green-100 text-green-700': emp.status === 'AVAILABLE',
-                      'bg-[#0f2a4a] text-white': emp.status === 'ASSIGNED',
-                      'bg-gray-100 text-blue-700': emp.status === 'ON BREAK'
-                    }">
-                                {{ emp.status }}
-                            </span>
-                        </td>
-                        <td (click)="searchAssets()"
-                            class="px-6 py-4 text-right text-gray-400 hover:text-gray-600 text-lg cursor-pointer">
-                            <i class="fas fa-ellipsis-v"></i>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex items-center justify-end gap-3 text-lg">
+                                <button (click)="editEmployee(emp)" title="Edit Assignment"
+                                    class="text-gray-400 hover:text-[#468faf] transition-colors"><i
+                                        class="fas fa-edit"></i></button>
+                                <button (click)="removeEmployee(emp)" title="Remove Employee"
+                                    class="text-gray-400 hover:text-red-500 transition-colors"><i
+                                        class="far fa-trash-alt"></i></button>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -305,7 +353,8 @@
         </div>
         <div class="p-6 space-y-4">
             <div>
-                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Shift</label>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Shift <span
+                        class="text-red-500">*</span></label>
                 <select [(ngModel)]="newEmployee.shift"
                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf] bg-gray-50">
                     <option value="A">Shift A</option>
@@ -314,26 +363,115 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Employee</label>
-                <ng-select [(ngModel)]="newEmployee.employeeId"
-                    [items]="availableEmployees"
-                    bindLabel="name"
-                    bindValue="id"
-                    placeholder="Select Employee"
-                    class="w-full text-sm">
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Employee <span
+                        class="text-red-500">*</span></label>
+                <ng-select [(ngModel)]="newEmployee.employeeId" [items]="availableEmployees" bindLabel="name"
+                    bindValue="id" placeholder="Select Employee" class="w-full text-sm">
                     <ng-template ng-option-tmp let-item="item">
-                        <div class="font-medium text-gray-800">{{item.name}} <span class="text-xs text-gray-400 font-normal">({{item.designation}})</span></div>
+                        <div class="flex flex-col py-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="font-bold text-gray-800">{{item.code}} - {{item.name}}</span>
+                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-widest"
+                                    [ngClass]="{
+                                        'bg-green-100 text-green-700': item.availability === 'Available',
+                                        'bg-red-100 text-red-700': item.availability === 'Leave',
+                                        'bg-gray-100 text-gray-600': item.availability === 'Assigned To Another Shift'
+                                    }">{{item.availability}}</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span><i class="fas fa-user-tag text-gray-400 mr-1"></i>{{item.designation}}</span>
+                                <span><i class="fas fa-users text-gray-400 mr-1"></i>{{item.homeRelay}}</span>
+                            </div>
+                        </div>
                     </ng-template>
                     <ng-template ng-label-tmp let-item="item">
-                        <div class="font-medium text-gray-800">{{item.name}} <span class="text-xs text-gray-400 font-normal">({{item.designation}})</span></div>
+                        <div class="font-medium text-gray-800">{{item.code}} - {{item.name}} <span
+                                class="text-xs text-gray-400 font-normal">({{item.designation}})</span></div>
                     </ng-template>
                 </ng-select>
             </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Reason <span
+                        class="text-red-500">*</span></label>
+                <textarea rows="3" [(ngModel)]="newEmployee.borrowReason" placeholder="Enter reason..."
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf] bg-white text-gray-700 resize-none"></textarea>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Assign Machine <span
+                        class="text-gray-400 font-normal">(Optional)</span></label>
+                <select [(ngModel)]="newEmployee.machineAssigned"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf] bg-white">
+                    <option value="">Unassigned</option>
+                    <option value="EXC-101">EXC-101 (Excavator)</option>
+                    <option value="EXC-102">EXC-102 (Excavator)</option>
+                    <option value="DMP-01">DMP-01 (Dumper)</option>
+                    <option value="DMP-02">DMP-02 (Dumper)</option>
+                    <option value="DMP-03">DMP-03 (Dumper)</option>
+                    <option value="DMP-04">DMP-04 (Dumper)</option>
+                    <option value="DMP-05">DMP-05 (Dumper)</option>
+                </select>
+            </div>
         </div>
         <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-            <button class="text-gray-600 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded transition-colors" (click)="closeAddEmployeeModal()">Cancel</button>
-            <button class="bg-[#468faf] text-white font-bold text-sm px-6 py-2 rounded hover:bg-[#2c7da0]"
+            <button class="text-gray-600 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded transition-colors"
+                (click)="closeAddEmployeeModal()">Cancel</button>
+            <button class="text-white font-bold text-sm px-6 py-2 rounded transition-colors"
+                [ngClass]="(!newEmployee.shift || !newEmployee.employeeId || !newEmployee.borrowReason) ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#468faf] hover:bg-[#2c7da0]'"
+                [disabled]="!newEmployee.shift || !newEmployee.employeeId || !newEmployee.borrowReason"
                 (click)="addEmployeeToShift()">Done</button>
         </div>
+    </div>
+</div>
+
+<!-- Edit Employee Modal -->
+<div *ngIf="showEditEmployeeModal"
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden my-auto border border-gray-200 mt-10">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-gray-800">Edit Assignment</h2>
+            <button class="text-gray-400 hover:text-gray-600 text-xl leading-none"
+                (click)="closeEditEmployeeModal()">&times;</button>
+        </div>
+        <div class="p-6 space-y-4" *ngIf="editEmployeeData">
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Employee</label>
+                <div class="text-sm font-medium text-gray-800 bg-gray-50 border border-gray-200 rounded px-3 py-2">
+                    {{ editEmployeeData.name }} <span class="text-gray-500 font-normal ml-1">({{
+                        editEmployeeData.designation }})</span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Assign Machine <span
+                        class="text-gray-400 font-normal">(Optional)</span></label>
+                <select [(ngModel)]="editEmployeeData.machineAssigned"
+                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf] bg-white">
+                    <option value="">Unassigned</option>
+                    <option value="EXC-101">EXC-101 (Excavator)</option>
+                    <option value="EXC-102">EXC-102 (Excavator)</option>
+                    <option value="DMP-01">DMP-01 (Dumper)</option>
+                    <option value="DMP-02">DMP-02 (Dumper)</option>
+                    <option value="DMP-03">DMP-03 (Dumper)</option>
+                    <option value="DMP-04">DMP-04 (Dumper)</option>
+                    <option value="DMP-05">DMP-05 (Dumper)</option>
+                </select>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+            <button class="text-gray-600 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded transition-colors"
+                (click)="closeEditEmployeeModal()">Cancel</button>
+            <button class="bg-[#468faf] text-white font-bold text-sm px-6 py-2 rounded hover:bg-[#2c7da0]"
+                (click)="saveEmployeeEdit()">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div *ngIf="showToast"
+    class="fixed top-24 right-6 z-[200] px-6 py-4 rounded shadow-lg transition-all duration-300 transform"
+    [ngClass]="toastType === 'success' ? 'bg-green-100 text-green-800 border-l-4 border-green-500' : 'bg-red-100 text-red-800 border-l-4 border-red-500'">
+    <div class="flex items-center gap-3 font-bold text-sm">
+        <i
+            [class]="toastType === 'success' ? 'fas fa-check-circle text-green-600 text-lg' : 'fas fa-exclamation-circle text-red-600 text-lg'"></i>
+        {{ toastMessage }}
     </div>
 </div>

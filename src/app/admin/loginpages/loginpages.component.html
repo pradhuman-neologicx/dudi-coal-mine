@@ -1,15 +1,11 @@
-<section class="login">
-  <div class="container">
-    <div class="row login-row max-w-7xl mx-auto">
-      <div class="hidden lg:block col-lg-5 col-md-5 col-12 login-content">
-        <div style="height: 100%">
-          <img src="./assets/amconlogin.jpg" class="login-screen-img" />
-        </div>
-      </div>
+<section class="login min-h-screen w-full bg-cover bg-center bg-no-repeat relative flex items-center justify-center"
+  style="background-image: url('assets/screen.png'); background-repeat: no-repeat; background-size: cover;">
+  <!-- Optional overlay for better contrast -->
+  <div class="absolute inset-0 bg-black/40 pointer-events-none"></div>
 
-      <div class="col-lg-6 col-xl-6 offset-lg-1 col-md-6 col-12 login-content">
-        <router-outlet></router-outlet>
-      </div>
+  <div class="container relative z-10 flex items-center justify-end w-full px-4">
+    <div class="w-full max-w-md login-content">
+      <router-outlet></router-outlet>
     </div>
   </div>
 </section>

@@ -161,11 +161,6 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.searchbarform = this.formBuilder.group({
       searchbar: ['']
     });
-
-    this.searchbarform.get('searchbar')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(val => {
-      this.showreset = !!val;
-      this.searchfun();
-    });
   }
 
   initForms() {
@@ -236,12 +231,14 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   searchfun() {
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
+    this.showreset = searchText.trim().length > 0;
     this.page = 1;
     this.fetchInventoryList();
   }
 
   resetsearchbar() {
-    this.searchbarform.patchValue({ searchbar: '' });
+    this.searchbarform.get('searchbar')?.reset();
     this.showreset = false;
     this.page = 1;
     this.fetchInventoryList();
@@ -502,9 +499,17 @@ export class InventoryComponent implements OnInit, OnDestroy {
         }
       },
       error: (err: any) => {
-        const errorMessage = err?.error?.message || err?.message || 'Failed to bulk upload inventory.';
-        this.notificationService.show(errorMessage, 'error', 3000);
-        console.error(err);
+        console.error('Error during bulk upload:', err);
+        const originalError = err.originalError || err.error || err;
+        let errorMessage = originalError.message || err.message || 'Failed to bulk upload inventory.';
+
+        if (originalError.errors && Array.isArray(originalError.errors)) {
+          const formattedErrors = originalError.errors.map((e: any) => `Row ${e.row}: ${e.message}`).join('\n');
+          errorMessage += '\n' + formattedErrors;
+        }
+
+        const duration = originalError.errors ? 8000 : 3000;
+        this.notificationService.show(errorMessage, 'error', duration);
       }
     });
   }

@@ -198,7 +198,7 @@ export class AttendanceManagementService {
       params = params.set('to_date', toDate);
     }
     if (status) {
-      params = params.set('attendance_status', status.toLowerCase());
+      params = params.set('attendance_status', status.toLowerCase().replace(/\s+/g, '_'));
     }
     if (viewType) {
       params = params.set('view_type', viewType);

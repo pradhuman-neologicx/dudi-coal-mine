@@ -1,7 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { EquipmentService } from 'src/app/core/services/equipment.service';
+import { NotificationService } from 'src/app/core/services/notificationnew.service';
 
 export interface Equipment {
   id: number;
@@ -18,14 +22,16 @@ export interface Equipment {
   templateUrl: './equipments.component.html',
   styleUrl: './equipments.component.scss'
 })
-export class EquipmentsComponent implements OnInit {
+export class EquipmentsComponent implements OnInit, OnDestroy {
   equipments: Equipment[] = [];
   filteredEquipments: Equipment[] = [];
   categories: {id: number, name: string}[] = [];
+  activeCategories: {id: number, name: string}[] = [];
+  private destroy$ = new Subject<void>();
 
   // Pagination
   page: number = 1;
-  tableSize: number = 10;
+  tableSize: any = 10;
   totalRecords: number = 0;
   tableSizes: any = [10, 25, 50, 'all'];
 
@@ -39,7 +45,11 @@ export class EquipmentsComponent implements OnInit {
   equipmentForm!: FormGroup;
   selectedEquipmentId: number | null = null;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private equipmentService: EquipmentService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     this.equipmentForm = this.fb.group({
@@ -47,38 +57,81 @@ export class EquipmentsComponent implements OnInit {
       categoryId: ['', Validators.required],
       isActive: [true]
     });
-    this.loadMockData();
+    this.loadData();
+    this.loadActiveCategories();
   }
 
-  loadMockData() {
-    this.categories = [
-      { id: 1, name: 'Excavators' },
-      { id: 2, name: 'Dumpers' },
-      { id: 3, name: 'Loaders' },
-      { id: 4, name: 'Drilling Machines' },
-      { id: 5, name: 'Cranes' },
-    ];
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
-    this.equipments = [
-      { id: 1, name: 'Excavator EX-100', categoryId: 1, categoryName: 'Excavators', isActive: true },
-      { id: 2, name: 'Dumper DP-200', categoryId: 2, categoryName: 'Dumpers', isActive: true },
-      { id: 3, name: 'Loader LD-50', categoryId: 3, categoryName: 'Loaders', isActive: false },
-      { id: 4, name: 'Driller DR-X', categoryId: 4, categoryName: 'Drilling Machines', isActive: true },
-      { id: 5, name: 'Crane CR-300', categoryId: 5, categoryName: 'Cranes', isActive: true },
-      { id: 6, name: 'Excavator EX-150', categoryId: 1, categoryName: 'Excavators', isActive: true },
-      { id: 7, name: 'Dumper DP-250', categoryId: 2, categoryName: 'Dumpers', isActive: true },
-    ];
-    this.onFilterChange();
+  loadActiveCategories() {
+    this.equipmentService.getMachineCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          if (res.status === 200 && res.data) {
+            this.activeCategories = res.data.map((c: any) => ({
+              id: c.category_id,
+              name: c.category_name
+            }));
+          }
+        },
+        error: (err: any) => {
+          console.error('Error loading active categories:', err);
+        }
+      });
+  }
+
+  loadData() {
+    // Fetch categories first if not fetched
+    if (this.categories.length === 0) {
+      this.equipmentService.getEquipments('all', 1)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (res: any) => {
+            if (res.status === 200 && res.data) {
+              this.categories = res.data.map((c: any) => ({
+                id: c.id,
+                name: c.equipment_category
+              }));
+            }
+          },
+          error: (err: any) => {
+            console.error('Error loading categories:', err);
+          }
+        });
+    }
+
+    // Fetch equipments
+    this.equipmentService.getEquipmentNames(this.tableSize, this.page, this.filterSearch, this.filterCategory)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 200 && response.data) {
+            this.filteredEquipments = response.data.map((item: any) => ({
+              id: item.id,
+              name: item.equipment_name,
+              categoryId: item.equipment_category_id,
+              categoryName: item.equipment_category_name,
+              isActive: item.status === 1 || item.status === true
+            }));
+            this.totalRecords = response.pagination?.total || this.filteredEquipments.length;
+          } else {
+            this.notificationService.show(response.message || 'Failed to load equipments', 'error', 3000);
+          }
+        },
+        error: (error: any) => {
+          console.error('Error loading equipments:', error);
+          this.notificationService.show(error.message || 'Something went wrong', 'error', 3000);
+        }
+      });
   }
 
   onFilterChange() {
-    this.filteredEquipments = this.equipments.filter(e => {
-      const matchSearch = e.name.toLowerCase().includes(this.filterSearch.toLowerCase());
-      const matchCategory = this.filterCategory ? e.categoryId.toString() === this.filterCategory : true;
-      return matchSearch && matchCategory;
-    });
-    this.totalRecords = this.filteredEquipments.length;
     this.page = 1; // Reset to first page
+    this.loadData();
   }
 
   resetFilter() {
@@ -89,11 +142,13 @@ export class EquipmentsComponent implements OnInit {
 
   onTableDataChange(event: any) {
     this.page = event;
+    this.loadData();
   }
 
   onTableSizeChange(event: any) {
-    this.tableSize = event.target.value === 'all' ? this.totalRecords : parseInt(event.target.value);
+    this.tableSize = event.target.value === 'all' ? 'all' : parseInt(event.target.value);
     this.page = 1;
+    this.loadData();
   }
 
   openAddModal() {
@@ -125,29 +180,72 @@ export class EquipmentsComponent implements OnInit {
     }
 
     const formValue = this.equipmentForm.value;
-    const cat = this.categories.find(c => c.id == formValue.categoryId);
-    const categoryName = cat ? cat.name : '';
+    const formData = new FormData();
+    formData.append('equipment_name', formValue.name);
+    formData.append('equipment_id', formValue.categoryId.toString());
 
     if (this.isEditMode && this.selectedEquipmentId !== null) {
-      const index = this.equipments.findIndex(e => e.id === this.selectedEquipmentId);
-      if (index > -1) {
-        this.equipments[index] = { ...this.equipments[index], ...formValue, categoryName: categoryName };
-      }
+      formData.append('_method', 'PUT');
+      this.equipmentService.updateEquipmentName(this.selectedEquipmentId, formData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (res: any) => {
+            if (res.status === 200 || res.status === 201) {
+              this.notificationService.show(res.message || 'Equipment updated successfully', 'success', 3000);
+              this.closeModal();
+              this.loadData();
+            } else {
+              this.notificationService.show(res.message || 'Failed to update equipment', 'error', 3000);
+            }
+          },
+          error: (err: any) => {
+            console.error('Error updating equipment:', err);
+            this.notificationService.show(err.message || 'Something went wrong', 'error', 3000);
+          }
+        });
     } else {
-      const newId = this.equipments.length > 0 ? Math.max(...this.equipments.map(e => e.id)) + 1 : 1;
-      this.equipments.push({
-        id: newId,
-        ...formValue,
-        categoryName: categoryName
-      });
+      this.equipmentService.createEquipmentName(formData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (res: any) => {
+            if (res.status === 200 || res.status === 201) {
+              this.notificationService.show(res.message || 'Equipment created successfully', 'success', 3000);
+              this.closeModal();
+              this.loadData();
+            } else {
+              this.notificationService.show(res.message || 'Failed to create equipment', 'error', 3000);
+            }
+          },
+          error: (err: any) => {
+            console.error('Error creating equipment:', err);
+            this.notificationService.show(err.message || 'Something went wrong', 'error', 3000);
+          }
+        });
     }
-
-    this.onFilterChange();
-    this.closeModal();
   }
 
   toggleActiveStatus(equipment: Equipment) {
-    equipment.isActive = !equipment.isActive;
-    // update filtered data if needed
+    const nextStatus = equipment.isActive ? 0 : 1;
+    const formData = new FormData();
+    formData.append('_method', 'PATCH');
+    formData.append('status', nextStatus.toString());
+
+    this.equipmentService.updateEquipmentNameStatus(equipment.id, formData)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.notificationService.show(response.message || 'Status updated successfully', 'success', 3000);
+            this.loadData();
+          } else {
+            this.notificationService.show(response.message || 'Failed to update status', 'error', 3000);
+          }
+        },
+        error: (error: any) => {
+          console.error('Error toggling status:', error);
+          this.notificationService.show(error.message || 'Something went wrong', 'error', 3000);
+        }
+      });
   }
 }
+

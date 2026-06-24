@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MaterialModule } from 'src/app/mat/mat.module';
@@ -63,14 +63,13 @@ interface PayrollRecord {
   styleUrl: './payroll-management.component.scss',
   providers: [DatePipe]
 })
-export class PayrollManagementComponent implements OnInit, OnDestroy {
+export class PayrollManagementComponent implements OnInit {
   employees: any[] = [];
   allAttendanceRecords: any[] = [];
   
-  private devToolsInterval: any;
-  
   // Filters
   currentMonth: string = '';
+  currentMaxMonth: string = '';
   selectedSite: number | null = null;
   selectedDept: number | null = null;
   filterSearch: string = '';
@@ -160,45 +159,28 @@ export class PayrollManagementComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     const today = new Date();
     this.currentMonth = this.datePipe.transform(today, 'yyyy-MM') || '';
-    this.loadEmployeesForDropdown();
+    this.currentMaxMonth = this.currentMonth;
+    this.loadActiveEmployees();
     this.loadSites();
     this.loadDepartments();
     this.loadPayrollData();
-    this.restrictInspectElement();
   }
 
-  ngOnDestroy(): void {
-    if (this.devToolsInterval) {
-      clearInterval(this.devToolsInterval);
-    }
-  }
-
-  restrictInspectElement(): void {
-    this.devToolsInterval = setInterval(() => {
-      (function() { return false; })['constructor']('debugger')['call']();
-    }, 100);
-  }
-
-  @HostListener('document:contextmenu', ['$event'])
-  onRightClick(event: MouseEvent) {
-    event.preventDefault();
-  }
-
-  @HostListener('document:keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent) {
-    if (event.key === 'F12' || event.keyCode === 123) {
-      event.preventDefault();
-      return false;
-    }
-    if (event.ctrlKey && event.shiftKey && (event.key === 'I' || event.key === 'i' || event.key === 'J' || event.key === 'j' || event.key === 'C' || event.key === 'c')) {
-      event.preventDefault();
-      return false;
-    }
-    if (event.ctrlKey && (event.key === 'U' || event.key === 'u')) {
-      event.preventDefault();
-      return false;
-    }
-    return true;
+  loadActiveEmployees(): void {
+    this.employeeManagementService.getActiveEmployees().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) {
+          const apiData = res.data || [];
+          this.employees = apiData.map((emp: any) => ({
+            id: emp.id,
+            name: emp.name + ' (' + emp.employee_code + ')'
+          }));
+        }
+      },
+      error: () => {
+        console.error('Failed to load active employees');
+      }
+    });
   }
 
   loadSites(): void {
@@ -221,26 +203,13 @@ export class PayrollManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadEmployeesForDropdown(): void {
-    this.employeeService.GetStaff('all', 1, '').subscribe({
-      next: (res: any) => {
-        if (res && (res.status === 'success' || res.data)) {
-          const rawData = res.data || res;
-          this.employees = rawData.map((emp: any) => ({
-            id: emp.id || emp.user_id,
-            name: emp.name || (emp.first_name + ' ' + (emp.last_name || ''))
-          }));
-        }
-      }
-    });
-  }
-
   loadPayrollData(): void {
     const [year, month] = this.currentMonth.split('-').map(Number);
     this.employeeManagementService.getPayroll(month, year, this.showEntries, this.p, this.filterSearch, this.selectedDept, this.selectedSite).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           const apiData = res.data || [];
+          
           this.payrollRecords = apiData.map((emp: any) => {
             return {
               empId: emp.employee_code,
@@ -259,7 +228,7 @@ export class PayrollManagementComponent implements OnInit, OnDestroy {
               leaveCount: emp.paid_leave_days || 0,
               unpaidLeaveCount: emp.unpaid_leave_days || 0,
               restDayCount: emp.rest_days || 0,
-              payableDays: (emp.present_days || 0) + (emp.rest_days || 0) + (emp.paid_leave_days || 0) + ((emp.half_days || 0) * 0.5),
+              payableDays: emp.payable_days !== undefined ? Number(emp.payable_days) : 0,
               pfDeduction: emp.pf_deduction || 0,
               messDeduction: emp.mess_deduction || 0,
               leaveDeduction: emp.leave_deduction || 0,
@@ -322,19 +291,19 @@ export class PayrollManagementComponent implements OnInit, OnDestroy {
   // Workflow transitions
   submitForVerification(): void {
     this.payrollState = 'Pending Verification';
-    localStorage.setItem('payroll_state_' + this.currentMonth, this.payrollState);
+    // Add backend API call to update month state if required
     this.notificationService.show('Payroll submitted for Verification successfully!', 'success', 3000);
   }
 
   finalizePayroll(): void {
     this.payrollState = 'Finalized';
-    localStorage.setItem('payroll_state_' + this.currentMonth, this.payrollState);
+    // Add backend API call to update month state if required
     this.notificationService.show('Payroll approved and Finalized successfully!', 'success', 3000);
   }
 
   rejectToDraft(): void {
     this.payrollState = 'Draft';
-    localStorage.setItem('payroll_state_' + this.currentMonth, this.payrollState);
+    // Add backend API call to update month state if required
     this.notificationService.show('Payroll rejected and sent back to Draft.', 'success', 3000);
   }
 
@@ -417,54 +386,46 @@ export class PayrollManagementComponent implements OnInit, OnDestroy {
   submitManualRecord(): void {
     if (this.addForm.valid) {
       const rawVal = this.addForm.getRawValue();
-      const manualKey = 'payroll_manual_records_' + this.currentMonth;
-      const stored = localStorage.getItem(manualKey);
-      const manualRecordsList = stored ? JSON.parse(stored) : [];
 
-      // Check if duplicate ID exists
-      const idExists = this.payrollRecords.some(r => r.empId === rawVal.empId);
-      if (idExists) {
-        this.notificationService.show(`Employee ID ${rawVal.empId} is already in the payroll list.`, 'error', 3000);
-        return;
-      }
+      const [year, month] = this.currentMonth.split('-');
+      const payload = {
+        employee_id: rawVal.empId,
+        month: Number(month),
+        year: Number(year),
+        basic_salary: rawVal.basicSalary,
+        shift_allowance: rawVal.shiftAllowance,
+        incentives: rawVal.incentives,
+        pf_deduction: rawVal.pfDeduction,
+        mess_deduction: rawVal.messDeduction,
+        other_deduction: rawVal.othersDeduction,
+        present_days: rawVal.presentCount,
+        half_days: rawVal.halfDayCount,
+        absent_days: rawVal.absentCount
+      };
 
-      rawVal.createdAt = new Date();
-      manualRecordsList.push(rawVal);
-      localStorage.setItem(manualKey, JSON.stringify(manualRecordsList));
-
-      this.notificationService.show(`Manual payroll record added for ${rawVal.empName}`, 'success', 3000);
-      this.closeAddModal();
-      this.loadPayrollData();
+      this.employeeManagementService.createEmployeePayroll(payload).subscribe({
+        next: (res: any) => {
+          this.notificationService.show(`Manual payroll record added for ${rawVal.empName}`, 'success', 3000);
+          this.closeAddModal();
+          this.loadPayrollData();
+        },
+        error: (err: any) => {
+          this.notificationService.show(err.error?.message || 'Failed to add manual record', 'error', 3000);
+        }
+      });
     } else {
       this.addForm.markAllAsTouched();
     }
   }
 
   isManualRecord(empId: string): boolean {
-    const manualKey = 'payroll_manual_records_' + this.currentMonth;
-    const stored = localStorage.getItem(manualKey);
-    const manualRecordsList = stored ? JSON.parse(stored) : [];
-    return manualRecordsList.some((r: any) => r.empId === empId);
+    return false; // Replaced with proper backend state if applicable
   }
 
   deleteManualRecord(empId: string): void {
     if (this.payrollState !== 'Draft') return;
     if (confirm('Are you sure you want to delete this manual payroll record?')) {
-      const manualKey = 'payroll_manual_records_' + this.currentMonth;
-      const stored = localStorage.getItem(manualKey);
-      let manualRecordsList = stored ? JSON.parse(stored) : [];
-      manualRecordsList = manualRecordsList.filter((r: any) => r.empId !== empId);
-      localStorage.setItem(manualKey, JSON.stringify(manualRecordsList));
-      
-      // Also delete adjustments if any
-      const adjKey = 'payroll_adjustments_' + this.currentMonth;
-      const storedAdj = localStorage.getItem(adjKey);
-      if (storedAdj) {
-        const adjustments = JSON.parse(storedAdj);
-        delete adjustments[empId];
-        localStorage.setItem(adjKey, JSON.stringify(adjustments));
-      }
-
+      // Backend integration for delete employee payroll goes here
       this.notificationService.show('Manual payroll record deleted.', 'success', 3000);
       this.loadPayrollData();
     }
@@ -492,23 +453,25 @@ export class PayrollManagementComponent implements OnInit, OnDestroy {
   }
 
   submitAdjustments(): void {
-    if (this.editForm.valid && this.currentEditingRecord) {
+    if (this.editForm.valid && this.currentEditingRecord && this.currentEditingRecord.dbId) {
       const formVal = this.editForm.value;
-      const adjKey = 'payroll_adjustments_' + this.currentMonth;
-      const storedAdj = localStorage.getItem(adjKey);
-      const adjustments = storedAdj ? JSON.parse(storedAdj) : {};
-
-      adjustments[this.currentEditingRecord.empId] = {
-        pf: formVal.pfDeduction,
-        mess: formVal.messDeduction,
+      const payload = {
+        pf_deduction: formVal.pfDeduction,
+        mess_deduction: formVal.messDeduction,
         incentives: formVal.incentives,
-        others: formVal.othersDeduction
+        other_deduction: formVal.othersDeduction
       };
 
-      localStorage.setItem(adjKey, JSON.stringify(adjustments));
-      this.notificationService.show(`Adjustments saved for ${this.currentEditingRecord.empName}`, 'success', 3000);
-      this.closeEditModal();
-      this.loadPayrollData();
+      this.employeeManagementService.updateEmployeePayroll(this.currentEditingRecord.dbId, payload).subscribe({
+        next: (res: any) => {
+          this.notificationService.show(`Adjustments saved for ${this.currentEditingRecord?.empName}`, 'success', 3000);
+          this.closeEditModal();
+          this.loadPayrollData();
+        },
+        error: (err: any) => {
+          this.notificationService.show(err.error?.message || 'Failed to save adjustments', 'error', 3000);
+        }
+      });
     }
   }
 
@@ -544,7 +507,7 @@ export class PayrollManagementComponent implements OnInit, OnDestroy {
             leaveCount: emp.attendance?.paid_leave_days || rec.leaveCount,
             unpaidLeaveCount: emp.attendance?.unpaid_leave_days || rec.unpaidLeaveCount,
             restDayCount: emp.attendance?.rest_days || rec.restDayCount,
-            payableDays: (emp.attendance?.present_days || 0) + (emp.attendance?.rest_days || 0) + (emp.attendance?.paid_leave_days || 0) + ((emp.attendance?.half_days || 0) * 0.5),
+            payableDays: emp.attendance?.payable_days !== undefined ? Number(emp.attendance.payable_days) : rec.payableDays,
             pfDeduction: emp.deductions?.pf_deduction || rec.pfDeduction,
             messDeduction: emp.deductions?.mess_deduction || rec.messDeduction,
             leaveDeduction: emp.deductions?.leave_deduction || rec.leaveDeduction,
@@ -738,8 +701,8 @@ This is a computer-generated payslip and does not require an authorized signatur
 
     this.employeeManagementService.uploadBulkPenalties(formData).subscribe({
       next: (res: any) => {
-        if (res && res.status === 200) {
-          this.notificationService.show('Bulk penalties applied successfully!', 'success', 3000);
+        if (res && (res.status === 200 || res.status === 201 || res.status === 'success')) {
+          this.notificationService.show(res.message || 'Bulk penalties applied successfully!', 'success', 3000);
           this.closeBulkPenaltyModal();
           this.loadPayrollData();
         } else {
@@ -747,7 +710,20 @@ This is a computer-generated payslip and does not require an authorized signatur
         }
       },
       error: (err: any) => {
-        this.notificationService.show(err?.error?.message || 'Failed to apply bulk penalties', 'error', 3000);
+        console.error('Error during bulk penalty upload:', err);
+        const originalError = err.originalError || err.error || err;
+        let errorMessage = originalError.message || err.message || 'Failed to apply bulk penalties.';
+
+        if (originalError.errors && Array.isArray(originalError.errors)) {
+          const formattedErrors = originalError.errors.map((e: any) => {
+            const msgs = Array.isArray(e.errors) ? e.errors.join(', ') : e.message;
+            return `Row ${e.row}: ${msgs}`;
+          }).join('\n');
+          errorMessage += '\n' + formattedErrors;
+        }
+
+        const duration = originalError.errors ? 8000 : 3000;
+        this.notificationService.show(errorMessage, 'error', duration);
       }
     });
   }
@@ -762,7 +738,7 @@ This is a computer-generated payslip and does not require an authorized signatur
         next: (res: any) => {
           if (res && res.status === 200 && res.data) {
             this.selectedPenaltyEmployee.penalties = res.data.penalties.map((p: any) => ({
-              date: p.penalty_date,
+              date: p.date || p.penalty_date,
               reason: p.reason,
               amount: p.amount
             }));

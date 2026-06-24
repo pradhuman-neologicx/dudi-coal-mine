@@ -40,6 +40,8 @@ interface MonthlyAttendanceSummary {
   halfDay: number;
   restDay: number;
   leave: number;
+  paidLeave?: number;
+  unpaidLeave?: number;
   exception: number;
   payableDays: number;
 }
@@ -117,35 +119,42 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
   selectedRecordIds = new Set<string>();
 
-  toggleSelection(recordId: string): void {
-    if (this.selectedRecordIds.has(recordId)) {
-      this.selectedRecordIds.delete(recordId);
+  toggleSelection(recordId: string | number | undefined): void {
+    if (!recordId) return;
+    const idStr = recordId.toString();
+    if (this.selectedRecordIds.has(idStr)) {
+      this.selectedRecordIds.delete(idStr);
     } else {
-      this.selectedRecordIds.add(recordId);
+      this.selectedRecordIds.add(idStr);
     }
   }
 
-  isRecordSelected(recordId: string): boolean {
-    return this.selectedRecordIds.has(recordId);
+  isRecordSelected(recordId: string | number | undefined): boolean {
+    if (!recordId) return false;
+    return this.selectedRecordIds.has(recordId.toString());
   }
 
   toggleAllSelection(event: any): void {
     const checked = event.target.checked;
     if (checked) {
-      this.attendanceRecords.forEach(r => this.selectedRecordIds.add(r.id));
+      this.attendanceRecords.forEach(r => {
+        if (r.employee_id) this.selectedRecordIds.add(r.employee_id.toString());
+      });
     } else {
-      this.attendanceRecords.forEach(r => this.selectedRecordIds.delete(r.id));
+      this.attendanceRecords.forEach(r => {
+        if (r.employee_id) this.selectedRecordIds.delete(r.employee_id.toString());
+      });
     }
   }
 
   isAllSelected(): boolean {
     if (this.attendanceRecords.length === 0) return false;
-    return this.attendanceRecords.every(r => this.selectedRecordIds.has(r.id));
+    return this.attendanceRecords.every(r => r.employee_id && this.selectedRecordIds.has(r.employee_id.toString()));
   }
 
   isSomeSelected(): boolean {
     if (this.attendanceRecords.length === 0) return false;
-    const count = this.attendanceRecords.filter(r => this.selectedRecordIds.has(r.id)).length;
+    const count = this.attendanceRecords.filter(r => r.employee_id && this.selectedRecordIds.has(r.employee_id.toString())).length;
     return count > 0 && count < this.attendanceRecords.length;
   }
 
@@ -162,6 +171,10 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     const formData = new FormData();
     formData.append('_method', 'patch');
     formData.append('attendance_status', status.toLowerCase().replace(' ', '_'));
+    if (this.filterDate) {
+      const formattedDate = this.datePipe.transform(this.filterDate, 'yyyy-MM-dd');
+      if (formattedDate) formData.append('date', formattedDate);
+    }
 
     this.selectedRecordIds.forEach(id => {
       formData.append('attendance_ids[]', id.toString());
@@ -170,15 +183,15 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     this.attendanceService.updateBulkAttendanceStatus(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res.status === 200 || res.success || res.status === 'success') {
-          this.notificationService.show(`Successfully marked ${this.selectedRecordIds.size} employees as ${status}.`, 'success', 3000);
+          this.notificationService.show(res.message, 'success', 3000);
           this.selectedRecordIds.clear();
           this.loadAttendance();
         } else {
-          this.notificationService.show(res.message || 'Failed to update attendance', 'error', 3000);
+          this.notificationService.show(res.message, 'error', 3000);
         }
       },
       error: (err: any) => {
-        this.notificationService.show(err.message || 'Error updating attendance', 'error', 3000);
+        this.notificationService.show(err.message, 'error', 3000);
       }
     });
   }
@@ -187,19 +200,24 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     const formData = new FormData();
     formData.append('_method', 'patch');
     formData.append('attendance_status', status.toLowerCase().replace(' ', '_'));
-    formData.append('attendance_ids[]', record.id.toString());
+    const rawDate = record.date || this.filterDate;
+    if (rawDate) {
+      const formattedDate = this.datePipe.transform(rawDate, 'yyyy-MM-dd');
+      if (formattedDate) formData.append('date', formattedDate);
+    }
+    formData.append('attendance_ids[]', record.employee_id?.toString() || '');
 
     this.attendanceService.updateBulkAttendanceStatus(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res.status === 200 || res.success || res.status === 'success') {
-          this.notificationService.show(`Successfully marked ${record.empName} as ${status}.`, 'success', 3000);
+          this.notificationService.show(res.message, 'success', 3000);
           this.loadAttendance();
         } else {
-          this.notificationService.show(res.message || 'Failed to update attendance', 'error', 3000);
+          this.notificationService.show(res.message, 'error', 3000);
         }
       },
       error: (err: any) => {
-        this.notificationService.show(err.message || 'Error updating attendance', 'error', 3000);
+        this.notificationService.show(err.message, 'error', 3000);
       }
     });
   }
@@ -244,11 +262,11 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
 
   loadAttendance() {
-    let limit = 'all'; // Fetch all records for client-side pagination
-    const page = 1;
+    let limit = this.showEntries;
+    const page = this.p;
     const search = this.searchbarform?.get('searchbar')?.value || '';
     const status = this.filterStatus || '';
-    
+
     let fromDate = '';
     let toDate = '';
     let viewType = this.viewMode;
@@ -268,7 +286,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
         next: (response: any) => {
           if (response.status === 200) {
             this.totalRecords = response.pagination?.total || response.data?.length || 0;
-            
+
             if (this.viewMode === 'daily') {
               this.attendanceRecords = (response.data || []).map((record: any) => ({
                 ...record,
@@ -283,7 +301,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
                 status: this.mapStatusToFrontend(record.attendance_status),
                 site: record.site_name || ''
               }));
-              
+
               if (response.summary) {
                 this.summaryMetrics = {
                   total: response.summary.total_employees || this.totalRecords,
@@ -306,10 +324,12 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
                 halfDay: record.half_day || 0,
                 restDay: record.rest_day || 0,
                 leave: record.leave || 0,
+                paidLeave: record.paid_leave || 0,
+                unpaidLeave: record.unpaid_leave || 0,
                 exception: record.exception || 0,
                 payableDays: record.payable_days || 0
               }));
-              
+
               if (response.summary) {
                 this.summaryMetrics = {
                   total: response.summary.total_employees || this.totalRecords,
@@ -319,23 +339,23 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
                   leaves: response.summary.leaves || 0
                 };
               } else {
-                 this.calculateMetrics();
+                this.calculateMetrics();
               }
             }
           } else {
-            this.notificationService.show(response.message || 'Failed to fetch attendance', 'error', 3000);
+            this.notificationService.show(response.message, 'error', 3000);
           }
         },
         error: (err: any) => {
           console.error('Error fetching attendance:', err);
-          this.notificationService.show(err.message || 'Error fetching attendance', 'error', 3000);
+          this.notificationService.show(err.message, 'error', 3000);
         }
       });
   }
 
   calculateMetrics() {
     this.summaryMetrics = { total: 0, present: 0, absent: 0, halfDay: 0, leaves: 0 };
-    
+
     if (this.viewMode === 'daily') {
       this.summaryMetrics.total = this.totalRecords;
       this.attendanceRecords.forEach(record => {
@@ -458,6 +478,8 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.handleFile(input.files[0]);
+      // Reset the input value so selecting the same file again triggers the event
+      input.value = '';
     }
   }
 
@@ -471,19 +493,27 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
     this.attendanceService.bulkUploadAttendance(file).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
-        if (response.status === 200) {
-          this.notificationService.show(response.message || 'Attendance uploaded successfully.', 'success', 3000);
+        if (response.status === 200 || response.success || response.status === 'success') {
+          this.notificationService.show(response.message || 'File uploaded successfully', 'success', 3000);
           this.closeBulkUploadModal();
           this.p = 1;
           this.loadAttendance();
         } else {
-          this.notificationService.show(response.message || 'Bulk upload failed.', 'error', 3000);
+          this.notificationService.show(response.message || 'Upload failed', 'error', 3000);
         }
       },
       error: (err: any) => {
         console.error('Error during bulk upload:', err);
-        const errorMessage = err.error?.message || err.message || 'Bulk upload failed.';
-        this.notificationService.show(errorMessage, 'error', 3000);
+        const originalError = err.originalError || err.error || err;
+        let errorMessage = originalError.message || err.message || 'Upload failed';
+
+        if (originalError.errors && Array.isArray(originalError.errors)) {
+          const formattedErrors = originalError.errors.map((e: any) => `Row ${e.row}: ${e.message}`).join('\n');
+          errorMessage += '\n' + formattedErrors;
+        }
+
+        const duration = originalError.errors ? 8000 : 3000;
+        this.notificationService.show(errorMessage, 'error', duration);
       }
     });
   }
@@ -578,25 +608,26 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     formData.append('_method', 'PUT');
     if (newCheckIn) formData.append('check_in', newCheckIn);
     if (newCheckOut) formData.append('check_out', newCheckOut);
-    formData.append('attendance_status', newStatus.toLowerCase());
+    formData.append('attendance_status', newStatus.toLowerCase().replace(' ', '_'));
     if (reason) formData.append('remarks', reason);
     formData.append('employee_id', this.selectedRecord.employee_id?.toString() || '');
-    formData.append('date', this.filterDate); // filterDate is in YYYY-MM-DD format
+    const formattedDate = this.datePipe.transform(this.filterDate, 'yyyy-MM-dd');
+    formData.append('date', formattedDate || this.filterDate);
 
     this.attendanceService.updateAttendance(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         if (response.status === 200 || response.success || response.status === 'success') {
-          this.notificationService.show(response.message || 'Attendance updated successfully.', 'success', 3000);
+          this.notificationService.show(response.message, 'success', 3000);
           this.closeCorrectionModal();
           this.p = 1;
           this.loadAttendance();
         } else {
-          this.notificationService.show(response.message || 'Failed to update attendance', 'error', 3000);
+          this.notificationService.show(response.message, 'error', 3000);
         }
       },
       error: (err: any) => {
         console.error('Error updating attendance:', err);
-        this.notificationService.show(err.message || 'Error updating attendance', 'error', 3000);
+        this.notificationService.show(err.error?.message || err.message, 'error', 3000);
       }
     });
   }
@@ -628,7 +659,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   viewRecord(record: any) {
     const idToPass = record.employee_id || record.empId || record.id;
     const queryParams: any = {};
-    
+
     // Check if it's from daily view (has date) or monthly view
     if (record.date) {
       queryParams.date = record.date;
@@ -637,7 +668,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       queryParams.month = month;
       queryParams.year = year;
     }
-    
+
     this.router.navigate(['/admin/attendance-management/attendance-detail', idToPass], { queryParams });
   }
 }

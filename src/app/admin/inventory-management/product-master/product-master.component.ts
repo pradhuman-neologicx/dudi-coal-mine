@@ -187,11 +187,6 @@ export class ProductMasterComponent implements OnInit, OnDestroy {
     this.searchbarform = this.formBuilder.group({
       searchbar: ['']
     });
-
-    this.searchbarform.get('searchbar')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(val => {
-      this.showreset = !!val;
-      this.searchfun();
-    });
   }
 
   initForms() {
@@ -243,13 +238,16 @@ export class ProductMasterComponent implements OnInit, OnDestroy {
   }
 
   searchfun() {
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
+    this.showreset = searchText.trim().length > 0;
     this.page = 1;
     this.refreshFilteredData();
   }
 
   resetsearchbar() {
-    this.searchbarform.patchValue({ searchbar: '' });
+    this.searchbarform.get('searchbar')?.reset();
     this.showreset = false;
+    this.page = 1;
     this.refreshFilteredData();
   }
 

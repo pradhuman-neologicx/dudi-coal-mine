@@ -2,17 +2,40 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 @Component({
   selector: 'app-shift-mgt',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, NgSelectModule],
   templateUrl: './shift-mgt.component.html',
   styleUrls: ['./shift-mgt.component.scss']
 })
 export class ShiftMgtComponent implements OnInit {
-  excavatorProd: any = { bucketCount: 0, totalBcm: 0, haulUnitCount: 0, remarks: '' };
-  dumperPerf: any[] = [];
+  filterLocations = [
+    'Block-04 West / Bench-120',
+    'Block-02 North / Bench-140',
+    'Block-05 East / Bench-105'
+  ];
+  selectedLocation: string | null = null;
+
+  filterSupervisors = [
+    'S. Rajesh Kumar',
+    'A. Thompson',
+    'M. Richards'
+  ];
+  selectedSupervisor: string | null = null;
+
+  shiftClosure = {
+    attendanceSubmitted: false,
+    fuelLogsAvailable: false,
+    delayLogsUpdated: false,
+    breakdownLogsUpdated: false,
+    productionDataAvailable: false,
+    safetyDataReviewed: false,
+    shiftRemarks: '',
+    handoverNotes: ''
+  };
 
   shifts = [
     {

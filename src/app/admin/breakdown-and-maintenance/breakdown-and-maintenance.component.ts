@@ -63,6 +63,7 @@ export class BreakdownAndMaintenanceComponent implements OnInit {
 
   isFilterOpen = false;
   isModalOpen = false;
+  editingTicketNo: string | null = null;
 
   selectedCategory: string = '';
   selectedPriority: string = '';
@@ -73,12 +74,14 @@ export class BreakdownAndMaintenanceComponent implements OnInit {
     this.isFilterOpen = !this.isFilterOpen;
   }
 
-  openModal() {
+  openModal(ticket?: Ticket) {
+    this.editingTicketNo = ticket ? ticket.ticketNo : null;
     this.isModalOpen = true;
   }
 
   closeModal() {
     this.isModalOpen = false;
+    this.editingTicketNo = null;
   }
 
   clearFilters() {

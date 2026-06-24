@@ -79,6 +79,34 @@
         </table>
       </div>
 
+      <!-- Card View for Mobile -->
+      <div class="block lg:hidden mt-3">
+        <div class="card mb-3 shadow-sm border border-gray-200 rounded-lg" *ngFor="let emp of employeeList | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="badge bg-secondary">#{{ (page - 1) * (tableSize === 'all' ? totalRecords : +tableSize) + i + 1 }}</span>
+              <span class="text-muted fw-bold text-sm">{{ emp.empId || emp.employee_code }}</span>
+            </div>
+            <h5 class="card-title text-primary fw-bold mb-3">{{ emp.employee_name || emp.name }}</h5>
+            
+            <div class="d-flex justify-content-end gap-2 border-top pt-2">
+              <button class="btn-action edit-btn" (click)="openPayrollModal(emp)" title="Edit Payroll">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="btn-action view-btn" (click)="openViewModal(emp)" data-tooltip="View Details">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Empty State for Mobile -->
+        <div *ngIf="employeeList.length === 0" class="text-center py-4 text-muted">
+          <i class="fa-solid fa-folder-open fs-1 mb-2"></i>
+          <p>No records found</p>
+        </div>
+      </div>
+
       <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center mt-3">
         <span class="showalltext">Showing {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : 1 }} to {{
           tableSize * page <= totalRecords ? tableSize * page : totalRecords }} of {{ totalRecords !=undefined ?
@@ -91,8 +119,8 @@
 </div>
 
 <!-- Payroll Modal -->
-<div *ngIf="payrollModalOpen" class="modal-overlay" [@fadeIn]>
-  <div class="modal-dialog-large bg-white rounded-3 shadow-lg d-flex flex-column" style="max-width: 800px;">
+<div *ngIf="payrollModalOpen" class="modal-overlay px-3" [@fadeIn]>
+  <div class="modal-dialog-large bg-white rounded-3 shadow-lg d-flex flex-column w-100 mx-auto" style="max-width: 800px; max-height: 95vh;">
 
     <!-- Header -->
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
@@ -250,25 +278,25 @@
 
 <!-- View Details Modal -->
 <div *ngIf="viewModalOpen" class="your-animation-class modal-container premium-detail-modal"
-  aria-labelledby="modal-title" role="dialog" aria-modal="true">
-  <div class="modal-contenttop modal-content-50" [@fadeIn]>
-    <div class="card">
-      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+  aria-labelledby="modal-title" role="dialog" aria-modal="true" style="padding: 15px;">
+  <div class="modal-contenttop" [@fadeIn] style="width: 100%; max-width: 750px; margin: 0 auto; max-height: 90vh; overflow-y: auto; overflow-x: hidden;">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center border-bottom-0 pb-0">
         <div>
-          <h5 class="modal-title pt-1 mb-0">Payroll Details</h5>
-          <p class="modal-subtitle">Full overview of official employee payroll record</p>
+          <h5 class="modal-title pt-1 mb-0 text-primary fw-bold">Payroll Details</h5>
+          <p class="modal-subtitle text-muted mb-0">Full overview of official employee payroll record</p>
         </div>
-        <button class="cross-btn-icon border-0 p-0" type="button" (click)="closeViewModal()">
-          <i class="fa-solid fa-xmark"></i>
+        <button class="cross-btn-icon border-0 p-0 text-muted bg-transparent" type="button" (click)="closeViewModal()">
+          <i class="fa-solid fa-xmark fs-5"></i>
         </button>
       </div>
-      <div class="card-body mb-0">
+      <div class="card-body mb-0 pt-3">
         <!-- Premium Summary Banner -->
-        <div class="emp-summary-banner">
+        <div class="emp-summary-banner mb-3">
           <div class="banner-content">
             <div class="banner-label">Employee Name</div>
-            <div class="banner-value">{{ selectedEmployeeData?.employee_name || selectedEmployeeData?.name }}</div>
-            <div class="banner-subtitle">
+            <div class="banner-value text-truncate">{{ selectedEmployeeData?.employee_name || selectedEmployeeData?.name }}</div>
+            <div class="banner-subtitle mt-1">
               <span class="pulse-indicator" [ngClass]="{'deactive': selectedEmployeeData?.is_active !== 1}"></span>
               Status:
               <span class="status-badge-pill" [ngClass]="selectedEmployeeData?.is_active === 1 ? 'active' : 'deactive'">
@@ -279,8 +307,8 @@
         </div>
 
         <!-- Scrollable Details Wrapper to prevent modal from growing too tall -->
-        <div class="view-details-scroll overflow-auto pe-1" style="max-height: 48vh;">
-          <div class="grid-section-title mt-2">Payroll Details</div>
+        <div class="view-details-scroll overflow-hidden pe-1">
+          <div class="grid-section-title mt-2 text-uppercase text-muted fw-bold mb-2" style="font-size: 0.8rem;">Payroll Details</div>
           <div class="row g-3 mb-4">
         <div class="col-md-6 col-lg-4">
           <div class="glass-info-card">
@@ -296,7 +324,7 @@
             <div class="card-icon-wrapper site"><i class="fa-solid fa-bed"></i></div>
             <div class="card-info-content">
               <span class="info-label">Rest Days</span>
-              <span class="info-value text-dark fs-7">{{ selectedEmployeeData?.rest_day || '--' }}</span>
+              <span class="info-value text-dark fs-7">{{ selectedEmployeeData?.rest_days !== undefined && selectedEmployeeData?.rest_days !== null ? selectedEmployeeData?.rest_days : '--' }}</span>
             </div>
           </div>
         </div>
@@ -368,7 +396,7 @@
             <div class="card-icon-wrapper code"><i class="fa-solid fa-indian-rupee-sign"></i></div>
             <div class="card-info-content">
               <span class="info-label">Mess Deduction Amount</span>
-              <span class="info-value text-dark fs-7">₹{{ selectedEmployeeData?.mess_deduction | number }}</span>
+              <span class="info-value text-dark fs-7">₹{{ selectedEmployeeData?.mess_deduction_amount | number }}</span>
             </div>
           </div>
         </div>

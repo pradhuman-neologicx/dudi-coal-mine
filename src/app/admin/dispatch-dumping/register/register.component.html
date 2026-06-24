@@ -1,0 +1,239 @@
+<div class="space-y-6">
+
+    <!-- Page Header -->
+    <div class="flex justify-between items-center bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                <i class="fas fa-list-alt text-[#468faf]"></i>
+                Dispatch Register
+            </h1>
+            <p class="text-sm text-gray-500 mt-1 font-medium tracking-wide">Log new trips and manage material movement records</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button (click)="openLogModal()" class="bg-[#468faf] hover:bg-[#3a7892] text-white px-5 py-2.5 rounded text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+                <i class="fas fa-plus"></i> Log New Trip
+            </button>
+        </div>
+    </div>
+
+    <!-- Header Actions -->
+    <div class="flex justify-between items-center bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+        <div class="flex items-center gap-4">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" placeholder="Search trips, dumpers..." class="pl-10 pr-4 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-[#468faf] w-64">
+            </div>
+            <select class="border border-gray-300 rounded px-3 py-2 text-sm text-gray-600 focus:outline-none focus:border-[#468faf]">
+                <option>All Shifts</option>
+                <option>Shift A</option>
+                <option>Shift B</option>
+            </select>
+        </div>
+        <button class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded text-sm font-bold shadow-sm transition-colors flex items-center gap-2">
+            <i class="fas fa-filter"></i> Filters
+        </button>
+    </div>
+
+    <!-- Dispatch Register Table -->
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left whitespace-nowrap">
+                <thead class="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4">Trip Reference</th>
+                        <th class="px-6 py-4">Equipment</th>
+                        <th class="px-6 py-4">Route</th>
+                        <th class="px-6 py-4 text-center">Cycle Time</th>
+                        <th class="px-6 py-4 text-right">Quantity</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr *ngFor="let trip of trips" class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-mono text-[#468faf] font-bold">{{ trip.ref }}</div>
+                            <div class="text-[10px] text-gray-500 mt-1">{{ trip.date }} • Shift {{ trip.shift }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-800">{{ trip.dumper }} <span class="text-xs font-normal text-gray-500">({{ trip.driver }})</span></span>
+                                <span class="text-[10px] text-gray-500 mt-1"><i class="fas fa-truck-loading mr-1 text-[#468faf]"></i>{{ trip.excavator }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2 text-xs">
+                                <span class="font-medium text-gray-700">{{ trip.loadPoint }}</span>
+                                <i class="fas fa-long-arrow-alt-right text-gray-300"></i>
+                                <span class="font-medium text-gray-700">{{ trip.dumpPoint }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="font-mono font-bold text-gray-800">{{ trip.cycle }}m</div>
+                            <div class="text-[9px] text-gray-400 mt-1">{{ trip.start }} - {{ trip.end }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="font-bold text-gray-800 text-lg">{{ trip.quantity }}</span> <span class="text-xs text-gray-500">BCM</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded text-[9px] font-bold tracking-widest uppercase bg-green-100 text-green-700" *ngIf="trip.status === 'COMPLETED'">Completed</span>
+                            <span class="px-2 py-1 rounded text-[9px] font-bold tracking-widest uppercase bg-blue-100 text-blue-700" *ngIf="trip.status === 'LOGGED'">Logged</span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <button (click)="openEditModal(trip)" class="text-gray-400 hover:text-[#468faf] transition-colors p-2" title="View & Edit Details">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- Pagination Mock -->
+        <div class="p-4 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500">
+            <div>Showing 1 to 4 of 142 trips</div>
+            <div class="flex gap-1">
+                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>Previous</button>
+                <button class="px-3 py-1 bg-[#468faf] text-white rounded font-medium">1</button>
+                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">2</button>
+                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">3</button>
+                <button class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Next</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Log Trip Modal -->
+<div *ngIf="showLogModal" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
+            <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-plus-circle text-[#468faf]"></i> Log Dumper Trip</h2>
+            <button (click)="closeLogModal()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto space-y-6">
+            
+            <!-- Equipment -->
+            <div>
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 border-b pb-2">Equipment Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Dumper No. <span class="text-red-500">*</span></label>
+                        <select [(ngModel)]="newTrip.dumper" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                            <option value="">Select Dumper</option>
+                            <option value="DMP-03">DMP-03</option>
+                            <option value="DMP-07">DMP-07</option>
+                            <option value="DMP-09">DMP-09</option>
+                            <option value="DMP-12">DMP-12</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Driver <span class="text-red-500">*</span></label>
+                        <input type="text" [(ngModel)]="newTrip.driver" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]" placeholder="E.g. John Doe">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Excavator No. <span class="text-red-500">*</span></label>
+                        <select [(ngModel)]="newTrip.excavator" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                            <option value="">Select Excavator</option>
+                            <option value="EXC-101">EXC-101</option>
+                            <option value="EXC-102">EXC-102</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Route -->
+            <div>
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 border-b pb-2">Route Information</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Loading Point <span class="text-red-500">*</span></label>
+                        <select [(ngModel)]="newTrip.loadPoint" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                            <option value="">Select Origin</option>
+                            <option value="Block 2 North">Block 2 North</option>
+                            <option value="Block 4 West">Block 4 West</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Dumping Point <span class="text-red-500">*</span></label>
+                        <select [(ngModel)]="newTrip.dumpPoint" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                            <option value="">Select Destination</option>
+                            <option value="Dump 1">Dump 1</option>
+                            <option value="Dump 2">Dump 2</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Operations -->
+            <div>
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 border-b pb-2">Trip Details</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Start Time <span class="text-red-500">*</span></label>
+                        <input type="time" [(ngModel)]="newTrip.start" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">End Time <span class="text-red-500">*</span></label>
+                        <input type="time" [(ngModel)]="newTrip.end" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 flex justify-between">Quantity <span class="text-gray-400 font-normal">BCM</span></label>
+                        <input type="number" [(ngModel)]="newTrip.quantity" class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-bold focus:outline-none focus:border-[#468faf]" placeholder="0">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+            <button (click)="closeLogModal()" class="text-gray-600 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded transition-colors">Cancel</button>
+            <button (click)="saveTrip()" [disabled]="!newTrip.dumper || !newTrip.quantity" class="bg-[#468faf] hover:bg-[#3a7892] text-white font-bold text-sm px-6 py-2 rounded shadow-sm transition-colors disabled:opacity-50">Save Trip</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Trip Modal -->
+<div *ngIf="showEditModal && selectedTrip" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
+            <div>
+                <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-edit text-[#468faf]"></i> Edit Trip Details</h2>
+                <p class="text-[10px] font-mono text-gray-500 mt-1 uppercase">{{ selectedTrip.ref }} • Shift {{ selectedTrip.shift }}</p>
+            </div>
+            <button (click)="closeEditModal()" class="text-gray-400 hover:text-red-500 transition-colors"><i class="fas fa-times text-xl"></i></button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto space-y-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Driver</label>
+                    <input type="text" [(ngModel)]="selectedTrip.driver" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 flex justify-between">Quantity <span class="text-gray-400 font-normal">BCM</span></label>
+                    <input type="number" [(ngModel)]="selectedTrip.quantity" class="w-full border border-gray-300 rounded px-3 py-2 text-sm font-bold focus:outline-none focus:border-[#468faf]">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Start Time</label>
+                    <input type="text" [(ngModel)]="selectedTrip.start" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">End Time</label>
+                    <input type="text" [(ngModel)]="selectedTrip.end" class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf]">
+                </div>
+            </div>
+
+            <div class="bg-yellow-50 border border-yellow-200 p-4 rounded text-xs text-yellow-800 flex gap-3 items-start">
+                <i class="fas fa-info-circle mt-0.5 text-yellow-600"></i>
+                <p><strong>Audit Log:</strong> Modifying this record will automatically recalculate cycle times and update fleet performance metrics.</p>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+            <button (click)="closeEditModal()" class="text-gray-600 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded transition-colors">Cancel</button>
+            <button (click)="closeEditModal()" class="bg-[#468faf] hover:bg-[#3a7892] text-white font-bold text-sm px-6 py-2 rounded shadow-sm transition-colors">Save Changes</button>
+        </div>
+    </div>
+</div>

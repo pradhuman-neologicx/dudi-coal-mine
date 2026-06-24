@@ -5,7 +5,6 @@
 export const environment = {
   production: false,
   api_url: 'https://dudicoalmine.mobilogicx.com/api/'
-  // api_url: 'https://labtesting.mobilogicx.com/api/',
 
 };
 

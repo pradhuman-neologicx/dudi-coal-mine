@@ -238,7 +238,7 @@
               <thead class="table-header">
                 <tr>
                   <th>
-                    <p class="table-heading">Request ID</p>
+                    <p class="table-heading">S.No.</p>
                   </th>
                   <th>
                     <p class="table-heading">Employee</p>
@@ -267,12 +267,12 @@
                 <tr
                   *ngFor="let req of getInboxRequests() | paginate: { id: 'inbox-pagination', itemsPerPage: showEntries, currentPage: pInbox, totalItems: totalItems }; index as i">
                   <td>
-                    {{ req.id }}
+                    {{ (pInbox - 1) * showEntries + i + 1 }}
                   </td>
                   <td>
                     <div class="d-flex flex-column">
                       <span class="fw-bold text-dark fs-7">{{ req.empName }}</span>
-                      <span class="text-muted fs-8">{{ req.empId }}</span>
+                      <!-- <span class="text-muted fs-8">{{ req.empId }}</span> -->
                     </div>
                   </td>
                   <td>
@@ -289,8 +289,8 @@
                     {{ req.reason }}
                   </td>
                   <td>
-                    <span class="fw-medium text-dark">
-                      {{ req.status }}
+                    <span class="badge px-3 py-2 fs-8 fw-bold rounded-pill" [ngClass]="getStatusClass(req.status)">
+                      {{ (req.status | titlecase) }}
                     </span>
                   </td>
                   <td>
@@ -298,12 +298,14 @@
                       <button class="btn-action view-btn" (click)="openViewModal(req)" title="View Details">
                         <i class="fa-solid fa-eye"></i>
                       </button>
-                      <button class="btn-action activate-btn" (click)="approveRequest(req)" title="Approve Request">
-                        <i class="fa-solid fa-check"></i>
-                      </button>
-                      <button class="btn-action deactivate-btn" (click)="rejectRequest(req)" title="Reject Request">
-                        <i class="fa-solid fa-xmark"></i>
-                      </button>
+                      <ng-container *ngIf="req.status?.toLowerCase() === 'pending'">
+                        <button class="btn-action activate-btn" (click)="approveRequest(req)" title="Approve Request">
+                          <i class="fa-solid fa-check"></i>
+                        </button>
+                        <button class="btn-action deactivate-btn" (click)="rejectRequest(req)" title="Reject Request">
+                          <i class="fa-solid fa-xmark"></i>
+                        </button>
+                      </ng-container>
                     </div>
                   </td>
                 </tr>
@@ -323,19 +325,21 @@
               class="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div class="flex justify-between items-center mb-2">
                 <div>
-                  <strong>Request ID:</strong> {{ req.id }}
+                  <strong>S.No.:</strong> {{ (pInbox - 1) * showEntries + i + 1 }}
                 </div>
                 <div>
                   <div class="d-flex align-items-center gap-1">
                     <button class="btn-action view-btn" (click)="openViewModal(req)" title="View Details">
                       <i class="fa-solid fa-eye"></i>
                     </button>
-                    <button class="btn-action activate-btn" (click)="approveRequest(req)" title="Approve Request">
-                      <i class="fa-solid fa-check"></i>
-                    </button>
-                    <button class="btn-action deactivate-btn" (click)="rejectRequest(req)" title="Reject Request">
-                      <i class="fa-solid fa-xmark"></i>
-                    </button>
+                    <ng-container *ngIf="req.status?.toLowerCase() === 'pending'">
+                      <button class="btn-action activate-btn" (click)="approveRequest(req)" title="Approve Request">
+                        <i class="fa-solid fa-check"></i>
+                      </button>
+                      <button class="btn-action deactivate-btn" (click)="rejectRequest(req)" title="Reject Request">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </ng-container>
                   </div>
                 </div>
               </div>
@@ -347,7 +351,10 @@
               </div>
               <div class="mb-2"><strong>Reason:</strong> {{ req.reason }}</div>
               <div>
-                <strong>Current Stage:</strong> {{ req.status }}
+                <strong>Current Stage:</strong>
+                <span class="badge px-2 py-1 fs-9 fw-bold rounded-pill ms-1" [ngClass]="getStatusClass(req.status)">
+                  {{ (req.status | titlecase) }}
+                </span>
               </div>
             </div>
             <div *ngIf="getInboxRequests().length === 0" class="text-center py-4 text-muted">
@@ -451,7 +458,7 @@
               <thead class="table-header">
                 <tr>
                   <th>
-                    <p class="table-heading">Request ID</p>
+                    <p class="table-heading">S.No.</p>
                   </th>
                   <th>
                     <p class="table-heading">Employee</p>
@@ -483,7 +490,7 @@
                 <tr
                   *ngFor="let req of getHistoryRequests() | paginate: { id: 'history-pagination', itemsPerPage: showEntries, currentPage: pHistory }; index as i">
                   <td>
-                    {{ req.id }}
+                    {{ (pHistory - 1) * showEntries + i + 1 }}
                   </td>
                   <td>
                     <div class="d-flex flex-column">
@@ -538,7 +545,7 @@
               class="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div class="flex justify-between items-center mb-2">
                 <div>
-                  <strong>Request ID:</strong> {{ req.id }}
+                  <strong>S.No.:</strong> {{ (pHistory - 1) * showEntries + i + 1 }}
                 </div>
                 <div>
                   <div class="d-flex align-items-center gap-1">
@@ -590,11 +597,6 @@
               <i class="fa-solid fa-scale-balanced text-primary me-2"></i>
               Employee Leave Balances
             </h5>
-
-            <button class="btn btn-outline-primary py-2 d-flex align-items-center justify-content-center gap-2 hover-up"
-              (click)="triggerYearlyReset()">
-              <i class="fa-solid fa-rotate-right"></i> Trigger Yearly Reset
-            </button>
           </div>
 
           <div class="table-responsive border rounded-3">
@@ -676,15 +678,15 @@
       <div class="card-body mb-0">
         <!-- Premium Status and Duration Banner -->
         <div class="leave-summary-banner" [ngClass]="{
-          'status-approved': selectedLeave?.status === 'Approved',
-          'status-rejected': selectedLeave?.status === 'Rejected',
-          'status-pending': selectedLeave?.status === 'Pending Supervisor',
-          'status-pending-pm': selectedLeave?.status === 'Pending PM',
-          'status-pending-hr': selectedLeave?.status === 'Pending HR'
+          'status-approved': selectedLeave?.status?.toLowerCase() === 'approved',
+          'status-rejected': selectedLeave?.status?.toLowerCase() === 'rejected',
+          'status-pending': selectedLeave?.status?.toLowerCase() === 'pending' || selectedLeave?.status?.toLowerCase() === 'pending supervisor',
+          'status-pending-pm': selectedLeave?.status?.toLowerCase() === 'pending pm',
+          'status-pending-hr': selectedLeave?.status?.toLowerCase() === 'pending hr'
         }">
           <div class="banner-left">
             <div class="banner-label">Application Status</div>
-            <div class="banner-value">{{ selectedLeave?.status }}</div>
+            <div class="banner-value">{{ (selectedLeave?.status | titlecase) }}</div>
           </div>
           <div class="banner-right">
             <span class="days-number">{{ getLeaveDays(selectedLeave?.startDate, selectedLeave?.endDate) }}</span>
@@ -752,106 +754,15 @@
           </div>
         </div>
 
-        <!-- Workflow approval timeline -->
-        <div class="grid-section-title">Approval Stages & History</div>
-        <div class="workflow-stages-container">
-          <div class="workflow-steps-vertical">
-            <!-- Stage 1: Submitted -->
-            <div class="step-item completed">
-              <div class="step-circle">
-                <i class="fa-solid fa-check"></i>
-              </div>
-              <div class="step-details">
-                <span class="step-title">Application Submitted</span>
-                <span class="step-subtitle">Applied on {{ selectedLeave?.appliedDate | date:'dd MMM yyyy' }}</span>
-              </div>
-            </div>
 
-            <!-- Stage 2: Supervisor approval -->
-            <div class="step-item" [ngClass]="{
-              'completed': selectedLeave?.status !== 'Pending Supervisor',
-              'active': selectedLeave?.status === 'Pending Supervisor',
-              'rejected': selectedLeave?.status === 'Rejected' && selectedLeave?.comments && selectedLeave?.comments?.indexOf('Supervisor') !== -1
-            }">
-              <div class="step-circle">
-                <i class="fa-solid" [ngClass]="{
-                  'fa-check': selectedLeave?.status !== 'Pending Supervisor' && !(selectedLeave?.status === 'Rejected' && selectedLeave?.comments && selectedLeave?.comments?.indexOf('Supervisor') !== -1),
-                  'fa-xmark': selectedLeave?.status === 'Rejected' && selectedLeave?.comments && selectedLeave?.comments?.indexOf('Supervisor') !== -1
-                }"></i>
-              </div>
-              <div class="step-details">
-                <span class="step-title">Supervisor Stage</span>
-                <span class="step-subtitle">
-                  {{ selectedLeave?.status === 'Pending Supervisor' ? 'Awaiting supervisor approval' :
-                  (selectedLeave?.status === 'Rejected' && selectedLeave?.comments &&
-                  selectedLeave?.comments?.indexOf('Supervisor') !== -1 ? 'Rejected by Supervisor' : 'Approved') }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Stage 3: PM approval -->
-            <div class="step-item" [ngClass]="{
-              'completed': selectedLeave?.status === 'Pending HR' || selectedLeave?.status === 'Approved',
-              'active': selectedLeave?.status === 'Pending PM',
-              'rejected': selectedLeave?.status === 'Rejected' && selectedLeave?.comments && selectedLeave?.comments?.indexOf('PM') !== -1
-            }">
-              <div class="step-circle">
-                <i class="fa-solid" [ngClass]="{
-                  'fa-check': (selectedLeave?.status === 'Pending HR' || selectedLeave?.status === 'Approved'),
-                  'fa-xmark': selectedLeave?.status === 'Rejected' && selectedLeave?.comments && selectedLeave?.comments?.indexOf('PM') !== -1
-                }"></i>
-              </div>
-              <div class="step-details">
-                <span class="step-title">Project Manager Stage</span>
-                <span class="step-subtitle">
-                  {{ selectedLeave?.status === 'Pending Supervisor' ? 'Awaiting previous stage' :
-                  (selectedLeave?.status === 'Pending PM' ? 'Awaiting PM approval' :
-                  (selectedLeave?.status === 'Rejected' && selectedLeave?.comments &&
-                  selectedLeave?.comments?.indexOf('PM') !== -1 ? 'Rejected by PM' : 'Approved')) }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Stage 4: HR Final approval -->
-            <div class="step-item" [ngClass]="{
-              'completed': selectedLeave?.status === 'Approved',
-              'active': selectedLeave?.status === 'Pending HR',
-              'rejected': selectedLeave?.status === 'Rejected' && selectedLeave?.comments && selectedLeave?.comments?.indexOf('HR') !== -1
-            }">
-              <div class="step-circle">
-                <i class="fa-solid" [ngClass]="{
-                  'fa-check': selectedLeave?.status === 'Approved',
-                  'fa-xmark': selectedLeave?.status === 'Rejected' && selectedLeave?.comments && selectedLeave?.comments?.indexOf('HR') !== -1
-                }"></i>
-              </div>
-              <div class="step-details">
-                <span class="step-title">HR Finalization</span>
-                <span class="step-subtitle">
-                  {{ (selectedLeave?.status === 'Pending Supervisor' || selectedLeave?.status === 'Pending PM') ?
-                  'Awaiting previous stages' :
-                  (selectedLeave?.status === 'Pending HR' ? 'Awaiting HR final approval' :
-                  (selectedLeave?.status === 'Rejected' && selectedLeave?.comments &&
-                  selectedLeave?.comments?.indexOf('HR') !== -1 ? 'Rejected by HR' :
-                  (selectedLeave?.status === 'Approved' ? 'Fully Approved & Synced' : 'Awaiting HR')) ) }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Decision Comments Box -->
-          <div class="comments-quote-box" *ngIf="selectedLeave?.comments">
-            <div class="comments-label">Decision Remarks</div>
-            <p class="comments-text">"{{ selectedLeave?.comments }}"</p>
-          </div>
-        </div>
       </div>
 
       <div class="modal-footer text-end d-flex justify-content-between align-items-center">
         <!-- Quick Action Info (Left side of footer) -->
-        <div class="text-start">
+        <!-- <div class="text-start">
           <span class="text-muted fs-8 d-block">Test Simulator Mode</span>
           <span class="badge bg-light text-dark border fs-9">Role: {{ simulatedRole }}</span>
-        </div>
+        </div> -->
 
         <!-- Control Buttons -->
         <div class="d-flex gap-2">
@@ -952,7 +863,13 @@
 
     <!-- Body -->
     <div class="modal-body p-4 bg-white">
-      <h6 class="fw-bold mb-3 text-dark fs-6" style="font-size: 15px !important;">Upload File</h6>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0 text-dark fs-6" style="font-size: 15px !important;">Upload File</h6>
+        <a href="assets/LeaveManagement.xlsx" download="LeaveManagement.xlsx" target="_blank"
+          class="btn btn-link btn-sm text-primary p-0 text-decoration-none fw-semibold">
+          <i class="fa-solid fa-download me-1"></i>Download Sample
+        </a>
+      </div>
 
       <form [formGroup]="bulkUploadForm">
         <div class="p-5 text-center rounded-4 transition"

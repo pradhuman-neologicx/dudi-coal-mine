@@ -13,6 +13,7 @@ interface DelayLog {
   hoursLost: number;
   remarks: string;
   status: string;
+  otherReason?: string;
 }
 
 @Component({
@@ -58,6 +59,7 @@ export class DelayReportComponent implements OnInit {
   selectedDelayType = '';
   timeLost = '';
   remark = '';
+  otherReasonText = '';
   chart: any;
   editingIndex: number = -1;
   p: number = 1;
@@ -160,6 +162,7 @@ export class DelayReportComponent implements OnInit {
       this.editingIndex = index;
       this.selectedShift = log.shift as any;
       this.selectedDelayType = log.delayType;
+      this.otherReasonText = log.otherReason || '';
       // Convert hours to HH:MM roughly
       const totalMins = Math.round(log.hoursLost * 60);
       const hh = Math.floor(totalMins / 60).toString().padStart(2, '0');
@@ -184,6 +187,7 @@ export class DelayReportComponent implements OnInit {
     this.selectedDelayType = '';
     this.timeLost = '';
     this.remark = '';
+    this.otherReasonText = '';
   }
 
   saveDelay() {
@@ -201,7 +205,8 @@ export class DelayReportComponent implements OnInit {
         delayType: this.selectedDelayType,
         hoursLost: parseFloat(hrs.toFixed(2)),
         remarks: this.remark,
-        status: 'MONITOR'
+        status: 'MONITOR',
+        otherReason: this.selectedDelayType === 'Other Reason' ? this.otherReasonText : undefined
       };
 
       if (this.editingIndex > -1) {

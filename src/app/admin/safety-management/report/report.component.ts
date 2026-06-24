@@ -17,6 +17,7 @@ export class ReportComponent {
   toDate = '';
   selectedShift = '';
   selectedLocation = '';
+  selectedType = '';
 
   isReportGenerated = false;
 
@@ -62,6 +63,7 @@ export class ReportComponent {
     this.filteredIncidents = this.allIncidents.filter(inc => {
       let matchShift = this.selectedShift ? inc.shift.includes(this.selectedShift) : true;
       let matchLocation = this.selectedLocation ? inc.location.includes(this.selectedLocation) : true;
+      let matchType = this.selectedType ? inc.type.includes(this.selectedType) : true;
       let matchDate = true;
       
       if (this.fromDate && this.toDate) {
@@ -71,7 +73,7 @@ export class ReportComponent {
         matchDate = incDate >= start && incDate <= end;
       }
       
-      return matchShift && matchLocation && matchDate;
+      return matchShift && matchLocation && matchType && matchDate;
     });
   }
 

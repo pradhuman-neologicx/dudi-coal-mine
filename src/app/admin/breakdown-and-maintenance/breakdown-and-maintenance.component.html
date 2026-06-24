@@ -75,9 +75,9 @@
       <div class="flex items-center gap-4 text-gray-600">
         <button (click)="toggleFilter()" class="hover:text-[var(--primary-color)] focus:outline-none transition-colors"
           [ngClass]="{'text-[var(--primary-color)]': isFilterOpen}"><i class="fas fa-filter text-lg"></i></button>
-        <button routerLink="/admin/breakdown-and-maintenance/report" class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-semibold py-1.5 px-4 rounded flex items-center gap-2 transition-colors">
+        <!-- <button routerLink="/admin/breakdown-and-maintenance/report" class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-semibold py-1.5 px-4 rounded flex items-center gap-2 transition-colors">
           <i class="fas fa-file-alt"></i> Report
-        </button>
+        </button> -->
       </div>
     </div>
 
@@ -171,9 +171,9 @@
             </td>
             <td class="px-4 py-5">
               <div class="flex items-center gap-1.5 font-bold text-xs uppercase"
-                [ngClass]="{'text-red-600': ticket.priority === 'CRITICAL', 'text-green-600': ticket.priority === 'MEDIUM', 'text-[#7da9d1]': ticket.priority === 'HIGH'}">
+                [ngClass]="{'text-red-600': ticket.priority === 'CRITICAL', 'text-green-600': ticket.priority === 'MEDIUM', 'text-orange-500': ticket.priority === 'HIGH'}">
                 <div class="w-2 h-2 rounded-full"
-                  [ngClass]="{'bg-red-600': ticket.priority === 'CRITICAL', 'bg-green-600': ticket.priority === 'MEDIUM', 'bg-[#7da9d1]': ticket.priority === 'HIGH'}">
+                  [ngClass]="{'bg-red-600': ticket.priority === 'CRITICAL', 'bg-green-600': ticket.priority === 'MEDIUM', 'bg-orange-500': ticket.priority === 'HIGH'}">
                 </div>
                 {{ticket.priority}}
               </div>
@@ -182,13 +182,13 @@
               <span class="text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap uppercase tracking-wider"
                 [ngClass]="{
                       'bg-red-100 text-red-600': ticket.status === 'OPEN', 
-                      'bg-[#e2e8f0] text-[#475569]': ticket.status === 'IN PROGRESS', 
+                      'bg-yellow-100 text-yellow-700': ticket.status === 'IN PROGRESS', 
                       'bg-green-200 text-green-700': ticket.status === 'CLOSED'}">
                 {{ticket.status}}
               </span>
             </td>
             <td class="px-4 py-5 text-right">
-              <button (click)="openModal()" class="text-gray-400 hover:text-blue-600 transition-colors"
+              <button (click)="openModal(ticket)" class="text-gray-400 hover:text-blue-600 transition-colors"
                 title="Edit Entry">
                 <i class="fas fa-edit text-lg"></i>
               </button>
@@ -232,7 +232,7 @@
       <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50">
         <div class="flex items-center gap-2 text-[#0f2a4a] font-bold tracking-wide">
           <i class="fas fa-exclamation-triangle text-lg"></i>
-          BREAKDOWN & MAINTENANCE ENTRY
+          {{ editingTicketNo ? 'EDIT BREAKDOWN DETAILS' : 'BREAKDOWN & MAINTENANCE ENTRY' }}
         </div>
         <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 focus:outline-none">
           <i class="fas fa-times text-lg"></i>
@@ -277,11 +277,12 @@
             </div>
             <div>
               <label class="block text-[11px] font-bold text-gray-700 mb-1">Shift</label>
-              <select class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
-                  <option value="">Select Shift</option>
-                  <option value="A (Day)">A (Day)</option>
-                  <option value="B (Night)">B (Night)</option>
-                  <option value="C (Swing)">C (Swing)</option>
+              <select
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+                <option value="">Select Shift</option>
+                <option value="A (Day)">A (Day)</option>
+                <option value="B (Night)">B (Night)</option>
+                <option value="C (Swing)">C (Swing)</option>
               </select>
             </div>
             <div>

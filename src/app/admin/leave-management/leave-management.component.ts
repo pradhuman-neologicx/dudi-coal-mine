@@ -264,15 +264,8 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   }
 
   initializeLeaveBalances() {
-    // Create initial default balances or fetch from API if available
-    this.leaveBalances = this.employees.map(emp => ({
-      empId: emp.id || emp.user_id,
-      empName: emp.name || (emp.first_name + ' ' + (emp.last_name || '')),
-      casual: { total: 12, consumed: 0 },
-      sick: { total: 10, consumed: 0 },
-      paid: { total: 15, consumed: 0 },
-      unpaid: { total: 99, consumed: 0 } 
-    }));
+    // Currently no backend API for leave balances, initialize as empty.
+    this.leaveBalances = [];
   }
 
   getOffsetDate(days: number): string {
@@ -281,10 +274,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
     return this.datePipe.transform(d, 'yyyy-MM-dd') || '';
   }
 
-  saveToStorage() {
-    localStorage.setItem('leave_requests', JSON.stringify(this.leaveRequests));
-    localStorage.setItem('leave_balances', JSON.stringify(this.leaveBalances));
-  }
+
 
   getLeaveDays(start: string | undefined | null, end: string | undefined | null): number {
     if (!start || !end) return 0;
@@ -442,56 +432,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
     this.viewLeaveOpen = false;
   }
 
-  syncLeaveToAttendance(req: LeaveRequest) {
-    const start = new Date(req.startDate);
-    const end = new Date(req.endDate);
 
-    // Load attendance records
-    let attendanceRecords: any[] = [];
-    const stored = localStorage.getItem('attendance_records');
-    if (stored) {
-      attendanceRecords = JSON.parse(stored);
-    }
-
-    const d = new Date(start);
-    while (d <= end) {
-      const dateStr = this.datePipe.transform(d, 'yyyy-MM-dd') || '';
-
-      const existingIndex = attendanceRecords.findIndex(r => r.empId === req.empId && r.date === dateStr);
-      const record = {
-        id: existingIndex >= 0 ? attendanceRecords[existingIndex].id : Math.floor(Math.random() * 100000).toString(),
-        empId: req.empId,
-        empName: req.empName,
-        date: dateStr,
-        checkIn: '--:--',
-        checkOut: '--:--',
-        shift: 'A',
-        status: 'Leave',
-        site: 'Office'
-      };
-
-      if (existingIndex >= 0) {
-        attendanceRecords[existingIndex] = record;
-      } else {
-        attendanceRecords.unshift(record);
-      }
-
-      d.setDate(d.getDate() + 1);
-    }
-
-    localStorage.setItem('attendance_records', JSON.stringify(attendanceRecords));
-  }
-
-  triggerYearlyReset() {
-    this.leaveBalances.forEach(b => {
-      b.casual.consumed = 0;
-      b.sick.consumed = 0;
-      b.paid.consumed = 0;
-      b.unpaid.consumed = 0;
-    });
-    this.saveToStorage();
-    this.notificationService.show('Leave balances reset successfully for the new year.', 'info', 3000);
-  }
 
   // --- Bulk Upload Logic ---
   openBulkUploadModal() {
@@ -550,8 +491,16 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         console.error('Bulk upload failed:', err);
-        const errorMsg = err.error?.message || 'An error occurred during upload';
-        this.notificationService.show(errorMsg, 'error', 3000);
+        const originalError = err.originalError || err.error || err;
+        let errorMsg = originalError.message || err.message || 'An error occurred during upload';
+        
+        if (originalError.errors && Array.isArray(originalError.errors)) {
+          const formattedErrors = originalError.errors.map((e: any) => `Row ${e.row}: ${e.message}`).join('\n');
+          errorMsg += '\n' + formattedErrors;
+        }
+
+        const duration = originalError.errors ? 8000 : 3000;
+        this.notificationService.show(errorMsg, 'error', duration);
       }
     });
   }
@@ -575,13 +524,13 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   }
 
   getStatusClass(status: string): string {
-    switch (status) {
-      case 'Approved': return 'bg-success text-white';
-      case 'Rejected': return 'bg-danger text-white';
-      case 'Pending Supervisor': return 'bg-info text-white';
-      case 'Pending PM': return 'bg-primary text-white';
-      case 'Pending HR': return 'bg-warning text-dark';
-      default: return 'bg-light text-dark';
-    }
+    if (!status) return 'bg-light text-dark';
+    const s = status.toLowerCase();
+    if (s === 'approved') return 'bg-success text-white';
+    if (s === 'rejected') return 'bg-danger text-white';
+    if (s === 'pending' || s === 'pending hr') return 'bg-warning text-dark';
+    if (s === 'pending supervisor') return 'bg-info text-white';
+    if (s === 'pending pm') return 'bg-primary text-white';
+    return 'bg-light text-dark';
   }
 }

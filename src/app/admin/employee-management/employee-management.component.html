@@ -5,9 +5,9 @@
       <button class="btn btn-outline-primary px-4 py-2 me-2" (click)="openAssignShiftModal()">
         <i class="fa-solid fa-calendar-check me-2"></i>Assign Shift
       </button>
-      <button class="btn btn-bulk-assign px-4 py-2 me-2" (click)="openBulkAssignModal()">
+      <!-- <button class="btn btn-bulk-assign px-4 py-2 me-2" (click)="openBulkAssignModal()">
         <i class="fa-solid fa-users-gear me-2"></i>Bulk Assign Shift
-      </button>
+      </button> -->
       <button class="btn btn-outline-primary px-4 py-2 me-2" (click)="openUploadModal()">
         <i class="fa-solid fa-cloud-arrow-up me-2"></i>Bulk Upload
       </button>
@@ -35,7 +35,8 @@
           <ng-select class="custom-ng-select w-100" formControlName="deptFilter" (change)="searchfun()"
             placeholder="All Departments" [searchable]="true" [clearable]="true">
             <ng-option [value]="null">All Departments</ng-option>
-            <ng-option *ngFor="let dept of departmentsList" [value]="dept.id" title="{{ dept.name }}">{{ dept.name }}</ng-option>
+            <ng-option *ngFor="let dept of departmentsList" [value]="dept.id" title="{{ dept.name }}">{{ dept.name
+              }}</ng-option>
           </ng-select>
         </form>
 
@@ -55,10 +56,10 @@
     </div>
 
     <!-- Data Table -->
-    <div class="table-responsive-sm mt-2">
+    <div class="mt-2">
       <!-- Table View for lg+ -->
-      <div class="hidden lg:block">
-        <table class="table table-bordered table-hover table-striped mb-0">
+      <div class="hidden lg:block table-responsive">
+        <table class="table table-bordered table-hover table-striped mb-0" style="min-width: 1000px;">
           <thead class="table-header">
             <tr>
               <th *ngFor="let heading of table_heading">
@@ -239,14 +240,16 @@
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Gender *</label>
-            <ng-select class="custom-ng-select w-100" formControlName="gender"
-              placeholder="Select Gender" [searchable]="false" [clearable]="true"
+            <ng-select class="custom-ng-select w-100" formControlName="gender" placeholder="Select Gender"
+              [searchable]="false" [clearable]="true"
               [ngClass]="{'is-invalid': employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched}">
               <ng-option value="Male">Male</ng-option>
               <ng-option value="Female">Female</ng-option>
               <ng-option value="Other">Other</ng-option>
             </ng-select>
-            <div class="invalid-feedback" [class.d-block]="employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched">Gender is required.</div>
+            <div class="invalid-feedback"
+              [class.d-block]="employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched">Gender is
+              required.</div>
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Mobile Number *</label>
@@ -279,7 +282,7 @@
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Joining Date *</label>
             <input type="date" class="form-control form-input-custom cursor-pointer" formControlName="joiningDate"
-              (click)="onDateClick($event)"
+              (click)="onDateClick($event)" [max]="todayDate"
               [ngClass]="{'is-invalid': employeeForm.get('joiningDate')?.invalid && employeeForm.get('joiningDate')?.touched}" />
             <div class="invalid-feedback">Joining Date is required.</div>
           </div>
@@ -297,19 +300,23 @@
           -->
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Department *</label>
-            <ng-select class="custom-ng-select w-100" formControlName="department"
-              placeholder="Select Department" [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="departmentsList"
+            <ng-select class="custom-ng-select w-100" formControlName="department" placeholder="Select Department"
+              [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="departmentsList"
               [ngClass]="{'is-invalid': employeeForm.get('department')?.invalid && employeeForm.get('department')?.touched}">
             </ng-select>
-            <div class="invalid-feedback" [class.d-block]="employeeForm.get('department')?.invalid && employeeForm.get('department')?.touched">Department is required.</div>
+            <div class="invalid-feedback"
+              [class.d-block]="employeeForm.get('department')?.invalid && employeeForm.get('department')?.touched">
+              Department is required.</div>
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Designation *</label>
-            <ng-select class="custom-ng-select w-100" formControlName="designation"
-              placeholder="Select Designation" [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="designationsList"
+            <ng-select class="custom-ng-select w-100" formControlName="designation" placeholder="Select Designation"
+              [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="designationsList"
               [ngClass]="{'is-invalid': employeeForm.get('designation')?.invalid && employeeForm.get('designation')?.touched}">
             </ng-select>
-            <div class="invalid-feedback" [class.d-block]="employeeForm.get('designation')?.invalid && employeeForm.get('designation')?.touched">Designation is required.</div>
+            <div class="invalid-feedback"
+              [class.d-block]="employeeForm.get('designation')?.invalid && employeeForm.get('designation')?.touched">
+              Designation is required.</div>
           </div>
           <div class="col-md-12 mt-3">
             <label class="form-label form-lable-custom d-block mb-2">Workforce Group *</label>
@@ -380,7 +387,7 @@
         </div>
 
         <!-- Scrollable Details Wrapper to prevent modal from growing too tall -->
-        <div class="view-details-scroll overflow-auto pe-1" style="max-height: 48vh;">
+        <div class="view-details-scroll pe-1" style="max-height: 48vh; overflow-y: auto; overflow-x: hidden;">
 
           <!-- SECTION 1: Personal Details -->
           <div class="grid-section-title">Personal Details</div>
@@ -503,122 +510,7 @@
             </div>
           </div>
 
-          <div class="grid-section-title">Payroll Details</div>
-          <div class="row g-3 mb-4">
-            <div class="col-md-6 col-lg-4">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper code"><i class="fa-solid fa-indian-rupee-sign"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">Basic Salary</span>
-                  <span class="info-value text-dark fs-7">₹{{ selectedEmployee?.basicSalary | number }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper site"><i class="fa-solid fa-bed"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">Rest Days</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.restDay || '--' }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper code"><i class="fa-solid fa-piggy-bank"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">PF Applicable</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.isPfApplicable }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4" *ngIf="selectedEmployee?.isPfApplicable === 'Yes'">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper code"><i class="fa-solid fa-indian-rupee-sign"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">PF Amount</span>
-                  <span class="info-value text-dark fs-7">₹{{ selectedEmployee?.pfAmount | number }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4" *ngIf="selectedEmployee?.isPfApplicable === 'Yes'">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper code"><i class="fa-solid fa-hashtag"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">PF Number</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.pfNumber || '--' }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper code"><i class="fa-solid fa-utensils"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">Mess Deduction</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.isMessApplicable }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4" *ngIf="selectedEmployee?.isMessApplicable === 'Yes'">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper code"><i class="fa-solid fa-indian-rupee-sign"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">Mess Deduction Amount</span>
-                  <span class="info-value text-dark fs-7">₹{{ selectedEmployee?.messDeductionAmount | number }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper code"><i class="fa-solid fa-calculator"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">Others Deduction</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.isOthersDeductionApplicable }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4" *ngIf="selectedEmployee?.isOthersDeductionApplicable === 'Yes'">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper code"><i class="fa-solid fa-indian-rupee-sign"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">Others Deduction Amount</span>
-                  <span class="info-value text-dark fs-7">₹{{ selectedEmployee?.othersDeductionAmount | number }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- SECTION 4: Bank Details -->
-          <div class="grid-section-title">Bank Details</div>
-          <div class="row g-3">
-            <div class="col-md-6 col-lg-4">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper contact"><i class="fa-solid fa-building-columns"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">Bank Name</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.bankName }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper contact"><i class="fa-solid fa-credit-card"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">Account Number</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.accountNumber }}</span>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 col-lg-4">
-              <div class="glass-info-card">
-                <div class="card-icon-wrapper contact"><i class="fa-solid fa-circle-info"></i></div>
-                <div class="card-info-content">
-                  <span class="info-label">IFSC Code</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.ifscCode }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
 
         </div>
       </div>
@@ -643,7 +535,13 @@
 
     <div class="modal-body-custom p-4 overflow-auto">
       <div class="w-100">
-        <h6 class="fw-bold mb-3">Upload File</h6>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0">Upload File</h6>
+          <a href="assets/Bulk_New_Employees.xlsx" download="Bulk_New_Employees.xlsx" target="_blank"
+            class="btn btn-link btn-sm text-primary p-0 text-decoration-none fw-semibold">
+            <i class="fa-solid fa-download me-1"></i>Download Sample
+          </a>
+        </div>
         <form [formGroup]="uploadForm">
           <div class="upload-zone p-5 text-center rounded-4 mb-4 border border-dashed"
             [ngClass]="{ 'has-file': selectedUploadFile }" (click)="fileInput.click()"

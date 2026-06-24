@@ -44,6 +44,8 @@ import { DashboardNewComponent } from './admin/dashboard-new/dashboard-new.compo
 import { DelayReportComponent } from './admin/delay-report/delay-report.component';
 import { FuelMgtComponent } from './admin/fuel-mgt/fuel-mgt.component';
 import { DashboardNew1Component } from './admin/dashboard-new1/dashboard-new1.component';
+import { IncidentTypeComponent } from './admin/masters/incident-type/incident-type.component';
+import { SeverityLevelComponent } from './admin/masters/severity-level/severity-level.component';
 
 const routes: Routes = [
   {
@@ -200,6 +202,14 @@ const routes: Routes = [
             path: 'training-type',
             component: TrainingTypeComponent,
           },
+          {
+            path: 'incident-type',
+            component: IncidentTypeComponent,
+          },
+          {
+            path: 'severity-level',
+            component: SeverityLevelComponent,
+          },
         ],
       },
       {
@@ -261,6 +271,17 @@ const routes: Routes = [
         path: 'safety-management/report',
         loadComponent: () => import('./admin/safety-management/report/report.component').then(m => m.ReportComponent),
         canActivate: [AuthGuard],
+      },
+      {
+        path: 'dispatch-dumping',
+        loadComponent: () => import('./admin/dispatch-dumping/dispatch-dumping.component').then(m => m.DispatchDumpingComponent),
+        canActivate: [AuthGuard],
+        children: [
+          { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+          { path: 'dashboard', loadComponent: () => import('./admin/dispatch-dumping/dashboard/dashboard.component').then(m => m.DashboardComponent) },
+          { path: 'register', loadComponent: () => import('./admin/dispatch-dumping/register/register.component').then(m => m.RegisterComponent) },
+          { path: 'fleet-performance', loadComponent: () => import('./admin/dispatch-dumping/fleet-performance/fleet-performance.component').then(m => m.FleetPerformanceComponent) }
+        ]
       },
       {
         path: 'fuel',

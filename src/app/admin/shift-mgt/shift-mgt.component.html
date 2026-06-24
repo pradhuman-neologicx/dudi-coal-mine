@@ -84,13 +84,31 @@
   <!-- Shift Overview Table -->
   <div class="bg-white border border-gray-200 rounded shadow-sm">
     <div class="px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center gap-4">
-        <h2 class="text-lg font-bold text-[#468faf]">Shift Overview</h2>
-        <div
-          class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 cursor-pointer min-w-[140px]">
+      <div class="flex items-center gap-4 flex-wrap">
+        <h2 class="text-lg font-bold text-[#468faf] mr-2">Shift Overview</h2>
+        
+        <!-- Status Filter -->
+        <div class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 cursor-pointer min-w-[140px]">
           <i class="fas fa-filter text-gray-400"></i>
-          <span class="flex-1 font-medium">Active Shifts</span>
+          <select class="flex-1 font-medium bg-transparent outline-none cursor-pointer appearance-none">
+             <option>All Status</option>
+             <option selected>Active Shifts</option>
+             <option>Planned</option>
+             <option>Completed</option>
+          </select>
           <i class="fas fa-caret-down text-gray-400"></i>
+        </div>
+
+        <!-- Location Filter -->
+        <div class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 min-w-[220px]">
+          <i class="fas fa-map-marker-alt text-gray-400"></i>
+          <ng-select [items]="filterLocations" [(ngModel)]="selectedLocation" placeholder="All Locations" class="flex-1 font-medium w-full custom-filter-select" [clearable]="true"></ng-select>
+        </div>
+
+        <!-- Supervisor Filter -->
+        <div class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 min-w-[220px]">
+          <i class="far fa-user text-gray-400"></i>
+          <ng-select [items]="filterSupervisors" [(ngModel)]="selectedSupervisor" placeholder="All Supervisors" class="flex-1 font-medium w-full custom-filter-select" [clearable]="true"></ng-select>
         </div>
       </div>
       <button (click)="addShift()"
@@ -229,62 +247,79 @@
     </div>
     <div class="bg-white m-6 border border-gray-200 rounded">
       <div class="p-6 border-b border-gray-200">
-        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-6"><i
-            class="fas fa-industry text-gray-500"></i> Production Data</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Bucket Count</label>
-            <div class="relative">
-              <input type="number" [(ngModel)]="excavatorProd.bucketCount"
-                class="w-full border border-gray-300 rounded pl-4 pr-16 py-2.5 text-sm text-gray-700 font-bold focus:outline-none focus:border-[#468faf]">
-              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">CYCLES</span>
-            </div>
+        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i class="fas fa-chart-pie text-gray-500"></i> Operational Review</h3>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div class="bg-gray-50 border border-gray-200 p-3 rounded">
+            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Production (BCM)</div>
+            <div class="text-lg font-bold text-[#468faf]">42,200 <span class="text-xs text-gray-500 font-normal">/ 45,000</span></div>
+            <div class="text-xs text-green-600 font-bold mt-1">93% Achieved</div>
           </div>
-          <div>
-            <label
-              class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 flex justify-between">
-              Total Material Moved (BCM) <span class="text-black font-extrabold">CALCULATED VAL</span>
-            </label>
-            <input type="text" [value]="excavatorProd.totalBcm | number"
-              class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 font-bold bg-gray-100 cursor-not-allowed"
-              disabled>
+          <div class="bg-gray-50 border border-gray-200 p-3 rounded">
+            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Eq. Availability</div>
+            <div class="text-lg font-bold text-[#468faf]">94%</div>
+            <div class="text-xs text-red-500 font-bold mt-1">2 Breakdowns</div>
           </div>
-          <div>
-            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Haul Unit Count
-              (Dumpers)</label>
-            <input type="text" [value]="excavatorProd.haulUnitCount"
-              class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 font-bold bg-gray-100 cursor-not-allowed"
-              disabled>
+          <div class="bg-gray-50 border border-gray-200 p-3 rounded">
+            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Workforce</div>
+            <div class="text-lg font-bold text-[#468faf]">22 <span class="text-xs text-gray-500 font-normal">/ 25 Present</span></div>
+            <div class="text-xs text-blue-500 font-bold mt-1">3 Borrowed</div>
+          </div>
+          <div class="bg-gray-50 border border-gray-200 p-3 rounded">
+            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Fuel & Delays</div>
+            <div class="text-lg font-bold text-[#468faf]">12,400 L</div>
+            <div class="text-xs text-gray-600 font-bold mt-1">1.5 hrs Delay</div>
           </div>
         </div>
       </div>
-      <div class="p-6">
-        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i
-            class="fas fa-truck text-gray-500"></i> Dumper Performance</h3>
-        <div class="border border-gray-200 rounded overflow-hidden mb-6">
-          <table class="w-full text-sm text-left">
-            <thead
-              class="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
-              <tr>
-                <th class="px-6 py-3">Dumper ID</th>
-                <th class="px-6 py-3 text-center">No. of Trips</th>
-                <th class="px-6 py-3 text-right">Total BCM</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              <tr *ngFor="let dmp of dumperPerf">
-                <td class="px-6 py-3 font-bold text-gray-800">{{ dmp.id }}</td>
-                <td class="px-6 py-3 text-center text-gray-600">{{ dmp.trips }}</td>
-                <td class="px-6 py-3 text-right font-mono text-gray-700">{{ dmp.bcm | number }}</td>
-              </tr>
-            </tbody>
-          </table>
+
+      <div class="p-6 border-b border-gray-200">
+        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i class="fas fa-tasks text-gray-500"></i> Validation Checklist</h3>
+        <p class="text-xs text-gray-500 mb-4">Please verify that all operational records have been completed and verified before closing the shift.</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="shiftClosure.attendanceSubmitted" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <span class="text-sm text-gray-700 font-medium">Attendance Submitted</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="shiftClosure.fuelLogsAvailable" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <span class="text-sm text-gray-700 font-medium">Fuel Logs Available</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="shiftClosure.delayLogsUpdated" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <span class="text-sm text-gray-700 font-medium">Delay Logs Updated</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="shiftClosure.breakdownLogsUpdated" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <span class="text-sm text-gray-700 font-medium">Breakdown Logs Updated</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="shiftClosure.productionDataAvailable" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <span class="text-sm text-gray-700 font-medium">Production Data Available</span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" [(ngModel)]="shiftClosure.safetyDataReviewed" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <span class="text-sm text-gray-700 font-medium">Safety Data Reviewed</span>
+          </label>
         </div>
-        <div>
-          <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Remarks</label>
-          <textarea [(ngModel)]="excavatorProd.remarks" placeholder="Add any shift remarks here..."
-            class="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] bg-gray-50/50 resize-none"
-            rows="2"></textarea>
+      </div>
+
+      <div class="p-6">
+        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i class="fas fa-signature text-gray-500"></i> Supervisor Sign-Off</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Shift Remarks <span class="text-red-500">*</span></label>
+            <textarea [(ngModel)]="shiftClosure.shiftRemarks" placeholder="Enter mandatory remarks for the shift..."
+              class="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] bg-gray-50/50 resize-none"
+              rows="3"></textarea>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Handover Notes <span class="text-gray-400 font-normal">(Optional)</span></label>
+            <textarea [(ngModel)]="shiftClosure.handoverNotes" placeholder="Any notes for the next shift supervisor..."
+              class="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] bg-gray-50/50 resize-none"
+              rows="3"></textarea>
+          </div>
         </div>
       </div>
     </div>

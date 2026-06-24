@@ -73,6 +73,8 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
   searchbarform!: FormGroup;
   filterForm!: FormGroup;
 
+  todayDate: string = new Date().toISOString().split('T')[0];
+
   employeeForm!: FormGroup;
 
   tableSize: any = 10;
@@ -90,7 +92,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
 
   employeeList: any[] = [];
 
-  table_heading = ['S.No.', 'Emp ID', 'Name', 'Contact', 'Department', 'Designation', 'Relay/General', 'Shift Type', 'Status', 'Action'];
+  table_heading = ['S.No.', 'Emp Code', 'Name', 'Contact', 'Department', 'Designation', 'Relay/General', 'Shift Type', 'Status', 'Action'];
 
   sitesList: any[] = [];
   departmentsList: any[] = [];
@@ -323,16 +325,16 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     this.employeeManagementService.bulkUploadEmployees(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res.status === 200 || res.status === 201) {
-          this.notificationService.show(res.message || 'File uploaded successfully', 'success', 3000);
+          this.notificationService.show(res.message, 'success', 3000);
           this.closeUploadModal();
           this.GetEmployeeFun();
         } else {
-          this.notificationService.show(res.message || 'File upload failed', 'error', 3000);
+          this.notificationService.show(res.message, 'error', 3000);
         }
       },
       error: (err: any) => {
         console.error('Bulk upload failed:', err);
-        const errorMsg = err.error?.message || err.message || 'Something went wrong';
+        const errorMsg = err.error?.message || err.message;
         this.notificationService.show(errorMsg, 'error', 3000);
       }
     });
@@ -395,19 +397,19 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     this.shiftService.bulkUploadShiftAssignments(file).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res.status === 200 || res.status === 201) {
-          this.notificationService.show(res.message || 'Bulk shift assignments applied successfully', 'success', 3000);
+          this.notificationService.show(res.message, 'success', 3000);
           this.closeBulkAssignModal();
           this.selectedEmployeeIds.clear();
           this.selectedEmployeeIdsForAssign = [];
           this.loadShiftGroups(); // Refresh count of chips
           this.GetEmployeeFun(); // Refresh employee table view
         } else {
-          this.notificationService.show(res.message || 'Failed to upload bulk shift assignments', 'error', 3000);
+          this.notificationService.show(res.message, 'error', 3000);
         }
       },
       error: (err: any) => {
         console.error('Bulk shift upload failed:', err);
-        const errMsg = err.error?.message || err.message || 'Something went wrong during upload';
+        const errMsg = err.error?.message || err.message;
         this.notificationService.show(errMsg, 'error', 3000);
       }
     });
@@ -560,13 +562,13 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             is_active: emp.status !== undefined ? emp.status : emp.is_active
           };
         } else {
-          this.notificationService.show(response.message || 'Failed to fetch employee details', 'error', 3000);
+          this.notificationService.show(response.message, 'error', 3000);
           this.viewEmployeeOpen = false;
         }
       },
       error: (err: any) => {
         console.error('Error fetching employee details:', err);
-        this.notificationService.show('Error fetching employee details', 'error', 3000);
+        this.notificationService.show(err.error?.message || err.message, 'error', 3000);
         this.viewEmployeeOpen = false;
       }
     });
@@ -606,11 +608,11 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             desigId = emp.designation_id;
           }
 
-          let rawRelay = String(emp.relay_shift || emp.relay || 'General').trim();
+          let rawRelay = String(emp.relay_shift || emp.relay || 'General').trim().toLowerCase();
           let formattedRelay = 'General';
-          if (rawRelay.toLowerCase() === 'relay 1') formattedRelay = 'Relay 1';
-          else if (rawRelay.toLowerCase() === 'relay 2') formattedRelay = 'Relay 2';
-          else if (rawRelay.toLowerCase() === 'relay 3') formattedRelay = 'Relay 3';
+          if (rawRelay === 'relay 1' || rawRelay === 'relay_1') formattedRelay = 'Relay 1';
+          else if (rawRelay === 'relay 2' || rawRelay === 'relay_2') formattedRelay = 'Relay 2';
+          else if (rawRelay === 'relay 3' || rawRelay === 'relay_3') formattedRelay = 'Relay 3';
 
           const formData = {
             empId: emp.employee_code || '',
@@ -632,12 +634,12 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
           this.activeTab = 'personal';
           this.employeeModalOpen = true;
         } else {
-          this.notificationService.show(response.message || 'Failed to fetch employee details for editing', 'error', 3000);
+          this.notificationService.show(response.message, 'error', 3000);
         }
       },
       error: (err: any) => {
         console.error('Error fetching employee details for editing:', err);
-        this.notificationService.show('Error fetching employee details', 'error', 3000);
+        this.notificationService.show(err.error?.message || err.message, 'error', 3000);
       }
     });
   }
@@ -673,16 +675,16 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
         this.employeeManagementService.updateEmployee(this.currentEmployeeId, formData).pipe(takeUntil(this.destroy$)).subscribe({
           next: (response: any) => {
             if (response.status === 200 || response.status === 201) {
-              this.notificationService.show(response.message || 'Employee updated successfully', 'success', 3000);
+              this.notificationService.show(response.message, 'success', 3000);
               this.closeModal();
               this.GetEmployeeFun();
             } else {
-              this.notificationService.show(response.message || 'Failed to update employee', 'error', 3000);
+              this.notificationService.show(response.message, 'error', 3000);
             }
           },
           error: (error: any) => {
             console.error('Update Employee failed:', error);
-            let errorMsg = error.error?.message || error.message || 'Something went wrong';
+            let errorMsg = error.error?.message || error.message;
             if (error.error?.errors) {
               errorMsg = Object.values(error.error.errors).flat().join(' | ');
             }
@@ -693,16 +695,16 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
         this.employeeManagementService.createEmployee(formData).pipe(takeUntil(this.destroy$)).subscribe({
           next: (response: any) => {
             if (response.status === 200 || response.status === 201) {
-              this.notificationService.show(response.message || 'Employee added successfully', 'success', 3000);
+              this.notificationService.show(response.message, 'success', 3000);
               this.closeModal();
               this.GetEmployeeFun();
             } else {
-              this.notificationService.show(response.message || 'Failed to add employee', 'error', 3000);
+              this.notificationService.show(response.message, 'error', 3000);
             }
           },
           error: (error: any) => {
             console.error('Create Employee failed:', error);
-            let errorMsg = error.error?.message || error.message || 'Something went wrong';
+            let errorMsg = error.error?.message || error.message;
             if (error.error?.errors) {
               errorMsg = Object.values(error.error.errors).flat().join(' | ');
             }
@@ -751,23 +753,15 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     this.employeeManagementService.updateEmployeeStatus(id, formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         if (response.status === 200 || response.status === 201) {
-          this.notificationService.show(
-            response.message || `Employee status updated successfully`,
-            'success',
-            3000
-          );
+          this.notificationService.show(response.message, 'success', 3000);
           this.GetEmployeeFun();
         } else {
-          this.notificationService.show(
-            response.message || 'Failed to update status',
-            'error',
-            3000
-          );
+          this.notificationService.show(response.message, 'error', 3000);
         }
       },
       error: (error: any) => {
         console.error('Status update failed:', error);
-        const errorMsg = error.error?.message || error.message || 'Something went wrong';
+        const errorMsg = error.error?.message || error.message;
         this.notificationService.show(errorMsg, 'error', 3000);
       }
     });
@@ -916,15 +910,8 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Error fetching shifts', err);
-        this.allShiftsList = [
-          { id: 'Shift A', name: 'Shift A (Morning)' },
-          { id: 'Shift B', name: 'Shift B (Afternoon)' },
-          { id: 'Shift C', name: 'Shift C (Night)' },
-          { id: 'Off', name: 'Weekly Off' }
-        ];
-        if (preselectShift) {
-          this.assignShiftType = preselectShift;
-        }
+        this.allShiftsList = [];
+        this.notificationService.show(err.error?.message || err.message || 'Error fetching shifts', 'error', 3000);
       }
     });
   }
@@ -986,17 +973,17 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     this.shiftService.assignBulkShift(payload).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res.status === 200 || res.status === 201) {
-          this.notificationService.show(res.message || 'Shift assigned successfully', 'success', 3000);
+          this.notificationService.show(res.message, 'success', 3000);
           this.closeAssignShiftModal();
           this.loadShiftGroups(); // Refresh count of chips
           this.GetEmployeeFun(); // Refresh main employee table to show updated shift groups!
         } else {
-          this.notificationService.show(res.message || 'Failed to assign shift', 'error', 3000);
+          this.notificationService.show(res.message, 'error', 3000);
         }
       },
       error: (err: any) => {
         console.error('Error assigning bulk shift:', err);
-        const errMsg = err?.message || 'Something went wrong while assigning shifts.';
+        const errMsg = err?.error?.message || err?.message;
         this.notificationService.show(errMsg, 'error', 3000);
       }
     });

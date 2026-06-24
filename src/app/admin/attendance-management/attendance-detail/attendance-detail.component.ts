@@ -65,14 +65,9 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
   };
 
   currentMonth: Date = new Date();
-  selectedDate: Date = new Date();
+  selectedDate: Date | null = new Date();
 
-  attendanceRecords: AttendanceRecord[] = [
-    { date: '01/05/2026', status: 'Present', checkIn: '09:31', checkOut: '18:07', duration: '08:36', remarks: '' },
-    { date: '02/05/2026', status: 'Present', checkIn: '09:28', checkOut: '17:01', duration: '07:33', remarks: '' },
-    { date: '03/05/2026', status: 'Weekend', checkIn: '-', checkOut: '-', duration: '-', remarks: '' },
-    { date: '04/05/2026', status: 'Present', checkIn: '10:00', checkOut: '-', duration: '-', remarks: '' },
-  ];
+  attendanceRecords: AttendanceRecord[] = [];
 
   isEditModalOpen: boolean = false;
   editForm: FormGroup;
@@ -108,19 +103,19 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
       const parsedDate = new Date(dateParam);
       if (!isNaN(parsedDate.getTime())) {
         this.currentMonth = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), 1);
-        this.selectedDate = parsedDate;
+        this.selectedDate = null; // Set to null for consistency with monthly view
       } else {
         this.currentMonth = new Date();
-        this.selectedDate = new Date();
+        this.selectedDate = null;
       }
     } else if (monthParam && yearParam) {
       const m = parseInt(monthParam, 10);
       const y = parseInt(yearParam, 10);
       this.currentMonth = new Date(y, m - 1, 1);
-      this.selectedDate = new Date(y, m - 1, 1); // Select 1st of the month
+      this.selectedDate = null; // Do not select 1st of the month by default
     } else {
       this.currentMonth = new Date();
-      this.selectedDate = new Date();
+      this.selectedDate = null;
     }
     
     this.loadMonthData();
@@ -141,14 +136,12 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
           if (res.status === 200 || res.success) {
             this.processApiRecords(res.data);
           } else {
-             this.notificationService.show(res.message || 'Failed to load attendance', 'error', 3000);
-             this.generateMockRecords(); // fallback
+             this.notificationService.show(res.message, 'error', 3000);
           }
         },
         error: (err: any) => {
            console.error('Error fetching details:', err);
-           this.notificationService.show(err.message || 'Error loading attendance', 'error', 3000);
-           this.generateMockRecords(); // fallback
+           this.notificationService.show(err.message, 'error', 3000);
         }
       });
   }
@@ -198,38 +191,7 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  generateMockRecords() {
-    // Kept as fallback in case API fails
-    this.attendanceRecords = [];
-    const totalDays = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 0).getDate();
-    for (let i = 1; i <= totalDays; i++) {
-      const dateStr = `${i < 10 ? '0' + i : i}/${(this.currentMonth.getMonth() + 1).toString().padStart(2, '0')}/${this.currentMonth.getFullYear()}`;
-      const dayOfWeek = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), i).getDay();
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      
-      let status = isWeekend ? 'Weekend' : '-';
-      let checkIn = '-';
-      let checkOut = '-';
-      let duration = '-';
 
-      // Add some mock data for past days
-      if (i < this.currentMonth.getDate() && !isWeekend) {
-          status = 'Present';
-          checkIn = '09:' + Math.floor(Math.random() * 30 + 10);
-          checkOut = '18:' + Math.floor(Math.random() * 30 + 10);
-          duration = '09:00';
-      }
-
-      this.attendanceRecords.push({
-        date: dateStr,
-        status: status,
-        checkIn: checkIn,
-        checkOut: checkOut,
-        duration: duration,
-        remarks: ''
-      });
-    }
-  }
 
   onDateSelected(date: Date | null) {
     if (date) {
@@ -271,7 +233,7 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
       formData.append('_method', 'PUT');
       if (newCheckIn) formData.append('check_in', newCheckIn);
       if (newCheckOut) formData.append('check_out', newCheckOut);
-      formData.append('attendance_status', newStatus.toLowerCase());
+      formData.append('attendance_status', newStatus.toLowerCase().replace(' ', '_'));
       if (reason) formData.append('remarks', reason);
       formData.append('employee_id', this.employeeId.toString());
       let formattedDate = this.editingRecord.backendDate;
@@ -289,15 +251,15 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
       this.attendanceService.updateAttendance(formData).pipe(takeUntil(this.destroy$)).subscribe({
         next: (response: any) => {
           if (response.status === 200 || response.success) {
-            this.notificationService.show('Attendance updated successfully.', 'success', 3000);
+            this.notificationService.show(response.message, 'success', 3000);
             this.closeEditModal();
             this.loadMonthData(); // reload
           } else {
-            this.notificationService.show(response.message || 'Failed to update attendance', 'error', 3000);
+            this.notificationService.show(response.message, 'error', 3000);
           }
         },
         error: (err: any) => {
-          this.notificationService.show(err.message || 'Error updating attendance', 'error', 3000);
+          this.notificationService.show(err.message, 'error', 3000);
         }
       });
     }

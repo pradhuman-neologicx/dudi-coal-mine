@@ -180,7 +180,9 @@ export class ApiService {
       }
       console.error('Validation Error:', errorMessage);
 
-      return throwError(() => new Error(errorMessage));
+      const customError = new Error(errorMessage) as any;
+      customError.originalError = error.error || error;
+      return throwError(() => customError);
     }
     //console.log(errorMessage+"er");
     this.notificationService.show(errorMessage, 'error', 3000);

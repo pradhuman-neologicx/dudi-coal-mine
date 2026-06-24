@@ -229,7 +229,7 @@ export class EmployeePayrollComponent implements OnInit {
           if (this.isEditMode) {
             this.payrollForm.patchValue({
               basicSalary: basicSal || '',
-              restDays: emp.rest_day || '',
+              restDays: emp.rest_days !== undefined && emp.rest_days !== null ? emp.rest_days : '',
               isPfApplicable: emp.pf_applicable == 1 ? 'Yes' : 'No',
               pfAmount: emp.pf_amount || '',
               pfNumber: emp.pf_number || '',
@@ -237,7 +237,7 @@ export class EmployeePayrollComponent implements OnInit {
               accountNumber: emp.bank_account_number || '',
               ifscCode: emp.ifsc_code || '',
               isMessApplicable: emp.mess_deduction_applicable == 1 ? 'Yes' : 'No',
-              messDeductionAmount: emp.mess_deduction || '',
+              messDeductionAmount: emp.mess_deduction_amount || '',
               isOthersDeductionApplicable: emp.other_deduction_appliacble == 1 ? 'Yes' : 'No',
               othersDeductionAmount: emp.other_deduction || ''
             });
@@ -361,16 +361,18 @@ export class EmployeePayrollComponent implements OnInit {
       }
       
       formData.append('pf_applicable', payrollData.isPfApplicable === 'Yes' ? '1' : '0');
+      formData.append('pf_amount', payrollData.isPfApplicable === 'Yes' ? (payrollData.pfAmount || '0').toString() : '0');
       formData.append('pf_number', payrollData.isPfApplicable === 'Yes' ? (payrollData.pfNumber || '') : '');
       formData.append('bank_name', payrollData.bankName || '');
       formData.append('bank_account_number', payrollData.accountNumber || '');
       formData.append('ifsc_code', payrollData.ifscCode || '');
       formData.append('mess_deduction_applicable', payrollData.isMessApplicable === 'Yes' ? '1' : '0');
+      formData.append('mess_deduction_amount', payrollData.isMessApplicable === 'Yes' ? (payrollData.messDeductionAmount || '0').toString() : '0');
       formData.append('other_deduction_appliacble', payrollData.isOthersDeductionApplicable === 'Yes' ? '1' : '0');
-      formData.append('other_deduction', payrollData.isOthersDeductionApplicable === 'Yes' ? (payrollData.othersDeductionAmount || '0') : '0');
+      formData.append('other_deduction', payrollData.isOthersDeductionApplicable === 'Yes' ? (payrollData.othersDeductionAmount || '0').toString() : '0');
       
-      if(payrollData.restDays) {
-        formData.append('rest_day', payrollData.restDays.toString());
+      if (payrollData.restDays !== null && payrollData.restDays !== undefined) {
+        formData.append('rest_days', payrollData.restDays.toString());
       }
 
       this.employeeManagementService.createEmployeePayroll(formData).subscribe({
@@ -430,16 +432,18 @@ export class EmployeePayrollComponent implements OnInit {
       }
 
       formData.append('pf_applicable', payrollData.isPfApplicable === 'Yes' ? '1' : '0');
+      formData.append('pf_amount', payrollData.isPfApplicable === 'Yes' ? (payrollData.pfAmount || '0').toString() : '0');
       formData.append('pf_number', payrollData.isPfApplicable === 'Yes' ? (payrollData.pfNumber || '') : '');
       formData.append('bank_name', payrollData.bankName || '');
       formData.append('bank_account_number', payrollData.accountNumber || '');
       formData.append('ifsc_code', payrollData.ifscCode || '');
       formData.append('mess_deduction_applicable', payrollData.isMessApplicable === 'Yes' ? '1' : '0');
+      formData.append('mess_deduction_amount', payrollData.isMessApplicable === 'Yes' ? (payrollData.messDeductionAmount || '0').toString() : '0');
       formData.append('other_deduction_appliacble', payrollData.isOthersDeductionApplicable === 'Yes' ? '1' : '0');
-      formData.append('other_deduction', payrollData.isOthersDeductionApplicable === 'Yes' ? (payrollData.othersDeductionAmount || '0') : '0');
+      formData.append('other_deduction', payrollData.isOthersDeductionApplicable === 'Yes' ? (payrollData.othersDeductionAmount || '0').toString() : '0');
       
-      if(payrollData.restDays) {
-        formData.append('rest_day', payrollData.restDays.toString());
+      if (payrollData.restDays !== null && payrollData.restDays !== undefined) {
+        formData.append('rest_days', payrollData.restDays.toString());
       }
 
       formData.append('_method', 'PUT');
