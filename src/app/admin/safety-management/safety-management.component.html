@@ -10,74 +10,10 @@
         <h1 class="text-2xl font-bold text-gray-800">Safety & Incident Management</h1>
       </div>
       <div class="flex gap-3">
-        <button (click)="toggleFilter()"
-          [ngClass]="isFilterOpen ? 'bg-gray-100 border-gray-400 text-gray-900' : 'bg-white border-gray-300 text-gray-700'"
-          class="hover:bg-gray-50 text-sm font-semibold py-2 px-5 rounded flex items-center gap-2 transition-colors border">
-          <i class="fas fa-filter text-xs"></i> Filters
-        </button>
         <button (click)="openModal()"
           class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-sm font-semibold py-2 px-5 rounded flex items-center gap-2 transition-colors">
           <i class="fas fa-plus text-xs"></i> Log New Incident
         </button>
-      </div>
-    </div>
-
-    <!-- Filter Dropdown -->
-    <div *ngIf="isFilterOpen" class="bg-gray-50 border border-gray-200 rounded px-5 py-4 mb-6 shadow-sm transition-all">
-      <div class="flex flex-wrap items-end gap-4">
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">DATE FROM</label>
-          <input type="date"
-            class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-            [(ngModel)]="filterDateFrom">
-        </div>
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">DATE TO</label>
-          <input type="date"
-            class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-            [(ngModel)]="filterDateTo">
-        </div>
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">SHIFT</label>
-          <select
-            class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-            [(ngModel)]="filterShift">
-            <option value="">All Shifts</option>
-            <option value="A (Day)">A (Day)</option>
-            <option value="B (Night)">B (Night)</option>
-            <option value="C (Swing)">C (Swing)</option>
-          </select>
-        </div>
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">LOCATION</label>
-          <select
-            class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-            [(ngModel)]="filterLocation">
-            <option value="">All Locations</option>
-            <option value="Crushing Plant - Conveyor 3">Crushing Plant - Conveyor 3</option>
-            <option value="East Pit - Bench 420">East Pit - Bench 420</option>
-            <option value="Maintenance Workshop">Maintenance Workshop</option>
-          </select>
-        </div>
-        <div class="flex-1 min-w-[150px]">
-          <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">INCIDENT TYPE</label>
-          <select
-            class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-            [(ngModel)]="selectedType">
-            <option value="">All Types</option>
-            <option value="Near Miss">Near Miss</option>
-            <option value="Property Damage">Property Damage</option>
-            <option value="Injury">Injury</option>
-          </select>
-        </div>
-        
-        <!-- Clear Button -->
-        <div class="flex-none w-full sm:w-auto flex justify-end sm:justify-start">
-          <button (click)="clearFilters()" title="Clear Filters"
-            class="w-[38px] h-[38px] flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 hover:text-gray-900 transition-colors">
-            <i class="fas fa-sync-alt"></i>
-          </button>
-        </div>
       </div>
     </div>
 
@@ -101,10 +37,13 @@
         </div>
 
         <div>
-          <div class="text-5xl font-bold mb-1">0</div>
-          <div class="text-sm font-medium text-gray-300 mb-4">Total Incidents This Month</div>
-          <div class="text-xs font-bold text-green-400 flex items-center gap-1">
-            <i class="fas fa-arrow-trend-down"></i> 100% IMPROVEMENT FROM APR
+          <div class="text-5xl font-bold mb-1">{{dashboardStats.total_incidents || 0}}</div>
+          <div class="text-sm font-medium text-gray-300 mb-4">Total Incidents</div>
+          <div class="text-xs font-bold flex items-center gap-1"
+            [ngClass]="dashboardStats.safety_record === 'Green' ? 'text-green-400' : 'text-red-400'">
+            <i class="fas"
+              [ngClass]="dashboardStats.safety_record === 'Green' ? 'fa-check-circle' : 'fa-exclamation-circle'"></i>
+            SAFETY RECORD: {{dashboardStats.safety_record | uppercase}}
           </div>
         </div>
       </div>
@@ -113,7 +52,7 @@
       <div class="bg-white border border-gray-200 rounded p-5 flex flex-col shadow-sm relative">
         <div class="absolute right-5 top-5 text-right">
           <div class="text-xs font-bold text-gray-600 uppercase tracking-widest">Record</div>
-          <div class="text-sm font-bold text-gray-900">310 Days</div>
+          <div class="text-sm font-bold text-gray-900">{{dashboardStats.best_safety_record_days || 0}} Days</div>
         </div>
 
         <div class="w-10 h-10 bg-green-50 border border-green-100 rounded flex items-center justify-center mb-4">
@@ -121,20 +60,19 @@
         </div>
 
         <div class="mb-4">
-          <div class="text-4xl font-bold text-gray-900 mb-1">124 <span
+          <div class="text-4xl font-bold text-gray-900 mb-1">{{dashboardStats.days_since_last_incident || 0}} <span
               class="text-sm text-gray-500 uppercase tracking-widest font-bold">Days</span></div>
-          <div class="text-sm text-gray-600">Since Last Lost Time Injury</div>
+          <div class="text-sm text-gray-600">Since Last Incident</div>
         </div>
 
-        <div class="mt-auto">
+        <!-- <div class="mt-auto">
           <div class="flex justify-between text-[10px] font-bold text-gray-500 uppercase mb-2">
             <span>Current Streak</span>
-            <span>Next Milestone: 200</span>
           </div>
           <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-            <div class="bg-green-500 h-full w-[60%]"></div>
+            <div class="bg-green-500 h-full w-full"></div>
           </div>
-        </div>
+        </div> -->
       </div>
 
       <!-- Card 3: Incident Distribution -->
@@ -149,51 +87,111 @@
           <div
             class="relative w-24 h-24 rounded-full border-[12px] border-[#0f2a4a] border-r-blue-300 border-b-green-400 flex items-center justify-center shrink-0">
             <div class="text-center">
-              <div class="text-xl font-bold text-gray-900 leading-none">12</div>
-              <div class="text-[8px] font-bold text-gray-500 uppercase">Total YTD</div>
+              <div class="text-xl font-bold text-gray-900 leading-none">{{incidentDistributionTotal || 0}}</div>
+              <div class="text-[8px] font-bold text-gray-500 uppercase">Total</div>
             </div>
           </div>
 
           <!-- Legend -->
-          <div class="flex-1 space-y-2 text-xs font-semibold text-gray-700">
-            <div class="flex justify-between items-center">
+          <div class="flex-1 space-y-2 text-xs font-semibold text-gray-700 max-h-24 overflow-y-auto">
+            <div *ngFor="let item of dashboardStats.incident_distribution | keyvalue; let i = index"
+              class="flex justify-between items-center">
               <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-[#0f2a4a]"></div> Near Miss
+                <div class="w-2 h-2 rounded-full"
+                  [ngStyle]="{'background-color': i % 3 === 0 ? '#0f2a4a' : (i % 3 === 1 ? '#93c5fd' : '#4ade80')}">
+                </div> <span>{{item.key}} <span class="text-gray-400">({{$any(item.value).count || 0}})</span></span>
               </div>
-              <span>45%</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-blue-300"></div> Prop. Damage
-              </div>
-              <span>30%</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-green-400"></div> Injury (FAI)
-              </div>
-              <span>25%</span>
+              <span *ngIf="item.value">{{$any(item.value).percentage || 0}}%</span>
             </div>
           </div>
         </div>
 
-        <div class="text-[11px] font-bold text-red-600 mt-auto flex items-center gap-2">
-          <i class="fas fa-exclamation text-red-600"></i> 2 CRITICAL ACTIONS OPEN
+        <div class="text-[11px] font-bold mt-auto flex items-center gap-2"
+          [ngClass]="dashboardStats.critical_actions_open > 0 ? 'text-red-600' : 'text-green-600'">
+          <i class="fas" [ngClass]="dashboardStats.critical_actions_open > 0 ? 'fa-exclamation' : 'fa-check'"></i>
+          {{dashboardStats.critical_actions_open || 0}} CRITICAL ACTIONS OPEN
         </div>
       </div>
 
     </div>
 
     <!-- Table Section -->
-    <div class="bg-white border border-gray-200 rounded shadow-sm flex flex-col">
+    <div class="bg-white border border-gray-200 rounded shadow-sm flex flex-col mb-6">
       <!-- Header -->
-      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-bold text-[#0f2a4a]">Incident Register</h2>
-        <div class="flex gap-4 text-gray-500">
-          <button routerLink="/admin/safety-management/report"
-            class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-bold uppercase tracking-widest py-1.5 px-4 rounded flex items-center gap-2 transition-colors">
-            <i class="fas fa-file-alt"></i> Report
+      <div class="flex flex-wrap justify-between items-center px-6 py-4 border-b border-gray-200 gap-4">
+        <div class="flex items-center gap-4">
+          <h2 class="text-lg font-bold text-[#0f2a4a]">Incident Register</h2>
+          <div class="flex items-center gap-2 text-sm text-gray-600 border-l border-gray-300 pl-4 hidden sm:flex">
+            Show
+            <select [(ngModel)]="limit" (change)="onLimitChange()"
+              class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-[#468faf]">
+              <option [value]="10">10</option>
+              <option [value]="25">25</option>
+              <option [value]="50">50</option>
+              <option [value]="100">100</option>
+            </select>
+            entries
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button (click)="toggleFilter()"
+            [ngClass]="isFilterOpen ? 'bg-[#0f2a4a] text-white border-[#0f2a4a]' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'"
+            class="text-sm font-semibold py-1.5 px-4 rounded flex items-center gap-2 transition-colors border">
+            <i class="fas fa-filter text-xs"></i> Filters
           </button>
+        </div>
+      </div>
+
+      <!-- Filter Dropdown (Moved here) -->
+      <div *ngIf="isFilterOpen" class="bg-gray-50 border-b border-gray-200 px-6 py-4 transition-all">
+        <div class="flex flex-wrap items-end gap-4">
+          <div class="flex-1 min-w-[150px]">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">DATE FROM</label>
+            <input type="date"
+              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
+              [(ngModel)]="filterDateFrom" (change)="loadIncidents()">
+          </div>
+          <div class="flex-1 min-w-[150px]">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">DATE TO</label>
+            <input type="date"
+              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
+              [(ngModel)]="filterDateTo" (change)="loadIncidents()">
+          </div>
+          <div class="flex-1 min-w-[150px]">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">SHIFT</label>
+            <select
+              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
+              [(ngModel)]="filterShift" (change)="loadIncidents()">
+              <option value="">All Shifts</option>
+              <option *ngFor="let s of mockShifts" [value]="s.id">{{s.shift_name}}</option>
+            </select>
+          </div>
+          <div class="flex-1 min-w-[150px]">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">LOCATION</label>
+            <select
+              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
+              [(ngModel)]="filterLocation" (change)="loadIncidents()">
+              <option value="">All Locations</option>
+              <option *ngFor="let l of mockLocations" [value]="l.id">{{l.name}}</option>
+            </select>
+          </div>
+          <div class="flex-1 min-w-[150px]">
+            <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">INCIDENT TYPE</label>
+            <select
+              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
+              [(ngModel)]="selectedType" (change)="loadIncidents()">
+              <option value="">All Types</option>
+              <option *ngFor="let t of mockIncidentTypes" [value]="t.id">{{t.incident_type}}</option>
+            </select>
+          </div>
+
+          <!-- Clear Button -->
+          <div class="flex-none w-full sm:w-auto flex justify-end sm:justify-start">
+            <button (click)="clearFilters()" title="Clear Filters"
+              class="w-[38px] h-[38px] flex items-center justify-center bg-gray-200 text-gray-600 rounded hover:bg-gray-300 hover:text-gray-900 transition-colors">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -202,6 +200,7 @@
         <table class="w-full text-left text-sm text-gray-700 whitespace-nowrap">
           <thead class="text-[10px] text-gray-500 font-bold uppercase bg-gray-50 border-b border-gray-200">
             <tr>
+              <th class="px-6 py-4">Sr. No.</th>
               <th class="px-6 py-4">Date</th>
               <th class="px-6 py-4">Shift</th>
               <th class="px-6 py-4">Incident Type</th>
@@ -212,11 +211,14 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
-            <tr *ngFor="let inc of filteredIncidents | paginate: { itemsPerPage: 10, currentPage: p }"
+            <tr
+              *ngFor="let inc of incidents | paginate: { itemsPerPage: pagination.per_page, currentPage: pagination.current_page, totalItems: pagination.total }; let i = index"
               class="hover:bg-gray-50">
-              <td class="px-6 py-4 font-medium text-gray-900">{{inc.date}}</td>
-              <td class="px-6 py-4 text-gray-600">{{inc.shift}}</td>
-              <td class="px-6 py-4 text-gray-600">{{inc.type}}</td>
+              <td class="px-6 py-4 font-medium text-gray-900">{{ (pagination.current_page - 1) * pagination.per_page + i
+                + 1 }}</td>
+              <td class="px-6 py-4 font-medium text-gray-900">{{inc.incident_date}}</td>
+              <td class="px-6 py-4 text-gray-600">{{inc.shift_name}}</td>
+              <td class="px-6 py-4 text-gray-600">{{inc.incident_type}}</td>
               <td class="px-6 py-4 text-center">
                 <span class="px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded" [ngClass]="{
                     'bg-green-100 text-green-700': inc.severity === 'LOW',
@@ -227,7 +229,7 @@
                   {{inc.severity}}
                 </span>
               </td>
-              <td class="px-6 py-4 text-gray-600">{{inc.location}}</td>
+              <td class="px-6 py-4 text-gray-600">{{inc.location_name}}</td>
               <td class="px-6 py-4">
                 <div class="flex items-center gap-2 text-xs font-bold text-gray-700">
                   <div class="w-2 h-2 rounded-full" [ngClass]="{
@@ -243,15 +245,28 @@
                   Details</button>
               </td>
             </tr>
+            <tr *ngIf="incidents.length === 0">
+              <td colspan="8" class="px-6 py-8 text-center text-gray-500 font-medium">
+                No incidents found matching your criteria.
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
       <!-- Pagination Controls -->
-      <div class="p-4 border-t border-gray-200 flex justify-end bg-gray-50 rounded-b">
-        <pagination-controls (pageChange)="p = $event" class="my-pagination"></pagination-controls>
+      <div class="p-4 border-t border-gray-200 flex justify-between items-center bg-gray-50 rounded-b">
+        <div class="text-xs text-gray-500">
+          Showing {{ pagination.from || 0 }} to {{ pagination.to || 0 }} of {{ pagination.total || 0 }} entries
+        </div>
+        <pagination-controls (pageChange)="onPageChange($event)" class="my-pagination"></pagination-controls>
       </div>
     </div>
 
+  </div>
+
+  <!-- Drawer Backdrop Overlay -->
+  <div *ngIf="isDetailsPanelOpen" (click)="closeDetailsPanel()"
+    class="fixed inset-0 bg-black/20 z-30 transition-opacity print:hidden">
   </div>
 
   <!-- Right Details Drawer Panel -->
@@ -264,12 +279,13 @@
       <!-- Drawer Header -->
       <div class="flex justify-between items-start mb-6">
         <div>
-          <div class="text-[10px] font-bold text-red-600 mb-1">{{selectedIncident.id}}</div>
-          <h2 class="text-lg font-bold text-gray-900 leading-tight">{{selectedIncident.type}} -
-            {{selectedIncident.location}}</h2>
+          <div class="text-[10px] font-bold text-red-600 mb-1">{{selectedIncident.incident_no}}</div>
+          <h2 class="text-lg font-bold text-gray-900 leading-tight">{{selectedIncident.incident_type}} -
+            {{selectedIncident.location_name}}</h2>
         </div>
         <div class="flex items-center gap-3 print:hidden">
-          <button (click)="toggleEditMode()" class="text-xs font-bold px-3 py-1.5 rounded transition-colors border"
+          <button *ngIf="selectedIncident.status !== 'Investigation Closed'" (click)="toggleEditMode()"
+            class="text-xs font-bold px-3 py-1.5 rounded transition-colors border"
             [ngClass]="isEditMode ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'">
             <i class="fas fa-edit"></i> {{ isEditMode ? 'Editing' : 'Edit' }}
           </button>
@@ -283,19 +299,18 @@
       <div class="grid grid-cols-2 gap-4 mb-6">
         <div class="bg-gray-50 rounded p-3 border border-gray-100">
           <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Occurrence Date</div>
-          <div *ngIf="!isEditMode" class="text-sm font-semibold text-gray-800">{{selectedIncident.date}}</div>
+          <div *ngIf="!isEditMode" class="text-sm font-semibold text-gray-800">{{selectedIncident.incident_date}}</div>
           <input *ngIf="isEditMode" type="date"
             class="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-700 outline-none focus:border-blue-500"
-            [value]="selectedIncident.date">
+            [(ngModel)]="selectedIncident.incident_date">
         </div>
         <div class="bg-gray-50 rounded p-3 border border-gray-100">
           <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Shift</div>
-          <div *ngIf="!isEditMode" class="text-sm font-semibold text-gray-800">{{selectedIncident.shift}}</div>
+          <div *ngIf="!isEditMode" class="text-sm font-semibold text-gray-800">{{selectedIncident.shift_name}}</div>
           <select *ngIf="isEditMode"
-            class="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-700 outline-none focus:border-blue-500">
-            <option [selected]="selectedIncident.shift === 'A (Day)'">A (Day)</option>
-            <option [selected]="selectedIncident.shift === 'B (Night)'">B (Night)</option>
-            <option [selected]="selectedIncident.shift === 'C (Swing)'">C (Swing)</option>
+            class="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-700 outline-none focus:border-blue-500"
+            [(ngModel)]="selectedIncident.shift_id">
+            <option *ngFor="let s of mockShifts" [value]="s.id">{{s.shift_name}}</option>
           </select>
         </div>
       </div>
@@ -311,23 +326,17 @@
             'text-red-600': selectedIncident.severity === 'CRITICAL'
           }">{{selectedIncident.severity}}</div>
           <select *ngIf="isEditMode"
-            class="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-700 outline-none focus:border-blue-500">
-            <option [selected]="selectedIncident.severity === 'LOW'">LOW</option>
-            <option [selected]="selectedIncident.severity === 'MEDIUM'">MEDIUM</option>
-            <option [selected]="selectedIncident.severity === 'HIGH'">HIGH</option>
-            <option [selected]="selectedIncident.severity === 'CRITICAL'">CRITICAL</option>
+            class="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-700 outline-none focus:border-blue-500"
+            [(ngModel)]="selectedIncident.severity">
+            <option value="LOW">LOW</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="HIGH">HIGH</option>
+            <option value="CRITICAL">CRITICAL</option>
           </select>
         </div>
         <div class="bg-gray-50 rounded p-3 border border-gray-100">
           <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Current Status</div>
-          <div *ngIf="!isEditMode" class="text-sm font-semibold text-gray-800">{{selectedIncident.status}}</div>
-          <select *ngIf="isEditMode"
-            class="w-full border border-gray-300 rounded px-2 py-1 text-sm text-gray-700 outline-none focus:border-blue-500">
-            <option [selected]="selectedIncident.status === 'Reported'">Reported</option>
-            <option [selected]="selectedIncident.status === 'Under Review'">Under Review</option>
-            <option [selected]="selectedIncident.status === 'Action Required'">Action Required</option>
-            <option [selected]="selectedIncident.status === 'Investigation Closed'">Investigation Closed</option>
-          </select>
+          <div class="text-sm font-semibold text-gray-800">{{selectedIncident.status}}</div>
         </div>
       </div>
 
@@ -335,29 +344,30 @@
       <div class="mb-6">
         <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Incident Description</h3>
         <p *ngIf="!isEditMode" class="text-sm text-gray-700 leading-relaxed border-b border-gray-100 pb-4">
-          Worker was performing routine maintenance on the hydraulic pump of Haul Truck #42. While loosening a pressure
-          line, a small residual pressure spray caused the worker's hand to slip, resulting in a minor abrasion against
-          the metal housing. First aid was administered on-site. No loss of time occurred.
+          {{selectedIncident.incident_description || 'No description provided.'}}
         </p>
         <textarea *ngIf="isEditMode" rows="4"
-          class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none">Worker was performing routine maintenance on the hydraulic pump of Haul Truck #42. While loosening a pressure line, a small residual pressure spray caused the worker's hand to slip, resulting in a minor abrasion against the metal housing. First aid was administered on-site. No loss of time occurred.</textarea>
+          class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"
+          [(ngModel)]="selectedIncident.incident_description"></textarea>
       </div>
 
       <!-- Action Taken & Preventive Measures -->
       <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Action Taken</h3>
-          <p *ngIf="!isEditMode" class="text-sm text-gray-700 leading-relaxed">Administered first aid on-site. Worker
-            returned to duty after 30 minutes.</p>
+          <p *ngIf="!isEditMode" class="text-sm text-gray-700 leading-relaxed">{{selectedIncident.action_taken || 'No
+            action taken recorded.'}}</p>
           <textarea *ngIf="isEditMode" rows="3"
-            class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none">Administered first aid on-site. Worker returned to duty after 30 minutes.</textarea>
+            class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"
+            [(ngModel)]="selectedIncident.action_taken"></textarea>
         </div>
         <div>
           <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Preventive Measures</h3>
-          <p *ngIf="!isEditMode" class="text-sm text-gray-700 leading-relaxed">Update depressurization procedure
-            checklist for this specific hydraulic model.</p>
+          <p *ngIf="!isEditMode" class="text-sm text-gray-700 leading-relaxed">{{selectedIncident.preventive_measures ||
+            'No preventive measures recorded.'}}</p>
           <textarea *ngIf="isEditMode" rows="3"
-            class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none">Update depressurization procedure checklist for this specific hydraulic model.</textarea>
+            class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"
+            [(ngModel)]="selectedIncident.preventive_measures"></textarea>
         </div>
       </div>
 
@@ -366,76 +376,82 @@
         <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Persons Involved</h3>
         <div *ngIf="!isEditMode" class="flex items-center justify-between p-3 border border-gray-200 rounded">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-100 text-blue-800 font-bold text-sm rounded flex items-center justify-center">
-              MJ</div>
+            <div
+              class="w-10 h-10 bg-blue-100 text-blue-800 font-bold text-sm rounded flex items-center justify-center uppercase">
+              {{(selectedIncident.person_involved_name | slice:0:2) || 'NA'}}</div>
             <div>
-              <div class="text-sm font-bold text-gray-900">Marcus Johnson</div>
-              <div class="text-xs text-gray-500">Maintenance Technician</div>
+              <div class="text-sm font-bold text-gray-900">{{selectedIncident.person_involved_name || 'N/A'}}</div>
+              <div class="text-xs text-gray-500">Employee Code: {{selectedIncident.person_involved_employee_code ||
+                'N/A'}}</div>
             </div>
           </div>
-          <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Injured Party</div>
+          <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Involved</div>
         </div>
-        <ng-select *ngIf="isEditMode" [items]="mockEmployees" bindLabel="name" bindValue="id" [multiple]="true"
-          placeholder="Select employees involved" class="custom-ng-select mt-2" [ngModel]="[4]">
+        <ng-select *ngIf="isEditMode" [items]="mockEmployees" bindLabel="name" bindValue="id"
+          placeholder="Select employee involved" class="custom-ng-select mt-2"
+          [(ngModel)]="selectedIncident.person_involved_id">
+          <ng-template ng-option-tmp let-item="item">
+            <div class="flex flex-col py-1">
+              <span class="font-bold text-gray-800 text-[13px]">{{ item.name }}</span>
+              <span class="text-[11px] text-gray-500 font-medium">{{ item.employee_code }} • {{ item.designation
+                }}</span>
+            </div>
+          </ng-template>
         </ng-select>
       </div>
 
-      <!-- Investigation Notes -->
-      <div class="mb-6" *ngIf="!isEditMode">
-        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Investigation Notes</h3>
-        <div class="bg-gray-50 border border-gray-200 rounded p-4 relative">
-          <div class="flex items-start gap-3 text-sm text-gray-700 italic mb-3">
-            <i class="fas fa-info-circle text-gray-400 mt-0.5"></i>
-            <p>"Root cause identified as inadequate depressurization procedure for the specific hydraulic model variant.
-              Lock-out/Tag-out was applied, but residual pressure check was bypassed."</p>
-          </div>
-
-          <!-- Dynamic Notes -->
-          <div *ngFor="let note of selectedIncident.notes"
-            class="flex items-start gap-3 text-sm text-gray-700 italic border-t border-gray-200 pt-3 mt-3">
-            <i class="fas fa-sticky-note text-blue-400 mt-0.5"></i>
-            <p>{{ note }}</p>
-          </div>
-
-          <button (click)="addNote()"
-            class="text-[10px] font-bold text-[#0f2a4a] uppercase tracking-widest mt-4 flex items-center gap-1 ml-auto hover:underline print:hidden">
-            <i class="fas fa-plus"></i> Add Investigation Note
-          </button>
-        </div>
-      </div>
 
       <!-- Attachments -->
       <div class="mb-8">
         <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Attachments</h3>
         <div class="grid grid-cols-2 gap-3">
-          <div class="h-24 bg-gray-200 rounded overflow-hidden relative group print:break-inside-avoid">
-            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=300&h=200&fit=crop"
-              class="w-full h-full object-cover">
+          <ng-container *ngIf="selectedIncident.media && selectedIncident.media.length > 0">
+            <div *ngFor="let media of selectedIncident.media"
+              class="h-24 bg-gray-200 rounded overflow-hidden relative group print:break-inside-avoid">
+              <img [src]="media.file" class="w-full h-full object-cover">
+            </div>
+          </ng-container>
+          <div *ngIf="!selectedIncident.media || selectedIncident.media.length === 0"
+            class="col-span-2 text-sm text-gray-500 italic">
+            No attachments available.
           </div>
+          <!-- New Uploaded File Previews -->
+          <ng-container *ngIf="isEditMode">
+            <div *ngFor="let item of editIncidentFiles; let i = index"
+              class="relative h-24 bg-gray-200 rounded overflow-hidden print:hidden">
+              <img *ngIf="item.preview && item.file.type.startsWith('image')" [src]="item.preview"
+                class="w-full h-full object-cover">
+              <div *ngIf="item.preview && !item.file.type.startsWith('image')"
+                class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                <i class="fas fa-file-alt text-3xl"></i>
+              </div>
+              <button (click)="removeEditFile(i)"
+                class="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-10">
+                <i class="fas fa-times text-xs"></i>
+              </button>
+            </div>
+          </ng-container>
+
           <div *ngIf="isEditMode" (click)="fileInput.click()"
             class="h-24 border-2 border-dashed border-gray-300 rounded flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-50 transition-colors print:hidden">
             <i class="fas fa-upload mb-1 text-lg"></i>
             <span class="text-[10px] font-bold uppercase tracking-widest">Upload Files</span>
           </div>
-          <input type="file" #fileInput style="display: none;" (change)="onFileSelected($event)" multiple>
+          <input type="file" #fileInput style="display: none;" (change)="onEditFileSelected($event)" multiple>
         </div>
       </div>
 
       <!-- Meta Data Info -->
-      <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600">
-        <div class="flex justify-between mb-2">
-          <span class="font-bold">Created By:</span>
-          <span>{{selectedIncident.reporter}}</span>
-        </div>
+      <!-- <div class="mb-6 p-4 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600">
         <div class="flex justify-between mb-2">
           <span class="font-bold">Created Date:</span>
-          <span>{{selectedIncident.date}}</span>
+          <span>{{selectedIncident.created_at | date:'medium'}}</span>
         </div>
         <div class="flex justify-between">
           <span class="font-bold">Last Updated:</span>
-          <span>Today</span>
+          <span>{{selectedIncident.updated_at | date:'medium'}}</span>
         </div>
-      </div>
+      </div> -->
 
       <!-- Drawer Footer -->
       <div class="flex gap-3 pt-4 border-t border-gray-200 bg-white print:hidden">
@@ -448,7 +464,7 @@
         <button *ngIf="isEditMode" (click)="toggleEditMode()"
           class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold text-sm py-2.5 rounded transition-colors hover:bg-gray-50">Cancel
           Edit</button>
-        <button *ngIf="isEditMode" (click)="toggleEditMode()"
+        <button *ngIf="isEditMode" (click)="updateIncident()"
           class="flex-1 bg-[#0f2a4a] text-white font-bold text-sm py-2.5 rounded transition-colors hover:bg-[#0c223c]">Save
           Changes</button>
       </div>
@@ -489,42 +505,69 @@
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident
                 Date</label>
-              <input type="date"
+              <input type="date" [(ngModel)]="newIncidentForm.incident_date"
                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500">
             </div>
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Shift</label>
-              <ng-select [items]="mockShifts" bindLabel="name" bindValue="id"
-                placeholder="Select Shift" class="custom-ng-select">
+              <ng-select [items]="mockShifts" bindLabel="shift_name" bindValue="id" placeholder="Select Shift"
+                class="custom-ng-select" [(ngModel)]="newIncidentForm.shift_id">
               </ng-select>
             </div>
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident
                 Type</label>
-              <ng-select [items]="mockIncidentTypes" bindLabel="name" bindValue="id"
-                placeholder="Select Category" class="custom-ng-select">
+              <ng-select [items]="mockIncidentTypes" bindLabel="incident_type" bindValue="id"
+                placeholder="Select Category" class="custom-ng-select" [(ngModel)]="newIncidentForm.incident_type_id">
               </ng-select>
             </div>
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Severity
                 Level</label>
-              <ng-select [items]="mockSeverities" bindLabel="name" bindValue="id"
-                placeholder="Select Severity" class="custom-ng-select">
+              <ng-select [items]="mockSeverities" bindLabel="name" bindValue="id" placeholder="Select Severity"
+                class="custom-ng-select" [(ngModel)]="newIncidentForm.severity">
               </ng-select>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Location</label>
-              <ng-select [items]="mockLocations" bindLabel="name" bindValue="name"
-                placeholder="Search and select location..." class="custom-ng-select">
+              <ng-select [items]="mockLocations" bindLabel="name" bindValue="id"
+                placeholder="Search and select location..." class="custom-ng-select"
+                [(ngModel)]="newIncidentForm.location_id">
               </ng-select>
             </div>
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Person(s)
                 Involved</label>
-              <ng-select [items]="mockEmployees" bindLabel="name" bindValue="id" [multiple]="true"
-                placeholder="Search and select employees..." class="custom-ng-select">
+              <ng-select [items]="mockEmployees" bindLabel="name" bindValue="id"
+                placeholder="Search and select employee..." class="custom-ng-select"
+                [(ngModel)]="newIncidentForm.person_involved_id">
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="flex flex-col py-1">
+                    <span class="font-bold text-gray-800 text-[13px]">{{ item.name }}</span>
+                    <span class="text-[11px] text-gray-500 font-medium">{{ item.employee_code }} • {{ item.designation
+                      }}</span>
+                  </div>
+                </ng-template>
+              </ng-select>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Machine
+                Category</label>
+              <ng-select [items]="machineCategories" bindLabel="name" bindValue="id"
+                [(ngModel)]="newIncidentForm.equipment_id" (change)="onMachineCategoryChange($event ? $event.id : null)"
+                placeholder="Select category..." class="custom-ng-select">
+              </ng-select>
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Machine
+                Name</label>
+              <ng-select [items]="machineNames" bindLabel="name" bindValue="id"
+                [(ngModel)]="newIncidentForm.equipment_name_id" placeholder="Select machine name..."
+                class="custom-ng-select" [disabled]="!newIncidentForm.equipment_id">
               </ng-select>
             </div>
           </div>
@@ -538,7 +581,7 @@
           <div>
             <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident
               Description</label>
-            <textarea rows="4"
+            <textarea rows="4" [(ngModel)]="newIncidentForm.incident_description"
               placeholder="Detail the sequence of events, environmental conditions, and immediate findings..."
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"></textarea>
           </div>
@@ -551,12 +594,14 @@
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Action
                 Taken</label>
               <textarea rows="3" placeholder="Immediate corrective actions taken at the scene..."
+                [(ngModel)]="newIncidentForm.action_taken"
                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"></textarea>
             </div>
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Preventive
                 Measures</label>
               <textarea rows="3" placeholder="Recommended long-term steps to prevent recurrence..."
+                [(ngModel)]="newIncidentForm.preventive_measures"
                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"></textarea>
             </div>
           </div>
@@ -567,10 +612,42 @@
           <div class="border-b border-gray-200 pb-2 mb-4">
             <h3 class="text-[10px] font-bold text-gray-800 tracking-widest">Supporting Media</h3>
           </div>
-          <div
-            class="w-full h-32 border-2 border-dashed border-gray-300 rounded bg-gray-50 flex flex-col items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors">
-            <i class="fas fa-cloud-upload-alt text-2xl mb-2"></i>
-            <span class="text-sm font-medium">Drag and drop images or incident reports...</span>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            <!-- Selected Files Previews -->
+            <div *ngFor="let item of newIncidentFiles; let i = index"
+              class="relative h-24 border border-gray-200 rounded overflow-hidden">
+              <!-- Image Preview -->
+              <img *ngIf="item.preview && item.file.type.startsWith('image')" [src]="item.preview"
+                class="w-full h-full object-cover">
+              <!-- Document Icon -->
+              <div *ngIf="item.preview && !item.file.type.startsWith('image')"
+                class="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                <i class="fas fa-file-alt text-3xl"></i>
+              </div>
+
+              <!-- Always Visible Remove Button -->
+              <button (click)="removeNewIncidentFile(i)"
+                class="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors z-10"
+                title="Remove File">
+                <i class="fas fa-times text-xs"></i>
+              </button>
+
+              <!-- Bottom Label -->
+              <div class="absolute bottom-0 inset-x-0 bg-black/60 p-1">
+                <p class="text-white text-[9px] truncate text-center" [title]="item.file.name">{{item.file.name}}</p>
+              </div>
+            </div>
+
+            <!-- Upload Button -->
+            <div (click)="incidentFileInput.click()"
+              class="h-24 border-2 border-dashed border-gray-300 rounded bg-gray-50 flex flex-col items-center justify-center text-gray-500 cursor-pointer hover:bg-gray-100 transition-colors">
+              <i class="fas fa-cloud-upload-alt text-xl mb-1"></i>
+              <span class="text-[10px] font-bold uppercase tracking-widest text-center px-2">Upload Files</span>
+            </div>
+
+            <!-- Hidden File Input -->
+            <input type="file" #incidentFileInput style="display: none;" (change)="onNewIncidentFileSelected($event)"
+              multiple>
           </div>
         </section>
 
@@ -586,7 +663,7 @@
         <div class="flex items-center gap-4">
           <button (click)="closeModal()"
             class="text-xs font-bold text-gray-500 hover:text-gray-800 transition-colors tracking-widest uppercase">Cancel</button>
-          <button
+          <button (click)="saveIncident()"
             class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold px-6 py-2.5 rounded flex items-center gap-2 transition-colors uppercase tracking-widest shadow">
             <i class="fas fa-save"></i> Save Incident
           </button>

@@ -28,7 +28,7 @@ export class SidenavComponent {
   constructor(
     private jwtService: JwtService,
     private router: Router,
-  ) {}
+  ) { }
   ProfilePicSizeClass(): string {
     return this.collapsed ? 'profile-pic-small' : 'profile-pic-large';
   }
@@ -127,12 +127,12 @@ export class SidenavComponent {
               label: 'Incident Type',
               route: '/admin/master/incident-type',
             },
-            {
-              index: 10,
-              icon: 'error_outline',
-              label: 'Severity Level',
-              route: '/admin/master/severity-level',
-            },
+            // {
+            //   index: 10,
+            //   icon: 'error_outline',
+            //   label: 'Severity Level',
+            //   route: '/admin/master/severity-level',
+            // },
           ],
         },
         {

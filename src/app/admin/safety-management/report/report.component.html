@@ -32,9 +32,7 @@
                 <select [(ngModel)]="selectedShift"
                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
                     <option value="">All Shifts</option>
-                    <option value="A (Day)">A (Day)</option>
-                    <option value="B (Night)">B (Night)</option>
-                    <option value="C (Swing)">C (Swing)</option>
+                    <option *ngFor="let s of mockShifts" [value]="s.id">{{s.name || s.shift_name}}</option>
                 </select>
             </div>
             <div>
@@ -42,9 +40,7 @@
                 <select [(ngModel)]="selectedLocation"
                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
                     <option value="">All Locations</option>
-                    <option value="Crushing Plant">Crushing Plant</option>
-                    <option value="East Pit">East Pit</option>
-                    <option value="Maintenance Workshop">Maintenance Workshop</option>
+                    <option *ngFor="let loc of mockLocations" [value]="loc.id">{{loc.name || loc.location_name}}</option>
                 </select>
             </div>
             <div>
@@ -52,14 +48,16 @@
                 <select [(ngModel)]="selectedType"
                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
                     <option value="">All Types</option>
-                    <option value="Near Miss">Near Miss</option>
-                    <option value="Property Damage">Property Damage</option>
-                    <option value="Injury">Injury</option>
+                    <option *ngFor="let t of mockIncidentTypes" [value]="t.id">{{t.name || t.incident_type}}</option>
                 </select>
             </div>
         </div>
 
-        <div class="flex justify-end">
+        <div class="flex justify-end gap-3">
+            <button (click)="resetFilters()"
+                class="bg-gray-100 border border-gray-300 text-gray-700 hover:bg-gray-200 text-sm font-semibold py-2 px-6 rounded flex items-center gap-2 transition-colors">
+                <i class="fas fa-undo text-xs"></i> Reset
+            </button>
             <button (click)="generateReport()"
                 class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-sm font-semibold py-2 px-6 rounded flex items-center gap-2 transition-colors">
                 <i class="fas fa-file-alt text-xs"></i> Generate Report

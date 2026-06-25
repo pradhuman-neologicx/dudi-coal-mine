@@ -14,7 +14,7 @@ export class ApiService {
     private jwtService: JwtService,
     private router: Router,
     private notificationService: NotificationService
-  ) {}
+  ) { }
 
   private formatErrors = (error: any) => {
     let errorMessage = '';
@@ -162,7 +162,7 @@ export class ApiService {
       }
     }
 
-    if (error.status === 422) {
+    if (error.status === 422 || error.status === 409) {
       let errorMessage = '';
       const errorsObj = error.error?.errors || error.errors;
       if (errorsObj && typeof errorsObj === 'object') {
@@ -179,6 +179,8 @@ export class ApiService {
         errorMessage = error.error?.message || error.message || 'Validation failed';
       }
       console.error('Validation Error:', errorMessage);
+
+      this.notificationService.show(errorMessage, 'error', 3000);
 
       const customError = new Error(errorMessage) as any;
       customError.originalError = error.error || error;

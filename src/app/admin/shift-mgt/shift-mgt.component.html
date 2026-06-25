@@ -1,15 +1,26 @@
 <div class="bg-[#f4f6f8] min-h-screen p-4 md:p-6 text-[#468faf] font-sans">
 
-  <!-- Header Section -->
+  <!-- Top Header -->
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
+    <div>
+      <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Shift Operations Dashboard</h3>
+      <h1 class="text-2xl font-bold text-gray-800">Shift Management</h1>
+    </div>
+  </div>
+
+  <!-- Filter Section -->
   <div
     class="bg-white border border-gray-200 rounded shadow-sm p-4 mb-6 flex flex-wrap justify-between items-center gap-4">
     <div class="flex flex-wrap items-center gap-4">
       <!-- Date Picker Mock -->
       <div
-        class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-4 py-2 text-sm text-gray-700 cursor-pointer w-64">
+        class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-4 py-2 text-sm text-gray-700 w-auto">
         <i class="far fa-calendar-alt"></i>
-        <span class="flex-1 font-medium">Oct 01, 2023 - Oct 31, 2023</span>
-        <i class="fas fa-caret-down"></i>
+        <input type="date" [(ngModel)]="filterStartDate" (change)="onFilterChange()"
+          class="bg-transparent outline-none font-medium cursor-pointer">
+        <span class="text-gray-400 font-bold">-</span>
+        <input type="date" [(ngModel)]="filterEndDate" (change)="onFilterChange()"
+          class="bg-transparent outline-none font-medium cursor-pointer">
       </div>
 
       <div class="hidden sm:block h-8 w-px bg-gray-300 mx-2"></div>
@@ -17,22 +28,25 @@
       <!-- Toggle Group -->
       <div
         class="flex border border-gray-300 rounded overflow-hidden text-xs font-bold uppercase tracking-widest bg-gray-50 p-1 gap-1">
-        <button class="bg-[#468faf] text-white px-4 py-1.5 rounded">Monthly</button>
-        <button class="text-gray-500 hover:text-gray-800 px-4 py-1.5 rounded">Quarterly</button>
-        <button class="text-gray-500 hover:text-gray-800 px-4 py-1.5 rounded">Annual</button>
+        <button
+          [class]="selectedPeriod === 'monthly' ? 'bg-[#468faf] text-white px-4 py-1.5 rounded' : 'text-gray-500 hover:text-gray-800 px-4 py-1.5 rounded'"
+          (click)="setPeriod('monthly')">Monthly</button>
+        <button
+          [class]="selectedPeriod === 'quarterly' ? 'bg-[#468faf] text-white px-4 py-1.5 rounded' : 'text-gray-500 hover:text-gray-800 px-4 py-1.5 rounded'"
+          (click)="setPeriod('quarterly')">Quarterly</button>
+        <button
+          [class]="selectedPeriod === 'annual' ? 'bg-[#468faf] text-white px-4 py-1.5 rounded' : 'text-gray-500 hover:text-gray-800 px-4 py-1.5 rounded'"
+          (click)="setPeriod('annual')">Annual</button>
       </div>
     </div>
 
     <!-- Quick Actions -->
     <div class="flex items-center gap-3">
-      <span class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Quick Actions:</span>
-      <button
-        class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 transition-colors">
-        <i class="fas fa-download"></i>
-      </button>
-      <button
-        class="w-10 h-10 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 transition-colors">
-        <i class="fas fa-print"></i>
+      <button (click)="resetFilters()"
+        class="flex items-center gap-2 border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 rounded px-4 py-2 text-sm font-bold transition-colors"
+        title="Reset All Filters">
+        <i class="fas fa-undo"></i>
+        <span>Reset</span>
       </button>
     </div>
   </div>
@@ -46,7 +60,7 @@
       </div>
       <div>
         <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Scheduled Shifts</div>
-        <div class="text-2xl font-bold">12</div>
+        <div class="text-2xl font-bold">{{ summary.total_scheduled_shifts }}</div>
       </div>
     </div>
     <!-- Card 2 -->
@@ -56,7 +70,7 @@
       </div>
       <div>
         <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Active Personnel</div>
-        <div class="text-2xl font-bold">128</div>
+        <div class="text-2xl font-bold">{{ summary.active_personnel }}</div>
       </div>
     </div>
     <!-- Card 3 -->
@@ -66,7 +80,7 @@
       </div>
       <div>
         <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Target BCM</div>
-        <div class="text-2xl font-bold">45,000</div>
+        <div class="text-2xl font-bold">{{ summary.target_bcm | number }}</div>
       </div>
     </div>
     <!-- Card 4 -->
@@ -76,45 +90,93 @@
       </div>
       <div>
         <div class="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">Current Efficiency</div>
-        <div class="text-2xl font-bold">94%</div>
+        <div class="text-2xl font-bold">{{ summary.current_efficiency }}%</div>
       </div>
     </div>
   </div>
 
   <!-- Shift Overview Table -->
   <div class="bg-white border border-gray-200 rounded shadow-sm">
-    <div class="px-6 py-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
-      <div class="flex items-center gap-4 flex-wrap">
+    <div class="border-b border-gray-200">
+      <!-- First Row: Title and Filters -->
+      <div class="px-6 py-4 flex flex-wrap items-center gap-4">
         <h2 class="text-lg font-bold text-[#468faf] mr-2">Shift Overview</h2>
-        
+
         <!-- Status Filter -->
-        <div class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 cursor-pointer min-w-[140px]">
+        <div
+          class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 cursor-pointer min-w-[140px]">
           <i class="fas fa-filter text-gray-400"></i>
           <select class="flex-1 font-medium bg-transparent outline-none cursor-pointer appearance-none">
-             <option>All Status</option>
-             <option selected>Active Shifts</option>
-             <option>Planned</option>
-             <option>Completed</option>
+            <option selected>All Status</option>
+            <option>Planned</option>
+            <option>Completed</option>
           </select>
           <i class="fas fa-caret-down text-gray-400"></i>
         </div>
 
+        <!-- Shift Filter -->
+        <div
+          class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 min-w-[220px]">
+          <i class="fas fa-clock text-gray-400"></i>
+          <ng-select [items]="filterShifts" bindLabel="name" bindValue="id" [(ngModel)]="selectedShiftFilter"
+            (change)="onFilterChange()" placeholder="All Shifts" class="flex-1 font-medium w-full custom-filter-select"
+            [clearable]="true"></ng-select>
+        </div>
+
         <!-- Location Filter -->
-        <div class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 min-w-[220px]">
+        <div
+          class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 min-w-[220px]">
           <i class="fas fa-map-marker-alt text-gray-400"></i>
-          <ng-select [items]="filterLocations" [(ngModel)]="selectedLocation" placeholder="All Locations" class="flex-1 font-medium w-full custom-filter-select" [clearable]="true"></ng-select>
+          <ng-select [items]="filterLocations" bindLabel="name" bindValue="id" [(ngModel)]="selectedLocation"
+            (change)="onFilterChange()" placeholder="All Locations"
+            class="flex-1 font-medium w-full custom-filter-select" [clearable]="true"></ng-select>
         </div>
 
         <!-- Supervisor Filter -->
-        <div class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 min-w-[220px]">
+        <div
+          class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 min-w-[220px]">
           <i class="far fa-user text-gray-400"></i>
-          <ng-select [items]="filterSupervisors" [(ngModel)]="selectedSupervisor" placeholder="All Supervisors" class="flex-1 font-medium w-full custom-filter-select" [clearable]="true"></ng-select>
+          <ng-select [items]="filterSupervisors" bindLabel="name" bindValue="id" [(ngModel)]="selectedSupervisor"
+            (change)="onFilterChange()" placeholder="All Supervisors"
+            class="flex-1 font-medium w-full custom-filter-select" [clearable]="true"></ng-select>
+        </div>
+
+        <button (click)="resetFilters()"
+          class="w-9 h-9 flex items-center justify-center rounded border border-gray-300 bg-white text-red-500 hover:bg-red-50 hover:border-red-200 transition-colors"
+          title="Reset Filters">
+          <i class="fas fa-undo"></i>
+        </button>
+      </div>
+
+      <!-- Second Row: Show Entries and Search -->
+      <div class="px-6 pb-4 flex flex-wrap justify-between items-center gap-4">
+        <!-- Show Entries -->
+        <div class="text-sm text-gray-500 flex items-center gap-2">
+          Show
+          <select [(ngModel)]="pagination.per_page" (change)="onLimitChange()"
+            class="border border-gray-300 rounded px-2 py-1 bg-white focus:outline-none focus:border-[#468faf]">
+            <option [value]="10">10</option>
+            <option [value]="25">25</option>
+            <option [value]="50">50</option>
+          </select>
+          entries
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Search Bar -->
+          <div class="relative">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Search..."
+              class="pl-8 pr-4 py-2 border border-gray-300 rounded text-sm w-48 sm:w-64 focus:outline-none focus:border-[#468faf] bg-gray-50">
+          </div>
+
+          <button (click)="addShift()"
+            class="bg-[#468faf] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0]">
+            <i class="fas fa-plus"></i>
+            <span>PLAN NEW SHIFT</span>
+          </button>
         </div>
       </div>
-      <button (click)="addShift()"
-        class="bg-[#468faf] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0]">
-        <i class="fas fa-plus"></i> PLAN NEW SHIFT
-      </button>
     </div>
 
     <div class="overflow-x-auto">
@@ -122,42 +184,48 @@
         <thead
           class="text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200 bg-gray-50">
           <tr>
-            <th class="px-6 py-4">Date</th>
-            <th class="px-6 py-4 text-center">Shift</th>
-            <th class="px-6 py-4">Location / Block</th>
-            <th class="px-6 py-4">Supervisor</th>
-            <th class="px-6 py-4">Target vs Actual BCM</th>
-            <th class="px-6 py-4">Status</th>
-            <th class="px-6 py-4 text-right">Action</th>
+            <th class="px-6 py-3">Sr. No.</th>
+            <th class="px-6 py-3">Date</th>
+            <th class="px-6 py-3 text-center">Shift</th>
+            <th class="px-6 py-3">Location / Block</th>
+            <th class="px-6 py-3">Supervisor</th>
+            <th class="px-6 py-3">Target vs Actual BCM</th>
+            <th class="px-6 py-3">Status</th>
+            <th class="px-6 py-3 text-right">Action</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          <tr *ngFor="let shift of shifts" class="hover:bg-gray-50/50 transition-colors">
+          <tr *ngFor="let shift of shifts; let i = index" class="hover:bg-gray-50/50 transition-colors">
+            <!-- Sr. No. -->
+            <td class="px-6 py-3 text-sm font-medium text-gray-900">
+              {{ (pagination.current_page - 1) * pagination.per_page + i + 1 }}
+            </td>
+
             <!-- Date -->
-            <td class="px-6 py-5 font-medium text-gray-700">
+            <td class="px-6 py-3 font-medium text-gray-700">
               <div class="whitespace-pre-line leading-tight">{{ shift.date.replace(', ', ',\n') }}</div>
             </td>
 
             <!-- Shift -->
-            <td class="px-6 py-5 text-center">
-              <div class="w-6 h-6 rounded text-xs font-bold flex items-center justify-center mx-auto text-white"
-                [ngClass]="shift.shiftCode === 'B' ? 'bg-[#468faf]' : 'bg-gray-400'">
-                {{ shift.shiftCode }}
+            <td class="px-6 py-3 text-center">
+              <div
+                class="px-2.5 py-1 rounded text-xs font-bold inline-flex items-center justify-center mx-auto text-gray-700 bg-gray-100 border border-gray-200 whitespace-nowrap">
+                {{ shift.shiftName || shift.shiftCode }}
               </div>
             </td>
 
             <!-- Location -->
-            <td class="px-6 py-5 text-gray-700 font-medium">
+            <td class="px-6 py-3 text-gray-700 font-medium">
               {{ shift.location }}
             </td>
 
             <!-- Supervisor -->
-            <td class="px-6 py-5 text-gray-600">
+            <td class="px-6 py-3 text-gray-600">
               {{ shift.supervisor }}
             </td>
 
             <!-- Target vs Actual BCM -->
-            <td class="px-6 py-5">
+            <td class="px-6 py-3">
               <div class="flex items-center gap-4 w-48">
                 <div class="text-sm font-bold w-20 shrink-0">
                   <span class="text-[#468faf]">{{ shift.targetBCM | number }}</span>
@@ -165,40 +233,40 @@
                   <span class="text-gray-600 text-xs">{{ shift.actualBCM === 0 ? '--' : (shift.actualBCM | number)
                     }}</span>
                 </div>
-                <div class="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div class="h-full rounded-full transition-all"
-                    [style.width.%]="getPercentage(shift.actualBCM, shift.targetBCM)" [ngClass]="{
-                         'bg-green-500': shift.status === 'IN-PROGRESS',
-                         'bg-[#468faf]': shift.status === 'COMPLETED',
-                         'bg-gray-400': shift.status === 'PLANNED'
-                       }"></div>
-                </div>
+
               </div>
             </td>
 
             <!-- Status -->
-            <td class="px-6 py-5">
+            <td class="px-6 py-3">
               <span
                 class="px-3 py-1 text-[9px] font-bold tracking-widest rounded uppercase flex items-center gap-1.5 w-max"
                 [ngClass]="{
-                      'bg-green-100 text-green-700': shift.status === 'IN-PROGRESS',
-                      'bg-blue-100 text-blue-700': shift.status === 'COMPLETED',
-                      'bg-gray-200 text-gray-600': shift.status === 'PLANNED'
+                      'bg-green-100 text-green-700': shift.status === 'in_progress' || shift.status === 'IN-PROGRESS',
+                      'bg-blue-100 text-blue-700': shift.status === 'completed' || shift.status === 'COMPLETED',
+                      'bg-gray-200 text-gray-600': shift.status === 'draft' || shift.status === 'DRAFT' || shift.status === 'planned' || shift.status === 'PLANNED'
                     }">
-                <div class="w-1.5 h-1.5 rounded-full" *ngIf="shift.status === 'IN-PROGRESS'"
-                  class="bg-green-500 w-1.5 h-1.5 rounded-full"></div>
-                {{ shift.status }}
+                <div class="w-1.5 h-1.5 rounded-full"
+                  *ngIf="shift.status === 'in_progress' || shift.status === 'IN-PROGRESS'" class="bg-green-500"></div>
+                <div class="w-1.5 h-1.5 rounded-full"
+                  *ngIf="shift.status === 'completed' || shift.status === 'COMPLETED'" class="bg-blue-500"></div>
+                <div class="w-1.5 h-1.5 rounded-full"
+                  *ngIf="shift.status === 'draft' || shift.status === 'DRAFT' || shift.status === 'planned' || shift.status === 'PLANNED'"
+                  class="bg-gray-400"></div>
+                {{ shift.status ? (shift.status.replace('_', ' ') | uppercase) : '' }}
               </span>
             </td>
 
             <!-- Action -->
-            <td class="px-6 py-5 text-right text-gray-500 text-lg">
+            <td class="px-6 py-3 text-right text-gray-500 text-lg">
               <div class="flex items-center justify-end gap-3">
                 <button class="hover:text-[#468faf] transition-colors" title="View Summary"
                   (click)="openViewModal(shift)"><i class="far fa-file-alt"></i></button>
 
-                <button class="hover:text-[#468faf] transition-colors" title="Edit"
-                  (click)="editShift(shift.shiftCode)"><i class="fas fa-edit"></i></button>
+                <button
+                  *ngIf="shift.status === 'draft' || shift.status === 'DRAFT' || shift.status === 'planned' || shift.status === 'PLANNED'"
+                  class="hover:text-[#468faf] transition-colors" title="Edit" (click)="editShift(shift.id)"><i
+                    class="fas fa-edit"></i></button>
 
                 <button class="hover:text-red-500 transition-colors" title="Close Shift" (click)="openCloseModal()"><i
                     class="far fa-times-circle"></i></button>
@@ -211,7 +279,8 @@
 
     <!-- Footer / Pagination -->
     <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center bg-gray-50/50">
-      <div class="text-sm text-gray-500">Showing 1-3 of 12 shifts</div>
+      <div class="text-sm text-gray-500">Showing {{ pagination.from || 0 }}-{{ pagination.to || 0 }} of {{
+        pagination.total || 0 }} shifts</div>
       <div class="flex gap-2">
         <button
           class="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-400 hover:bg-gray-50 transition-colors"
@@ -247,12 +316,14 @@
     </div>
     <div class="bg-white m-6 border border-gray-200 rounded">
       <div class="p-6 border-b border-gray-200">
-        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i class="fas fa-chart-pie text-gray-500"></i> Operational Review</h3>
-        
+        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i
+            class="fas fa-chart-pie text-gray-500"></i> Operational Review</h3>
+
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div class="bg-gray-50 border border-gray-200 p-3 rounded">
             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Production (BCM)</div>
-            <div class="text-lg font-bold text-[#468faf]">42,200 <span class="text-xs text-gray-500 font-normal">/ 45,000</span></div>
+            <div class="text-lg font-bold text-[#468faf]">42,200 <span class="text-xs text-gray-500 font-normal">/
+                45,000</span></div>
             <div class="text-xs text-green-600 font-bold mt-1">93% Achieved</div>
           </div>
           <div class="bg-gray-50 border border-gray-200 p-3 rounded">
@@ -262,7 +333,8 @@
           </div>
           <div class="bg-gray-50 border border-gray-200 p-3 rounded">
             <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Workforce</div>
-            <div class="text-lg font-bold text-[#468faf]">22 <span class="text-xs text-gray-500 font-normal">/ 25 Present</span></div>
+            <div class="text-lg font-bold text-[#468faf]">22 <span class="text-xs text-gray-500 font-normal">/ 25
+                Present</span></div>
             <div class="text-xs text-blue-500 font-bold mt-1">3 Borrowed</div>
           </div>
           <div class="bg-gray-50 border border-gray-200 p-3 rounded">
@@ -274,48 +346,59 @@
       </div>
 
       <div class="p-6 border-b border-gray-200">
-        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i class="fas fa-tasks text-gray-500"></i> Validation Checklist</h3>
-        <p class="text-xs text-gray-500 mb-4">Please verify that all operational records have been completed and verified before closing the shift.</p>
-        
+        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i
+            class="fas fa-tasks text-gray-500"></i> Validation Checklist</h3>
+        <p class="text-xs text-gray-500 mb-4">Please verify that all operational records have been completed and
+          verified before closing the shift.</p>
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" [(ngModel)]="shiftClosure.attendanceSubmitted" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <input type="checkbox" [(ngModel)]="shiftClosure.attendanceSubmitted"
+              class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
             <span class="text-sm text-gray-700 font-medium">Attendance Submitted</span>
           </label>
           <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" [(ngModel)]="shiftClosure.fuelLogsAvailable" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <input type="checkbox" [(ngModel)]="shiftClosure.fuelLogsAvailable"
+              class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
             <span class="text-sm text-gray-700 font-medium">Fuel Logs Available</span>
           </label>
           <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" [(ngModel)]="shiftClosure.delayLogsUpdated" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <input type="checkbox" [(ngModel)]="shiftClosure.delayLogsUpdated"
+              class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
             <span class="text-sm text-gray-700 font-medium">Delay Logs Updated</span>
           </label>
           <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" [(ngModel)]="shiftClosure.breakdownLogsUpdated" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <input type="checkbox" [(ngModel)]="shiftClosure.breakdownLogsUpdated"
+              class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
             <span class="text-sm text-gray-700 font-medium">Breakdown Logs Updated</span>
           </label>
           <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" [(ngModel)]="shiftClosure.productionDataAvailable" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <input type="checkbox" [(ngModel)]="shiftClosure.productionDataAvailable"
+              class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
             <span class="text-sm text-gray-700 font-medium">Production Data Available</span>
           </label>
           <label class="flex items-center gap-3 cursor-pointer">
-            <input type="checkbox" [(ngModel)]="shiftClosure.safetyDataReviewed" class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+            <input type="checkbox" [(ngModel)]="shiftClosure.safetyDataReviewed"
+              class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
             <span class="text-sm text-gray-700 font-medium">Safety Data Reviewed</span>
           </label>
         </div>
       </div>
 
       <div class="p-6">
-        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i class="fas fa-signature text-gray-500"></i> Supervisor Sign-Off</h3>
+        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i
+            class="fas fa-signature text-gray-500"></i> Supervisor Sign-Off</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Shift Remarks <span class="text-red-500">*</span></label>
+            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Shift Remarks <span
+                class="text-red-500">*</span></label>
             <textarea [(ngModel)]="shiftClosure.shiftRemarks" placeholder="Enter mandatory remarks for the shift..."
               class="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] bg-gray-50/50 resize-none"
               rows="3"></textarea>
           </div>
           <div>
-            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Handover Notes <span class="text-gray-400 font-normal">(Optional)</span></label>
+            <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Handover Notes <span
+                class="text-gray-400 font-normal">(Optional)</span></label>
             <textarea [(ngModel)]="shiftClosure.handoverNotes" placeholder="Any notes for the next shift supervisor..."
               class="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] bg-gray-50/50 resize-none"
               rows="3"></textarea>

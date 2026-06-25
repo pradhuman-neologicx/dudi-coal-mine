@@ -1,8 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { NgxPrintModule } from 'ngx-print';
+import { SafetyService } from '../../../core/services/safety.service';
+import { HttpParams } from '@angular/common/http';
 
 @Component({
   selector: 'app-report',
@@ -11,7 +13,7 @@ import { NgxPrintModule } from 'ngx-print';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, NgxPrintModule]
 })
-export class ReportComponent {
+export class ReportComponent implements OnInit {
 
   fromDate = '';
   toDate = '';
@@ -20,60 +22,82 @@ export class ReportComponent {
   selectedType = '';
 
   isReportGenerated = false;
-
-  allIncidents = [
-    {
-      id: 'INC-2024-086',
-      date: '2024-05-12',
-      shift: 'B (Night)',
-      type: 'Near Miss',
-      severity: 'LOW',
-      location: 'Crushing Plant - Conveyor 3',
-      status: 'Under Review',
-      reporter: 'John Doe (Operator)'
-    },
-    {
-      id: 'INC-2024-085',
-      date: '2024-05-10',
-      shift: 'A (Day)',
-      type: 'Property Damage',
-      severity: 'MEDIUM',
-      location: 'East Pit - Bench 420',
-      status: 'Action Required',
-      reporter: 'Sarah Smith (Supervisor)'
-    },
-    {
-      id: 'INC-2024-084',
-      date: '2024-05-08',
-      shift: 'C (Swing)',
-      type: 'Injury (First Aid)',
-      severity: 'HIGH',
-      location: 'Maintenance Workshop',
-      status: 'Investigation Closed',
-      reporter: 'David Chen (Foreman)'
-    }
-  ];
-
   filteredIncidents: any[] = [];
+
+  mockShifts: any[] = [];
+  mockLocations: any[] = [];
+  mockIncidentTypes: any[] = [];
+
+  constructor(private safetyService: SafetyService) { }
+
+  ngOnInit() {
+    this.safetyService.getShifts().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) this.mockShifts = res.data;
+      }
+    });
+
+    this.safetyService.getSites().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) this.mockLocations = res.data;
+      }
+    });
+
+    this.safetyService.getPublicIncidentTypes().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) this.mockIncidentTypes = res.data;
+      }
+    });
+  }
+
+  formatDate(date: string) {
+    if (!date) return '';
+    const parts = date.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return date;
+  }
+
+  resetFilters() {
+    this.fromDate = '';
+    this.toDate = '';
+    this.selectedShift = '';
+    this.selectedLocation = '';
+    this.selectedType = '';
+    this.isReportGenerated = false;
+    this.filteredIncidents = [];
+  }
 
   generateReport() {
     this.isReportGenerated = true;
-    
-    // Simple filter logic
-    this.filteredIncidents = this.allIncidents.filter(inc => {
-      let matchShift = this.selectedShift ? inc.shift.includes(this.selectedShift) : true;
-      let matchLocation = this.selectedLocation ? inc.location.includes(this.selectedLocation) : true;
-      let matchType = this.selectedType ? inc.type.includes(this.selectedType) : true;
-      let matchDate = true;
-      
-      if (this.fromDate && this.toDate) {
-        let incDate = new Date(inc.date);
-        let start = new Date(this.fromDate);
-        let end = new Date(this.toDate);
-        matchDate = incDate >= start && incDate <= end;
+    //  let params = new HttpParams()
+    //   .set('page', '1')
+    //   .set('limit', '1000'); 
+    let params = new HttpParams();
+
+    if (this.selectedShift) params = params.set('shift_id', this.selectedShift);
+    if (this.selectedLocation) params = params.set('location_id', this.selectedLocation);
+    if (this.selectedType) params = params.set('incident_type_id', this.selectedType);
+    if (this.fromDate) params = params.set('date_from', this.formatDate(this.fromDate));
+    if (this.toDate) params = params.set('date_to', this.formatDate(this.toDate));
+
+    this.safetyService.getIncidents(params).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) {
+          this.filteredIncidents = (res.data || []).map((inc: any) => ({
+            date: inc.incident_date,
+            shift: inc.shift_name,
+            type: inc.incident_type,
+            severity: inc.severity,
+            location: inc.location_name,
+            reporter: inc.person_involved_name || inc.employee_name || 'N/A'
+          }));
+        }
+      },
+      error: (err: any) => {
+        console.error('Error fetching report data', err);
       }
-      
-      return matchShift && matchLocation && matchType && matchDate;
     });
   }
 
