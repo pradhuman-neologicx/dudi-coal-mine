@@ -46,6 +46,7 @@ import { FuelMgtComponent } from './admin/fuel-mgt/fuel-mgt.component';
 import { DashboardNew1Component } from './admin/dashboard-new1/dashboard-new1.component';
 import { IncidentTypeComponent } from './admin/masters/incident-type/incident-type.component';
 import { SeverityLevelComponent } from './admin/masters/severity-level/severity-level.component';
+import { BreakdownTypeComponent } from './admin/masters/breakdown-type/breakdown-type.component';
 
 const routes: Routes = [
   {
@@ -205,6 +206,10 @@ const routes: Routes = [
           {
             path: 'incident-type',
             component: IncidentTypeComponent,
+          },
+          {
+            path: 'breakdown-type',
+            component: BreakdownTypeComponent,
           },
           {
             path: 'severity-level',

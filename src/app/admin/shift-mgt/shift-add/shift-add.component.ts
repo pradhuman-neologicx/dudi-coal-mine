@@ -560,20 +560,42 @@ export class ShiftAddComponent implements OnInit {
     formData.append('supervisor_id', String(this.shiftForm.supervisorId));
     formData.append('site_incharge_id', String(this.shiftForm.siteInchargeId));
 
-    this.shiftPlanningService.createShiftPlan(formData).subscribe({
-      next: (res: any) => {
-        if (res && (res.status === 200 || res.status === 201)) {
-          this.shiftPlanId = res.data?.id || res.data?.shift_plan_id || 1;
-          this.showNotification(res.message || 'Shift Plan Saved Successfully! Now you can allocate equipment and employees.', 'success');
-        } else {
-          this.showNotification(res.message || 'Failed to save shift plan', 'error');
+    if (this.isEditMode && this.shiftPlanId) {
+      this.shiftPlanningService.updateShiftPlan(this.shiftPlanId, formData).subscribe({
+        next: (res: any) => {
+          if (res && (res.status === 200 || res.status === 201)) {
+            this.showNotification(res.message || 'Shift Plan Updated Successfully!', 'success');
+            if (this.shiftPlanId) {
+              this.loadWorkforceRelayData(this.shiftPlanId);
+            }
+          } else {
+            this.showNotification(res.message || 'Failed to update shift plan', 'error');
+          }
+        },
+        error: (err: any) => {
+          const errorMsg = err?.error?.message || err?.message || 'An error occurred while updating the shift plan.';
+          this.showNotification(errorMsg, 'error');
         }
-      },
-      error: (err: any) => {
-        const errorMsg = err?.error?.message || err?.message || 'An error occurred while saving the shift plan.';
-        this.showNotification(errorMsg, 'error');
-      }
-    });
+      });
+    } else {
+      this.shiftPlanningService.createShiftPlan(formData).subscribe({
+        next: (res: any) => {
+          if (res && (res.status === 200 || res.status === 201)) {
+            this.shiftPlanId = res.data?.id || res.data?.shift_plan_id || 1;
+            this.showNotification(res.message || 'Shift Plan Saved Successfully! Now you can allocate equipment and employees.', 'success');
+            if (this.shiftPlanId) {
+              this.loadWorkforceRelayData(this.shiftPlanId);
+            }
+          } else {
+            this.showNotification(res.message || 'Failed to save shift plan', 'error');
+          }
+        },
+        error: (err: any) => {
+          const errorMsg = err?.error?.message || err?.message || 'An error occurred while saving the shift plan.';
+          this.showNotification(errorMsg, 'error');
+        }
+      });
+    }
   }
 
   publishShift() {

@@ -458,7 +458,7 @@
         <button *ngIf="!isEditMode" ngxPrint printSectionId="drawer-print-section" [useExistingCss]="true"
           class="flex-1 bg-white border border-gray-300 text-gray-700 font-bold text-sm py-2.5 rounded transition-colors hover:bg-gray-50">Generate
           Report</button>
-        <button *ngIf="!isEditMode" (click)="closeCase()"
+        <button *ngIf="!isEditMode && selectedIncident.status !== 'Investigation Closed'" (click)="closeCase()"
           class="flex-1 bg-[#0f2a4a] text-white font-bold text-sm py-2.5 rounded transition-colors hover:bg-[#0c223c]">Close
           Case</button>
         <button *ngIf="isEditMode" (click)="toggleEditMode()"

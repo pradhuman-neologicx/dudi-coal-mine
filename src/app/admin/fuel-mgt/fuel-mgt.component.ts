@@ -16,8 +16,21 @@ Chart.register(...registerables);
 export class FuelMgtComponent implements OnInit, AfterViewInit {
 
   isModalOpen = false;
+  isEditMode = false;
   isFilterOpen = false;
   isUpdating = false;
+
+  formData: any = {
+    date: '',
+    shift: '',
+    machineId: '',
+    opening: 0,
+    issued: 0,
+    closing: 0,
+    consumption: 0,
+    bcm: 0,
+    efficiency: 0
+  };
 
   topDateRange = 'Last 7 Days';
   topShift = 'All Shifts';
@@ -192,11 +205,56 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
   }
 
   openModal() {
+    this.isEditMode = false;
+    this.resetForm();
+    this.isModalOpen = true;
+  }
+
+  resetForm() {
+    this.formData = {
+      date: new Date().toISOString().split('T')[0],
+      shift: 'Shift A (06:00 - 14:00)',
+      machineId: '',
+      opening: 0,
+      issued: 0,
+      closing: 0,
+      consumption: 0,
+      bcm: 0,
+      efficiency: 0
+    };
+  }
+
+  openEditModal(item: any) {
+    this.isEditMode = true;
+    this.formData = {
+      date: new Date().toISOString().split('T')[0], // placeholder date
+      shift: 'Shift B (14:00 - 22:00)', // placeholder shift
+      machineId: item.machineId,
+      opening: item.opening,
+      issued: item.issued,
+      closing: item.closing,
+      consumption: item.consumption,
+      bcm: item.fuelBcm ? (item.consumption / item.fuelBcm).toFixed(0) : 0, // derived BCM
+      efficiency: item.fuelBcm
+    };
     this.isModalOpen = true;
   }
 
   closeModal() {
     this.isModalOpen = false;
+    this.isEditMode = false;
+    this.resetForm();
+  }
+
+  saveLog() {
+    if (this.isEditMode) {
+      console.log('Update API called for:', this.formData);
+      // TODO: Call update API
+    } else {
+      console.log('Create API called for:', this.formData);
+      // TODO: Call create API
+    }
+    this.closeModal();
   }
 
 }

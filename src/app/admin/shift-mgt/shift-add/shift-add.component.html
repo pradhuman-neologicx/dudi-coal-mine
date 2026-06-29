@@ -13,7 +13,7 @@
             <!-- Planning Date -->
             <div>
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Planning
-                    Date</label>
+                    Date <span class="text-red-500">*</span></label>
                 <div class="relative">
                     <input type="date" [(ngModel)]="shiftForm.planningDate"
                         class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50">
@@ -22,7 +22,7 @@
 
             <!-- Shift -->
             <div>
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Shift</label>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Shift <span class="text-red-500">*</span></label>
                 <div class="relative">
                     <ng-select [(ngModel)]="shiftForm.shiftId" [items]="shiftsList" bindLabel="name" bindValue="id"
                         placeholder="Select Shift" class="w-full text-sm">
@@ -33,7 +33,7 @@
             <!-- Location / Block -->
             <div>
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Location /
-                    Block</label>
+                    Block <span class="text-red-500">*</span></label>
                 <div class="relative">
                     <ng-select [(ngModel)]="shiftForm.locationId" [items]="locationsList" bindLabel="name"
                         bindValue="id" placeholder="Select Location" class="w-full text-sm">
@@ -44,7 +44,7 @@
             <!-- Target BCM -->
             <div>
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Target
-                    BCM</label>
+                    BCM <span class="text-red-500">*</span></label>
                 <div class="relative">
                     <input type="number" [(ngModel)]="shiftForm.targetBcm"
                         class="w-full border border-gray-300 rounded pl-4 pr-10 py-2.5 text-sm text-gray-700 font-bold focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50">
@@ -57,7 +57,7 @@
             <!-- Supervisor -->
             <div>
                 <label
-                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Supervisor</label>
+                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Supervisor <span class="text-red-500">*</span></label>
                 <div class="relative">
                     <ng-select [(ngModel)]="shiftForm.supervisorId" [items]="supervisors" bindLabel="name"
                         bindValue="id" placeholder="Select Supervisor" class="w-full text-sm">
@@ -71,7 +71,7 @@
             <!-- Site Incharge -->
             <div>
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Site
-                    Incharge</label>
+                    Incharge <span class="text-red-500">*</span></label>
                 <div class="relative">
                     <ng-select [(ngModel)]="shiftForm.siteInchargeId" [items]="siteIncharges" bindLabel="name"
                         bindValue="id" placeholder="Select Site Incharge" class="w-full text-sm">
@@ -87,7 +87,7 @@
         <div class="mt-6 flex justify-end">
             <button
                 class="bg-[#468faf] text-white font-bold text-sm px-6 py-2 rounded hover:bg-[#2c7da0] transition-colors shadow-sm"
-                (click)="savePlan()">Save Plan</button>
+                (click)="savePlan()">{{ isEditMode ? 'Update Plan' : 'Save Plan' }}</button>
         </div>
     </div>
 
@@ -323,14 +323,14 @@
         </div>
         <div class="p-6 space-y-4">
             <div>
-                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Machine Type</label>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Machine Type <span class="text-red-500">*</span></label>
                 <ng-select [(ngModel)]="newMachine.categoryId" [items]="machineCategories" bindLabel="name"
                     bindValue="id" placeholder="Select Type" class="w-full text-sm"
                     (ngModelChange)="onMachineCategoryChange()">
                 </ng-select>
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Machine</label>
+                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Machine <span class="text-red-500">*</span></label>
                 <ng-select [(ngModel)]="newMachine.id" [items]="machineNames" bindLabel="name" bindValue="id"
                     placeholder="Select Machine" class="w-full text-sm">
                 </ng-select>
@@ -338,7 +338,9 @@
         </div>
         <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
             <button class="text-gray-600 font-bold text-sm px-4 py-2" (click)="closeAddMachineryModal()">Cancel</button>
-            <button class="bg-[#468faf] text-white font-bold text-sm px-6 py-2 rounded hover:bg-[#2c7da0]"
+            <button class="text-white font-bold text-sm px-6 py-2 rounded transition-colors"
+                [ngClass]="(!newMachine.categoryId || !newMachine.id) ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#468faf] hover:bg-[#2c7da0]'"
+                [disabled]="!newMachine.categoryId || !newMachine.id"
                 (click)="addMachineToShift()">Add</button>
         </div>
     </div>

@@ -135,12 +135,22 @@ export class ShiftPlanningService {
     return this.apiService.post('v1/admin/shift-plans', formData, this.getHeaders());
   }
 
+  updateShiftPlan(id: string | number, formData: FormData): Observable<any> {
+    formData.append('_method', 'PUT');
+    return this.apiService.post(`v1/admin/shift-plans/${id}`, formData, this.getHeaders());
+  }
+
   getShiftPlanById(id: string | number): Observable<any> {
     return this.apiService.get(`v1/admin/shift-plans/${id}`, this.getHeaders());
   }
 
   getAssignedEquipment(planId: string | number): Observable<any> {
     return this.apiService.get(`v1/admin/shift-plans/${planId}/equipment`, this.getHeaders());
+  }
+
+  getShiftPlanMachines(planId: string | number, date: string): Observable<any> {
+    const params = new HttpParams().set('date', date);
+    return this.apiService.get(`v1/shift-plans/${planId}/machines`, this.getHeaders(), params);
   }
 
   assignEquipment(planId: string | number, data: any): Observable<any> {
@@ -165,5 +175,10 @@ export class ShiftPlanningService {
 
   publishShiftPlan(planId: string | number): Observable<any> {
     return this.apiService.post(`v1/admin/shift-plans/${planId}/publish`, {}, this.getHeaders());
+  }
+
+  shiftPlanFilterByDate(datetime: string): Observable<any> {
+    const params = new HttpParams().set('datetime', datetime);
+    return this.apiService.get(`v1/shifts/by-datetime`, this.getHeaders(), params);
   }
 }

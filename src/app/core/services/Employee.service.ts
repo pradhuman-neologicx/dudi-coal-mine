@@ -19,7 +19,7 @@ export class EmployeeService {
     private apiservice: ApiService,
     private jwtService: JwtService,
     private router: Router,
-  ) {}
+  ) { }
 
   changestatus(unit_id: string, status: any): Observable<any> {
     var user = this.jwtService.getpanelUserId();
@@ -373,4 +373,6 @@ export class EmployeeService {
       // alert(errorMessage);
     }
   }
+
+
 }

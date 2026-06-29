@@ -194,33 +194,45 @@
         <table class="w-full text-left text-sm text-gray-700 whitespace-nowrap">
           <thead class="text-[10px] text-gray-500 font-bold uppercase bg-gray-50 border-b border-gray-200">
             <tr>
-              <th class="px-5 py-4">MACHINE ID</th>
-              <th class="px-5 py-4">OPENING FUEL (L)</th>
-              <th class="px-5 py-4">FUEL ISSUED (L)</th>
-              <th class="px-5 py-4">CLOSING FUEL (L)</th>
-              <th class="px-5 py-4">CONSUMPTION (L)</th>
-              <th class="px-5 py-4">FUEL / BCM</th>
+              <th class="p-2">MACHINE ID</th>
+              <th class="p-2">OPENING FUEL (L)</th>
+              <th class="p-2">FUEL ISSUED (L)</th>
+              <th class="p-2">CLOSING FUEL (L)</th>
+              <th class="p-2">CONSUMPTION (L)</th>
+              <th class="p-2">FUEL / BCM</th>
+              <th class="p-2 text-center">ACTIONS</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
             <tr *ngFor="let item of filteredFuelData" class="hover:bg-gray-50">
-              <td class="px-5 py-4">
+              <td class="p-2">
                 <div class="font-bold text-[#0f2a4a]">{{item.machineId}}</div>
                 <div class="text-[11px] text-gray-500">{{item.machineDesc}}</div>
               </td>
-              <td class="px-5 py-4">{{item.opening | number}}</td>
-              <td class="px-5 py-4">{{item.issued | number}}</td>
-              <td class="px-5 py-4">{{item.closing | number}}</td>
-              <td class="px-5 py-4 font-bold text-[#0f2a4a] flex items-center gap-2 mt-2">
+              <td class="p-2">{{item.opening | number}}</td>
+              <td class="p-2">{{item.issued | number}}</td>
+              <td class="p-2">{{item.closing | number}}</td>
+              <td class="p-2 font-bold text-[#0f2a4a] flex items-center gap-2 mt-2">
                 {{item.consumption | number}}
-                <i *ngIf="item.trend === 'up'" class="fas fa-arrow-up text-red-500 text-[10px]"></i>
+                <!-- <i *ngIf="item.trend === 'up'" class="fas fa-arrow-up text-red-500 text-[10px]"></i>
                 <i *ngIf="item.trend === 'down'" class="fas fa-arrow-down text-green-500 text-[10px]"></i>
-                <i *ngIf="item.trend === 'neutral'" class="fas fa-minus text-gray-400 text-[10px]"></i>
+                <i *ngIf="item.trend === 'neutral'" class="fas fa-minus text-gray-400 text-[10px]"></i> -->
               </td>
-              <td class="px-5 py-4">
+              <td class="p-2">
                 <span class="px-3 py-1 font-bold rounded text-xs" [ngClass]="item.efficiencyClass">
                   {{item.fuelBcm | number:'1.2-2'}}
                 </span>
+              </td>
+              <td class="p-2">
+                <div class="flex justify-center gap-3">
+                  <!-- <button class="text-blue-900 hover:text-blue-800 transition-colors" title="View Details">
+                    <i class="fas fa-eye text-sm"></i>
+                  </button> -->
+                  <button (click)="openEditModal(item)" class="text-green-600 hover:text-green-800 transition-colors"
+                    title="Edit Record">
+                    <i class="fas fa-edit text-sm"></i>
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -254,8 +266,9 @@
             <i class="fas fa-gas-pump text-xl text-blue-200"></i>
           </div>
           <div>
-            <h2 class="text-xl font-semibold tracking-wide">Log Fuel Issue</h2>
-            <p class="text-xs text-blue-200">Fuel Disbursement & Performance Log</p>
+            <h2 class="text-xl font-semibold tracking-wide">{{ isEditMode ? 'Edit Fuel Issue' : 'Log Fuel Issue' }}</h2>
+            <p class="text-xs text-blue-200">{{ isEditMode ? 'Update Fuel Disbursement & Performance' : 'Fuel
+              Disbursement & Performance Log' }}</p>
           </div>
         </div>
         <button (click)="closeModal()" class="text-gray-300 hover:text-white transition-colors">
@@ -276,13 +289,13 @@
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Date</label>
               <div class="relative">
-                <input type="date" value="2023-11-24" [max]="maxDate"
+                <input type="date" [(ngModel)]="formData.date" [max]="maxDate"
                   class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
               </div>
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Shift</label>
-              <select
+              <select [(ngModel)]="formData.shift"
                 class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#0f2a4a] appearance-none bg-white">
                 <option>Shift A (06:00 - 14:00)</option>
                 <option>Shift B (14:00 - 22:00)</option>
@@ -302,7 +315,8 @@
             <label class="block text-sm font-bold text-gray-700 mb-1">Machine No. & Name</label>
             <div class="relative">
               <i class="fas fa-tools absolute left-4 top-3 text-gray-400"></i>
-              <input type="text" placeholder="Search by ID or Model (e.g., EX-401, D-155)..."
+              <input type="text" [(ngModel)]="formData.machineId"
+                placeholder="Search by ID or Model (e.g., EX-401, D-155)..."
                 class="w-full border border-gray-300 rounded pl-10 pr-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
             </div>
           </div>
@@ -318,9 +332,8 @@
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Opening Fuel</label>
               <div class="relative">
-                <input type="text"
-                  class="w-full border border-gray-300 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]"
-                  value="0">
+                <input type="number" [(ngModel)]="formData.opening"
+                  class="w-full border border-gray-300 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]">
                 <span
                   class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
               </div>
@@ -328,9 +341,8 @@
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Fuel Issued</label>
               <div class="relative">
-                <input type="text"
-                  class="w-full border border-gray-300 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]"
-                  value="0">
+                <input type="number" [(ngModel)]="formData.issued"
+                  class="w-full border border-gray-300 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]">
                 <span
                   class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
               </div>
@@ -338,9 +350,8 @@
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Closing Fuel</label>
               <div class="relative">
-                <input type="text"
-                  class="w-full border border-gray-300 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]"
-                  value="0">
+                <input type="number" [(ngModel)]="formData.closing"
+                  class="w-full border border-gray-300 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]">
                 <span
                   class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
               </div>
@@ -358,9 +369,8 @@
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1 text-gray-500">Total Consumption</label>
               <div class="relative">
-                <input type="text" disabled
-                  class="w-full border border-gray-200 bg-gray-50 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-400 outline-none font-bold"
-                  value="0">
+                <input type="number" disabled [(ngModel)]="formData.consumption"
+                  class="w-full border border-gray-200 bg-gray-50 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-400 outline-none font-bold">
                 <span
                   class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
               </div>
@@ -368,7 +378,7 @@
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Work Done (BCM)</label>
               <div class="relative">
-                <input type="text"
+                <input type="number" [(ngModel)]="formData.bcm"
                   class="w-full border border-gray-300 rounded pl-3 pr-12 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]">
                 <span
                   class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">M&sup3;</span>
@@ -377,9 +387,8 @@
             <div>
               <label class="block text-sm font-bold text-[#0f2a4a] mb-1">Avg Fuel Efficiency</label>
               <div class="relative">
-                <input type="text" disabled
-                  class="w-full border border-gray-200 bg-gray-50 rounded pl-3 pr-14 py-2.5 text-sm text-right text-green-700 outline-none font-bold"
-                  value="0.00">
+                <input type="number" disabled [(ngModel)]="formData.efficiency"
+                  class="w-full border border-gray-200 bg-gray-50 rounded pl-3 pr-14 py-2.5 text-sm text-right text-green-700 outline-none font-bold">
                 <span
                   class="absolute right-3 top-3 text-gray-500 text-[11px] font-bold tracking-wider pointer-events-none">/BCM</span>
               </div>
@@ -398,9 +407,9 @@
         <div class="flex items-center gap-4">
           <button (click)="closeModal()"
             class="text-sm font-bold text-[#0f2a4a] hover:text-[#0c223c] transition-colors px-4">Cancel</button>
-          <button
+          <button (click)="saveLog()"
             class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-sm font-bold px-6 py-2.5 rounded shadow flex items-center gap-2 transition-colors">
-            <i class="fas fa-save"></i> Save Log
+            <i class="fas fa-save"></i> {{ isEditMode ? 'Update Log' : 'Save Log' }}
           </button>
         </div>
       </div>

@@ -127,6 +127,12 @@ export class SidenavComponent {
               label: 'Incident Type',
               route: '/admin/master/incident-type',
             },
+            {
+              index: 10,
+              icon: 'build_circle',
+              label: 'Breakdown Type',
+              route: '/admin/master/breakdown-type',
+            },
             // {
             //   index: 10,
             //   icon: 'error_outline',

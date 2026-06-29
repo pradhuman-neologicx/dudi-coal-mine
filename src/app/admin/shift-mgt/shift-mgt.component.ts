@@ -25,6 +25,8 @@ export class ShiftMgtComponent implements OnInit {
   filterLocations: any[] = [];
   selectedLocation: any = null;
 
+  selectedStatus: string = '';
+
   filterSupervisors: any[] = [];
   selectedSupervisor: any = null;
 
@@ -125,6 +127,7 @@ export class ShiftMgtComponent implements OnInit {
     this.selectedShiftFilter = null;
     this.selectedLocation = null;
     this.selectedSupervisor = null;
+    this.selectedStatus = '';
 
     this.pagination.current_page = 1;
     this.loadShiftPlans();
@@ -143,6 +146,7 @@ export class ShiftMgtComponent implements OnInit {
     if (this.filterEndDate) filters.end_date = this.filterEndDate;
     if (this.selectedPeriod) filters.period = this.selectedPeriod;
     if (this.searchQuery) filters.search = this.searchQuery;
+    if (this.selectedStatus) (filters as any).status = this.selectedStatus;
 
     this.shiftPlanningService.getShiftPlans(filters).subscribe({
       next: (res) => {

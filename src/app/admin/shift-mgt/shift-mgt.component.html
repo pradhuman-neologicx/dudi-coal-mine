@@ -1,4 +1,4 @@
-<div class="bg-[#f4f6f8] min-h-screen p-4 md:p-6 text-[#468faf] font-sans">
+<div class=" min-h-screen px-4 text-[#468faf] font-sans">
 
   <!-- Top Header -->
   <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6">
@@ -106,10 +106,11 @@
         <div
           class="flex items-center gap-2 border border-gray-300 bg-gray-50 rounded px-3 py-1.5 text-sm text-gray-700 cursor-pointer min-w-[140px]">
           <i class="fas fa-filter text-gray-400"></i>
-          <select class="flex-1 font-medium bg-transparent outline-none cursor-pointer appearance-none">
-            <option selected>All Status</option>
-            <option>Planned</option>
-            <option>Completed</option>
+          <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="flex-1 font-medium bg-transparent outline-none cursor-pointer appearance-none">
+            <option value="">All Status</option>
+            <option value="draft">Planned</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
           </select>
           <i class="fas fa-caret-down text-gray-400"></i>
         </div>
@@ -203,7 +204,7 @@
 
             <!-- Date -->
             <td class="px-6 py-3 font-medium text-gray-700">
-              <div class="whitespace-pre-line leading-tight">{{ shift.date.replace(', ', ',\n') }}</div>
+              <div class="whitespace-pre-line leading-tight">{{ shift.date | date:'dd MMM yyyy' }}</div>
             </td>
 
             <!-- Shift -->
