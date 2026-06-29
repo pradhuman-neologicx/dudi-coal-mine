@@ -1,33 +1,73 @@
 <div class="container mb-4">
   <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
     <h1 class="text-primary table-heading-detail">Equipment Master (Categories)</h1>
-    <div>
-      <button class="btn btn-custom-primary px-4 py-2 me-2" (click)="openAddModal()">
-        Add Category
+    <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center">
+        <span class="me-2 text-muted small fw-bold">Show</span>
+        <select class="form-select form-select-sm text-muted fw-bold" style="width: auto;" (change)="onTableSizeChange($event)" [value]="tableSize">
+          <option *ngFor="let size of tableSizes" [value]="size">{{ size === 'all' ? 'All' : size }}</option>
+        </select>
+        <span class="ms-2 text-muted small fw-bold">entries</span>
+      </div>
+      <button class="btn btn-custom-primary px-4 py-2" (click)="openAddModal()">
+        <i class="fas fa-plus me-1"></i> Add Category
       </button>
     </div>
   </div>
 
-  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-    <div class="col" *ngFor="let category of categories">
-      <div class="card h-100 shadow-sm border-0 table-card p-3">
-        <div class="card-body d-flex flex-column">
-          <div class="d-flex justify-content-between align-items-start mb-3">
-            <h5 class="card-title fw-bold text-primary mb-0">{{ category.name }}</h5>
-            <span class="badge" [ngClass]="category.isActive ? 'bg-success' : 'bg-danger'">
-              {{ category.isActive ? 'Active' : 'Inactive' }}
-            </span>
-          </div>
-          <div class="mt-auto d-flex justify-content-between align-items-center">
-            <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(category)">
-              <i class="fa-solid fa-edit me-1"></i> Edit
-            </button>
-            <button class="btn btn-sm" [ngClass]="category.isActive ? 'btn-outline-danger' : 'btn-outline-success'" (click)="toggleActiveStatus(category)">
-              <i class="fa-solid" [ngClass]="category.isActive ? 'fa-ban' : 'fa-check-circle'"></i>
-              {{ category.isActive ? 'Deactivate' : 'Activate' }}
-            </button>
-          </div>
-        </div>
+  <div class="bg-white rounded border border-gray-200 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead class="bg-light">
+          <tr>
+            <th class="px-4 py-3 text-secondary" style="font-size: 12px; font-weight: 600;">CATEGORY NAME</th>
+            <th class="px-4 py-3 text-secondary" style="font-size: 12px; font-weight: 600;">STATUS</th>
+            <th class="px-4 py-3 text-secondary text-end" style="font-size: 12px; font-weight: 600;">ACTIONS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let category of categories" class="align-middle">
+            <td class="px-4 py-3 fw-bold text-dark">{{ category.name }}</td>
+            <td class="px-4 py-3">
+              <span class="badge" [ngClass]="category.isActive ? 'bg-success text-white' : 'bg-danger text-white'">
+                {{ category.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-end">
+              <button class="btn btn-sm btn-outline-primary me-2" (click)="openEditModal(category)" title="Edit">
+                <i class="fa-solid fa-edit"></i>
+              </button>
+              <button class="btn btn-sm" [ngClass]="category.isActive ? 'btn-outline-danger' : 'btn-outline-success'" (click)="toggleActiveStatus(category)" [title]="category.isActive ? 'Deactivate' : 'Activate'">
+                <i class="fa-solid" [ngClass]="category.isActive ? 'fa-ban' : 'fa-check-circle'"></i>
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="categories.length === 0">
+            <td colspan="3" class="text-center py-4 text-muted">No categories found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Footer / Pagination -->
+    <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top bg-light">
+      <div class="text-muted small fw-bold">
+        SHOWING {{categories.length}} OF {{totalRecords}} CATEGORIES
+      </div>
+      <div class="d-flex gap-1">
+        <button (click)="goToPage(page - 1)" [disabled]="page === 1"
+          class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+          <i class="fas fa-chevron-left" style="font-size: 10px;"></i>
+        </button>
+        <button *ngFor="let p of paginationNumbers" (click)="goToPage(p)"
+          [ngClass]="{'btn-custom-primary text-white': p === page, 'btn-outline-secondary bg-white': p !== page}"
+          class="btn btn-sm fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+          {{p}}
+        </button>
+        <button (click)="goToPage(page + 1)" [disabled]="page === totalPages || totalPages === 0"
+          class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+          <i class="fas fa-chevron-right" style="font-size: 10px;"></i>
+        </button>
       </div>
     </div>
   </div>

@@ -57,7 +57,7 @@ export class BreakdownTypeService {
     return this.apiservice.post(`v1/admin/breakdown-types/${id}/status`, body, headers);
   }
   // breakdowns
-  getBreakdowns(tableSize: any, page: any, search: any): Observable<any> {
+  getBreakdowns(tableSize: any, page: any, search: any, filters?: any): Observable<any> {
     const token = this.jwtService.getToken();
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
 
@@ -69,6 +69,14 @@ export class BreakdownTypeService {
 
     if (search && search.length > 0) {
       params = params.set('search', search);
+    }
+
+    if (filters) {
+      Object.keys(filters).forEach(key => {
+        if (filters[key]) {
+          params = params.set(key, filters[key]);
+        }
+      });
     }
 
     return this.apiservice.get(`v1/admin/maintenance/breakdowns`, headers, params);

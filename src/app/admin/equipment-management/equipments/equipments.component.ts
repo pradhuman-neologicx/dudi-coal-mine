@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { NgxPaginationModule } from 'ngx-pagination';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { EquipmentService } from 'src/app/core/services/equipment.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 
@@ -18,7 +19,7 @@ export interface Equipment {
 @Component({
   selector: 'app-equipments',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPaginationModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPaginationModule, NgSelectModule],
   templateUrl: './equipments.component.html',
   styleUrl: './equipments.component.scss'
 })
@@ -37,7 +38,7 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
 
   // Filters
   filterSearch: string = '';
-  filterCategory: string = '';
+  filterCategory: any = null;
 
   // Modal
   isModalOpen = false;
@@ -136,7 +137,7 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
 
   resetFilter() {
     this.filterSearch = '';
-    this.filterCategory = '';
+    this.filterCategory = null;
     this.onFilterChange();
   }
 

@@ -37,7 +37,9 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
   topLocation = 'All Locations';
   
   selectedMachine = '';
-  selectedTrend = '';
+  selectedShift = '';
+  fromDate = '';
+  toDate = '';
 
   updateDashboard() {
     this.isUpdating = true;
@@ -53,7 +55,9 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
 
   clearFilters() {
     this.selectedMachine = '';
-    this.selectedTrend = '';
+    this.selectedShift = '';
+    this.fromDate = '';
+    this.toDate = '';
     setTimeout(() => {
       this.initFuelEfficiencyChart();
     }, 100);
@@ -62,8 +66,8 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
   get filteredFuelData() {
     return this.fuelData.filter(item => {
       const matchMachine = this.selectedMachine ? item.machineDesc.includes(this.selectedMachine) : true;
-      const matchTrend = this.selectedTrend ? item.trend === this.selectedTrend : true;
-      return matchMachine && matchTrend;
+      // Note: Add logic here to filter by shift, fromDate, and toDate when real data is available
+      return matchMachine;
     });
   }
 

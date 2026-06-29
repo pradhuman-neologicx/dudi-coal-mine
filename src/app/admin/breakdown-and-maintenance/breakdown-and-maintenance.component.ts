@@ -30,7 +30,7 @@ export class BreakdownAndMaintenanceComponent implements OnInit {
   tickets: any[] = [];
 
   breakdownTypes: any[] = [];
-  selectedBreakdownType: string = '';
+  selectedBreakdownType: any = null;
   filterShifts: any[] = [];
 
   // Dashboard Stats
@@ -52,8 +52,8 @@ export class BreakdownAndMaintenanceComponent implements OnInit {
   entryDate: string = '';
   entryShift: string = '';
   shiftName: string = '';
-  entryMachine: string = '';
-  entrySeverity: string = '';
+  entryMachine: any = null;
+  entrySeverity: any = null;
   entryDescription: string = '';
   entryRepairStart: string = '';
   entryRepairEnd: string = '';
@@ -193,7 +193,13 @@ export class BreakdownAndMaintenanceComponent implements OnInit {
   }
 
   fetchBreakdownData() {
-    this.breakdownTypeService.getBreakdowns(this.pageSize, this.currentPage, '').subscribe({
+    const filters = {
+      breakdown_type_id: this.selectedCategory,
+      severity: this.selectedSeverity,
+      shift_id: this.selectedShift
+    };
+
+    this.breakdownTypeService.getBreakdowns(this.pageSize, this.currentPage, '', filters).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           // Update Dashboard
@@ -264,9 +270,9 @@ export class BreakdownAndMaintenanceComponent implements OnInit {
   viewModalData: any = null;
   viewModalLoading = false;
 
-  selectedCategory: string = '';
-  selectedSeverity: string = '';
-  selectedShift: string = '';
+  selectedCategory: any = null;
+  selectedSeverity: any = null;
+  selectedShift: any = null;
 
   toggleFilter() {
     this.isFilterOpen = !this.isFilterOpen;
@@ -343,9 +349,9 @@ export class BreakdownAndMaintenanceComponent implements OnInit {
     this.entryDate = '';
     this.entryShift = '';
     this.shiftName = '';
-    this.entryMachine = '';
-    this.selectedBreakdownType = '';
-    this.entrySeverity = '';
+    this.entryMachine = null;
+    this.selectedBreakdownType = null;
+    this.entrySeverity = null;
     this.entryDescription = '';
     this.entryRepairStart = '';
     this.entryRepairEnd = '';
@@ -391,23 +397,23 @@ export class BreakdownAndMaintenanceComponent implements OnInit {
     if (this.editingTicketId) {
       this.breakdownTypeService.updateBreakdown(this.editingTicketId, payload).subscribe({
         next: (res) => {
-          this.displayToast(res.message, 'success');
           this.closeModal();
           this.fetchBreakdownData();
         },
         error: (err) => {
-          this.displayToast('Failed to update entry', 'error');
+          // this.displayToast('Failed to update entry', 'error');
+          console.log(err);
         }
       });
     } else {
       this.breakdownTypeService.createBreakdown(payload).subscribe({
         next: (res) => {
-          this.displayToast(res.message, 'success');
           this.closeModal();
           this.fetchBreakdownData();
         },
         error: (err) => {
-          this.displayToast(err.message, 'error');
+          // this.displayToast(err.message, 'error');
+          console.log(err);
         }
       });
     }
@@ -421,24 +427,32 @@ export class BreakdownAndMaintenanceComponent implements OnInit {
   }
 
   clearFilters() {
-    this.selectedCategory = '';
-    this.selectedSeverity = '';
-    this.selectedShift = '';
+    this.selectedCategory = null;
+    this.selectedSeverity = null;
+    this.selectedShift = null;
+    this.currentPage = 1;
+    this.fetchBreakdownData();
+  }
+
+  get isFormValid(): boolean {
+    return !!(
+      this.entryDate &&
+      this.entryShift &&
+      this.selectedBreakdownType &&
+      this.entrySeverity &&
+      this.entryMachine &&
+      this.selectedEmployee &&
+      this.entryDescription && 
+      this.entryDescription.trim().length > 0
+    );
+  }
+
+  onFilterChange() {
+    this.currentPage = 1;
+    this.fetchBreakdownData();
   }
 
   get filteredTickets(): any[] {
-    let result = this.tickets;
-
-    if (this.selectedCategory) {
-      result = result.filter(t => t.category === this.selectedCategory);
-    }
-    if (this.selectedSeverity) {
-      result = result.filter(t => t.severity === this.selectedSeverity);
-    }
-    if (this.selectedShift) {
-      result = result.filter(t => t.shift === this.selectedShift);
-    }
-
-    return result;
+    return this.tickets;
   }
 }

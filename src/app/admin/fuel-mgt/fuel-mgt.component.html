@@ -161,31 +161,49 @@
 
       <!-- Filter Dropdown -->
       <div *ngIf="isFilterOpen"
-        class="bg-gray-50 border-b border-gray-200 px-5 py-3 flex gap-4 items-end transition-all">
-        <div class="flex-1">
-          <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">MACHINE TYPE</label>
-          <select
-            class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-            [(ngModel)]="selectedMachine">
-            <option value="">All Machines</option>
-            <option value="Komatsu">Komatsu</option>
-            <option value="CAT">CAT</option>
-          </select>
-        </div>
-        <div class="flex-1">
-          <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">CONSUMPTION TREND</label>
-          <select
-            class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-            [(ngModel)]="selectedTrend">
-            <option value="">All Trends</option>
-            <option value="up">Higher (Up)</option>
-            <option value="down">Lower (Down)</option>
-            <option value="neutral">Neutral</option>
-          </select>
-        </div>
-        <div>
-          <button (click)="clearFilters()"
-            class="px-4 py-1.5 bg-gray-200 text-gray-700 rounded text-sm font-bold hover:bg-gray-300 transition-colors h-[34px]">Clear</button>
+        class="bg-gray-50 border-b border-gray-200 px-5 py-4 transition-all">
+        <div class="flex flex-col gap-4">
+          <div class="flex gap-4 items-end">
+            <div class="flex-1">
+              <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">MACHINE TYPE</label>
+              <select
+                class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
+                [(ngModel)]="selectedMachine">
+                <option value="">All Machines</option>
+                <option value="Komatsu">Komatsu</option>
+                <option value="CAT">CAT</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">SHIFT</label>
+              <select
+                class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
+                [(ngModel)]="selectedShift">
+                <option value="">All Shifts</option>
+                <option value="Shift A">Shift A</option>
+                <option value="Shift B">Shift B</option>
+                <option value="Shift C">Shift C</option>
+              </select>
+            </div>
+          </div>
+          <div class="flex gap-4 items-end">
+            <div class="flex-1">
+              <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">FROM DATE</label>
+              <input type="date"
+                class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
+                [(ngModel)]="fromDate">
+            </div>
+            <div class="flex-1">
+              <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">TO DATE</label>
+              <input type="date"
+                class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
+                [(ngModel)]="toDate">
+            </div>
+            <div>
+              <button (click)="clearFilters()"
+                class="px-4 py-1.5 bg-gray-200 text-gray-700 rounded text-sm font-bold hover:bg-gray-300 transition-colors h-[34px]">Clear</button>
+            </div>
+          </div>
         </div>
       </div>
 

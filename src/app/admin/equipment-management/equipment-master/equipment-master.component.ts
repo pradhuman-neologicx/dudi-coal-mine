@@ -28,6 +28,13 @@ export class EquipmentMasterComponent implements OnInit, OnDestroy {
   categoryForm!: FormGroup;
   selectedCategoryId: number | null = null;
 
+  tableSize: any = 10;
+  page: number = 1;
+  totalRecords: number = 0;
+  totalPages: number = 1;
+  paginationNumbers: number[] = [];
+  tableSizes: any[] = [10, 20, 50, 100, 'all'];
+
   constructor(
     private fb: FormBuilder,
     private equipmentService: EquipmentService,
@@ -48,7 +55,7 @@ export class EquipmentMasterComponent implements OnInit, OnDestroy {
   }
 
   loadData() {
-    this.equipmentService.getEquipments('all', 1).pipe(takeUntil(this.destroy$)).subscribe({
+    this.equipmentService.getEquipments(this.tableSize, this.page).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         if (response.status === 200 && response.data) {
           this.categories = response.data.map((item: any) => ({
@@ -56,6 +63,14 @@ export class EquipmentMasterComponent implements OnInit, OnDestroy {
             name: item.equipment_category,
             isActive: item.status === 1 || item.status === true
           }));
+
+          if (response.pagination) {
+            this.totalRecords = response.pagination.total;
+            this.page = response.pagination.current_page;
+            this.tableSize = response.pagination.per_page;
+            this.totalPages = response.pagination.last_page;
+            this.generatePagination();
+          }
         } else {
           this.notificationService.show(response.message || 'Failed to load categories', 'error', 3000);
         }
@@ -65,6 +80,27 @@ export class EquipmentMasterComponent implements OnInit, OnDestroy {
         this.notificationService.show(error.message || 'Something went wrong', 'error', 3000);
       }
     });
+  }
+
+  generatePagination() {
+    this.paginationNumbers = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      this.paginationNumbers.push(i);
+    }
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.page = page;
+      this.loadData();
+    }
+  }
+
+  onTableSizeChange(event: any) {
+    const val = event.target.value;
+    this.tableSize = val === 'all' ? 'all' : parseInt(val, 10);
+    this.page = 1;
+    this.loadData();
   }
 
   openAddModal() {

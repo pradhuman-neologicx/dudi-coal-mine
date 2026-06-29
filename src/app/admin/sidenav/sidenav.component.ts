@@ -290,32 +290,32 @@ export class SidenavComponent {
             },
           ],
         },
-        {
-          index: 13,
-          icon: 'local_shipping',
-          label: 'Dispatch & Dumping',
-          route: '/admin/dispatch-dumping',
-          subItems: [
-            {
-              index: 1,
-              icon: 'dashboard',
-              label: 'Dashboard',
-              route: '/admin/dispatch-dumping/dashboard',
-            },
-            {
-              index: 2,
-              icon: 'list_alt',
-              label: 'Dispatch Register',
-              route: '/admin/dispatch-dumping/register',
-            },
-            {
-              index: 3,
-              icon: 'assessment',
-              label: 'Fleet Performance',
-              route: '/admin/dispatch-dumping/fleet-performance',
-            }
-          ]
-        },
+        // {
+        //   index: 13,
+        //   icon: 'local_shipping',
+        //   label: 'Dispatch & Dumping',
+        //   route: '/admin/dispatch-dumping',
+        //   subItems: [
+        //     {
+        //       index: 1,
+        //       icon: 'dashboard',
+        //       label: 'Dashboard',
+        //       route: '/admin/dispatch-dumping/dashboard',
+        //     },
+        //     {
+        //       index: 2,
+        //       icon: 'list_alt',
+        //       label: 'Dispatch Register',
+        //       route: '/admin/dispatch-dumping/register',
+        //     },
+        //     {
+        //       index: 3,
+        //       icon: 'assessment',
+        //       label: 'Fleet Performance',
+        //       route: '/admin/dispatch-dumping/fleet-performance',
+        //     }
+        //   ]
+        // },
         // {
         //   index: 10,
         //   icon: 'local_gas_station',
