@@ -87,4 +87,8 @@ export class EquipmentService {
   getMachineNames(categoryId: any): Observable<any> {
     return this.apiService.get(`v1/machine-names/${categoryId}`, this.getHeaders());
   }
+
+  getActiveMachines(): Observable<any> {
+    return this.apiService.get('v1/active-machines', this.getHeaders());
+  }
 }

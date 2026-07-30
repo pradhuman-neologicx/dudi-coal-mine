@@ -27,7 +27,7 @@ interface DailyAttendance {
   checkIn: string | null;
   checkOut: string | null;
   shift: string;
-  status: 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day' | 'Weekend';
+  status: 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day' | 'Weekend' | 'Not Marked';
   site: string;
 }
 
@@ -98,7 +98,9 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   filterStatus: string | null = null;
   filterSearch: string = '';
   filterSite: string = '';
+  maxDate: string = '';
 
+  sites: any[] = [];
   mockSites: string[] = [];
 
   // Freeze date (e.g., records before 3rd of current month are locked)
@@ -107,6 +109,8 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   // Modal states
   showCorrectionModal = false;
   showBulkUploadModal = false;
+  isUploading = false;
+  uploadResult: any = null;
   correctionForm!: FormGroup;
   searchbarform!: FormGroup;
   showreset: boolean = false;
@@ -114,7 +118,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
   p: number = 1; // Pagination
   showEntries: any = 10;
-  tableSizes: any[] = [10, 20, 50, 100, 'all'];
+  tableSizes: any[] = [10, 20, 50, 100];
   totalRecords: number = 0;
 
   selectedRecordIds = new Set<string>();
@@ -233,13 +237,30 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const today = new Date();
-    this.filterDate = today.toISOString().split('T')[0];
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    
+    this.maxDate = `${year}-${month}-${day}`;
+    this.filterDate = this.maxDate;
     const mm = (today.getMonth() + 1).toString().padStart(2, '0');
     this.filterMonth = `${today.getFullYear()}-${mm}`;
     this.filterFromDate = '';
     this.filterToDate = '';
     this.initForms();
+    this.fetchSites();
     this.loadAttendance();
+  }
+
+  fetchSites() {
+    this.attendanceService.getSites().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        if (res.status === 200 && res.data) {
+          this.sites = res.data;
+        }
+      },
+      error: (err: any) => console.error('Error fetching sites:', err)
+    });
   }
 
   ngOnDestroy(): void {
@@ -378,8 +399,8 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
   // Aggregate method removed since backend provides aggregated data
 
-  mapStatusToFrontend(backendStatus: string): 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day' | 'Weekend' {
-    if (!backendStatus) return 'Absent';
+  mapStatusToFrontend(backendStatus: string): 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day' | 'Weekend' | 'Not Marked' {
+    if (!backendStatus) return 'Not Marked';
     switch (backendStatus.toLowerCase()) {
       case 'present': return 'Present';
       case 'absent': return 'Absent';
@@ -435,7 +456,11 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
   resetFilters() {
     const today = new Date();
-    this.filterDate = today.toISOString().split('T')[0];
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    
+    this.filterDate = `${year}-${month}-${day}`;
     const mm = (today.getMonth() + 1).toString().padStart(2, '0');
     this.filterMonth = `${today.getFullYear()}-${mm}`;
     this.filterFromDate = '';
@@ -491,29 +516,56 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isUploading = true;
+    this.uploadResult = null;
+
     this.attendanceService.bulkUploadAttendance(file).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
-        if (response.status === 200 || response.success || response.status === 'success') {
+        this.isUploading = false;
+        if (response && (response.status === 200 || response.status === 201) && (!response.errors || response.errors.length === 0)) {
           this.notificationService.show(response.message || 'File uploaded successfully', 'success', 3000);
           this.closeBulkUploadModal();
           this.p = 1;
           this.loadAttendance();
         } else {
-          this.notificationService.show(response.message || 'Upload failed', 'error', 3000);
+          this.uploadResult = {
+            status: response.status || 422,
+            message: response.message || 'Import process completed with errors.',
+            errors: response.errors || []
+          };
         }
       },
       error: (err: any) => {
+        this.isUploading = false;
         console.error('Error during bulk upload:', err);
-        const originalError = err.originalError || err.error || err;
-        let errorMessage = originalError.message || err.message || 'Upload failed';
+        const errObj = err.originalError || err.error || err;
+        let formattedErrors: string[] = [];
 
-        if (originalError.errors && Array.isArray(originalError.errors)) {
-          const formattedErrors = originalError.errors.map((e: any) => `Row ${e.row}: ${e.message}`).join('\n');
-          errorMessage += '\n' + formattedErrors;
+        if (errObj.errors) {
+          if (Array.isArray(errObj.errors)) {
+            formattedErrors = errObj.errors.map((e: any) => {
+              if (typeof e === 'object' && e !== null) {
+                 const col = e.column ? ` [${e.column}]` : '';
+                 return `Row ${e.row || 'N/A'}${col}: ${e.message || 'Unknown error'}`;
+              }
+              return String(e);
+            });
+          } else if (typeof errObj.errors === 'object') {
+             Object.values(errObj.errors).forEach((errArray: any) => {
+                if (Array.isArray(errArray)) {
+                  formattedErrors.push(...errArray);
+                } else if (typeof errArray === 'string') {
+                  formattedErrors.push(errArray);
+                }
+             });
+          }
         }
 
-        const duration = originalError.errors ? 8000 : 3000;
-        this.notificationService.show(errorMessage, 'error', duration);
+        this.uploadResult = {
+          status: err.status || errObj.status || 422,
+          message: errObj.message || err.message || 'Upload failed',
+          errors: formattedErrors.length > 0 ? formattedErrors : (errObj.errors || [])
+        };
       }
     });
   }
@@ -556,7 +608,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
             checkIn: checkIn || '',
             checkOut: checkOut || '',
             status: status,
-            site: data.remarks || record.site || '',
+            site: data.site_id || '',
             reason: data.remarks || ''
           });
           this.showCorrectionModal = true;
@@ -579,7 +631,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       checkIn: record.checkIn === '--:--' ? '' : (record.checkIn || ''),
       checkOut: record.checkOut === '--:--' ? '' : (record.checkOut || ''),
       status: record.status,
-      site: record.site,
+      site: (record as any).site_id || '',
       reason: ''
     });
     this.showCorrectionModal = true;
@@ -610,6 +662,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     if (newCheckOut) formData.append('check_out', newCheckOut);
     formData.append('attendance_status', newStatus.toLowerCase().replace(' ', '_'));
     if (reason) formData.append('remarks', reason);
+    if (site) formData.append('site_id', site);
     formData.append('employee_id', this.selectedRecord.employee_id?.toString() || '');
     const formattedDate = this.datePipe.transform(this.filterDate, 'yyyy-MM-dd');
     formData.append('date', formattedDate || this.filterDate);
@@ -635,6 +688,8 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   // --- Bulk Upload Modal ---
   openBulkUploadModal() {
     this.showBulkUploadModal = true;
+    this.isUploading = false;
+    this.uploadResult = null;
     this.uploadSummary = { total: 0, success: 0, errors: 0 };
   }
 
@@ -652,6 +707,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       case 'Absent': return 'bg-secondary text-white';
       case 'Leave': return 'bg-info text-white';
       case 'Rest Day': return 'bg-primary text-white';
+      case 'Not Marked': return 'bg-light text-muted border border-secondary';
       default: return 'bg-light text-dark';
     }
   }

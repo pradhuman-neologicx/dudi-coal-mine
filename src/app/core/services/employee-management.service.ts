@@ -12,7 +12,7 @@ export class EmployeeManagementService {
     private http: HttpClient,
     private apiservice: ApiService,
     private jwtService: JwtService
-  ) {}
+  ) { }
 
   private getHeaders(): HttpHeaders {
     const token = this.jwtService.getToken();
@@ -72,8 +72,12 @@ export class EmployeeManagementService {
     return this.apiservice.get(`v1/admin/employee-payrolls`, this.getHeaders(), params);
   }
 
-  getAllEmployees(): Observable<any> {
-    return this.apiservice.get(`v1/employees`, this.getHeaders());
+  getAllEmployees(departmentId?: any): Observable<any> {
+    let params = new HttpParams();
+    if (departmentId) {
+      params = params.set('department_id', String(departmentId));
+    }
+    return this.apiservice.get(`v1/employees`, this.getHeaders(), params);
   }
 
   getActiveEmployees(): Observable<any> {
@@ -106,7 +110,6 @@ export class EmployeeManagementService {
 
   getPayroll(month?: any, year?: any, limit?: any, page?: any, search?: string, departmentId?: any, siteId?: any): Observable<any> {
     let params = new HttpParams();
-
     if (month) params = params.set('month', String(month));
     if (year) params = params.set('year', String(year));
     if (limit && limit !== 'all') {
@@ -142,4 +145,5 @@ export class EmployeeManagementService {
     let params = new HttpParams().set('month', String(month)).set('year', String(year));
     return this.apiservice.get(`v1/admin/payroll/${employeeId}/detail`, this.getHeaders(), params);
   }
+
 }

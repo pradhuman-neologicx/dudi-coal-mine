@@ -10,11 +10,59 @@
         <h1 class="text-2xl font-bold text-gray-800">Safety & Incident Management</h1>
       </div>
       <div class="flex gap-3">
+        <button (click)="openImportModal()"
+          class="bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 flex items-center gap-2 rounded px-4 py-2 shadow-sm transition-colors text-sm font-semibold">
+          <i class="fas fa-file-import text-blue-500"></i> Import
+        </button>
         <button (click)="openModal()"
           class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-sm font-semibold py-2 px-5 rounded flex items-center gap-2 transition-colors">
           <i class="fas fa-plus text-xs"></i> Log New Incident
         </button>
       </div>
+    </div>
+    <!-- Filters Area -->
+    <div class="flex justify-end items-center gap-3 mb-6 flex-wrap">
+      <!-- Shift Dropdown -->
+      <div class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-1 text-sm text-gray-700 min-w-[140px] shadow-sm focus-within:border-[#0f2a4a]">
+        <ng-select [(ngModel)]="filterShift" 
+                   (change)="loadIncidents()" 
+                   [items]="mockShifts" 
+                   bindLabel="shift_name"
+                   bindValue="id" 
+                   placeholder="All Shifts" 
+                   [clearable]="true" 
+                   class="flex-1 font-medium w-full custom-filter-select">
+        </ng-select>
+      </div>
+
+      <!-- Date Range Dropdown -->
+      <!-- <select [(ngModel)]="selectedDateRange" (change)="onDateRangeChange()" class="bg-white border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 font-medium shadow-sm focus:outline-none focus:border-[#0f2a4a]">
+        <option value="">Custom Range</option>
+        <option value="today">Today</option>
+        <option value="last7days">Last 7 Days</option>
+        <option value="thisMonth">This Month</option>
+      </select> -->
+
+      <!-- Date From -->
+      <div class="flex items-center bg-white border border-gray-300 rounded px-3 py-1.5 shadow-sm">
+        <label class="text-[10px] font-bold text-gray-500 mr-2 tracking-wide uppercase">From:</label>
+        <input type="date" [(ngModel)]="filterDateFrom" (change)="selectedDateRange=''; loadIncidents()"
+          class="text-sm text-gray-700 focus:outline-none bg-transparent">
+      </div>
+
+      <!-- Date To -->
+      <div class="flex items-center bg-white border border-gray-300 rounded px-3 py-1.5 shadow-sm">
+        <label class="text-[10px] font-bold text-gray-500 mr-2 tracking-wide uppercase">To:</label>
+        <input type="date" [(ngModel)]="filterDateTo" (change)="selectedDateRange=''; loadIncidents()" [min]="filterDateFrom"
+          class="text-sm text-gray-700 focus:outline-none bg-transparent">
+      </div>
+
+      <!-- Reset Button -->
+      <button *ngIf="filterShift || filterDateFrom || filterDateTo || selectedType || filterLocation"
+        (click)="clearFilters()"
+        class="flex items-center btn-red gap-1 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded shadow-sm text-sm transition-colors h-[34px]">
+        <i class="fa-solid fa-rotate-right"></i>
+      </button>
     </div>
 
     <!-- 3 KPI Cards -->
@@ -122,15 +170,15 @@
         <div class="flex items-center gap-4">
           <h2 class="text-lg font-bold text-[#0f2a4a]">Incident Register</h2>
           <div class="flex items-center gap-2 text-sm text-gray-600 border-l border-gray-300 pl-4 hidden sm:flex">
-            Show
-            <select [(ngModel)]="limit" (change)="onLimitChange()"
-              class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-[#468faf]">
-              <option [value]="10">10</option>
-              <option [value]="25">25</option>
-              <option [value]="50">50</option>
-              <option [value]="100">100</option>
-            </select>
-            entries
+            <span>Show</span>
+            <ng-select class="custom-ng-select min-w-[80px]" 
+                       [items]="tableSizes" 
+                       [clearable]="false" 
+                       [searchable]="false" 
+                       (change)="onLimitChange()"
+                       [(ngModel)]="limit">
+            </ng-select>
+            <span>entries</span>
           </div>
         </div>
         <div class="flex gap-3">
@@ -155,34 +203,28 @@
             <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">DATE TO</label>
             <input type="date"
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-              [(ngModel)]="filterDateTo" (change)="loadIncidents()">
+              [(ngModel)]="filterDateTo" (change)="loadIncidents()" [min]="filterDateFrom">
           </div>
           <div class="flex-1 min-w-[150px]">
             <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">SHIFT</label>
-            <select
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-              [(ngModel)]="filterShift" (change)="loadIncidents()">
-              <option value="">All Shifts</option>
-              <option *ngFor="let s of mockShifts" [value]="s.id">{{s.shift_name}}</option>
-            </select>
+            <ng-select [items]="mockShifts" bindLabel="shift_name" bindValue="id"
+              placeholder="All Shifts" class="custom-ng-select w-full"
+              [(ngModel)]="filterShift" (change)="loadIncidents()" [clearable]="true">
+            </ng-select>
           </div>
           <div class="flex-1 min-w-[150px]">
             <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">LOCATION</label>
-            <select
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-              [(ngModel)]="filterLocation" (change)="loadIncidents()">
-              <option value="">All Locations</option>
-              <option *ngFor="let l of mockLocations" [value]="l.id">{{l.name}}</option>
-            </select>
+            <ng-select [items]="mockLocations" bindLabel="name" bindValue="id"
+              placeholder="All Locations" class="custom-ng-select w-full"
+              [(ngModel)]="filterLocation" (change)="loadIncidents()" [clearable]="true">
+            </ng-select>
           </div>
           <div class="flex-1 min-w-[150px]">
             <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">INCIDENT TYPE</label>
-            <select
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-              [(ngModel)]="selectedType" (change)="loadIncidents()">
-              <option value="">All Types</option>
-              <option *ngFor="let t of mockIncidentTypes" [value]="t.id">{{t.incident_type}}</option>
-            </select>
+            <ng-select [items]="mockIncidentTypes" bindLabel="incident_type" bindValue="id"
+              placeholder="All Types" class="custom-ng-select w-full"
+              [(ngModel)]="selectedType" (change)="loadIncidents()" [clearable]="true">
+            </ng-select>
           </div>
 
           <!-- Clear Button -->
@@ -504,44 +546,43 @@
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident
-                Date</label>
-              <input type="date" [(ngModel)]="newIncidentForm.incident_date"
-                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500">
+                Date & Time <span class="text-red-500">*</span></label>
+              <input type="datetime-local" [(ngModel)]="newIncidentForm.incident_date" (ngModelChange)="onDateChange()"
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Shift</label>
-              <ng-select [items]="mockShifts" bindLabel="shift_name" bindValue="id" placeholder="Select Shift"
-                class="custom-ng-select" [(ngModel)]="newIncidentForm.shift_id">
-              </ng-select>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Shift <span class="text-red-500">*</span></label>
+              <input type="text" [value]="newIncidentForm.shift_name || ''" readonly placeholder="Auto-selected by Date & Time"
+                class="w-full border border-gray-300 bg-gray-100 rounded px-3 py-2 text-sm text-gray-500 focus:outline-none cursor-not-allowed">
             </div>
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident
-                Type</label>
+                Type <span class="text-red-500">*</span></label>
               <ng-select [items]="mockIncidentTypes" bindLabel="incident_type" bindValue="id"
-                placeholder="Select Category" class="custom-ng-select" [(ngModel)]="newIncidentForm.incident_type_id">
+                placeholder="Select Category" class="custom-ng-select w-full" [(ngModel)]="newIncidentForm.incident_type_id">
               </ng-select>
             </div>
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Severity
-                Level</label>
+                Level <span class="text-red-500">*</span></label>
               <ng-select [items]="mockSeverities" bindLabel="name" bindValue="id" placeholder="Select Severity"
-                class="custom-ng-select" [(ngModel)]="newIncidentForm.severity">
+                class="custom-ng-select w-full" [(ngModel)]="newIncidentForm.severity">
               </ng-select>
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Location</label>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Location <span class="text-red-500">*</span></label>
               <ng-select [items]="mockLocations" bindLabel="name" bindValue="id"
-                placeholder="Search and select location..." class="custom-ng-select"
+                placeholder="Search and select location..." class="custom-ng-select w-full"
                 [(ngModel)]="newIncidentForm.location_id">
               </ng-select>
             </div>
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Person(s)
                 Involved</label>
-              <ng-select [items]="mockEmployees" bindLabel="name" bindValue="id"
-                placeholder="Search and select employee..." class="custom-ng-select"
+              <ng-select [items]="activeShiftEmployees" bindLabel="name" bindValue="id"
+                placeholder="Search and select employee..." class="custom-ng-select w-full"
                 [(ngModel)]="newIncidentForm.person_involved_id">
                 <ng-template ng-option-tmp let-item="item">
                   <div class="flex flex-col py-1">
@@ -559,7 +600,7 @@
                 Category</label>
               <ng-select [items]="machineCategories" bindLabel="name" bindValue="id"
                 [(ngModel)]="newIncidentForm.equipment_id" (change)="onMachineCategoryChange($event ? $event.id : null)"
-                placeholder="Select category..." class="custom-ng-select">
+                placeholder="Select category..." class="custom-ng-select w-full">
               </ng-select>
             </div>
             <div>
@@ -567,7 +608,7 @@
                 Name</label>
               <ng-select [items]="machineNames" bindLabel="name" bindValue="id"
                 [(ngModel)]="newIncidentForm.equipment_name_id" placeholder="Select machine name..."
-                class="custom-ng-select" [disabled]="!newIncidentForm.equipment_id">
+                class="custom-ng-select w-full" [disabled]="!newIncidentForm.equipment_id">
               </ng-select>
             </div>
           </div>
@@ -580,7 +621,7 @@
           </div>
           <div>
             <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident
-              Description</label>
+              Description <span class="text-red-500">*</span></label>
             <textarea rows="4" [(ngModel)]="newIncidentForm.incident_description"
               placeholder="Detail the sequence of events, environmental conditions, and immediate findings..."
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"></textarea>
@@ -592,7 +633,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Action
-                Taken</label>
+                Taken <span class="text-red-500">*</span></label>
               <textarea rows="3" placeholder="Immediate corrective actions taken at the scene..."
                 [(ngModel)]="newIncidentForm.action_taken"
                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 resize-none"></textarea>
@@ -663,13 +704,109 @@
         <div class="flex items-center gap-4">
           <button (click)="closeModal()"
             class="text-xs font-bold text-gray-500 hover:text-gray-800 transition-colors tracking-widest uppercase">Cancel</button>
-          <button (click)="saveIncident()"
-            class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold px-6 py-2.5 rounded flex items-center gap-2 transition-colors uppercase tracking-widest shadow">
+          <button (click)="saveIncident()" [disabled]="!isFormValid"
+            class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold px-6 py-2.5 rounded flex items-center gap-2 transition-colors uppercase tracking-widest shadow disabled:opacity-50 disabled:cursor-not-allowed">
             <i class="fas fa-save"></i> Save Incident
           </button>
         </div>
       </div>
+    </div>
+  </div>
 
+  <!-- Import Modal -->
+  <div *ngIf="isImportModalOpen"
+    class="fixed inset-0 bg-[#0f2a4a]/40 z-[110] flex items-center justify-center font-sans p-4 sm:p-6 backdrop-blur-[2px] transition-all duration-300">
+    <div class="bg-white w-full max-w-[600px] flex flex-col rounded-xl shadow-2xl relative border border-gray-100 animate-fade-in-up">
+      
+      <!-- Header -->
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50/80">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-lg shadow-sm">
+            <i class="fas fa-file-excel"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-gray-800 tracking-tight">Import Incidents</h2>
+            <p class="text-xs text-gray-500">Upload an Excel file to import incident records</p>
+          </div>
+        </div>
+        <button (click)="closeImportModal()" class="w-8 h-8 rounded bg-white border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-all shadow-sm">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6">
+        <!-- File Upload Area -->
+        <div *ngIf="!importResult" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors relative cursor-pointer group"
+             (click)="importFileInputRef.click()">
+          <input type="file" #importFileInputRef (change)="onImportFileSelected($event)" accept=".xlsx, .xls, .csv" class="hidden">
+          
+          <div *ngIf="isImporting" class="flex flex-col items-center justify-center space-y-3">
+            <div class="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+            <p class="text-sm font-bold text-gray-600">Uploading and Processing...</p>
+          </div>
+
+          <div *ngIf="!isImporting" class="flex flex-col items-center justify-center">
+            <div class="w-16 h-16 bg-white group-hover:bg-blue-50 rounded-full flex items-center justify-center shadow-sm mb-4 transition-colors">
+              <i class="fas fa-cloud-upload-alt text-3xl text-blue-500"></i>
+            </div>
+            <p class="text-base font-bold text-gray-700 mb-1">Click to browse or drag and drop</p>
+            <p class="text-xs text-gray-500 mb-4">
+              Support for Excel (.xlsx) and CSV files<br>
+              <a href="assets/bulk_incidents.xlsx" download class="text-blue-600 hover:text-blue-800 hover:underline mt-2 inline-block font-semibold">
+                <i class="fas fa-download mr-1"></i>Download Sample File
+              </a>
+            </p>
+            <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-lg transition-colors shadow-sm">
+              Select File
+            </button>
+          </div>
+        </div>
+
+        <!-- Result Area -->
+        <div *ngIf="importResult" class="space-y-4">
+          <!-- Success State -->
+          <div *ngIf="importResult.status === 'success'" class="bg-green-50 border border-green-200 rounded-xl p-6 text-center shadow-inner">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-check text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-green-800 mb-2">{{ importResult.message }}</h3>
+            <p class="text-sm text-green-600">All records have been imported successfully.</p>
+          </div>
+
+          <!-- Error State -->
+          <div *ngIf="importResult.status !== 'success'" class="bg-red-50 border border-red-200 rounded-xl p-5 shadow-inner">
+             <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm text-red-500">
+                  <i class="fas fa-exclamation-triangle text-2xl"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-red-800">{{ importResult.message || 'Import process completed with errors.' }}</h3>
+                  <p class="text-xs mt-1 font-medium text-red-600">The following issues were encountered during the import process:</p>
+                </div>
+             </div>
+             
+             <!-- Error List -->
+             <div *ngIf="importResult.errors && importResult.errors.length > 0" class="bg-white rounded-lg border border-red-100 p-4 max-h-56 overflow-y-auto custom-scrollbar shadow-sm">
+                <ul class="space-y-2.5">
+                  <li *ngFor="let err of importResult.errors" class="text-sm text-red-600 flex items-start gap-2.5 bg-red-50/50 p-2 rounded">
+                    <i class="fas fa-circle text-[6px] mt-2 flex-shrink-0 text-red-400"></i>
+                    <span class="font-medium leading-snug">{{ err }}</span>
+                  </li>
+                </ul>
+             </div>
+          </div>
+
+          <div class="flex justify-end pt-4 mt-2">
+            <button (click)="importResult = null" *ngIf="importResult.status !== 'success'" class="mr-4 text-sm font-bold text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-widest">
+              Try Again
+            </button>
+            <button (click)="closeImportModal()" class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold py-2.5 px-6 rounded shadow-sm transition-colors uppercase tracking-widest">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 

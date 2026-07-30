@@ -30,6 +30,10 @@ export class IncidentTypeService {
     return this.apiService.get('v1/admin/incident-types', this.getHeaders(), params);
   }
 
+  getIncidentTypeById(id: any): Observable<any> {
+    return this.apiService.get(`v1/admin/incident-types/${id}`, this.getHeaders());
+  }
+
   createIncidentType(body: any): Observable<any> {
     return this.apiService.post('v1/admin/incident-types', body, this.getHeaders());
   }

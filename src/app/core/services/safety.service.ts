@@ -62,4 +62,8 @@ export class SafetyService {
     return this.apiService.get(`v1/machine-names/${categoryId}`, this.getHeaders());
   }
 
+  importIncidents(formData: FormData): Observable<any> {
+    return this.apiService.post('v1/admin/incidents/import', formData, this.getHeaders());
+  }
+
 }

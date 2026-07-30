@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -17,7 +18,7 @@ export interface BreakdownType {
 @Component({
   selector: 'app-breakdown-type',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPaginationModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPaginationModule, NgSelectModule],
   templateUrl: './breakdown-type.component.html',
   styleUrl: './breakdown-type.component.scss',
   animations: [
@@ -41,7 +42,7 @@ export class BreakdownTypeComponent implements OnInit, OnDestroy {
   page: number = 1;
   totalRecords: number = 0;
   tableSize: any = 10;
-  tableSizes: any = [10, 25, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
 
   searchbarform!: FormGroup;
   filterStatus: string = '';
@@ -130,7 +131,8 @@ export class BreakdownTypeComponent implements OnInit, OnDestroy {
   }
 
   onTableSizeChange(event: any): void {
-    this.tableSize = event.target.value === 'all' ? 'all' : Number(event.target.value);
+    const value = event && event.target ? event.target.value : event;
+    this.tableSize = value === 'all' ? 'all' : Number(value);
     this.page = 1;
     this.GetBreakdownTypesFun();
   }

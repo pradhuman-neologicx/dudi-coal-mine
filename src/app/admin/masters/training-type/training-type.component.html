@@ -11,12 +11,16 @@
   <div class="card border-0 my-4 px-4 py-4">
     <!-- Top Controls -->
     <div class="row align-items-center mb-3 g-2">
-      <div class="col-md-2 d-flex align-items-center">
-        <span class="me-1 show-entery-text">Show</span>
-        <select class="form-control form-select show-entries-select mx-1" (change)="onTableSizeChange($event)">
-          <option *ngFor="let size of tableSizes" [ngValue]="size">{{ size }}</option>
-        </select>
-        <span class="ms-1 show-entery-text">entries</span>
+      <div class="col-md-2 d-flex align-items-center gap-2">
+        <span class="show-entery-text">Show</span>
+        <ng-select [items]="tableSizes" 
+                   [(ngModel)]="tableSize" 
+                   (change)="onTableSizeChange($event)" 
+                   [clearable]="false" 
+                   [searchable]="false" 
+                   class="custom-ng-select min-w-[80px]">
+        </ng-select>
+        <span class="show-entery-text">entries</span>
       </div>
 
       <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">
@@ -58,8 +62,8 @@
           </thead>
           <tbody>
             <tr
-              *ngFor="let t of displayTypes | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
-              <td>{{ (page - 1) * (tableSize === 'all' ? 0 : tableSize) + i + 1 }}</td>
+              *ngFor="let t of displayTypes | paginate : { itemsPerPage: tableSize, currentPage: page, totalItems: totalRecords }; index as i">
+              <td>{{ (page - 1) * tableSize + i + 1 }}</td>
               <td>{{ t.name }}</td>
               <td>
                 <span [ngClass]="{'active-status': t.is_active == 1, 'deactive-status': t.is_active != 1}">
@@ -91,11 +95,11 @@
 
       <!-- Card View for below lg -->
       <div class="lg:hidden space-y-4">
-        <div *ngFor="let t of displayTypes | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div *ngFor="let t of displayTypes | paginate : { itemsPerPage: tableSize, currentPage: page, totalItems: totalRecords }; index as i" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
             <div>
               <strong>Sr No:</strong>
-              {{ (page - 1) * (tableSize === 'all' ? 0 : tableSize) + i + 1 }}
+              {{ (page - 1) * tableSize + i + 1 }}
             </div>
             <div>
               <div class="d-flex align-items-center gap-2">

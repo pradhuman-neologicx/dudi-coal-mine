@@ -1,0 +1,94 @@
+<div class="container mb-4">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+    <div>
+      <h1 class="text-primary table-heading-detail mb-1">Master Relay Settings</h1>
+      <p class="text-muted mb-0 fs-6">Define and manage relay shift rotations for the system.</p>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-3 my-4 p-4 bg-white">
+    <form [formGroup]="relayForm" (ngSubmit)="saveSettings()">
+      
+      <!-- Global Settings -->
+      <h5 class="fw-bold text-dark mb-3 border-bottom pb-2">Global Settings</h5>
+      <div class="row mb-5">
+        <div class="col-md-4">
+          <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Rotation Start Date (Base Date) <span class="text-danger">*</span></label>
+          <div class="input-group" style="height: 42px;">
+            <span class="input-group-text bg-light text-muted border-end-0 py-2 d-flex align-items-center">
+              <i class="fa-solid fa-calendar-day"></i>
+            </span>
+            <input type="date" class="form-control border-start-0 ps-0 py-2 h-100" formControlName="baseDate">
+          </div>
+          <small class="text-muted fs-9 mt-1 d-block">The date from which weekly rotations will be calculated.</small>
+        </div>
+      </div>
+
+      <!-- Relay Sequences Builder -->
+      <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+        <h5 class="fw-bold text-dark mb-0">Relay Shift Rotations</h5>
+        <button type="button" class="btn btn-sm btn-outline-primary fw-semibold rounded-pill px-3" (click)="addRelay()">
+          <i class="fa-solid fa-plus me-1"></i> Add New Relay
+        </button>
+      </div>
+
+      <div formArrayName="relays">
+        <div *ngFor="let relay of relays.controls; let i=index" [formGroupName]="i" class="card border-light-subtle bg-light mb-4 shadow-sm">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom-0 rounded-top-3">
+            <div class="d-flex align-items-center gap-3 w-50">
+              <input type="text" class="form-control fw-bold text-primary border-0 bg-transparent fs-5 px-0 shadow-none" formControlName="relayName" placeholder="Enter Relay Name (e.g. Relay 1)">
+            </div>
+            <button type="button" class="btn btn-sm text-danger bg-danger-subtle border-0 rounded-pill px-3" (click)="removeRelay(i)" title="Remove Relay">
+              <i class="fa-solid fa-trash me-1"></i> Remove
+            </button>
+          </div>
+          
+          <div class="card-body pt-2 pb-4">
+            <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-3">Shift Sequence (Weekly Rotation)</label>
+            <div class="d-flex align-items-center flex-wrap gap-2" formArrayName="sequence">
+              
+              <ng-container *ngFor="let step of getSequence(i).controls; let j=index">
+                <!-- Step Dropdown -->
+                <div class="position-relative">
+                  <select class="form-select fw-semibold text-dark shadow-sm border-gray-300" [formControlName]="j" style="width: 140px; border-radius: 8px; cursor: pointer;">
+                    <option *ngFor="let shift of availableShifts" [value]="shift">{{ shift }}</option>
+                  </select>
+                  <button *ngIf="getSequence(i).length > 1" type="button" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border-0 hover-up" style="padding: 5px 7px; z-index: 10;" (click)="removeStep(i, j)" title="Remove Step">
+                    <i class="fa-solid fa-xmark fs-9"></i>
+                  </button>
+                </div>
+
+                <!-- Arrow Separator -->
+                <i class="fa-solid fa-arrow-right text-muted fs-6 mx-2" *ngIf="j < getSequence(i).length - 1"></i>
+              </ng-container>
+
+              <!-- Add Step Button -->
+              <button type="button" class="btn btn-outline-secondary rounded-pill d-flex align-items-center gap-1 ms-3 border-dashed" (click)="addStep(i)">
+                <i class="fa-solid fa-plus fs-9"></i> Add Step
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="relays.length === 0" class="text-center py-5 bg-light rounded-3 mb-4 border" style="border-style: dashed !important;">
+        <i class="fa-solid fa-layer-group display-4 text-muted mb-3 opacity-50"></i>
+        <h5 class="text-dark fw-bold">No Relays Configured</h5>
+        <p class="text-muted fs-7">Click the "Add New Relay" button to start creating shift rotation sequences.</p>
+        <button type="button" class="btn btn-primary rounded-pill mt-2" (click)="addRelay()">
+          <i class="fa-solid fa-plus me-1"></i> Add Relay
+        </button>
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="d-flex justify-content-end gap-3 border-top pt-4 mt-2">
+        <button type="submit" class="btn btn-primary px-5 py-2.5 fw-bold rounded-pill shadow-sm hover-up" [disabled]="relayForm.invalid">
+          <i class="fa-solid fa-floppy-disk me-2"></i> Save Configuration
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>

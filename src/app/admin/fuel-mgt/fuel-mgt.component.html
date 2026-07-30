@@ -1,95 +1,85 @@
 <div class="px-3 py-2 min-h-screen font-sans">
 
-  <!-- Header -->
-  <div class="flex justify-between items-start mb-6">
+  <div class="flex justify-between items-start mb-4">
     <div>
       <h1 class="text-2xl font-bold text-gray-800 mb-1">Fuel Management</h1>
       <p class="text-gray-500 text-sm">Monitor fuel consumption, trends and daily registers.</p>
     </div>
-  </div>
-  <!-- Top Filter Bar -->
-  <div class="bg-white border border-gray-200 rounded shadow-sm mb-6 flex justify-between items-center p-3">
-    <div class="flex items-center space-x-6 text-sm text-gray-700">
-      <div class="flex items-center gap-2 border-r border-gray-200 pr-6">
-        <i class="far fa-calendar-alt text-gray-400 text-lg"></i>
-        <div>
-          <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Date Range</div>
-          <div class="relative flex items-center">
-            <select [(ngModel)]="topDateRange"
-              class="font-semibold cursor-pointer flex items-center gap-1 bg-transparent outline-none appearance-none text-sm text-[#0f2a4a] pr-4 relative z-10 w-full">
-              <option value="Today">Today</option>
-              <option value="Last 7 Days">Last 7 Days</option>
-              <option value="This Month">This Month</option>
-              <option value="This Year">This Year</option>
-            </select>
-            <i class="fas fa-chevron-down text-[10px] absolute right-0 pointer-events-none text-gray-500"></i>
-          </div>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 border-r border-gray-200 pr-6">
-        <i class="far fa-clock text-gray-400 text-lg"></i>
-        <div>
-          <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Shift</div>
-          <div class="relative flex items-center">
-            <select [(ngModel)]="topShift"
-              class="font-semibold cursor-pointer flex items-center gap-1 bg-transparent outline-none appearance-none text-sm text-[#0f2a4a] pr-4 relative z-10 w-full">
-              <option value="All Shifts">All Shifts</option>
-              <option value="Shift A">Shift A</option>
-              <option value="Shift B">Shift B</option>
-              <option value="Shift C">Shift C</option>
-            </select>
-            <i class="fas fa-chevron-down text-[10px] absolute right-0 pointer-events-none text-gray-500"></i>
-          </div>
-        </div>
-      </div>
-      <!-- <div class="flex items-center gap-2">
-        <i class="fas fa-map-marker-alt text-gray-400 text-lg"></i>
-        <div>
-          <div class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Fuel Station</div>
-          <div class="relative flex items-center">
-            <select [(ngModel)]="topLocation"
-              class="font-semibold cursor-pointer flex items-center gap-1 bg-transparent outline-none appearance-none text-sm text-[#0f2a4a] pr-4 relative z-10 w-full">
-              <option value="All Locations">All Locations</option>
-              <option value="North Station">North Station</option>
-              <option value="South Station">South Station</option>
-              <option value="Mobile Fueler 1">Mobile Fueler 1</option>
-            </select>
-            <i class="fas fa-chevron-down text-[10px] absolute right-0 pointer-events-none text-gray-500"></i>
-          </div>
-        </div>
-      </div> -->
+    <div class="flex items-center gap-2 ml-2">
+      <button (click)="openImportModal()"
+        class="bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 flex items-center gap-2 rounded px-4 py-2 shadow-sm transition-colors text-sm font-semibold">
+        <i class="fas fa-file-import text-blue-500"></i> Import
+      </button>
     </div>
-    <button (click)="updateDashboard()"
-      class="bg-gray-200 hover:bg-gray-300 text-gray-800 text-sm font-semibold py-2 px-5 rounded flex items-center gap-2 transition-colors">
-      <i class="fas fa-redo text-xs" [ngClass]="{'animate-spin': isUpdating}"></i> Update View
+  </div>
+
+  <!-- Filters Area -->
+  <div class="flex justify-end items-center gap-3 mb-6 flex-wrap">
+    <!-- Shift Dropdown -->
+    <div class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-1 text-sm text-gray-700 min-w-[140px] shadow-sm focus-within:border-[#0f2a4a]">
+      <ng-select [items]="filterShifts" 
+                 bindLabel="shift_name" 
+                 bindValue="id" 
+                 [(ngModel)]="selectedShift"
+                 (change)="fetchFuelData()" 
+                 placeholder="All Shifts" 
+                 [clearable]="true" 
+                 class="flex-1 font-medium w-full custom-filter-select">
+      </ng-select>
+    </div>
+
+    <!-- Date Range Dropdown -->
+    <!-- <select [(ngModel)]="topDateRange" (change)="fetchFuelData()" class="bg-white border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 font-medium shadow-sm focus:outline-none focus:border-[#0f2a4a]">
+      <option value="">Custom Range</option>
+      <option *ngFor="let option of dateRangeOptions" [value]="option.value">{{ option.label }}</option>
+    </select> -->
+
+    <!-- Date From -->
+    <div class="flex items-center bg-white border border-gray-300 rounded px-3 py-1.5 shadow-sm">
+      <label class="text-[10px] font-bold text-gray-500 mr-2 tracking-wide uppercase">From:</label>
+      <input type="date" [(ngModel)]="fromDate" (change)="topDateRange=''; fetchFuelData()"
+        class="text-sm text-gray-700 focus:outline-none bg-transparent">
+    </div>
+
+    <!-- Date To -->
+    <div class="flex items-center bg-white border border-gray-300 rounded px-3 py-1.5 shadow-sm">
+      <label class="text-[10px] font-bold text-gray-500 mr-2 tracking-wide uppercase">To:</label>
+      <input type="date" [(ngModel)]="toDate" (change)="topDateRange=''; fetchFuelData()" [min]="fromDate"
+        class="text-sm text-gray-700 focus:outline-none bg-transparent">
+    </div>
+
+    <!-- Reset Button -->
+    <button *ngIf="selectedShift || fromDate || toDate" (click)="clearFilters()"
+      class="flex items-center btn-red gap-1 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded shadow-sm text-sm transition-colors h-[34px]">
+      <i class="fa-solid fa-rotate-right"></i>
     </button>
   </div>
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
     <!-- Card 1 -->
     <div class="bg-white border border-gray-200 rounded shadow-sm p-5 relative overflow-hidden">
       <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-3 flex justify-between">
         TOTAL FUEL ISSUED
         <i class="fas fa-gas-pump text-[#0f2a4a] text-xl"></i>
       </div>
-      <div class="text-4xl font-bold text-[#0f2a4a] mb-2">5,000 <span
+      <div class="text-4xl font-bold text-[#0f2a4a] mb-2">{{ summaryStats.total_fuel_issued | number }} <span
           class="text-sm font-normal text-gray-500">Liters</span></div>
-      <div class="text-sm font-semibold text-green-600 flex items-center gap-1">
+      <!-- <div class="text-sm font-semibold text-green-600 flex items-center gap-1">
         <i class="fas fa-arrow-trend-up"></i> +4.2% vs Yesterday
-      </div>
+      </div> -->
     </div>
     <!-- Card 2 -->
     <div class="bg-white border border-gray-200 rounded shadow-sm p-5 relative overflow-hidden">
       <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-3 flex justify-between">
-        CURRENT CONSUMPTION
+        Total Fuel Consumed
         <i class="far fa-check-circle text-green-500 text-xl"></i>
       </div>
-      <div class="text-4xl font-bold text-[#0f2a4a] mb-2">4,812 <span
+      <div class="text-4xl font-bold text-[#0f2a4a] mb-2">{{ summaryStats.total_fuel_consumption | number }} <span
           class="text-sm font-normal text-gray-500">Liters</span></div>
-      <div class="text-sm font-semibold text-green-600 flex items-center gap-1">
+      <!-- <div class="text-sm font-semibold text-green-600 flex items-center gap-1">
         <i class="fas fa-arrow-trend-down"></i> -1.1% Target Variance
-      </div>
+      </div> -->
     </div>
     <!-- Card 3 -->
     <div class="bg-white border border-gray-200 rounded shadow-sm p-5 relative overflow-hidden">
@@ -97,27 +87,58 @@
         FUEL PER BCM
         <i class="fas fa-chart-bar text-[#0f2a4a] text-xl"></i>
       </div>
-      <div class="text-4xl font-bold text-[#0f2a4a] mb-2">0.85 <span
-          class="text-sm font-normal text-gray-500">L/BCM</span></div>
-      <div class="text-sm font-semibold text-green-600 flex items-center gap-1">
+      <div class="text-4xl font-bold text-[#0f2a4a] mb-2">{{ (summaryStats.average_fuel_per_bcm || 0) | number:'1.2-2'
+        }} <span class="text-sm font-normal text-gray-500">L/BCM</span></div>
+      <!-- <div class="text-sm font-semibold text-green-600 flex items-center gap-1">
         <i class="fas fa-check-circle text-xs"></i> Optimum Efficiency Zone
+      </div> -->
+    </div>
+    <!-- Card 4: Active Machines Refueled -->
+    <div class="bg-white border border-gray-200 rounded shadow-sm p-5 relative overflow-hidden">
+      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-3 flex justify-between">
+        Active Machines Refueled
+        <i class="fas fa-truck-monster text-indigo-500 text-xl"></i>
       </div>
+      <div class="text-4xl font-bold text-[#0f2a4a] mb-2">{{ summaryStats.active_machines_refueled | number }} <span
+          class="text-sm font-normal text-gray-500">Machines</span></div>
     </div>
   </div>
 
-  <!-- Main Grid Content -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Left Column: Trends -->
-    <div class="bg-white border border-gray-200 rounded shadow-sm p-6 lg:col-span-1 flex flex-col">
+  <!-- Charts Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <!-- Chart 1: Fuel Consumption Trend -->
+    <div class="bg-white border border-gray-200 rounded shadow-sm p-6 flex flex-col">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h2 class="text-lg font-bold text-[#0f2a4a] mb-1 leading-tight">Fuel Consumption Trend</h2>
+          <p class="text-xs text-gray-500">Monitor fuel usage trend over time</p>
+        </div>
+      </div>
+      <div class="flex-1 relative mb-2 mt-2 min-h-[250px]">
+        <canvas id="fuelTrendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 2: Fuel Consumption by Machine Type -->
+    <div class="bg-white border border-gray-200 rounded shadow-sm p-6 flex flex-col">
+      <div class="flex justify-between items-start mb-6">
+        <div>
+          <h2 class="text-lg font-bold text-[#0f2a4a] mb-1 leading-tight">Consumption by Type</h2>
+          <p class="text-xs text-gray-500">Identify equipment category consuming most fuel</p>
+        </div>
+      </div>
+      <div class="flex-1 relative mb-2 mt-2 min-h-[250px] flex justify-center items-center">
+        <canvas id="fuelMachineChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 3: Fuel Efficiency by Machine (Existing) -->
+    <div class="bg-white border border-gray-200 rounded shadow-sm p-6 flex flex-col">
       <div class="flex justify-between items-start mb-6">
         <div>
           <h2 class="text-lg font-bold text-[#0f2a4a] mb-1 leading-tight">Machine Fuel Efficiency<br>Trends</h2>
           <p class="text-xs text-gray-500">Daily Liter per BCM (Bank Cubic Meter) metric</p>
         </div>
-        <select
-          class="border border-gray-300 text-gray-700 text-xs rounded px-2 py-1.5 outline-none focus:border-[#0f2a4a]">
-          <option>Last 7 Days</option>
-        </select>
       </div>
       <!-- Chart Area -->
       <div class="flex-1 relative ml-4 mb-6 mt-4 min-h-[250px]">
@@ -133,14 +154,26 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Right Column: Register Table -->
-    <div class="bg-white border border-gray-200 rounded shadow-sm flex flex-col lg:col-span-2">
+  <!-- Register Table Section -->
+  <div class="grid grid-cols-1 gap-6">
+    <div class="bg-white border border-gray-200 rounded shadow-sm flex flex-col">
       <!-- Header -->
-      <div class="flex justify-between items-center px-5 py-4 border-b border-gray-200">
+      <div class="flex flex-wrap justify-between items-center px-5 py-4 border-b border-gray-200 gap-4">
         <div class="flex items-center gap-4">
           <h2 class="text-lg font-bold text-[#0f2a4a]">Daily Fuel Register</h2>
-          <span class="bg-gray-100 text-gray-500 text-[10px] font-bold uppercase px-2 py-1 rounded">SHIFT_B_LOG</span>
+          <div class="flex items-center gap-2 text-sm text-gray-600 border-l border-gray-300 pl-4 hidden sm:flex">
+            <span>Show</span>
+            <ng-select class="custom-ng-select min-w-[80px]" 
+                       [items]="tableSizes" 
+                       [clearable]="false" 
+                       [searchable]="false" 
+                       (change)="onTableSizeChange()"
+                       [(ngModel)]="tableSize">
+            </ng-select>
+            <span>entries</span>
+          </div>
         </div>
         <div class="flex gap-2">
           <!-- <button routerLink="/admin/fuel-mgt/report"
@@ -160,30 +193,26 @@
       </div>
 
       <!-- Filter Dropdown -->
-      <div *ngIf="isFilterOpen"
-        class="bg-gray-50 border-b border-gray-200 px-5 py-4 transition-all">
+      <div *ngIf="isFilterOpen" class="bg-gray-50 border-b border-gray-200 px-5 py-4 transition-all">
         <div class="flex flex-col gap-4">
           <div class="flex gap-4 items-end">
             <div class="flex-1">
               <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">MACHINE TYPE</label>
-              <select
-                class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-                [(ngModel)]="selectedMachine">
-                <option value="">All Machines</option>
-                <option value="Komatsu">Komatsu</option>
-                <option value="CAT">CAT</option>
-              </select>
+              <ng-select [items]="machineCategories" bindLabel="category_name" bindValue="category_id"
+                placeholder="All Machines" [(ngModel)]="selectedMachine" (change)="fetchFuelData()" [clearable]="true"
+                class="custom-ng-select w-full">
+                <ng-template ng-label-tmp let-item="item">{{ item.name || item.category_name }}</ng-template>
+                <ng-template ng-option-tmp let-item="item">{{ item.name || item.category_name }}</ng-template>
+              </ng-select>
             </div>
             <div class="flex-1">
               <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">SHIFT</label>
-              <select
-                class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-                [(ngModel)]="selectedShift">
-                <option value="">All Shifts</option>
-                <option value="Shift A">Shift A</option>
-                <option value="Shift B">Shift B</option>
-                <option value="Shift C">Shift C</option>
-              </select>
+              <ng-select [items]="filterShifts" bindLabel="shift_name" bindValue="id" placeholder="All Shifts"
+                [(ngModel)]="selectedShift" (change)="fetchFuelData()" [clearable]="true"
+                class="custom-ng-select w-full">
+                <ng-template ng-label-tmp let-item="item">{{ item.shift_name || item.name }}</ng-template>
+                <ng-template ng-option-tmp let-item="item">{{ item.shift_name || item.name }}</ng-template>
+              </ng-select>
             </div>
           </div>
           <div class="flex gap-4 items-end">
@@ -191,13 +220,13 @@
               <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">FROM DATE</label>
               <input type="date"
                 class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-                [(ngModel)]="fromDate">
+                [(ngModel)]="fromDate" (ngModelChange)="fetchFuelData()">
             </div>
             <div class="flex-1">
               <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">TO DATE</label>
-              <input type="date"
+              <input type="date" [min]="fromDate"
                 class="w-full border border-gray-300 rounded px-3 py-1.5 text-sm text-gray-700 focus:outline-none focus:border-[#0f2a4a]"
-                [(ngModel)]="toDate">
+                [(ngModel)]="toDate" (ngModelChange)="fetchFuelData()">
             </div>
             <div>
               <button (click)="clearFilters()"
@@ -213,6 +242,7 @@
           <thead class="text-[10px] text-gray-500 font-bold uppercase bg-gray-50 border-b border-gray-200">
             <tr>
               <th class="p-2">MACHINE ID</th>
+              <th class="p-2">SHIFT & DATE</th>
               <th class="p-2">OPENING FUEL (L)</th>
               <th class="p-2">FUEL ISSUED (L)</th>
               <th class="p-2">CLOSING FUEL (L)</th>
@@ -226,6 +256,10 @@
               <td class="p-2">
                 <div class="font-bold text-[#0f2a4a]">{{item.machineId}}</div>
                 <div class="text-[11px] text-gray-500">{{item.machineDesc}}</div>
+              </td>
+              <td class="p-2">
+                <div class="font-bold text-[#0f2a4a]">{{item.shiftName}}</div>
+                <div class="text-[11px] text-gray-500">{{item.date | date:'dd MMM yyyy, HH:mm'}}</div>
               </td>
               <td class="p-2">{{item.opening | number}}</td>
               <td class="p-2">{{item.issued | number}}</td>
@@ -246,6 +280,10 @@
                   <!-- <button class="text-blue-900 hover:text-blue-800 transition-colors" title="View Details">
                     <i class="fas fa-eye text-sm"></i>
                   </button> -->
+                  <button (click)="openViewModal(item)" class="text-blue-600 hover:text-blue-800 transition-colors"
+                    title="View Details">
+                    <i class="fas fa-eye text-sm"></i>
+                  </button>
                   <button (click)="openEditModal(item)" class="text-green-600 hover:text-green-800 transition-colors"
                     title="Edit Record">
                     <i class="fas fa-edit text-sm"></i>
@@ -258,14 +296,21 @@
       </div>
       <!-- Pagination -->
       <div class="flex justify-between items-center px-5 py-3 border-t border-gray-200 bg-gray-50">
-        <div class="text-xs text-gray-500">Showing 5 of 48 active machines</div>
+        <div class="text-xs text-gray-500 font-medium">
+          Showing <span class="font-bold text-gray-700">{{pagination.from || 0}}</span> to <span
+            class="font-bold text-gray-700">{{pagination.to || 0}}</span> of <span
+            class="font-bold text-gray-700">{{pagination.total || 0}}</span> entries
+          <span class="ml-2 pl-2 border-l border-gray-300">Page <span
+              class="font-bold text-gray-700">{{currentPage}}</span> of <span
+              class="font-bold text-gray-700">{{pagination.last_page || 1}}</span></span>
+        </div>
         <div class="flex gap-1">
-          <button
-            class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-500 hover:bg-gray-100">
+          <button (click)="changePage(currentPage - 1)" [disabled]="currentPage === 1"
+            class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             <i class="fas fa-chevron-left text-[10px]"></i>
           </button>
-          <button
-            class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-500 hover:bg-gray-100">
+          <button (click)="changePage(currentPage + 1)" [disabled]="currentPage === pagination.last_page"
+            class="w-7 h-7 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             <i class="fas fa-chevron-right text-[10px]"></i>
           </button>
         </div>
@@ -275,8 +320,8 @@
 
   <!-- Log Fuel Issue Modal -->
   <div *ngIf="isModalOpen"
-    class="fixed inset-0 bg-[#0f2a4a]/80 z-[100] flex items-center justify-center font-sans overflow-y-auto py-10 backdrop-blur-sm">
-    <div class="bg-white w-full max-w-2xl rounded-md shadow-2xl overflow-hidden relative">
+    class="fixed inset-0 bg-[#0f2a4a]/80 z-[100] flex items-center justify-center font-sans py-4 backdrop-blur-sm px-4">
+    <div class="bg-white w-full max-w-2xl rounded-md shadow-2xl flex flex-col max-h-[95vh] relative mx-auto">
       <!-- Modal Header -->
       <div class="bg-[#0f2a4a] px-6 py-4 flex justify-between items-center text-white">
         <div class="flex items-center gap-4">
@@ -295,7 +340,7 @@
       </div>
 
       <!-- Modal Body -->
-      <div class="px-8 py-6 space-y-6">
+      <div class="px-4 sm:px-8 py-6 space-y-6 overflow-y-auto flex-1">
 
         <!-- Section: Shift & Timing -->
         <div>
@@ -303,22 +348,20 @@
             <div class="w-1 h-3 bg-[#0f2a4a]"></div>
             <h3 class="text-[10px] font-bold text-gray-500 tracking-widest uppercase">Shift & Timing</h3>
           </div>
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Date</label>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Date & Time <span class="text-red-500">*</span></label>
               <div class="relative">
-                <input type="date" [(ngModel)]="formData.date" [max]="maxDate"
-                  class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
+                <input type="datetime-local" [(ngModel)]="formData.date" (ngModelChange)="onDateChange()"
+                  class="w-full border rounded px-4 py-2.5 text-sm text-gray-700 outline-none transition-colors"
+                  [ngClass]="isFormSubmitted && !formData.date ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300 focus:border-[#0f2a4a]'">
               </div>
+              <p *ngIf="isFormSubmitted && !formData.date" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Date & Time is required</p>
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Shift</label>
-              <select [(ngModel)]="formData.shift"
-                class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#0f2a4a] appearance-none bg-white">
-                <option>Shift A (06:00 - 14:00)</option>
-                <option>Shift B (14:00 - 22:00)</option>
-                <option>Shift C (22:00 - 06:00)</option>
-              </select>
+              <input type="text" [value]="shiftName" readonly placeholder="Auto-selected by Date & Time"
+                class="w-full border border-gray-300 bg-gray-100 rounded px-4 py-2.5 text-sm text-gray-500 focus:outline-none cursor-not-allowed">
             </div>
           </div>
         </div>
@@ -330,13 +373,17 @@
             <h3 class="text-[10px] font-bold text-gray-500 tracking-widest uppercase">Equipment Details</h3>
           </div>
           <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">Machine No. & Name</label>
-            <div class="relative">
-              <i class="fas fa-tools absolute left-4 top-3 text-gray-400"></i>
-              <input type="text" [(ngModel)]="formData.machineId"
-                placeholder="Search by ID or Model (e.g., EX-401, D-155)..."
-                class="w-full border border-gray-300 rounded pl-10 pr-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]">
-            </div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Machine No. & Name <span class="text-red-500">*</span></label>
+            <ng-select [items]="machinesList" bindLabel="machine_name" bindValue="machine_id"
+              [placeholder]="machinesList.length === 0 ? 'No machines available' : 'Select Asset'"
+              [(ngModel)]="formData.machineId" [disabled]="machinesList.length === 0" [clearable]="true"
+              class="custom-ng-select w-full"
+              [ngClass]="{'border border-red-500 rounded': isFormSubmitted && !formData.machineId}">
+              <ng-template ng-label-tmp let-item="item">{{ item.machine_name }} - {{ item.category_name }}</ng-template>
+              <ng-template ng-option-tmp let-item="item">{{ item.machine_name }} - {{ item.category_name
+                }}</ng-template>
+            </ng-select>
+            <p *ngIf="isFormSubmitted && !formData.machineId" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Machine is required</p>
           </div>
         </div>
 
@@ -346,7 +393,7 @@
             <div class="w-1 h-3 bg-[#0f2a4a]"></div>
             <h3 class="text-[10px] font-bold text-gray-500 tracking-widest uppercase">Fuel Readings</h3>
           </div>
-          <div class="grid grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Opening Fuel</label>
               <div class="relative">
@@ -357,49 +404,87 @@
               </div>
             </div>
             <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Fuel Issued</label>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Fuel Issued <span class="text-red-500">*</span></label>
               <div class="relative">
                 <input type="number" [(ngModel)]="formData.issued"
-                  class="w-full border border-gray-300 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]">
+                  class="w-full border rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold transition-colors"
+                  [ngClass]="isFormSubmitted && (formData.issued === null || formData.issued === undefined || formData.issued === '') ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300 focus:border-[#0f2a4a]'">
                 <span
                   class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
               </div>
+              <p *ngIf="isFormSubmitted && (formData.issued === null || formData.issued === undefined || formData.issued === '')" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Fuel Issued is required</p>
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Closing Fuel</label>
               <div class="relative">
                 <input type="number" [(ngModel)]="formData.closing"
-                  class="w-full border border-gray-300 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]">
+                  class="w-full border rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold transition-colors"
+                  [ngClass]="isClosingFuelInvalid ? 'border-red-500 focus:border-red-500 bg-red-50 text-red-700' : 'border-gray-300 focus:border-[#0f2a4a]'">
                 <span
-                  class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
+                  class="absolute right-3 top-3 text-[10px] tracking-widest pointer-events-none"
+                  [ngClass]="isClosingFuelInvalid ? 'text-red-400' : 'text-gray-400'">LITERS</span>
+              </div>
+              <p *ngIf="isClosingFuelInvalid" class="text-xs text-red-500 mt-1 font-medium">Cannot exceed Opening + Issued</p>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-[#0f2a4a] mb-1">Net Consumed</label>
+              <div class="relative">
+                <input type="number" disabled [value]="liveConsumption"
+                  class="w-full border border-blue-200 bg-blue-50/50 rounded pl-3 pr-16 py-2.5 text-sm text-right text-blue-700 outline-none font-bold transition-colors">
+                <span
+                  class="absolute right-3 top-3 text-blue-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Section: Productivity Metrics -->
+        <!-- Section: Meter Readings & Remarks -->
         <div>
+          <div class="flex items-center gap-2 mb-3">
+            <div class="w-1 h-3 bg-[#0f2a4a]"></div>
+            <h3 class="text-[10px] font-bold text-gray-500 tracking-widest uppercase">Meter & Remarks</h3>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Hours Meter Reading</label>
+              <div class="relative">
+                <input type="number" [(ngModel)]="formData.hoursMeterReading"
+                  class="w-full border border-gray-300 rounded pl-3 pr-12 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]">
+                <span
+                  class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">HRS</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Kilometer Reading</label>
+              <div class="relative">
+                <input type="number" [(ngModel)]="formData.kilometerReading"
+                  class="w-full border border-gray-300 rounded pl-3 pr-12 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]">
+                <span
+                  class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">KM</span>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Remarks</label>
+            <textarea [(ngModel)]="formData.remarks" rows="2" placeholder="Any additional notes..."
+              class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 outline-none focus:border-[#0f2a4a]"></textarea>
+          </div>
+        </div>
+
+        <!-- Section: Productivity Metrics -->
+        <div *ngIf="isEditMode" class="mt-4">
           <div class="flex items-center gap-2 mb-3">
             <div class="w-1 h-3 bg-[#0f2a4a]"></div>
             <h3 class="text-[10px] font-bold text-gray-500 tracking-widest uppercase">Productivity Metrics</h3>
           </div>
-          <div class="grid grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1 text-gray-500">Total Consumption</label>
-              <div class="relative">
-                <input type="number" disabled [(ngModel)]="formData.consumption"
-                  class="w-full border border-gray-200 bg-gray-50 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-400 outline-none font-bold">
-                <span
-                  class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
-              </div>
-            </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Work Done (BCM)</label>
               <div class="relative">
-                <input type="number" [(ngModel)]="formData.bcm"
-                  class="w-full border border-gray-300 rounded pl-3 pr-12 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]">
+                <input type="number" disabled [(ngModel)]="formData.bcm"
+                  class="w-full border border-gray-200 bg-gray-50 rounded pl-3 pr-12 py-2.5 text-sm text-right text-gray-400 outline-none font-bold">
                 <span
-                  class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">M&sup3;</span>
+                  class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">M³</span>
               </div>
             </div>
             <div>
@@ -417,12 +502,14 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="px-8 py-5 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
-        <div class="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+      <div
+        class="px-4 sm:px-8 py-4 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row sm:justify-between items-center gap-4">
+        <div
+          class="flex items-center gap-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest self-start sm:self-auto">
           <div class="w-2 h-2 rounded-full bg-green-400"></div>
           Secure Entry Protocol Active
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 self-end sm:self-auto w-full sm:w-auto justify-end">
           <button (click)="closeModal()"
             class="text-sm font-bold text-[#0f2a4a] hover:text-[#0c223c] transition-colors px-4">Cancel</button>
           <button (click)="saveLog()"
@@ -435,4 +522,275 @@
     </div>
   </div>
 
+
+
+</div>
+
+<!-- View Fuel Issue Modal (Premium Official Style) -->
+<div *ngIf="isViewModalOpen"
+  class="fixed inset-0 bg-[#0f2a4a]/80 z-[110] flex items-center justify-center font-sans py-4 backdrop-blur-sm px-4">
+  <div
+    class="bg-white w-full max-w-3xl rounded-xl shadow-2xl flex flex-col max-h-[95vh] relative mx-auto overflow-hidden border border-gray-100">
+
+    <!-- Premium Modal Header -->
+    <div
+      class="bg-gradient-to-r from-[#0f2a4a] to-[#1a4779] px-8 py-5 flex justify-between items-center text-white relative overflow-hidden">
+      <div class="absolute -right-10 -top-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+      <div class="absolute left-20 -bottom-10 w-24 h-24 bg-blue-400/20 rounded-full blur-xl"></div>
+
+      <div class="flex items-center gap-5 relative z-10">
+        <div
+          class="w-12 h-12 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center border border-white/30 shadow-inner">
+          <i class="fas fa-file-invoice text-2xl text-blue-100"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-3 mb-1">
+            <h2 class="text-2xl font-bold tracking-wide">Fuel Issue Record</h2>
+            <span
+              class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-500/20 text-green-200 border border-green-500/30">
+              {{ viewItemData?.status || 'Completed' }}
+            </span>
+          </div>
+          <p class="text-sm text-blue-100/80 font-medium">Ref No: <span class="font-mono text-white">{{
+              viewItemData?.fuel_ref_no || 'N/A' }}</span></p>
+        </div>
+      </div>
+      <button (click)="closeViewModal()"
+        class="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-gray-200 hover:text-white transition-all relative z-10 border border-transparent hover:border-white/30">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="px-8 py-8 overflow-y-auto flex-1 bg-slate-50/50">
+
+      <!-- Header Info Row -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+            <i class="far fa-calendar-check text-lg"></i>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Log Date</p>
+            <p class="text-sm font-semibold text-gray-800">{{ viewItemData?.fuel_log_date | date:'mediumDate' }}</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
+            <i class="fas fa-truck-monster text-lg"></i>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Equipment</p>
+            <p class="text-sm font-semibold text-gray-800">{{
+              viewItemData?.equipment_allocation?.equipment_name?.equipment_name || 'N/A' }} <span
+                class="text-gray-400 text-xs font-normal">({{
+                viewItemData?.equipment_allocation?.equipment_name?.equipment?.name || 'N/A' }})</span></p>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+            <i class="far fa-clock text-lg"></i>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Shift</p>
+            <p class="text-sm font-semibold text-gray-800">{{ viewItemData?.shift_plan?.shift?.shift_name || 'Shift ID:
+              ' + viewItemData?.shift_id }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Left Column: Fuel Data -->
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 border-b border-gray-200 px-5 py-3 flex items-center gap-2">
+              <i class="fas fa-gas-pump text-gray-400"></i>
+              <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">Fuel Flow Register</h3>
+            </div>
+            <div class="p-5">
+              <div class="flex justify-between items-center py-2 border-b border-gray-100 border-dashed">
+                <span class="text-sm text-gray-500 font-medium">Opening Balance</span>
+                <span class="text-sm font-bold text-gray-800">{{ viewItemData?.opening_fuel | number }} <span
+                    class="text-xs text-gray-400 font-normal">L</span></span>
+              </div>
+              <div class="flex justify-between items-center py-3 border-b border-gray-100 border-dashed">
+                <span class="text-sm text-gray-500 font-medium flex items-center gap-2">
+                  <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div> Fuel Issued
+                </span>
+                <span class="text-lg font-bold text-[#0f2a4a] bg-blue-50 px-2 py-0.5 rounded">+ {{
+                  viewItemData?.fuel_issued | number }} <span class="text-xs text-blue-400 font-normal">L</span></span>
+              </div>
+              <div class="flex justify-between items-center py-2 border-b border-gray-100 border-dashed">
+                <span class="text-sm text-gray-500 font-medium">Closing Balance</span>
+                <span class="text-sm font-bold text-gray-800">{{ viewItemData?.closing_fuel | number }} <span
+                    class="text-xs text-gray-400 font-normal">L</span></span>
+              </div>
+              <div class="flex justify-between items-center pt-3 mt-1">
+                <span class="text-sm text-gray-600 font-bold">Net Consumption</span>
+                <span class="text-xl font-bold text-red-600">{{ viewItemData?.fuel_consumption | number }} <span
+                    class="text-sm text-red-400 font-normal">L</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Operational Metrics & Remarks -->
+        <div class="space-y-6">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="bg-gray-50 border-b border-gray-200 px-5 py-3 flex items-center gap-2">
+              <i class="fas fa-chart-line text-gray-400"></i>
+              <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wide">Operational Metrics</h3>
+            </div>
+            <div class="p-5 grid grid-cols-2 gap-y-4 gap-x-6">
+              <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Total Work (BCM)</p>
+                <p class="text-base font-bold text-gray-800">{{ viewItemData?.work_done_bcm || '0.00' }} <span
+                    class="text-xs text-gray-400 font-normal">M³</span></p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Efficiency</p>
+                <p class="text-base font-bold text-green-600">{{ viewItemData?.fuel_per_bcm ||
+                  viewItemData?.fuel_per_hour || '0.00' }} <span class="text-xs text-gray-400 font-normal">L/BCM</span>
+                </p>
+              </div>
+              <div class="col-span-2 h-px bg-gray-100 border-b border-gray-100 border-dashed my-1"></div>
+              <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Hour Meter</p>
+                <p class="text-sm font-semibold text-gray-700">{{ viewItemData?.hours_meter_reading || 'N/A' }} <span
+                    class="text-[10px] text-gray-400 font-normal">HRS</span></p>
+              </div>
+              <div>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Kilometer</p>
+                <p class="text-sm font-semibold text-gray-700">{{ viewItemData?.kilometer_reading || 'N/A' }} <span
+                    class="text-[10px] text-gray-400 font-normal">KM</span></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Remarks -->
+          <div class="bg-blue-50/50 rounded-xl border border-blue-100 p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <i class="fas fa-comment-alt text-blue-400 text-sm"></i>
+              <h3 class="text-xs font-bold text-blue-900 uppercase tracking-wide">Remarks & Notes</h3>
+            </div>
+            <p class="text-sm text-gray-600 italic leading-relaxed pl-6 border-l-2 border-blue-200">
+              "{{ viewItemData?.remarks || 'No remarks provided for this fuel entry.' }}"
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="bg-gray-50 border-t border-gray-200 px-8 py-4 flex justify-between items-center">
+      <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+        <i class="fas fa-shield-check text-green-500"></i> Verified Official Record
+      </div>
+      <button (click)="closeViewModal()"
+        class="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-bold px-6 py-2 rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200">
+        Close Preview
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div *ngIf="isImportModalOpen"
+  class="fixed inset-0 bg-[#0f2a4a]/40 z-[110] flex items-center justify-center font-sans p-4 sm:p-6 backdrop-blur-[2px] transition-all duration-300">
+  <div class="bg-white w-full max-w-[600px] flex flex-col rounded-xl shadow-2xl relative border border-gray-100 animate-fade-in-up">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50/80">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-lg shadow-sm">
+          <i class="fas fa-file-excel"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-gray-800 tracking-tight">Import Fuel Entries</h2>
+          <p class="text-xs text-gray-500">Upload an Excel file to import fuel records</p>
+        </div>
+      </div>
+      <button (click)="closeImportModal()" class="w-8 h-8 rounded bg-white border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-all shadow-sm">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6">
+      <!-- File Upload Area -->
+      <div *ngIf="!importResult" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors relative cursor-pointer group"
+           (click)="fileInput.click()">
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx, .xls, .csv" class="hidden">
+        
+        <div *ngIf="isImporting" class="flex flex-col items-center justify-center space-y-3">
+          <div class="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+          <p class="text-sm font-bold text-gray-600">Uploading and Processing...</p>
+        </div>
+
+        <div *ngIf="!isImporting" class="flex flex-col items-center justify-center">
+          <div class="w-16 h-16 bg-white group-hover:bg-blue-50 rounded-full flex items-center justify-center shadow-sm mb-4 transition-colors">
+            <i class="fas fa-cloud-upload-alt text-3xl text-blue-500"></i>
+          </div>
+          <p class="text-base font-bold text-gray-700 mb-1">Click to browse or drag and drop</p>
+          <p class="text-xs text-gray-500 mb-4">
+            Support for Excel (.xlsx) and CSV files<br>
+            <a href="assets/bulk_fuel.xlsx" download class="text-blue-600 hover:text-blue-800 hover:underline mt-2 inline-block font-semibold">
+              <i class="fas fa-download mr-1"></i>Download Sample File
+            </a>
+          </p>
+          <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-lg transition-colors shadow-sm">
+            Select File
+          </button>
+        </div>
+      </div>
+
+      <!-- Result Area -->
+      <div *ngIf="importResult" class="space-y-4">
+        <!-- Success State -->
+        <div *ngIf="importResult.status === 'success'" class="bg-green-50 border border-green-200 rounded-xl p-6 text-center shadow-inner">
+          <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-check text-3xl"></i>
+          </div>
+          <h3 class="text-lg font-bold text-green-800 mb-2">{{ importResult.message }}</h3>
+          <p class="text-sm text-green-600">All records have been imported successfully.</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="importResult.status !== 'success'" class="bg-red-50 border border-red-200 rounded-xl p-5 shadow-inner">
+           <div class="flex items-start gap-4 mb-4">
+              <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm text-red-500">
+                <i class="fas fa-exclamation-triangle text-2xl"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-red-800">{{ importResult.message || 'Import process completed with errors.' }}</h3>
+                <p class="text-xs mt-1 font-medium text-red-600">The following issues were encountered during the import process:</p>
+              </div>
+           </div>
+           
+           <!-- Error List -->
+           <div *ngIf="importResult.errors && importResult.errors.length > 0" class="bg-white rounded-lg border border-red-100 p-4 max-h-56 overflow-y-auto custom-scrollbar shadow-sm">
+              <ul class="space-y-2.5">
+                <li *ngFor="let err of importResult.errors" class="text-sm text-red-600 flex items-start gap-2.5 bg-red-50/50 p-2 rounded">
+                  <i class="fas fa-circle text-[6px] mt-2 flex-shrink-0 text-red-400"></i>
+                  <span class="font-medium leading-snug">{{ err }}</span>
+                </li>
+              </ul>
+           </div>
+        </div>
+
+        <div class="flex justify-end pt-4 mt-2">
+          <button (click)="importResult = null" *ngIf="importResult.status !== 'success'" class="mr-4 text-sm font-bold text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-widest">
+            Try Again
+          </button>
+          <button (click)="closeImportModal()" class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold py-2.5 px-6 rounded shadow-sm transition-colors uppercase tracking-widest">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

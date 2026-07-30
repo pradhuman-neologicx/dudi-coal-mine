@@ -15,6 +15,7 @@ import { NotificationService } from '../../../core/services/notificationnew.serv
 })
 export class ShiftAddComponent implements OnInit {
   isEditMode = false;
+  minDate: string = '';
 
   // Form Model
   shiftPlanId: any = null; // Generated on Save Plan
@@ -32,6 +33,7 @@ export class ShiftAddComponent implements OnInit {
   supervisors: any[] = [];
   siteIncharges: any[] = [];
   machineCategories: any[] = [];
+  filteredMachineCategories: any[] = [];
   machineNames: any[] = [];
 
   // Equipment Allocation
@@ -40,9 +42,22 @@ export class ShiftAddComponent implements OnInit {
   // Employee Deployment
   employees: any[] = [];
   originalEmployees: any[] = [];
-  employeeStats = { planned: 0, present: 0, leave: 0, borrowed: 0 };
+  employeeStats = { 
+    planned: 0, 
+    present: 0, 
+    leave: 0, 
+    borrowed: 0,
+    absent: 0,
+    rest_day: 0,
+    deployed: 0,
+    not_deployed: 0,
+    removed: 0,
+    deployed_in_other_shift: 0,
+    borrowed_in_other_shift: 0
+  };
   searchQuery = '';
   isSearchActive = false;
+  showEmployeeDeployment: boolean = true;
 
   // Modal State
   showAddMachineryModal = false;
@@ -78,6 +93,8 @@ export class ShiftAddComponent implements OnInit {
   currentPage = 1;
   totalPages = 1;
   totalEmployees = 0;
+  tableSize: number | string = 10;
+  tableSizes: any[] = [10, 20, 50, 100, 'All'];
 
   // Toast State
   showToast = false;
@@ -96,6 +113,13 @@ export class ShiftAddComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const localDate = `${year}-${month}-${day}`;
+    
+    this.minDate = localDate;
     this.originalEmployees = [...this.employees];
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -104,11 +128,15 @@ export class ShiftAddComponent implements OnInit {
       this.fetchShiftPlanData(id);
     } else {
       // Set default for 'Add'
-      const today = new Date();
-      this.shiftForm.planningDate = today.toISOString().split('T')[0];
+      this.shiftForm.planningDate = localDate;
     }
 
     this.loadDropdownData();
+    this.checkDateVisibility();
+  }
+
+  checkDateVisibility() {
+    this.showEmployeeDeployment = (this.shiftForm.planningDate === this.minDate);
   }
 
   fetchShiftPlanData(id: string | number) {
@@ -123,11 +151,12 @@ export class ShiftAddComponent implements OnInit {
           this.shiftForm.targetBcm = data.target_bcm;
           this.shiftForm.supervisorId = data.supervisor_id;
           this.shiftForm.siteInchargeId = data.site_incharge_id;
-          
+          this.checkDateVisibility();
+
           if (data.machinery_allocations && data.machinery_allocations.length > 0) {
             this.mapEquipments(data.machinery_allocations);
           }
-          
+
           // Also load workforce relay for this shift plan
           this.loadWorkforceRelayData(id);
         }
@@ -154,7 +183,10 @@ export class ShiftAddComponent implements OnInit {
             status: emp.status,
             isBorrowed: emp.is_borrowed,
             shiftName: emp.shift_name,
-            homeShiftName: emp.home_shift_name
+            homeShiftName: emp.home_shift_name,
+            relayShift: emp.relay_shift,
+            homeRelayShift: emp.home_relay_shift,
+            borrowingReason: emp.borrowing_reason
           }));
           this.originalEmployees = [...this.employees];
 
@@ -163,7 +195,14 @@ export class ShiftAddComponent implements OnInit {
               planned: res.stats.planned || 0,
               present: res.stats.present || 0,
               leave: res.stats.leave || 0,
-              borrowed: res.stats.borrowed || 0
+              borrowed: res.stats.borrowed || 0,
+              absent: res.stats.absent || 0,
+              rest_day: res.stats.rest_day || 0,
+              deployed: res.stats.deployed || 0,
+              not_deployed: res.stats.not_deployed || 0,
+              removed: res.stats.removed || 0,
+              deployed_in_other_shift: res.stats.deployed_in_other_shift || 0,
+              borrowed_in_other_shift: res.stats.borrowed_in_other_shift || 0
             };
           }
 
@@ -236,6 +275,7 @@ export class ShiftAddComponent implements OnInit {
         id: item.category_id || item.id,
         name: item.category_name || item.name || 'Unknown'
       }));
+      this.filteredMachineCategories = [...this.machineCategories];
       console.log('Mapped categories:', this.machineCategories);
     });
   }
@@ -250,7 +290,10 @@ export class ShiftAddComponent implements OnInit {
         const data = res.data?.data || res.data || [];
         this.machineNames = data.map((item: any) => ({
           id: item.id || item.equipment_id,
-          name: item.equipment_name || item.machine_name || item.name || item.equipment_id || 'Unknown'
+          name: item.equipment_name || item.machine_name || item.name || item.equipment_id || 'Unknown',
+          status: item.status,
+          shortReason: item.short_reason,
+          disabled: item.status === 'unavailable'
         }));
         console.log('Mapped machines:', this.machineNames);
       });
@@ -262,20 +305,29 @@ export class ShiftAddComponent implements OnInit {
   }
 
   targetEquipment: any = null;
+  isMachineTypeLocked: boolean = false;
 
   addDumper(eq: any) {
     if (!this.shiftPlanId) {
       this.showNotification('Please save the shift plan first before adding machinery.', 'error');
       return;
     }
-    // Determine categoryId for Dumper if needed, or leave blank and let user select.
-    // For now we just reset the form.
-    this.newMachine.categoryId = null;
+    
+    // Find the category ID for Dumper
+    const dumperCategory = this.machineCategories.find(c => c.name && c.name.toLowerCase().includes('dumper'));
+    this.filteredMachineCategories = [...this.machineCategories];
+    this.newMachine.categoryId = dumperCategory ? dumperCategory.id : null;
     this.newMachine.id = null;
     this.machineNames = [];
     this.targetEquipment = eq;
+    this.isMachineTypeLocked = true;
     this.showAddMachineryModal = true;
     document.body.style.overflow = 'hidden';
+
+    // If Dumper category is found, fetch its machines automatically
+    if (this.newMachine.categoryId) {
+        this.onMachineCategoryChange();
+    }
   }
 
   allocateNewUnit() {
@@ -283,10 +335,12 @@ export class ShiftAddComponent implements OnInit {
       this.showNotification('Please save the shift plan first before adding machinery.', 'error');
       return;
     }
+    this.filteredMachineCategories = this.machineCategories.filter(c => c.name && !c.name.toLowerCase().includes('dumper'));
     this.newMachine.categoryId = null;
     this.newMachine.id = null;
     this.machineNames = [];
     this.targetEquipment = null;
+    this.isMachineTypeLocked = false;
     this.showAddMachineryModal = true;
     document.body.style.overflow = 'hidden';
   }
@@ -549,6 +603,11 @@ export class ShiftAddComponent implements OnInit {
   savePlan() {
     if (!this.shiftForm.planningDate || !this.shiftForm.shiftId || !this.shiftForm.locationId || !this.shiftForm.targetBcm || !this.shiftForm.supervisorId || !this.shiftForm.siteInchargeId) {
       this.showNotification('Please fill in all mandatory fields before saving the plan.', 'error');
+      return;
+    }
+
+    if (!this.isEditMode && this.shiftForm.planningDate < this.minDate) {
+      this.showNotification('Past dates are not allowed for planning a new shift.', 'error');
       return;
     }
 

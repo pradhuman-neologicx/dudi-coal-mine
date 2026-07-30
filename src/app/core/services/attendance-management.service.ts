@@ -237,4 +237,8 @@ export class AttendanceManagementService {
   updateBulkAttendanceStatus(formData: FormData): Observable<any> {
     return this.apiservice.post(`v1/admin/attendance/bulk-status`, formData, this.getHeaders());
   }
+
+  getSites(): Observable<any> {
+    return this.apiservice.get('v1/sites', this.getHeaders());
+  }
 }

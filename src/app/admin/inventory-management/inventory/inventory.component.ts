@@ -47,7 +47,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   // Pagination parameters
   page = 1;
   tableSize: any = 10;
-  tableSizes: any = [10, 25, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
   totalRecords = 0;
 
   // Products list for selector dropdown populated via API
@@ -63,6 +63,9 @@ export class InventoryComponent implements OnInit, OnDestroy {
   viewInventoryOpen = false;
   historyModalOpen = false;
   isEditMode = false;
+  
+  isUploading = false;
+  uploadResult: any = null;
 
   // Forms mapping
   createInventoryForm!: FormGroup;
@@ -131,8 +134,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
     });
   }
 
-  fetchEmployeeList() {
-    this.employeeManagementService.getAllEmployees().pipe(takeUntil(this.destroy$)).subscribe({
+  fetchEmployeeList(departmentId?: any) {
+    this.employeeManagementService.getAllEmployees(departmentId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.employeeList = res.data;
@@ -187,7 +190,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
       productName: [null, Validators.required],
       category: [{ value: '', disabled: true }],
       subCategory: [{ value: '', disabled: true }],
-      site: [null, Validators.required],
+      site: [null],
       department: [null, Validators.required],
       employeeId: [{ value: null, disabled: true }, Validators.required],
       quantity: ['', [Validators.required, Validators.min(1)]],
@@ -245,7 +248,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   onTableSizeChange(event: any) {
-    this.tableSize = event.target.value;
+    this.tableSize = event.target ? event.target.value : event;
     this.page = 1;
     this.fetchInventoryList();
   }
@@ -303,6 +306,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
   openBulkUploadModal() {
     this.bulkUploadForm.reset();
     this.uploadedFileName = '';
+    this.uploadResult = null;
+    this.isUploading = false;
     this.bulkUploadOpen = true;
   }
 
@@ -487,29 +492,57 @@ export class InventoryComponent implements OnInit, OnDestroy {
 
     const formData = new FormData();
     formData.append('file', file);
+    
+    this.isUploading = true;
+    this.uploadResult = null;
 
     this.inventoryService.bulkUploadInventory(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
-        if (res && (res.status === 200 || res.status === 'success' || res.status === 201)) {
+        this.isUploading = false;
+        if (res && (res.status === 200 || res.status === 201 || res.status === 'success') && (!res.errors || res.errors.length === 0)) {
+          this.uploadResult = null;
           this.notificationService.show(res.message || `Bulk inventory file "${this.uploadedFileName}" uploaded successfully.`, 'success', 3000);
           this.refreshFilteredData();
           this.closeModal();
         } else {
-          this.notificationService.show(res?.message || 'Failed to bulk upload inventory.', 'error', 3000);
+          this.uploadResult = {
+            status: res.status || 422,
+            message: res.message || 'Import process completed with errors.',
+            errors: res.errors || []
+          };
         }
       },
       error: (err: any) => {
-        console.error('Error during bulk upload:', err);
-        const originalError = err.originalError || err.error || err;
-        let errorMessage = originalError.message || err.message || 'Failed to bulk upload inventory.';
+        this.isUploading = false;
+        const errObj = err.originalError || err.error || err;
+        let formattedErrors: string[] = [];
 
-        if (originalError.errors && Array.isArray(originalError.errors)) {
-          const formattedErrors = originalError.errors.map((e: any) => `Row ${e.row}: ${e.message}`).join('\n');
-          errorMessage += '\n' + formattedErrors;
+        if (errObj.errors) {
+          if (Array.isArray(errObj.errors)) {
+            formattedErrors = errObj.errors.map((e: any) => {
+              if (typeof e === 'object' && e !== null) {
+                 const col = e.column ? ` [${e.column}]` : '';
+                 const msg = Array.isArray(e.errors) ? e.errors.join(', ') : (e.message || 'Unknown error');
+                 return `Row ${e.row || 'N/A'}${col}: ${msg}`;
+              }
+              return String(e);
+            });
+          } else if (typeof errObj.errors === 'object') {
+             Object.values(errObj.errors).forEach((errArray: any) => {
+                if (Array.isArray(errArray)) {
+                  formattedErrors.push(...errArray);
+                } else if (typeof errArray === 'string') {
+                  formattedErrors.push(errArray);
+                }
+             });
+          }
         }
 
-        const duration = originalError.errors ? 8000 : 3000;
-        this.notificationService.show(errorMessage, 'error', duration);
+        this.uploadResult = {
+          status: err.status || errObj.status || 422,
+          message: errObj.message || err.message || 'Failed to import.',
+          errors: formattedErrors.length > 0 ? formattedErrors : (errObj.errors || [])
+        };
       }
     });
   }
@@ -564,23 +597,16 @@ export class InventoryComponent implements OnInit, OnDestroy {
     const empControl = this.assignForm.get('employeeId');
     if (department) {
       empControl?.enable();
+      this.fetchEmployeeList(department);
     } else {
       empControl?.disable();
-      empControl?.setValue('');
+      empControl?.setValue(null);
+      this.employeeList = [];
     }
   }
 
   getFilteredEmployees() {
-    const departmentId = this.assignForm.get('department')?.value;
-    if (!departmentId) return [];
-    
-    // Fallback filter if API data has structure, else just return all to avoid blocking UI
-    return this.employeeList.filter(emp => {
-      const matchDept = emp.department_id == departmentId || emp.department === departmentId;
-      // We don't have a site API yet so we can't reliably filter by site ID, 
-      // but if the UI is unblocked we can just return the employees that match the department.
-      return matchDept || true; // Remove strict filtering until site API is added
-    });
+    return this.employeeList;
   }
 
   submitAssignment() {

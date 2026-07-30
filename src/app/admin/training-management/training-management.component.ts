@@ -67,7 +67,7 @@ export class TrainingManagementComponent implements OnInit {
   page: number = 1;
   totalRecords: number = 0;
   tableSize: any = 10;
-  tableSizes: any = [10, 25, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
 
   filterSearch: string = '';
   filterStatus: string = '';
@@ -121,7 +121,7 @@ export class TrainingManagementComponent implements OnInit {
   }
 
   onTableSizeChange(event: any): void {
-    this.tableSize = event.target.value === 'all' ? 'all' : Number(event.target.value);
+    this.tableSize = event.target ? event.target.value : event;
     this.page = 1;
   }
 

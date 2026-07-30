@@ -18,12 +18,16 @@
   <div class="card border-0 my-4 px-4 py-4">
     <!-- Show entries and Search bar row -->
     <div class="d-md-flex justify-content-between align-items-center my-3">
-      <div class="d-flex align-items-center mb-md-0 mb-2">
-        <span class="me-1 show-entery-text">Show</span>
-        <select class="form-control form-select show-entries-select" (change)="onTableSizeChange($event)">
-          <option *ngFor="let size of tableSizes" [value]="size" [selected]="size == tableSize">{{ size }}</option>
-        </select>
-        <span class="ms-1 show-entery-text">entries</span>
+      <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
+        <span class="show-entery-text">Show</span>
+        <ng-select [items]="tableSizes" 
+                   [(ngModel)]="tableSize" 
+                   (change)="onTableSizeChange($event)" 
+                   [clearable]="false" 
+                   [searchable]="false" 
+                   class="custom-ng-select min-w-[80px]">
+        </ng-select>
+        <span class="show-entery-text">entries</span>
       </div>
 
       <div class="d-flex align-items-center">
@@ -208,43 +212,106 @@
 </div>
 
 <!-- 2. Bulk Upload Modal -->
-<div *ngIf="bulkUploadOpen" class="your-animation-class modal-container" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-  <div class="modal-contenttop modal-content-50" [@fadeIn]>
-    <form [formGroup]="bulkUploadForm">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-          <h5 class="modal-title pt-1 mb-0 tt-color">Bulk Upload</h5>
-          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button" (click)="closeModal()">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+<div *ngIf="bulkUploadOpen" class="fixed inset-0 bg-[#0f2a4a]/40 z-[110] flex items-center justify-center font-sans p-4 sm:p-6 backdrop-blur-[2px] transition-all duration-300" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1050; display: flex; align-items: center; justify-content: center;">
+  <div class="bg-white w-full max-w-[600px] flex flex-col rounded-xl shadow-2xl relative border border-gray-100 animate-fade-in-up" [@fadeIn]>
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom border-gray-200" style="background-color: rgba(249, 250, 251, 0.8);">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded bg-blue-50 border border-blue-100 text-blue-600 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; font-size: 1.125rem;">
+          <i class="fas fa-file-excel"></i>
         </div>
-        <div class="modal-content-widthtop card-body mb-0 py-4">
-          <div class="mb-4">
-            <label class="d-block text-capitalize form-label form-lable-custom mb-2">Upload File</label>
-            <div class="d-flex align-items-center gap-3">
-              <label class="btn btn-outline-secondary mb-0 cursor-pointer px-4 py-2.5 rounded-3">
-                Choose file
-                <input type="file" (change)="onFileChange($event)" accept=".xlsx, .xls, .csv" />
-              </label>
-              <span class="text-muted fs-7">{{ uploadedFileName || 'No file chosen' }}</span>
-            </div>
-            <div class="text-danger error-message mt-2" *ngIf="bulkUploadForm.controls['file'].errors && bulkUploadForm.controls['file'].touched">
-              <p class="fw-light text-danger">A valid excel or csv file is required</p>
-            </div>
-          </div>
-
-          <div class="text-end">
-            <a href="assets/inventory_products.xlsx" download="inventory_products.xlsx" class="btn btn-link text-primary fw-semibold p-0 text-decoration-none" style="font-size: 14px;">
-              Download Sample File
-            </a>
-          </div>
-        </div>
-        <div class="modal-footer text-end">
-          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button" (click)="closeModal()">Close</button>
-          <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="uploadBulkFile()">Update</button>
+        <div>
+          <h2 class="h6 mb-0 font-weight-bold text-dark tracking-tight">Import Inventory</h2>
+          <p class="small text-muted mb-0">Upload an Excel file to import inventory records</p>
         </div>
       </div>
-    </form>
+      <button (click)="closeModal()" class="btn btn-light btn-sm border text-muted shadow-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-4">
+      <form [formGroup]="bulkUploadForm">
+        <!-- File Upload Area -->
+        <div *ngIf="!uploadResult" class="border-2 border-dashed border-gray-300 rounded p-5 text-center bg-light transition-colors relative" style="cursor: pointer;"
+             (click)="importFileInputRef.click()">
+          <input type="file" #importFileInputRef (change)="onFileChange($event)" accept=".xlsx, .xls, .csv" class="d-none">
+          
+          <div *ngIf="isUploading" class="d-flex flex-column align-items-center justify-content-center">
+            <div class="spinner-border text-primary mb-3" role="status"></div>
+            <p class="small font-weight-bold text-secondary mb-0">Uploading and Processing...</p>
+          </div>
+
+          <div *ngIf="!isUploading" class="d-flex flex-column align-items-center justify-content-center">
+            <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm mb-3" style="width: 64px; height: 64px;">
+              <i class="fas fa-cloud-upload-alt text-primary" style="font-size: 1.875rem;"></i>
+            </div>
+            <p class="font-weight-bold text-dark mb-1">Click to browse or drag and drop</p>
+            <p class="small text-muted mb-3">
+              Support for Excel (.xlsx) and CSV files<br>
+              <span class="text-primary mt-2 d-inline-block fw-semibold text-decoration-none">
+                <span *ngIf="uploadedFileName" class="text-success">{{ uploadedFileName }}</span>
+                <a *ngIf="!uploadedFileName" href="assets/inventory_products.xlsx" download="inventory_products.xlsx" class="text-primary text-decoration-none" (click)="$event.stopPropagation()">
+                  <i class="fas fa-download me-1"></i>Download Sample File
+                </a>
+              </span>
+            </p>
+            <button *ngIf="!uploadedFileName" class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm" type="button">
+              Select File
+            </button>
+            <button *ngIf="uploadedFileName" (click)="uploadBulkFile(); $event.stopPropagation()" class="btn btn-success btn-sm px-4 font-weight-bold shadow-sm mt-2" type="button">
+              Upload File
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <!-- Result Area -->
+      <div *ngIf="uploadResult" class="d-flex flex-column gap-3">
+        <!-- Success State -->
+        <div *ngIf="uploadResult.status === 'success'" class="rounded p-4 text-center shadow-sm border" style="background-color: #f0fdf4; border-color: #bbf7d0;">
+          <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 64px; height: 64px; background-color: #dcfce7; color: #16a34a;">
+            <i class="fas fa-check" style="font-size: 1.875rem;"></i>
+          </div>
+          <h3 class="h6 font-weight-bold mb-2" style="color: #166534;">{{ uploadResult.message || 'Import Successful' }}</h3>
+          <p class="small mb-0" style="color: #15803d;">All records have been imported successfully.</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="uploadResult.status !== 'success'" class="rounded p-3 shadow-sm border" style="background-color: #fef2f2; border-color: #fecaca;">
+           <div class="d-flex align-items-start gap-3 mb-3">
+              <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center bg-white shadow-sm text-danger" style="width: 48px; height: 48px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem;"></i>
+              </div>
+              <div>
+                <h3 class="h6 font-weight-bold mb-1" style="color: #991b1b;">{{ uploadResult.message || 'Import process completed with errors.' }}</h3>
+                <p class="small font-weight-medium mb-0" style="color: #dc2626;">The following issues were encountered during the import process:</p>
+              </div>
+           </div>
+           
+           <!-- Error List -->
+           <div *ngIf="uploadResult.errors && uploadResult.errors.length > 0" class="bg-white rounded border p-3 shadow-sm custom-scrollbar" style="border-color: #fee2e2; max-height: 14rem; overflow-y: auto;">
+              <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                <li *ngFor="let err of uploadResult.errors" class="small d-flex align-items-start gap-2 p-2 rounded" style="background-color: rgba(254, 242, 242, 0.5); color: #dc2626;">
+                  <i class="fas fa-circle mt-1 flex-shrink-0" style="font-size: 6px; color: #f87171;"></i>
+                  <span class="font-weight-medium" style="line-height: 1.3;">{{ err }}</span>
+                </li>
+              </ul>
+           </div>
+        </div>
+
+        <div class="d-flex justify-content-end pt-3 mt-1">
+          <button (click)="uploadResult = null; uploadedFileName = ''" *ngIf="uploadResult.status !== 'success'" class="btn btn-link text-muted font-weight-bold text-decoration-none small text-uppercase mr-3 me-3">
+            Try Again
+          </button>
+          <button (click)="closeModal()" class="btn btn-dark btn-sm px-4 font-weight-bold shadow-sm text-uppercase" style="background-color: #0f2a4a;">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 

@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { JwtService } from './jwt.service';
@@ -323,22 +323,50 @@ export class EmployeeService {
   // Department APIs end
 
   // Dashboard APIs start
-  GetDashboardData() {
+  // GetDashboardData() {
+  //   const token = this.jwtService.getToken();
+  //   const headers = new HttpHeaders({
+  //     Authorization: `Bearer ${token}`,
+  //     'Content-Type': 'application/json',
+  //   });
+
+  //   var url = 'dashboard/summary';
+
+  //   return this.apiservice.get(url, headers).pipe(
+  //     tap((error: any) => {
+  //       console.log('Response received:', error);
+  //       this.erromessagefunction(error);
+  //     }),
+  //   );
+  // }
+
+  GetDashboardData(queryParams?: any) {
     const token = this.jwtService.getToken();
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     });
 
-    var url = 'dashboard/summary';
+    let httpParams = new HttpParams();
+    if (queryParams) {
+      Object.keys(queryParams).forEach(key => {
+        if (queryParams[key] !== null && queryParams[key] !== undefined && queryParams[key] !== '') {
+          httpParams = httpParams.append(key, queryParams[key]);
+        }
+      });
+    }
 
-    return this.apiservice.get(url, headers).pipe(
+    var url = 'v1/dashboard/summary'; // updated to v1/dashboard/summary
+
+    return this.apiservice.get(url, headers, httpParams).pipe(
       tap((error: any) => {
         console.log('Response received:', error);
         this.erromessagefunction(error);
       }),
     );
   }
+
+
 
   erromessagefunction(error: any) {
     console.log('Response received:', error);

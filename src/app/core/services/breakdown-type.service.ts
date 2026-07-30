@@ -100,11 +100,25 @@ export class BreakdownTypeService {
     return this.apiservice.put(`v1/admin/maintenance/breakdowns/${id}`, data, headers);
   }
 
+  importBreakdowns(file: File): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    const formData: FormData = new FormData();
+    formData.append('file', file, file.name);
+    return this.apiservice.post(`v1/admin/maintenance/breakdowns/import`, formData, headers);
+  }
+
   // public
   getPublicBreakdownTypes(): Observable<any> {
     const token = this.jwtService.getToken();
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
     return this.apiservice.get(`v1/breakdown-types`, headers);
+  }
+
+  getOpenBreakdowns(): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.apiservice.get('v1/open-breakdowns', headers);
   }
   searchEmployee(term: string): Observable<any> {
     const token = this.jwtService.getToken();

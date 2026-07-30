@@ -1,0 +1,11 @@
+.btn-red:hover {
+    color: #ffffff !important;
+}
+
+.custom-filter-select {
+  ::ng-deep .ng-select-container {
+    border: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+  }
+}

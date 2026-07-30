@@ -1,0 +1,156 @@
+<div class="px-4">
+    <div class="bg-white px-8 py-6 flex justify-between items-start mb-6">
+        <div>
+            <h2 class="text-2xl font-bold text-[#468faf] mb-3">Close Shift</h2>
+            <div class="flex gap-3">
+                <span class="bg-[#468faf] text-white text-xs font-bold px-3 py-1 rounded tracking-widest uppercase"
+                    *ngIf="closureSummaryData">
+                    {{ closureSummaryData.shift_details?.shift_reference_number }}
+                </span>
+                <span class="bg-gray-100 text-[#2c7da0] text-xs font-bold px-3 py-1 rounded tracking-widest uppercase"
+                    *ngIf="closureSummaryData">
+                    {{ closureSummaryData.shift_details?.shift }} - {{ closureSummaryData.shift_details?.location }}
+                </span>
+            </div>
+        </div>
+        <button class="text-gray-400 hover:text-gray-600 text-2xl leading-none" (click)="goBack()">&times;</button>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded">
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i
+                    class="fas fa-chart-pie text-gray-500"></i> Operational Review</h3>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" *ngIf="closureSummaryData">
+                <div class="bg-gray-50 border border-gray-200 p-3 rounded">
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Production (BCM)
+                    </div>
+                    <div class="text-lg font-bold text-[#468faf]">{{ closureSummaryData.production_summary?.actual_bcm |
+                        number }} <span class="text-xs text-gray-500 font-normal">/
+                            {{ closureSummaryData.production_summary?.target_bcm | number }}</span></div>
+                    <div class="text-xs text-green-600 font-bold mt-1">{{
+                        closureSummaryData.production_summary?.achievement_percent }}% Achieved</div>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 p-3 rounded">
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Eq. Availability
+                    </div>
+                    <div class="text-lg font-bold text-[#468faf]">{{
+                        closureSummaryData.equipment_summary?.active_equipment }} Active</div>
+                    <div class="text-xs text-red-500 font-bold mt-1">{{
+                        closureSummaryData.equipment_summary?.breakdown_equipment }} Breakdowns</div>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 p-3 rounded">
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Workforce</div>
+                    <div class="text-lg font-bold text-[#468faf]">{{
+                        closureSummaryData.workforce_summary?.present_workforce }} <span
+                            class="text-xs text-gray-500 font-normal">/ {{
+                            closureSummaryData.workforce_summary?.planned_workforce }}
+                            Present</span></div>
+                    <div class="text-xs text-blue-500 font-bold mt-1">{{
+                        closureSummaryData.workforce_summary?.borrowed_employees }} Borrowed</div>
+                </div>
+                <div class="bg-gray-50 border border-gray-200 p-3 rounded">
+                    <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Fuel & Delays</div>
+                    <div class="text-lg font-bold text-[#468faf]">{{
+                        closureSummaryData.operational_summary?.fuel_consumed }} L</div>
+                    <div class="text-xs text-gray-600 font-bold mt-1">{{
+                        closureSummaryData.operational_summary?.delay_hours }} hrs Delay</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6 border-b border-gray-200">
+            <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i
+                    class="fas fa-tasks text-gray-500"></i> Validation Checklist</h3>
+            <p class="text-xs text-gray-500 mb-4">Please verify that all operational records have been completed and
+                verified before closing the shift.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="shiftClosure.attendanceSubmitted"
+                        class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+                    <span class="text-sm text-gray-700 font-medium">Attendance Submitted</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="shiftClosure.fuelLogsAvailable"
+                        class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+                    <span class="text-sm text-gray-700 font-medium">Fuel Logs Available</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="shiftClosure.delayLogsUpdated"
+                        class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+                    <span class="text-sm text-gray-700 font-medium">Delay Logs Updated</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="shiftClosure.breakdownLogsUpdated"
+                        class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+                    <span class="text-sm text-gray-700 font-medium">Breakdown Logs Updated</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="shiftClosure.productionDataAvailable"
+                        class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+                    <span class="text-sm text-gray-700 font-medium">Production Data Available</span>
+                </label>
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="shiftClosure.safetyDataReviewed"
+                        class="w-4 h-4 text-[#468faf] rounded border-gray-300 focus:ring-[#468faf]">
+                    <span class="text-sm text-gray-700 font-medium">Safety Data Reviewed</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2 mb-4"><i
+                    class="fas fa-signature text-gray-500"></i> Supervisor Sign-Off</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Shift
+                        Remarks <span class="text-red-500">*</span></label>
+                    <textarea [(ngModel)]="shiftClosure.shiftRemarks"
+                        placeholder="Enter mandatory remarks for the shift..."
+                        class="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] bg-gray-50/50 resize-none"
+                        rows="3"></textarea>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Handover
+                        Notes <span class="text-gray-400 font-normal">(Optional)</span></label>
+                    <textarea [(ngModel)]="shiftClosure.handoverNotes"
+                        placeholder="Any notes for the next shift supervisor..."
+                        class="w-full border border-gray-300 rounded px-4 py-3 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] bg-gray-50/50 resize-none"
+                        rows="3"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white px-8 py-5 border border-gray-200 mt-6 flex justify-between items-center rounded">
+        <div class="text-xs text-gray-500 italic flex items-center gap-2">
+            <i class="fas fa-history text-gray-400"></i> Last auto-saved 2 mins ago
+        </div>
+        <div class="flex gap-4">
+            <button
+                class="bg-gray-200 text-gray-800 px-6 py-2.5 rounded text-sm font-bold hover:bg-gray-300 transition-colors"
+                (click)="goBack()">Cancel</button>
+            <button
+                class="bg-[#468faf] text-white px-6 py-2.5 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0]"
+                (click)="submitShiftClosure()">
+                Finalize & Close Shift <i class="far fa-check-circle"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div *ngIf="showConfirmModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden text-center p-8">
+        <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-2">Confirm Shift Closure</h3>
+        <p class="text-sm text-gray-500 mb-6">Are you sure you want to finalize and close this shift? This action cannot be undone.</p>
+        <div class="flex gap-4 justify-center">
+            <button class="bg-gray-200 text-gray-800 px-6 py-2 rounded font-bold hover:bg-gray-300 transition-colors w-full" (click)="cancelClosure()">Cancel</button>
+            <button class="bg-red-500 text-white px-6 py-2 rounded font-bold hover:bg-red-600 transition-colors w-full" (click)="confirmClosure()">Confirm Close</button>
+        </div>
+    </div>
+</div>

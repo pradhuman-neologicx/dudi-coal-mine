@@ -84,6 +84,7 @@ export class PayrollManagementComponent implements OnInit {
   // Pagination
   p: number = 1;
   showEntries: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
   totalRecords: number = 0;
   
   // Selected Payslip for A4 Print/Preview
@@ -102,6 +103,8 @@ export class PayrollManagementComponent implements OnInit {
   // Penalty Modals
   penaltyModalOpen: boolean = false;
   bulkPenaltyModalOpen: boolean = false;
+  isUploading: boolean = false;
+  uploadResult: any = null;
   penaltyForm!: FormGroup;
   viewPenaltyModalOpen: boolean = false;
   selectedPenaltyEmployee: any = null;
@@ -676,6 +679,8 @@ This is a computer-generated payslip and does not require an authorized signatur
 
   openBulkPenaltyModal(): void {
     this.selectedBulkFile = null;
+    this.isUploading = false;
+    this.uploadResult = null;
     this.bulkPenaltyModalOpen = true;
   }
 
@@ -696,34 +701,59 @@ This is a computer-generated payslip and does not require an authorized signatur
       this.notificationService.show('Please select a file to upload', 'error', 3000);
       return;
     }
+    
+    this.isUploading = true;
+    this.uploadResult = null;
     const formData = new FormData();
     formData.append('file', this.selectedBulkFile);
 
     this.employeeManagementService.uploadBulkPenalties(formData).subscribe({
       next: (res: any) => {
-        if (res && (res.status === 200 || res.status === 201 || res.status === 'success')) {
+        this.isUploading = false;
+        if (res && (res.status === 200 || res.status === 201 || res.status === 'success') && (!res.errors || res.errors.length === 0)) {
           this.notificationService.show(res.message || 'Bulk penalties applied successfully!', 'success', 3000);
           this.closeBulkPenaltyModal();
           this.loadPayrollData();
         } else {
-          this.notificationService.show(res.message || 'Failed to apply bulk penalties', 'error', 3000);
+          this.uploadResult = {
+            status: res.status || 422,
+            message: res.message || 'Import process completed with errors.',
+            errors: res.errors || []
+          };
         }
       },
       error: (err: any) => {
+        this.isUploading = false;
         console.error('Error during bulk penalty upload:', err);
-        const originalError = err.originalError || err.error || err;
-        let errorMessage = originalError.message || err.message || 'Failed to apply bulk penalties.';
+        const errObj = err.originalError || err.error || err;
+        let formattedErrors: string[] = [];
 
-        if (originalError.errors && Array.isArray(originalError.errors)) {
-          const formattedErrors = originalError.errors.map((e: any) => {
-            const msgs = Array.isArray(e.errors) ? e.errors.join(', ') : e.message;
-            return `Row ${e.row}: ${msgs}`;
-          }).join('\n');
-          errorMessage += '\n' + formattedErrors;
+        if (errObj.errors) {
+          if (Array.isArray(errObj.errors)) {
+            formattedErrors = errObj.errors.map((e: any) => {
+              if (typeof e === 'object' && e !== null) {
+                 const col = e.column ? ` [${e.column}]` : '';
+                 const msg = Array.isArray(e.errors) ? e.errors.join(', ') : (e.message || 'Unknown error');
+                 return `Row ${e.row || 'N/A'}${col}: ${msg}`;
+              }
+              return String(e);
+            });
+          } else if (typeof errObj.errors === 'object') {
+             Object.values(errObj.errors).forEach((errArray: any) => {
+                if (Array.isArray(errArray)) {
+                  formattedErrors.push(...errArray);
+                } else if (typeof errArray === 'string') {
+                  formattedErrors.push(errArray);
+                }
+             });
+          }
         }
 
-        const duration = originalError.errors ? 8000 : 3000;
-        this.notificationService.show(errorMessage, 'error', duration);
+        this.uploadResult = {
+          status: err.status || errObj.status || 422,
+          message: errObj.message || err.message || 'Failed to apply bulk penalties.',
+          errors: formattedErrors.length > 0 ? formattedErrors : (errObj.errors || [])
+        };
       }
     });
   }

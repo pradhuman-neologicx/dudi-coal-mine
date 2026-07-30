@@ -44,7 +44,7 @@ export class ProductMasterComponent implements OnInit, OnDestroy {
   // Pagination parameters
   page = 1;
   tableSize: any = 10;
-  tableSizes: any = [10, 25, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
   totalRecords = 0;
 
   // Mock Categories list with Subcategories grouped under them
@@ -252,7 +252,7 @@ export class ProductMasterComponent implements OnInit, OnDestroy {
   }
 
   onTableSizeChange(event: any) {
-    this.tableSize = event.target.value;
+    this.tableSize = event.target ? event.target.value : event;
     this.page = 1;
     this.refreshFilteredData();
   }

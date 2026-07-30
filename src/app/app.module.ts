@@ -28,6 +28,8 @@ import { NavbarComponent } from './website/navbar/navbar.component';
 import { EmployeePayrollComponent } from './admin/employee-payroll/employee-payroll.component';
 import { IncidentTypeComponent } from './admin/masters/incident-type/incident-type.component';
 import { SeverityLevelComponent } from './admin/masters/severity-level/severity-level.component';
+import { RelaySettingsComponent } from './admin/relay-settings/relay-settings.component';
+
 
 
 
@@ -47,6 +49,8 @@ import { SeverityLevelComponent } from './admin/masters/severity-level/severity-
     EmployeePayrollComponent,
     IncidentTypeComponent,
     SeverityLevelComponent,
+    RelaySettingsComponent,
+
   ],
   imports: [
     BrowserModule,

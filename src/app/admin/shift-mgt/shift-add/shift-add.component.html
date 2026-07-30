@@ -1,4 +1,4 @@
-<div class="bg-[#f4f6f8] min-h-screen p-2 md:p-6 font-sans relative pb-24 text-gray-800">
+<div class=" min-h-screen p-2 md:p-6 font-sans relative pb-24 text-gray-800">
 
     <div class="mb-4 flex items-center">
         <button (click)="goBack()"
@@ -15,14 +15,15 @@
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Planning
                     Date <span class="text-red-500">*</span></label>
                 <div class="relative">
-                    <input type="date" [(ngModel)]="shiftForm.planningDate"
+                    <input type="date" [(ngModel)]="shiftForm.planningDate" (ngModelChange)="checkDateVisibility()" [min]="minDate"
                         class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50">
                 </div>
             </div>
 
             <!-- Shift -->
             <div>
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Shift <span class="text-red-500">*</span></label>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Shift <span
+                        class="text-red-500">*</span></label>
                 <div class="relative">
                     <ng-select [(ngModel)]="shiftForm.shiftId" [items]="shiftsList" bindLabel="name" bindValue="id"
                         placeholder="Select Shift" class="w-full text-sm">
@@ -56,8 +57,8 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Supervisor -->
             <div>
-                <label
-                    class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Supervisor <span class="text-red-500">*</span></label>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Supervisor <span
+                        class="text-red-500">*</span></label>
                 <div class="relative">
                     <ng-select [(ngModel)]="shiftForm.supervisorId" [items]="supervisors" bindLabel="name"
                         bindValue="id" placeholder="Select Supervisor" class="w-full text-sm">
@@ -154,37 +155,46 @@
             </div>
         </div>
 
-        <!-- Employee Deployment Header -->
-        <div class="flex flex-wrap justify-between items-end mb-4">
-            <div>
-                <h2 class="text-xl font-bold text-[#468faf] mb-1">Employee Deployment</h2>
-                <p class="text-sm text-gray-500">Bulk assignment of operators and support staff.</p>
-            </div>
+        <div *ngIf="showEmployeeDeployment; else futureDateMessage">
+            <!-- Employee Deployment Header -->
+            <div class="flex flex-wrap justify-between items-end mb-4">
+                <div>
+                    <h2 class="text-xl font-bold text-[#468faf] mb-1">Employee Deployment</h2>
+                    <p class="text-sm text-gray-500">Bulk assignment of operators and support staff.</p>
+                </div>
             <div class="flex items-center gap-3 mt-4 md:mt-0">
                 <!-- Employee Workforce Metrics -->
                 <div
-                    class="flex bg-white border border-gray-200 rounded shadow-sm text-[10px] font-bold uppercase tracking-widest text-center mr-2">
-                    <div class="px-3 py-1.5 border-r border-gray-200 bg-gray-50/50 flex flex-col justify-center">
+                    class="flex flex-wrap bg-white border border-gray-200 rounded shadow-sm text-[10px] font-bold uppercase tracking-widest text-center mr-2">
+                    <div class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-gray-50/50 flex flex-col justify-center">
                         <div class="text-gray-500 mb-0.5">Planned</div>
                         <div class="text-sm text-gray-800">{{ employeeStats.planned }}</div>
                     </div>
-                    <div class="px-3 py-1.5 border-r border-gray-200 bg-green-50/30 flex flex-col justify-center">
+                    <div class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-green-50/30 flex flex-col justify-center">
                         <div class="text-gray-500 mb-0.5">Present</div>
                         <div class="text-sm text-green-600">{{ employeeStats.present }}</div>
                     </div>
-                    <div class="px-3 py-1.5 border-r border-gray-200 bg-red-50/30 flex flex-col justify-center">
-                        <div class="text-gray-500 mb-0.5">Leave</div>
-                        <div class="text-sm text-red-500">{{ employeeStats.leave }}</div>
-                    </div>
-                    <div class="px-3 py-1.5 bg-blue-50/30 flex flex-col justify-center">
+                    <!-- <div class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-[#468faf]/10 flex flex-col justify-center">
+                        <div class="text-gray-500 mb-0.5">Deployed</div>
+                        <div class="text-sm text-[#468faf]">{{ employeeStats.deployed }}</div>
+                    </div> -->
+                    <div class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-yellow-50/50 flex flex-col justify-center">
                         <div class="text-gray-500 mb-0.5">Borrowed</div>
-                        <div class="text-sm text-[#468faf]">{{ employeeStats.borrowed }}</div>
+                        <div class="text-sm text-yellow-600">{{ employeeStats.borrowed }}</div>
+                    </div>
+                    <div class="px-3 py-1.5 border-r border-gray-200 bg-red-50/30 flex flex-col justify-center">
+                        <div class="text-gray-500 mb-0.5">Absent</div>
+                        <div class="text-sm text-red-500">{{ employeeStats.absent }}</div>
+                    </div>
+                    <div class="px-3 py-1.5 bg-orange-50/30 flex flex-col justify-center">
+                        <div class="text-gray-500 mb-0.5">Leave</div>
+                        <div class="text-sm text-orange-500">{{ employeeStats.leave }}</div>
                     </div>
                 </div>
 
                 <button (click)="openAddEmployeeModal()"
                     class="bg-[#468faf] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0] shadow-sm transition-colors">
-                    <i class="fas fa-plus"></i> ADD EMPLOYEE
+                    <i class="fas fa-plus"></i> BORROW EMPLOYEE
                 </button>
 
                 <!-- <div
@@ -202,13 +212,12 @@
             <div class="p-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
                 <div class="flex items-center text-sm text-gray-600 font-medium">
                     <span class="mr-2">Show</span>
-                    <select
-                        class="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:border-[#468faf] bg-white text-gray-700 cursor-pointer">
-                        <option value="4">4</option>
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                    </select>
+                    <ng-select class="entries-select" 
+                               [items]="tableSizes" 
+                               [clearable]="false" 
+                               [searchable]="false" 
+                               [(ngModel)]="tableSize">
+                    </ng-select>
                     <span class="ml-2">entries</span>
                 </div>
                 <div class="flex items-center gap-2">
@@ -233,9 +242,10 @@
                         class="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
                         <tr>
                             <th class="px-6 py-4 w-12 text-center">S.No.</th>
-                            <th class="px-6 py-4">Employee Name</th>
+                            <th class="px-6 py-4">Employee Info</th>
                             <th class="px-6 py-4">Designation</th>
-                            <th class="px-6 py-4">Home Shift</th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Scheduled Shift</th>
                             <th class="px-6 py-4">Machine Assigned</th>
                             <th class="px-6 py-4 text-right">Action</th>
                         </tr>
@@ -246,20 +256,35 @@
                                 {{ (currentPage - 1) * 4 + i + 1 }}
                             </td>
                             <td class="px-6 py-4">
-                                <div class="font-bold text-gray-800 flex items-center gap-2">
-                                    {{ emp.name }}
-                                    <span *ngIf="emp.isBorrowed"
-                                        class="bg-blue-100 text-blue-700 text-[9px] font-bold px-2 py-0.5 rounded tracking-widest uppercase">Borrowed</span>
+                                <div class="font-bold text-gray-800 flex flex-col gap-1">
+                                    <div class="flex items-center gap-2">
+                                        {{ emp.name }}
+                                        <span *ngIf="emp.isBorrowed"
+                                            class="bg-blue-100 text-blue-700 text-[9px] font-bold px-2 py-0.5 rounded tracking-widest uppercase cursor-help"
+                                            [title]="emp.borrowingReason || 'Borrowed'">Borrowed</span>
+                                    </div>
+                                    <span class="text-xs text-gray-500 font-normal">{{ emp.code || 'N/A' }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-gray-600 font-medium">{{ emp.designation }}</td>
+                            <td class="px-6 py-4">
+                                <span class="px-2.5 py-1 rounded text-xs font-bold border"
+                                    [ngClass]="{
+                                        'bg-green-50 text-green-700 border-green-200': emp.status === 'Present',
+                                        'bg-blue-50 text-blue-700 border-blue-200': emp.status === 'Deployed',
+                                        'bg-gray-50 text-gray-700 border-gray-200': emp.status !== 'Present' && emp.status !== 'Deployed'
+                                    }">
+                                    {{ emp.status || 'N/A' }}
+                                </span>
+                            </td>
                             <td class="px-6 py-4 text-gray-600 font-medium">
-                                <div class="flex items-center gap-2">
-                                    <span
-                                        class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded border border-gray-200">
+                                <div class="flex flex-col items-start gap-1">
+                                    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded border border-gray-200">
                                         {{ emp.homeShiftName || 'N/A' }}
                                     </span>
-
+                                    <span *ngIf="emp.homeRelayShift" class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                                        {{ emp.homeRelayShift.replace('_', ' ') }}
+                                    </span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-gray-600">{{ emp.machine }}</td>
@@ -296,14 +321,30 @@
                 </div>
             </div>
         </div>
+        </div>
+
+        <ng-template #futureDateMessage>
+            <div class="bg-blue-50/50 border border-blue-100 rounded shadow-sm p-8 flex flex-col items-center justify-center text-center mb-6 mt-4">
+                <div class="w-16 h-16 bg-blue-100/50 text-[#468faf] rounded-full flex items-center justify-center text-2xl mb-4">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3 class="text-[#2c7da0] font-bold text-lg mb-2">Automated Roster Generation</h3>
+                <p class="text-gray-500 text-sm max-w-xl leading-relaxed">
+                    Workforce deployment for future dates is automatically managed by the <span class="font-bold text-gray-700">Master Relay Sequence</span>. 
+                    <br>Manual assignment overrides and employee borrowing are only permitted for today's active shift.
+                </p>
+            </div>
+        </ng-template>
 
         <!-- Form Action Buttons -->
         <div class="flex items-center justify-end gap-4 mt-6 mb-8 px-6">
             <button
                 class="border border-gray-300 bg-white text-gray-700 px-6 py-2.5 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
                 (click)="goBack()">Cancel</button>
-            <button class=" bg-[#468faf] text-white px-6 py-2.5 rounded text-sm font-bold flex items-center gap-2
-                hover:bg-[#2c7da0] transition-colors" (click)="publishShift()">
+            <button class="bg-[#468faf] text-white px-6 py-2.5 rounded text-sm font-bold flex items-center gap-2 transition-colors"
+                [disabled]="!showEmployeeDeployment"
+                [ngClass]="!showEmployeeDeployment ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#2c7da0]'"
+                (click)="publishShift()">
                 <i class="fas fa-rocket"></i> PUBLISH SHIFT PLAN
             </button>
         </div>
@@ -315,33 +356,54 @@
 <!-- Add Machinery Modal -->
 <div *ngIf="showAddMachineryModal"
     class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-    <div class="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden my-auto border border-gray-200 mt-10">
-        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-            <h2 class="text-lg font-bold text-gray-800">Add Machinery</h2>
-            <button class="text-gray-400 hover:text-gray-600 text-xl leading-none"
+    <div class="bg-white w-full max-w-md rounded-xl shadow-2xl my-auto border border-gray-200 mt-10">
+        <div class="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex justify-between items-center rounded-t-xl">
+            <h2 class="text-lg font-bold text-gray-800 tracking-tight">Add Machinery</h2>
+            <button class="text-gray-400 hover:text-red-500 text-xl leading-none transition-colors"
                 (click)="closeAddMachineryModal()">&times;</button>
         </div>
-        <div class="p-6 space-y-4">
+        <div class="p-6 space-y-5 min-h-[420px] flex flex-col">
             <div>
-                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Machine Type <span class="text-red-500">*</span></label>
-                <ng-select [(ngModel)]="newMachine.categoryId" [items]="machineCategories" bindLabel="name"
-                    bindValue="id" placeholder="Select Type" class="w-full text-sm"
-                    (ngModelChange)="onMachineCategoryChange()">
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Machine Type <span
+                        class="text-red-500">*</span></label>
+                <ng-select [(ngModel)]="newMachine.categoryId" [items]="filteredMachineCategories" bindLabel="name"
+                    bindValue="id" placeholder="Select Type" class="w-full text-sm font-medium"
+                    (ngModelChange)="onMachineCategoryChange()"
+                    [disabled]="isMachineTypeLocked" appendTo="body">
                 </ng-select>
             </div>
             <div>
-                <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Machine <span class="text-red-500">*</span></label>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Machine <span
+                        class="text-red-500">*</span></label>
                 <ng-select [(ngModel)]="newMachine.id" [items]="machineNames" bindLabel="name" bindValue="id"
-                    placeholder="Select Machine" class="w-full text-sm">
+                    placeholder="Select Machine" class="w-full text-sm font-medium" appendTo="body">
+                    <ng-template ng-option-tmp let-item="item">
+                        <div class="flex justify-between items-center py-1.5 border-b border-gray-50 last:border-0">
+                            <div class="flex flex-col gap-0.5">
+                                <span class="font-bold text-[13px]" [ngClass]="{'text-gray-400': item.disabled, 'text-gray-800': !item.disabled}">
+                                    {{ item.name }}
+                                </span>
+                                <span *ngIf="item.shortReason" class="text-[10px] font-semibold text-red-400/90 tracking-wide">
+                                    {{ item.shortReason }}
+                                </span>
+                            </div>
+                            <span *ngIf="item.status" class="text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider"
+                                  [ngClass]="item.status === 'available' ? 'bg-green-50 text-green-600 border border-green-100/50' : 'bg-red-50 text-red-500 border border-red-100/50'">
+                                {{ item.status }}
+                            </span>
+                        </div>
+                    </ng-template>
+                    <ng-template ng-label-tmp let-item="item">
+                        <span class="font-bold text-gray-800 text-[13px]">{{ item.name }}</span>
+                    </ng-template>
                 </ng-select>
             </div>
         </div>
-        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-            <button class="text-gray-600 font-bold text-sm px-4 py-2" (click)="closeAddMachineryModal()">Cancel</button>
-            <button class="text-white font-bold text-sm px-6 py-2 rounded transition-colors"
-                [ngClass]="(!newMachine.categoryId || !newMachine.id) ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#468faf] hover:bg-[#2c7da0]'"
-                [disabled]="!newMachine.categoryId || !newMachine.id"
-                (click)="addMachineToShift()">Add</button>
+        <div class="bg-gray-50/80 px-6 py-4 border-t border-gray-100 flex justify-end gap-3 rounded-b-xl">
+            <button class="text-gray-500 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded-md transition-colors" (click)="closeAddMachineryModal()">Cancel</button>
+            <button class="text-white font-bold text-sm px-6 py-2 rounded-md transition-colors shadow-sm"
+                [ngClass]="(!newMachine.categoryId || !newMachine.id) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-[#468faf] hover:bg-[#2c7da0]'"
+                [disabled]="!newMachine.categoryId || !newMachine.id" (click)="addMachineToShift()">Add Machinery</button>
         </div>
     </div>
 </div>
@@ -349,13 +411,13 @@
 <!-- Add Employee Modal -->
 <div *ngIf="showAddEmployeeModal"
     class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-    <div class="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden my-auto border border-gray-200 mt-10">
-        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+    <div class="bg-white w-full max-w-md rounded-lg shadow-2xl my-auto border border-gray-200 mt-10">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center rounded-t-lg">
             <h2 class="text-lg font-bold text-gray-800">Add Employee to Shift</h2>
             <button class="text-gray-400 hover:text-gray-600 text-xl leading-none"
                 (click)="closeAddEmployeeModal()">&times;</button>
         </div>
-        <div class="p-6 space-y-4">
+        <div class="p-6 space-y-4 min-h-[400px]">
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Shift <span
                         class="text-red-500">*</span></label>
@@ -400,20 +462,22 @@
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Assign Machine <span
                         class="text-gray-400 font-normal">(Optional)</span></label>
-                <select [(ngModel)]="newEmployee.machineAssigned"
-                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf] bg-white">
-                    <option value="">Unassigned</option>
-                    <option value="EXC-101">EXC-101 (Excavator)</option>
-                    <option value="EXC-102">EXC-102 (Excavator)</option>
-                    <option value="DMP-01">DMP-01 (Dumper)</option>
-                    <option value="DMP-02">DMP-02 (Dumper)</option>
-                    <option value="DMP-03">DMP-03 (Dumper)</option>
-                    <option value="DMP-04">DMP-04 (Dumper)</option>
-                    <option value="DMP-05">DMP-05 (Dumper)</option>
-                </select>
+                <ng-select [(ngModel)]="newEmployee.machineAssigned"
+                    class="w-full text-sm"
+                    dropdownPosition="bottom"
+                    placeholder="Select Machine">
+                    <ng-option value="">Unassigned</ng-option>
+                    <ng-option value="EXC-101">EXC-101 (Excavator)</ng-option>
+                    <ng-option value="EXC-102">EXC-102 (Excavator)</ng-option>
+                    <ng-option value="DMP-01">DMP-01 (Dumper)</ng-option>
+                    <ng-option value="DMP-02">DMP-02 (Dumper)</ng-option>
+                    <ng-option value="DMP-03">DMP-03 (Dumper)</ng-option>
+                    <ng-option value="DMP-04">DMP-04 (Dumper)</ng-option>
+                    <ng-option value="DMP-05">DMP-05 (Dumper)</ng-option>
+                </ng-select>
             </div>
         </div>
-        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
             <button class="text-gray-600 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded transition-colors"
                 (click)="closeAddEmployeeModal()">Cancel</button>
             <button class="text-white font-bold text-sm px-6 py-2 rounded transition-colors"
@@ -427,13 +491,13 @@
 <!-- Edit Employee Modal -->
 <div *ngIf="showEditEmployeeModal"
     class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-    <div class="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden my-auto border border-gray-200 mt-10">
-        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+    <div class="bg-white w-full max-w-md rounded-lg shadow-2xl my-auto border border-gray-200 mt-10">
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center rounded-t-lg">
             <h2 class="text-lg font-bold text-gray-800">Edit Assignment</h2>
             <button class="text-gray-400 hover:text-gray-600 text-xl leading-none"
                 (click)="closeEditEmployeeModal()">&times;</button>
         </div>
-        <div class="p-6 space-y-4" *ngIf="editEmployeeData">
+        <div class="p-6 space-y-4 min-h-[400px]" *ngIf="editEmployeeData">
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-1">Employee</label>
                 <div class="text-sm font-medium text-gray-800 bg-gray-50 border border-gray-200 rounded px-3 py-2">
@@ -444,20 +508,22 @@
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Assign Machine <span
                         class="text-gray-400 font-normal">(Optional)</span></label>
-                <select [(ngModel)]="editEmployeeData.machineAssigned"
-                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-[#468faf] bg-white">
-                    <option value="">Unassigned</option>
-                    <option value="EXC-101">EXC-101 (Excavator)</option>
-                    <option value="EXC-102">EXC-102 (Excavator)</option>
-                    <option value="DMP-01">DMP-01 (Dumper)</option>
-                    <option value="DMP-02">DMP-02 (Dumper)</option>
-                    <option value="DMP-03">DMP-03 (Dumper)</option>
-                    <option value="DMP-04">DMP-04 (Dumper)</option>
-                    <option value="DMP-05">DMP-05 (Dumper)</option>
-                </select>
+                <ng-select [(ngModel)]="editEmployeeData.machineAssigned"
+                    class="w-full text-sm"
+                    dropdownPosition="bottom"
+                    placeholder="Select Machine">
+                    <ng-option value="">Unassigned</ng-option>
+                    <ng-option value="EXC-101">EXC-101 (Excavator)</ng-option>
+                    <ng-option value="EXC-102">EXC-102 (Excavator)</ng-option>
+                    <ng-option value="DMP-01">DMP-01 (Dumper)</ng-option>
+                    <ng-option value="DMP-02">DMP-02 (Dumper)</ng-option>
+                    <ng-option value="DMP-03">DMP-03 (Dumper)</ng-option>
+                    <ng-option value="DMP-04">DMP-04 (Dumper)</ng-option>
+                    <ng-option value="DMP-05">DMP-05 (Dumper)</ng-option>
+                </ng-select>
             </div>
         </div>
-        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
             <button class="text-gray-600 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded transition-colors"
                 (click)="closeEditEmployeeModal()">Cancel</button>
             <button class="bg-[#468faf] text-white font-bold text-sm px-6 py-2 rounded hover:bg-[#2c7da0]"
@@ -469,21 +535,23 @@
 <!-- Delete Employee Confirmation Modal -->
 <div *ngIf="showDeleteEmployeeModal"
     class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
-    <div class="bg-white w-full max-w-sm rounded-lg shadow-2xl overflow-hidden my-auto border border-gray-200 mt-10">
+    <div class="bg-white w-full max-w-sm rounded-lg shadow-2xl my-auto border border-gray-200 mt-10">
         <div class="p-6 text-center">
             <div class="w-16 h-16 rounded-full bg-red-100 mx-auto flex items-center justify-center mb-4">
                 <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
             </div>
             <h2 class="text-xl font-bold text-gray-800 mb-2">Remove Employee</h2>
             <p class="text-sm text-gray-600">
-                Are you sure you want to remove <span class="font-bold text-gray-800">{{ employeeToDelete?.name }}</span> from this shift?
+                Are you sure you want to remove <span class="font-bold text-gray-800">{{ employeeToDelete?.name
+                    }}</span> from this shift?
                 This action cannot be undone.
             </p>
         </div>
-        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+        <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end gap-3 rounded-b-lg">
             <button class="text-gray-600 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded transition-colors"
                 (click)="closeDeleteEmployeeModal()">Cancel</button>
-            <button class="bg-red-500 hover:bg-red-600 text-white font-bold text-sm px-6 py-2 rounded transition-colors flex items-center gap-2"
+            <button
+                class="bg-red-500 hover:bg-red-600 text-white font-bold text-sm px-6 py-2 rounded transition-colors flex items-center gap-2"
                 (click)="confirmDeleteEmployee()">
                 <i class="far fa-trash-alt"></i> Remove
             </button>

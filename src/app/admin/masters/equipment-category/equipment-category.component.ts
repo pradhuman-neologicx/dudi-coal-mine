@@ -18,6 +18,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 
 @Component({
@@ -31,6 +32,7 @@ import { NotificationService } from 'src/app/core/services/notificationnew.servi
     MatIconModule,
     MatButtonModule,
     NgxPaginationModule,
+    NgSelectModule
   ],
   templateUrl: './equipment-category.component.html',
   styleUrl: './equipment-category.component.scss',
@@ -51,7 +53,7 @@ export class EquipmentCategoryComponent implements OnInit {
   viewCategoryForm!: FormGroup;
 
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
   totalRecords: any;
   page = 1;
 
@@ -159,8 +161,7 @@ export class EquipmentCategoryComponent implements OnInit {
     this.GetCategoryFun();
   }
 
-  onTableSizeChange(event: any): void {
-    this.tableSize = event.target.value;
+  onTableSizeChange(): void {
     this.page = 1;
     this.GetCategoryFun();
   }

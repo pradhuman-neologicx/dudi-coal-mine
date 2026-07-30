@@ -109,6 +109,10 @@ export class ShiftPlanningService {
     return this.apiService.get('v1/machine-categories', this.getHeaders());
   }
 
+  getDelayCategories(): Observable<any> {
+    return this.apiService.get('v1/delay-categories', this.getHeaders());
+  }
+
   getMachineNames(categoryId: string | number): Observable<any> {
     return this.apiService.get(`v1/machine-names/${categoryId}`, this.getHeaders());
   }
@@ -180,5 +184,21 @@ export class ShiftPlanningService {
   shiftPlanFilterByDate(datetime: string): Observable<any> {
     const params = new HttpParams().set('datetime', datetime);
     return this.apiService.get(`v1/shifts/by-datetime`, this.getHeaders(), params);
+  }
+
+  getShiftSummary(id: string | number): Observable<any> {
+    return this.apiService.get(`v1/admin/shift-plans/${id}/summary`, this.getHeaders());
+  }
+
+  getShiftPlanView(id: string | number): Observable<any> {
+    return this.apiService.get(`v1/admin/shift-plans/${id}/view`, this.getHeaders());
+  }
+
+  getShiftClosureSummary(id: string | number): Observable<any> {
+    return this.apiService.get(`v1/admin/shift-plans/${id}/closure-summary`, this.getHeaders());
+  }
+
+  closeShiftPlan(id: string | number, data: FormData): Observable<any> {
+    return this.apiService.post(`v1/admin/shift-plans/${id}/close`, data, this.getHeaders());
   }
 }

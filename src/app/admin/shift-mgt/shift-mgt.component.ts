@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { NgxPaginationModule } from 'ngx-pagination';
 import { ShiftPlanningService, ShiftPlanFilters, ShiftPlan } from '../../core/services/shift-planning.service';
 
 @Component({
   selector: 'app-shift-mgt',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, NgSelectModule],
+  imports: [CommonModule, FormsModule, RouterModule, NgSelectModule, NgxPaginationModule],
   templateUrl: './shift-mgt.component.html',
   styleUrls: ['./shift-mgt.component.scss']
 })
@@ -20,12 +21,19 @@ export class ShiftMgtComponent implements OnInit {
     actual_bcm: '0',
     current_efficiency: 0
   };
-  pagination = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0, per_page: 10 };
+  pagination: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0, per_page: 10 };
+  tableSizes: any = [10, 20, 50, 100];
 
   filterLocations: any[] = [];
   selectedLocation: any = null;
 
-  selectedStatus: string = '';
+  filterStatuses = [
+    { id: 'draft', name: 'Draft' },
+    { id: 'published', name: 'Published' },
+    { id: 'in_progress', name: 'In Progress' },
+    { id: 'completed', name: 'Completed' }
+  ];
+  selectedStatus: string | null = null;
 
   filterSupervisors: any[] = [];
   selectedSupervisor: any = null;
@@ -39,20 +47,14 @@ export class ShiftMgtComponent implements OnInit {
   filterShifts: any[] = [];
   selectedShiftFilter: any = null;
 
-  shiftClosure = {
-    attendanceSubmitted: false,
-    fuelLogsAvailable: false,
-    delayLogsUpdated: false,
-    breakdownLogsUpdated: false,
-    productionDataAvailable: false,
-    safetyDataReviewed: false,
-    shiftRemarks: '',
-    handoverNotes: ''
-  };
-
   shifts: any[] = [];
 
   selectedShift: any = null;
+
+  // View Details Modal State
+  viewShiftPlanData: any = null;
+  isViewDetailsModalOpen: boolean = false;
+  viewModalLoading: boolean = false;
 
   constructor(
     private router: Router,
@@ -102,6 +104,11 @@ export class ShiftMgtComponent implements OnInit {
   }
 
   onFilterChange() {
+    if (this.filterStartDate && this.filterEndDate) {
+      if (new Date(this.filterEndDate) < new Date(this.filterStartDate)) {
+        this.filterEndDate = this.filterStartDate;
+      }
+    }
     this.pagination.current_page = 1;
     this.loadShiftPlans();
   }
@@ -127,17 +134,18 @@ export class ShiftMgtComponent implements OnInit {
     this.selectedShiftFilter = null;
     this.selectedLocation = null;
     this.selectedSupervisor = null;
-    this.selectedStatus = '';
+    this.selectedStatus = null;
 
     this.pagination.current_page = 1;
     this.loadShiftPlans();
   }
 
   loadShiftPlans() {
-    const filters: ShiftPlanFilters = {
-      page: this.pagination.current_page,
-      limit: this.pagination.per_page
-    };
+    const filters: any = {};
+    if (this.pagination.per_page !== 'All') {
+      filters.page = this.pagination.current_page;
+      filters.limit = this.pagination.per_page;
+    }
 
     if (this.selectedLocation) filters.site_id = this.selectedLocation;
     if (this.selectedSupervisor) filters.supervisor_id = this.selectedSupervisor;
@@ -152,12 +160,6 @@ export class ShiftMgtComponent implements OnInit {
       next: (res) => {
         if (res.status === 200 && res.data) {
           this.shifts = res.data.map((item: ShiftPlan) => {
-            // Map the API status to UI friendly status
-            let uiStatus = item.status;
-            if (item.status === 'in_progress') uiStatus = 'IN-PROGRESS';
-            else if (item.status === 'draft') uiStatus = 'PLANNED';
-            else if (item.status === 'completed') uiStatus = 'COMPLETED';
-
             // Extract shift code (e.g., 'Shift A' -> 'A')
             const shiftCodeMatch = item.shift_name ? item.shift_name.match(/Shift\s+([A-Z])/i) : null;
             const shiftCode = shiftCodeMatch ? shiftCodeMatch[1] : item.shift_name;
@@ -171,7 +173,7 @@ export class ShiftMgtComponent implements OnInit {
               supervisor: item.supervisor_name,
               targetBCM: Number(item.target_bcm),
               actualBCM: Number(item.actual_bcm),
-              status: uiStatus
+              status: item.status
             };
           });
 
@@ -189,13 +191,20 @@ export class ShiftMgtComponent implements OnInit {
     });
   }
 
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.pagination.last_page) {
+      this.pagination.current_page = page;
+      this.loadShiftPlans();
+    }
+  }
+
   getPercentage(actual: number, target: number): number {
     if (target === 0) return 0;
     return Math.min((actual / target) * 100, 100);
   }
 
   openViewModal(shift: any) {
-    this.router.navigate(['/admin/shift-mgt/summary', shift.shiftCode]);
+    this.router.navigate(['/admin/shift-mgt/summary', shift.id]);
   }
 
   closeViewModal() {
@@ -203,15 +212,30 @@ export class ShiftMgtComponent implements OnInit {
     document.body.style.overflow = '';
   }
 
-  showCloseModal = false;
-
-  openCloseModal() {
-    this.showCloseModal = true;
+  openShiftPlanDetails(shift: any) {
+    this.isViewDetailsModalOpen = true;
+    this.viewModalLoading = true;
+    this.viewShiftPlanData = null;
+    // Add overflow hidden to body to prevent scrolling when modal is open
     document.body.style.overflow = 'hidden';
+
+    this.shiftPlanningService.getShiftPlanView(shift.id).subscribe({
+      next: (res: any) => {
+        if (res.status === 200 && res.data) {
+          this.viewShiftPlanData = res.data;
+        }
+        this.viewModalLoading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching shift plan view data:', err);
+        this.viewModalLoading = false;
+      }
+    });
   }
 
-  closeCloseModal() {
-    this.showCloseModal = false;
+  closeShiftPlanDetails() {
+    this.isViewDetailsModalOpen = false;
+    this.viewShiftPlanData = null;
     document.body.style.overflow = '';
   }
 

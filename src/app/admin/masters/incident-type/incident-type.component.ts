@@ -33,7 +33,7 @@ export class IncidentTypeComponent implements OnInit, OnDestroy {
   viewForm!: FormGroup;
   
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
   totalRecords: any;
   page: number = 1;
   
@@ -94,7 +94,7 @@ export class IncidentTypeComponent implements OnInit, OnDestroy {
   }
 
   onTableSizeChange(event: any): void {
-    this.tableSize = event.target.value;
+    this.tableSize = event && event.target ? event.target.value : event;
     this.page = 1;
     this.GetListFun();
   }
@@ -159,8 +159,22 @@ export class IncidentTypeComponent implements OnInit, OnDestroy {
 
   OpenEditModal(user: any): void {
     this.currentId = user.id;
-    this.updateModalOpen = true;
-    this.updateForm.patchValue({ Name: user.name });
+    this.incidentTypeService.getIncidentTypeById(user.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          if (response.status === 200 && response.data) {
+            this.updateForm.patchValue({ Name: response.data.incident_type || response.data.name });
+            this.updateModalOpen = true;
+          } else {
+            this.notificationService.show(response.message || 'Failed to load details', 'error', 3000);
+          }
+        },
+        error: (error: any) => {
+          console.error('Error fetching details:', error);
+          this.notificationService.show(error.message || 'Something went wrong', 'error', 3000);
+        }
+      });
   }
 
   openviewModal(user: any): void {

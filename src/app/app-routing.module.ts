@@ -40,13 +40,17 @@ import { FuelComponent } from './admin/fuel/fuel.component';
 import { FuelStationsComponent } from './admin/fuel/fuel-stations/fuel-stations.component';
 import { FuelManagementComponent } from './admin/fuel/fuel-management/fuel-management.component';
 import { AttendanceDetailComponent } from './admin/attendance-management/attendance-detail/attendance-detail.component';
-import { DashboardNewComponent } from './admin/dashboard-new/dashboard-new.component';
+import { DashboardNewComponent } from './admin/dashboard-new/dashboard-new/dashboard-new.component';
 import { DelayReportComponent } from './admin/delay-report/delay-report.component';
 import { FuelMgtComponent } from './admin/fuel-mgt/fuel-mgt.component';
-import { DashboardNew1Component } from './admin/dashboard-new1/dashboard-new1.component';
+import { DashboardNew1Component } from './admin/dashboard-new/dashboard-new1.component';
 import { IncidentTypeComponent } from './admin/masters/incident-type/incident-type.component';
 import { SeverityLevelComponent } from './admin/masters/severity-level/severity-level.component';
 import { BreakdownTypeComponent } from './admin/masters/breakdown-type/breakdown-type.component';
+import { DelayTypeComponent } from './admin/masters/delay-type/delay-type.component';
+import { DumpingPointComponent } from './admin/masters/dumping-point/dumping-point.component';
+import { DumpingComponent } from './admin/dumping/dumping.component';
+import { RelaySettingsComponent } from './admin/relay-settings/relay-settings.component';
 
 const routes: Routes = [
   {
@@ -183,6 +187,14 @@ const routes: Routes = [
             component: ShiftComponent,
           },
           {
+            path: 'relay',
+            loadComponent: () => import('./admin/masters/relay/relay.component').then(m => m.RelayComponent)
+          },
+          {
+            path: 'relay-settings',
+            component: RelaySettingsComponent,
+          },
+          {
             path: 'leave-type',
             component: LeaveTypeComponent,
           },
@@ -212,8 +224,16 @@ const routes: Routes = [
             component: BreakdownTypeComponent,
           },
           {
+            path: 'delay-type',
+            component: DelayTypeComponent,
+          },
+          {
             path: 'severity-level',
             component: SeverityLevelComponent,
+          },
+          {
+            path: 'dumping-point',
+            component: DumpingPointComponent,
           },
         ],
       },
@@ -263,6 +283,11 @@ const routes: Routes = [
         canActivate: [AuthGuard],
       },
       {
+        path: 'shift-mgt/close/:id',
+        loadComponent: () => import('./admin/shift-mgt/shift-close/shift-close.component').then(m => m.ShiftCloseComponent),
+        canActivate: [AuthGuard],
+      },
+      {
         path: 'shift-mgt/summary/:id',
         loadComponent: () => import('./admin/shift-mgt/shift-summery/shift-summery.component').then(m => m.ShiftSummeryComponent),
         canActivate: [AuthGuard],
@@ -278,16 +303,16 @@ const routes: Routes = [
         canActivate: [AuthGuard],
       },
       {
-        path: 'dispatch-dumping',
-        loadComponent: () => import('./admin/dispatch-dumping/dispatch-dumping.component').then(m => m.DispatchDumpingComponent),
+        path: 'dumping',
+        component: DumpingComponent,
         canActivate: [AuthGuard],
-        children: [
-          { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-          { path: 'dashboard', loadComponent: () => import('./admin/dispatch-dumping/dashboard/dashboard.component').then(m => m.DashboardComponent) },
-          { path: 'register', loadComponent: () => import('./admin/dispatch-dumping/register/register.component').then(m => m.RegisterComponent) },
-          { path: 'fleet-performance', loadComponent: () => import('./admin/dispatch-dumping/fleet-performance/fleet-performance.component').then(m => m.FleetPerformanceComponent) }
-        ]
       },
+      {
+        path: 'service-management',
+        loadComponent: () => import('./admin/service-management/service-management.component').then(m => m.ServiceManagementComponent),
+        canActivate: [AuthGuard],
+      },
+
       {
         path: 'fuel',
         component: FuelComponent,

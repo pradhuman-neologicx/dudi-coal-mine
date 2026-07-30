@@ -11,12 +11,16 @@
   <div class="card border-0 my-4 px-4 py-4">
     <!-- Top Controls -->
     <div class="row align-items-center mb-3 g-2">
-      <div class="col-md-2 d-flex align-items-center">
-        <span class="me-1 show-entery-text">Show</span>
-        <select class="form-control form-select show-entries-select mx-1" (change)="onTableSizeChange($event)">
-          <option *ngFor="let size of tableSizes" [ngValue]="size">{{ size }}</option>
-        </select>
-        <span class="ms-1 show-entery-text">entries</span>
+      <div class="col-md-2 d-flex align-items-center gap-2">
+        <span class="show-entery-text">Show</span>
+        <ng-select [items]="tableSizes" 
+                   [(ngModel)]="tableSize" 
+                   (change)="onTableSizeChange($event)" 
+                   [clearable]="false" 
+                   [searchable]="false" 
+                   class="custom-ng-select min-w-[80px]">
+        </ng-select>
+        <span class="show-entery-text">entries</span>
       </div>
 
       <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">

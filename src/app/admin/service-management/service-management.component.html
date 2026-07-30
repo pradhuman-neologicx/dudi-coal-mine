@@ -1,0 +1,646 @@
+<div class="px-4 py-4 bg-[#f0f2f5] min-h-screen font-sans">
+  <!-- Header -->
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 mb-1">Service Management</h1>
+      <p class="text-gray-500 text-sm">Track machine services, maintenance costs, and MTTR.</p>
+    </div>
+    <div class="flex gap-2">
+      <button (click)="openBreakdownModal()"
+        class="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2 rounded px-4 py-2 border-0 shadow-sm transition-colors text-sm font-semibold">
+        <i class="fas fa-exclamation-circle"></i> Add Breakdown
+      </button>
+      <button (click)="openServiceModal()"
+        class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white flex items-center gap-2 rounded px-4 py-2 border-0 shadow-sm transition-colors text-sm font-semibold">
+        <i class="fas fa-wrench"></i> Add Service
+      </button>
+    </div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+    <!-- Card 1 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        Vehicles in Breakdown
+        <span class="text-red-500 border border-red-500 rounded px-[4px] py-[1px]"><i class="fas fa-unlink"></i></span>
+      </div>
+      <div class="text-3xl font-bold text-gray-900 mb-1">{{ stats.vehiclesInBreakdown }}</div>
+      <div class="text-[10px] font-medium text-gray-400">Currently active breakdowns</div>
+    </div>
+    <!-- Card 2 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        Vehicles in Active Service
+        <span class="text-orange-500 border border-orange-500 rounded px-[4px] py-[1px]"><i
+            class="fas fa-tools"></i></span>
+      </div>
+      <div class="text-3xl font-bold text-gray-900 mb-1">{{ stats.vehiclesInService }}</div>
+      <div class="text-[10px] font-medium text-gray-400">Currently in progress</div>
+    </div>
+    <!-- Card 3 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        Total Services Done
+        <span class="text-blue-500 border border-blue-500 rounded px-[4px] py-[1px]"><i
+            class="fas fa-check-circle"></i></span>
+      </div>
+      <div class="text-3xl font-bold text-gray-900 mb-1">{{ stats.totalServicesDone }}</div>
+      <div class="text-[10px] font-medium text-gray-400">Completed general services</div>
+    </div>
+    <!-- Card 4 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        Total Repairs Done
+        <span class="text-emerald-500 border border-emerald-500 rounded px-[4px] py-[1px]"><i
+            class="fas fa-wrench"></i></span>
+      </div>
+      <div class="text-3xl font-bold text-gray-900 mb-1">{{ stats.totalRepairsDone }}</div>
+      <div class="text-[10px] font-medium text-gray-400">Completed repair jobs</div>
+    </div>
+    <!-- Card 5 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        Avg Repair Time
+        <span class="text-purple-500 border border-purple-500 rounded px-[4px] py-[1px]"><i
+            class="far fa-clock"></i></span>
+      </div>
+      <div class="text-3xl font-bold text-gray-900 mb-1">{{ stats.avgRepairTime }}</div>
+      <div class="text-[10px] font-medium text-gray-400">Per repair type</div>
+    </div>
+    <!-- Card 6 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        Avg Service Time
+        <span class="text-indigo-500 border border-indigo-500 rounded px-[4px] py-[1px]"><i
+            class="fas fa-stopwatch"></i></span>
+      </div>
+      <div class="text-3xl font-bold text-indigo-700 mb-1">{{ stats.avgServiceTime }}</div>
+      <div class="text-[10px] font-medium text-gray-400">Overall average</div>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <div class="bg-white rounded border border-gray-200 shadow-sm">
+    <div class="flex flex-wrap justify-between items-center border-b border-gray-200 px-4 py-3">
+      <h2 class="text-lg font-bold text-[#0f2a4a]">Service Records</h2>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="p-4 border-b border-gray-200 bg-gray-50 flex flex-wrap gap-4 items-end">
+      <div class="flex-1 min-w-[200px]">
+        <label class="block text-xs font-bold text-gray-700 mb-1">Search Machine / Ticket</label>
+        <div class="relative flex gap-2">
+          <div class="relative flex-1">
+            <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
+            <input type="text" [(ngModel)]="searchInput" (ngModelChange)="onSearchInputChange()" (keyup.enter)="applySearch()" placeholder="Search by machine, ticket ID..."
+              class="w-full pl-9 pr-3 py-[7px] text-sm border rounded focus:outline-none focus:border-[#0f2a4a]">
+          </div>
+          <button type="button" (click)="applySearch()" class="h-[36px] px-4 flex items-center justify-center rounded border border-[#0f2a4a] bg-[#0f2a4a] text-white hover:bg-[#1a3a6a] transition-colors text-sm font-bold shadow-sm">
+            Search
+          </button>
+        </div>
+      </div>
+      <div class="w-48">
+        <label class="block text-xs font-bold text-gray-700 mb-1">Service Type</label>
+        <ng-select [items]="['All', 'General Service', 'Repair']" [(ngModel)]="filterServiceType" (change)="onFilterChange()"
+          [clearable]="false"></ng-select>
+      </div>
+      <div class="w-40">
+        <label class="block text-xs font-bold text-gray-700 mb-1">From Date</label>
+        <input type="date" [(ngModel)]="filterFromDate" (change)="onFilterChange()"
+          class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
+      </div>
+      <div class="w-40">
+        <label class="block text-xs font-bold text-gray-700 mb-1">End Date</label>
+        <input type="date" [(ngModel)]="filterEndDate" (change)="onFilterChange()"
+          class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
+      </div>
+      <div *ngIf="filterServiceType !== 'All' || searchInput || filterMachineName || filterFromDate || filterEndDate">
+        <button type="button" (click)="resetFilters()"
+          class="h-[36px] w-[36px] flex items-center justify-center rounded border border-gray-300 bg-white hover:bg-gray-100 text-gray-600 transition-colors"
+          title="Reset Filters">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left text-sm text-gray-600">
+        <thead class="text-xs text-gray-500 uppercase font-bold border-b border-gray-200 bg-gray-50">
+          <tr>
+            <th class="px-4 py-3">Ticket ID</th>
+            <th class="px-4 py-3">Machine</th>
+            <th class="px-4 py-3">Type</th>
+            <th class="px-4 py-3">Service Date & Time</th>
+            <th class="px-4 py-3">Total Cost</th>
+            <th class="px-4 py-3">Status</th>
+            <th class="px-4 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-200">
+          <tr *ngFor="let s of filteredServices | paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }"
+            class="hover:bg-gray-50">
+            <td class="px-4 py-3 font-medium text-gray-800">{{ s.ticketNumber || (s.breakdownId ? '#' + s.breakdownId : '#' + s.id) }}</td>
+            <td class="px-4 py-3 font-bold text-[#0f2a4a]">{{s.machineName}}</td>
+            <td class="px-4 py-3">
+              <span class="bg-gray-100 text-gray-700 text-[10px] font-bold px-2 py-1 rounded">{{s.serviceType}}</span>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-700">
+              <div class="flex items-center gap-1"><i class="far fa-calendar-alt text-gray-400"></i> {{s.serviceDate |
+                date:'mediumDate'}}</div>
+              <div *ngIf="s.serviceStartTime || s.serviceEndTime" class="text-[11px] text-gray-500 mt-0.5 flex items-center gap-1 font-medium">
+                <i class="far fa-clock text-gray-400"></i> {{s.serviceStartTime || '--:--'}} - {{s.serviceEndTime || '--:--'}}
+              </div>
+            </td>
+            <td class="px-4 py-3 font-semibold text-emerald-600">₹{{s.totalCost}}</td>
+            <td class="px-4 py-3">
+              <span class="text-[10px] font-bold px-3 py-1 rounded-full uppercase"
+                [ngClass]="{'bg-green-100 text-green-700': s.status === 'Completed' || s.status?.toLowerCase() === 'completed', 'bg-yellow-100 text-yellow-700': s.status === 'In Progress' || s.status?.toLowerCase() === 'in progress' || s.status?.toLowerCase() === 'in_progress'}">
+                {{s.status}}
+              </span>
+            </td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <button (click)="viewService(s)" class="text-gray-400 hover:text-[#0f2a4a] transition-colors"
+                  title="View Details">
+                  <i class="fas fa-eye text-lg"></i>
+                </button>
+                <button (click)="editService(s)" class="text-gray-400 hover:text-blue-600 transition-colors"
+                  title="Edit Entry">
+                  <i class="fas fa-edit text-lg"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="servicesList.length === 0">
+            <td colspan="8" class="text-center py-8 text-gray-400">No service records found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end items-center">
+      <pagination-controls (pageChange)="page = $event; fetchServiceRecords()"></pagination-controls>
+    </div>
+  </div>
+
+  <!-- Breakdown Modal -->
+  <div *ngIf="isBreakdownModalOpen"
+    class="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center font-sans">
+    <div class="bg-white w-full max-w-2xl rounded shadow-2xl overflow-hidden relative">
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-red-50">
+        <h2 class="font-bold text-red-800"><i class="fas fa-exclamation-triangle"></i> Log New Breakdown</h2>
+        <button (click)="closeModals()" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i></button>
+      </div>
+      <form [formGroup]="breakdownForm" (ngSubmit)="submitBreakdown()" class="p-6">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Date & Time</label>
+            <input type="datetime-local" formControlName="dateTime"
+              class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
+            <div *ngIf="breakdownForm.get('dateTime')?.invalid && breakdownForm.get('dateTime')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Date & Time is required</div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Shift</label>
+            <ng-select [items]="breakdownShifts" bindLabel="name" bindValue="id" formControlName="shift"
+              placeholder="Select Shift"></ng-select>
+            <div *ngIf="breakdownForm.get('shift')?.invalid && breakdownForm.get('shift')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Shift is required</div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Site</label>
+            <ng-select [items]="breakdownSites" bindLabel="name" bindValue="id" formControlName="site"
+              placeholder="Select Site"></ng-select>
+            <div *ngIf="breakdownForm.get('site')?.invalid && breakdownForm.get('site')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Site is required</div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Machine</label>
+            <ng-select [items]="breakdownMachines" bindLabel="machine_name" bindValue="machine_id" formControlName="machineId"
+              placeholder="Select Machine"></ng-select>
+            <div *ngIf="breakdownForm.get('machineId')?.invalid && breakdownForm.get('machineId')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Machine is required</div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Breakdown Type</label>
+            <ng-select [items]="breakdownTypes" bindLabel="name" bindValue="id" formControlName="breakdownType" placeholder="Select Type"></ng-select>
+            <div *ngIf="breakdownForm.get('breakdownType')?.invalid && breakdownForm.get('breakdownType')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Breakdown Type is required</div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Severity</label>
+            <ng-select [items]="['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']" formControlName="severity"
+              placeholder="Select Severity"></ng-select>
+            <div *ngIf="breakdownForm.get('severity')?.invalid && breakdownForm.get('severity')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Severity is required</div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-700 mb-1">Reported By</label>
+            <ng-select [items]="breakdownWorkforce" bindLabel="name" bindValue="id" formControlName="reportedBy"
+              placeholder="Operator Name" class="custom-ng-select w-full"></ng-select>
+            <div *ngIf="breakdownForm.get('reportedBy')?.invalid && breakdownForm.get('reportedBy')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Reported By is required</div>
+          </div>
+        </div>
+        <div class="mb-4">
+          <label class="block text-xs font-bold text-gray-700 mb-1">Problem Description</label>
+          <textarea formControlName="description" rows="2"
+            class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500"></textarea>
+          <div *ngIf="breakdownForm.get('description')?.invalid && breakdownForm.get('description')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Problem description is required</div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" (click)="closeModals()"
+            class="px-4 py-2 text-sm text-gray-500 font-bold hover:bg-gray-100 rounded">Cancel</button>
+          <button type="submit" [disabled]="breakdownForm.invalid"
+            class="px-6 py-2 bg-red-600 text-white text-sm font-bold rounded shadow hover:bg-red-700 disabled:opacity-50">Log
+            Breakdown</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Service Modal -->
+  <div *ngIf="isServiceModalOpen"
+    class="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center font-sans py-4">
+    <div class="bg-white w-full max-w-4xl rounded shadow-2xl flex flex-col max-h-[95vh] relative">
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-[#0f2a4a]">
+        <h2 class="font-bold text-white"><i class="fas fa-wrench"></i> Add Service Record</h2>
+        <button (click)="closeModals()" class="text-gray-300 hover:text-white"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="overflow-y-auto p-6 flex-1">
+        <form [formGroup]="serviceForm" (ngSubmit)="submitService()">
+          <!-- Breakdown Toggle -->
+          <div class="mb-4">
+            <label class="flex items-center gap-2 cursor-pointer w-max">
+              <input type="checkbox" formControlName="isBreakdown" class="sr-only peer">
+              <div
+                class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0f2a4a] relative">
+              </div>
+              <span class="text-sm font-bold text-gray-700">Select Breakdown</span>
+            </label>
+          </div>
+
+          <div *ngIf="serviceForm.get('isBreakdown')?.value" class="mb-4 p-4 bg-red-50 border border-red-100 rounded">
+            <label class="block text-xs font-bold text-gray-700 mb-1">Active Breakdown Ticket</label>
+            <ng-select [items]="activeBreakdowns" bindLabel="ticketNumber" bindValue="id" formControlName="breakdownId"
+              (change)="onBreakdownSelect()" placeholder="Select Breakdown">
+              <ng-template ng-option-tmp let-item="item">
+                <div class="font-bold text-red-600">{{item.ticketNumber || ('ID: ' + item.id)}} - {{item.type}}</div>
+                <div class="text-[10px] text-gray-500"><span *ngIf="item.equipmentName" class="font-semibold text-gray-700">{{item.equipmentName}}:</span> {{item.description}}</div>
+              </ng-template>
+              <ng-template ng-label-tmp let-item="item">
+                {{item.ticketNumber || ('ID: ' + item.id)}} - {{item.equipmentName || item.type}}
+              </ng-template>
+            </ng-select>
+            <div *ngIf="serviceForm.get('breakdownId')?.invalid && serviceForm.get('breakdownId')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Breakdown ticket is required</div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="col-span-2">
+              <label class="block text-xs font-bold text-gray-700 mb-1">Vehicle Number</label>
+              <ng-select [items]="machines" bindLabel="name" bindValue="id" formControlName="machineId"
+                placeholder="Machine Details"></ng-select>
+              <div *ngIf="serviceForm.get('machineId')?.invalid && serviceForm.get('machineId')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Vehicle is required</div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Service Date</label>
+              <input type="date" formControlName="serviceDate" [max]="maxDate"
+                class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]">
+              <div *ngIf="serviceForm.get('serviceDate')?.invalid && serviceForm.get('serviceDate')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid service date is required</div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Hours / Odometer Reading</label>
+              <input type="text" formControlName="odometerReading" placeholder="Hours / Odometer Reading"
+                class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]">
+              <div *ngIf="serviceForm.get('odometerReading')?.hasError('pattern')" class="text-red-500 text-[10px] mt-1 font-semibold">Invalid numeric format</div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Service Start Time</label>
+              <input type="time" formControlName="serviceStartTime"
+                class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Service End Time</label>
+              <input type="time" formControlName="serviceEndTime"
+                class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Hr / Km Run</label>
+              <input type="text" formControlName="kmRun" placeholder="Km Run"
+                class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]">
+              <div *ngIf="serviceForm.get('kmRun')?.hasError('pattern')" class="text-red-500 text-[10px] mt-1 font-semibold">Invalid numeric format</div>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 mb-1">Time Gap (In months)</label>
+              <input type="text" formControlName="timeGap" placeholder="Time Gap"
+                class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]">
+              <div *ngIf="serviceForm.get('timeGap')?.hasError('pattern')" class="text-red-500 text-[10px] mt-1 font-semibold">Must be an integer</div>
+            </div>
+          </div>
+
+          <!-- Service Description Section -->
+          <div class="border-t border-gray-200 pt-4">
+            <h3 class="text-sm font-bold text-[#0f2a4a] mb-4">Service Description</h3>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Service Type</label>
+                <input type="text" formControlName="serviceType"
+                  class="w-full border rounded px-3 py-2 text-sm bg-gray-100 text-gray-600 font-bold outline-none"
+                  readonly>
+              </div>
+              <div class="flex flex-col">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Amount</label>
+                <input type="number" formControlName="serviceTypeAmount" placeholder="Amount"
+                  (keyup)="calculateTotalAmount()" (change)="calculateTotalAmount()"
+                  class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
+                <div *ngIf="serviceForm.get('serviceTypeAmount')?.invalid && serviceForm.get('serviceTypeAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Invalid amount</div>
+              </div>
+            </div>
+
+            <!-- Oil and Filters Grid -->
+            <div class="grid grid-cols-2 gap-x-6 gap-y-4 items-end">
+              <!-- Row 1 -->
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Oil Change</label>
+                <ng-select [items]="['Yes', 'No']" formControlName="oilChange" [clearable]="false"></ng-select>
+              </div>
+              <div class="flex flex-col">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Amount</label>
+                <input type="number" formControlName="oilChangeAmount" placeholder="Amount"
+                  (keyup)="calculateTotalAmount()" (change)="calculateTotalAmount()"
+                  class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
+                <div *ngIf="serviceForm.get('oilChangeAmount')?.invalid && serviceForm.get('oilChangeAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
+              </div>
+
+              <!-- Row 2 -->
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Hydraulic oil</label>
+                <ng-select [items]="['Yes', 'No']" formControlName="hydraulicOil" [clearable]="false"></ng-select>
+              </div>
+              <div class="flex flex-col">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Amount</label>
+                <input type="number" formControlName="hydraulicOilAmount" placeholder="Amount"
+                  (keyup)="calculateTotalAmount()" (change)="calculateTotalAmount()"
+                  class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
+                <div *ngIf="serviceForm.get('hydraulicOilAmount')?.invalid && serviceForm.get('hydraulicOilAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
+              </div>
+
+              <!-- Row 3 -->
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Gear Oil</label>
+                <ng-select [items]="['Yes', 'No']" formControlName="gearOil" [clearable]="false"></ng-select>
+              </div>
+              <div class="flex flex-col">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Amount</label>
+                <input type="number" formControlName="gearOilAmount" placeholder="Amount"
+                  (keyup)="calculateTotalAmount()" (change)="calculateTotalAmount()"
+                  class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
+                <div *ngIf="serviceForm.get('gearOilAmount')?.invalid && serviceForm.get('gearOilAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
+              </div>
+
+              <!-- Row 4 -->
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Fuel Filter Change</label>
+                <ng-select [items]="['Yes', 'No']" formControlName="fuelFilterChange" [clearable]="false"></ng-select>
+              </div>
+              <div class="flex flex-col">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Amount</label>
+                <input type="number" formControlName="fuelFilterChangeAmount" placeholder="Amount"
+                  (keyup)="calculateTotalAmount()" (change)="calculateTotalAmount()"
+                  class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
+                <div *ngIf="serviceForm.get('fuelFilterChangeAmount')?.invalid && serviceForm.get('fuelFilterChangeAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
+              </div>
+
+              <!-- Row 5 -->
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Oil Filter Change</label>
+                <ng-select [items]="['Yes', 'No']" formControlName="oilFilterChange" [clearable]="false"></ng-select>
+              </div>
+              <div class="flex flex-col">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Amount</label>
+                <input type="number" formControlName="oilFilterChangeAmount" placeholder="Amount"
+                  (keyup)="calculateTotalAmount()" (change)="calculateTotalAmount()"
+                  class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
+                <div *ngIf="serviceForm.get('oilFilterChangeAmount')?.invalid && serviceForm.get('oilFilterChangeAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
+              </div>
+            </div>
+
+            <!-- Spare Parts Change -->
+            <div class="grid grid-cols-2 gap-x-6 gap-y-4 items-end mt-4">
+              <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">Spare Parts Change</label>
+                <ng-select [items]="['Yes', 'No']" formControlName="sparePartsChange" [clearable]="false"></ng-select>
+              </div>
+            </div>
+
+            <!-- Spare Parts Array -->
+            <div *ngIf="serviceForm.get('sparePartsChange')?.value === 'Yes'" formArrayName="spareParts"
+              class="mt-4 p-4 border rounded bg-gray-50">
+              <div class="flex justify-between items-center mb-4">
+                <h4 class="text-xs font-bold text-gray-700">Spare Parts List</h4>
+                <button type="button" (click)="addSparePart()"
+                  class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 shadow-sm"><i
+                    class="fas fa-plus text-xs"></i></button>
+              </div>
+              <div class="space-y-3">
+                <div *ngFor="let part of spareParts.controls; let i=index" [formGroupName]="i"
+                  class="flex gap-4 items-start">
+                  <div class="w-36">
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Source</label>
+                    <ng-select [items]="['Inventory', 'Other Vendors']" formControlName="source" [clearable]="false"
+                      (change)="onSourceChange(i)"></ng-select>
+                  </div>
+                  <div class="flex-1">
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Part Name</label>
+                    <ng-container *ngIf="part.get('source')?.value === 'Inventory'">
+                      <ng-select [items]="sparePartsList" bindLabel="name" bindValue="name" formControlName="partName"
+                        (change)="onInventoryPartSelect($event, i)" placeholder="Select Part">
+                        <ng-template ng-option-tmp let-item="item">
+                          <div class="font-semibold text-gray-800">{{item.name}}</div>
+                          <div class="text-[10px] text-gray-500" *ngIf="item.category || item.availableQty !== undefined">
+                            <span *ngIf="item.category">{{item.category}}</span>
+                            <span *ngIf="item.category && item.availableQty !== undefined"> | </span>
+                            <span *ngIf="item.availableQty !== undefined" class="text-green-600 font-medium">Avail Qty: {{item.availableQty}}</span>
+                          </div>
+                        </ng-template>
+                      </ng-select>
+                    </ng-container>
+                    <ng-container *ngIf="part.get('source')?.value === 'Other Vendors'">
+                      <input type="text" formControlName="partName" placeholder="Part Name"
+                        class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500 mb-2">
+                      <input type="text" formControlName="vendorName" placeholder="Vendor Name (Optional)"
+                        class="w-full border rounded px-3 py-2 text-xs focus:outline-none focus:border-blue-500">
+                    </ng-container>
+                  </div>
+                  <div class="w-24">
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Quantity</label>
+                    <input type="number" formControlName="quantity" (keyup)="calculateTotalAmount()"
+                      (change)="calculateTotalAmount()"
+                      class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                  </div>
+                  <div class="w-32" *ngIf="part.get('source')?.value === 'Other Vendors'">
+                    <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Amount</label>
+                    <input type="number" formControlName="amount" (keyup)="calculateTotalAmount()"
+                      (change)="calculateTotalAmount()" placeholder="Amount"
+                      class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-blue-500">
+                  </div>
+                  <button type="button" (click)="removeSparePart(i)"
+                    class="mt-[22px] w-8 h-8 flex items-center justify-center text-red-500 hover:bg-red-50 rounded"><i
+                      class="fas fa-trash"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Remarks / Description -->
+            <div class="mt-4">
+              <label class="block text-xs font-bold text-gray-700 mb-1">Remarks / Service Description</label>
+              <textarea formControlName="remarks" rows="2" placeholder="Enter service notes or remarks..."
+                class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]"></textarea>
+            </div>
+
+            <!-- Total Amount and File Upload -->
+            <div class="mt-6 border-t border-gray-200 pt-6">
+              <div class="mb-6">
+                <label class="block text-xs font-bold text-gray-700 mb-1">Total Amount</label>
+                <input type="number" formControlName="totalAmount"
+                  class="w-full border rounded px-3 py-2 text-lg font-bold text-[#0f2a4a] bg-gray-100" readonly>
+              </div>
+
+              <input type="file" multiple (change)="onFileSelected($event)" class="hidden" #fileUploadInput>
+              <div (click)="fileUploadInput.click()"
+                class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
+                <div class="text-blue-500 text-2xl mb-2"><i class="fas fa-cloud-upload-alt"></i></div>
+                <div class="text-sm text-gray-600 font-medium">Drag and drop files here or click to upload attachments</div>
+                <div class="text-xs text-gray-400 mt-1">Supports invoices, bills, and service report images</div>
+              </div>
+
+              <!-- Selected Files List -->
+              <div *ngIf="selectedFiles.length > 0" class="mt-3 space-y-2">
+                <div *ngFor="let file of selectedFiles; let fi = index" class="flex items-center justify-between p-2 bg-blue-50 border border-blue-100 rounded text-xs">
+                  <span class="font-bold text-gray-700 truncate max-w-[80%]"><i class="fas fa-paperclip text-blue-600 mr-2"></i>{{ file.name }}</span>
+                  <button type="button" (click)="removeFile(fi); $event.stopPropagation()" class="text-red-500 hover:text-red-700 font-bold"><i class="fas fa-times"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-3 mt-8">
+            <button type="button" (click)="closeModals()"
+              class="px-4 py-2 text-sm text-gray-500 font-bold hover:bg-gray-100 rounded">Cancel</button>
+            <button type="submit" [disabled]="serviceForm.invalid || isSubmitting"
+              class="px-6 py-2 bg-blue-600 text-white text-sm font-bold rounded shadow hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2">
+              <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin"></i>
+              <span>{{ isSubmitting ? 'Saving...' : 'Save' }}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- View Modal -->
+  <div *ngIf="isViewModalOpen"
+    class="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center font-sans py-4">
+    <div class="bg-white w-full max-w-2xl rounded shadow-2xl flex flex-col relative">
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-[#0f2a4a]">
+        <h2 class="font-bold text-white"><i class="fas fa-file-alt"></i> Service Record Details</h2>
+        <button (click)="closeModals()" class="text-gray-300 hover:text-white"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="p-6 overflow-y-auto max-h-[80vh]" *ngIf="viewModalData">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Ticket ID</div>
+            <div class="text-sm font-bold text-gray-800">{{ viewModalData.ticketNumber || (viewModalData.breakdownId ? '#' + viewModalData.breakdownId : '#' + viewModalData.id) }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Machine</div>
+            <div class="text-sm font-bold text-[#0f2a4a]">{{ viewModalData.machineName }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Service Type</div>
+            <div class="text-sm font-bold text-gray-800">{{ viewModalData.serviceType }} - ₹{{
+              viewModalData.serviceTypeAmount || 0 }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Service Date</div>
+            <div class="text-sm font-bold text-gray-800">{{ viewModalData.serviceDate | date:'mediumDate' }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Service Start Time</div>
+            <div class="text-sm font-bold text-gray-800">{{ viewModalData.serviceStartTime || 'N/A' }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Service End Time</div>
+            <div class="text-sm font-bold text-gray-800">{{ viewModalData.serviceEndTime || 'N/A' }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status</div>
+            <div class="text-sm font-bold"
+              [ngClass]="{'text-green-600': viewModalData.status === 'Completed', 'text-yellow-600': viewModalData.status === 'In Progress'}">
+              {{ viewModalData.status }}</div>
+          </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Oil Change</div>
+            <div class="text-sm font-bold">{{ viewModalData.oilChange }} - ₹{{ viewModalData.oilChangeAmount || 0 }}
+            </div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Hydraulic Oil</div>
+            <div class="text-sm font-bold">{{ viewModalData.hydraulicOil }} - ₹{{ viewModalData.hydraulicOilAmount || 0
+              }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Gear Oil</div>
+            <div class="text-sm font-bold">{{ viewModalData.gearOil }} - ₹{{ viewModalData.gearOilAmount || 0 }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Fuel Filter Change</div>
+            <div class="text-sm font-bold">{{ viewModalData.fuelFilterChange }} - ₹{{
+              viewModalData.fuelFilterChangeAmount || 0 }}</div>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Oil Filter Change</div>
+            <div class="text-sm font-bold">{{ viewModalData.oilFilterChange }} - ₹{{ viewModalData.oilFilterChangeAmount
+              || 0 }}</div>
+          </div>
+        </div>
+
+        <div class="mt-4" *ngIf="viewModalData.sparePartsChange === 'Yes' && viewModalData.spareParts?.length">
+          <div class="text-[10px] font-bold text-[#0f2a4a] uppercase tracking-wider mb-2 flex items-center gap-2">
+            <i class="fas fa-cogs"></i> Spare Parts
+          </div>
+          <table class="w-full text-sm text-left border rounded">
+            <thead class="bg-gray-100 text-xs text-gray-700">
+              <tr>
+                <th class="px-3 py-2">Source</th>
+                <th class="px-3 py-2">Part Name</th>
+                <th class="px-3 py-2 text-center">Qty</th>
+                <th class="px-3 py-2 text-right">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let part of viewModalData.spareParts" class="border-b">
+                <td class="px-3 py-2">{{ part.source || 'Other Vendors' }}</td>
+                <td class="px-3 py-2">{{ part.partName }}</td>
+                <td class="px-3 py-2 text-center">{{ part.quantity }}</td>
+                <td class="px-3 py-2 text-right">
+                  <ng-container *ngIf="part.source === 'Inventory'">N/A</ng-container>
+                  <ng-container *ngIf="part.source !== 'Inventory'">₹{{ part.amount }}</ng-container>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="mt-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
+          <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Grand Total Cost</div>
+          <div class="text-2xl font-black text-[#0f2a4a]">₹{{ viewModalData.totalCost }}</div>
+        </div>
+      </div>
+      <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-end items-center gap-4">
+        <button (click)="closeModals()"
+          class="px-4 py-2 text-sm text-gray-500 font-bold hover:bg-gray-100 rounded">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

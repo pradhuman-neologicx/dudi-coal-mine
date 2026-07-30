@@ -19,6 +19,7 @@ import { DesignationService } from 'src/app/core/services/designation.service';
 import { SiteService } from 'src/app/core/services/site.service';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { ShiftService } from 'src/app/core/services/shift.service';
+import { RelayService } from 'src/app/core/services/relay.service';
 import { forkJoin, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -78,7 +79,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
   employeeForm!: FormGroup;
 
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
   totalRecords: any;
   page: number = 1;
 
@@ -97,17 +98,22 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
   sitesList: any[] = [];
   departmentsList: any[] = [];
   designationsList: any[] = [];
+  relaysList: any[] = [];
 
   uploadModalOpen: boolean = false;
   uploadForm!: FormGroup;
   selectedUploadFile: any = null;
   selectedUploadFileName: string = '';
+  isUploading: boolean = false;
+  uploadResult: any = null;
 
   // Bulk Assign Shift variables
   bulkAssignModalOpen: boolean = false;
   bulkAssignForm!: FormGroup;
   selectedBulkAssignFile: any = null;
   selectedBulkAssignFileName: string = '';
+  isBulkAssigning: boolean = false;
+  bulkAssignResult: any = null;
 
   // Assign Shift variables
   assignShiftModalOpen: boolean = false;
@@ -167,6 +173,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     private designationService: DesignationService,
     private siteService: SiteService,
     private shiftService: ShiftService,
+    private relayService: RelayService,
   ) { }
 
   ngOnInit(): void {
@@ -233,7 +240,8 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     forkJoin({
       departments: this.departmentService.getAllDepartments(),
       designations: this.designationService.getDesignations('all', 1, ''),
-      sites: this.siteService.getAllSites()
+      sites: this.siteService.getAllSites(),
+      relays: this.relayService.getAllRelays()
     }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (results: any) => {
         if (results.departments?.status === 200) {
@@ -248,6 +256,11 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
         }
         if (results.sites?.status === 200) {
           this.sitesList = results.sites.data || [];
+        }
+        if (results.relays?.status === 200) {
+          this.relaysList = (results.relays.data || []).filter(
+            (relay: any) => relay.status == 1 || relay.is_active == 1
+          );
         }
       },
       error: (err) => console.error('Error fetching dropdown data', err)
@@ -283,19 +296,27 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     this.uploadModalOpen = true;
     this.selectedUploadFile = null;
     this.selectedUploadFileName = '';
+    this.uploadResult = null;
     this.uploadForm.reset();
   }
 
   closeUploadModal() {
     this.uploadModalOpen = false;
+    this.isUploading = false;
+    if (this.uploadResult?.status === 200 && (!this.uploadResult?.errors || this.uploadResult.errors.length === 0)) {
+      this.GetEmployeeFun();
+    }
     this.selectedUploadFile = null;
     this.selectedUploadFileName = '';
+    this.uploadResult = null;
     this.uploadForm.reset();
   }
 
   onUploadFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
+      this.isUploading = false;
+      this.uploadResult = null;
       this.selectedUploadFile = file;
       this.selectedUploadFileName = file.name;
       this.uploadForm.patchValue({ file: file });
@@ -307,6 +328,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
   removeSelectedFile(fileInput: any) {
     this.selectedUploadFile = null;
     this.selectedUploadFileName = '';
+    this.uploadResult = null;
     this.uploadForm.reset();
     if (fileInput) {
       fileInput.value = '';
@@ -319,23 +341,58 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isUploading = true;
+    this.uploadResult = null;
+
     const formData = new FormData();
     formData.append('file', this.selectedUploadFile, this.selectedUploadFile.name);
 
     this.employeeManagementService.bulkUploadEmployees(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
-        if (res.status === 200 || res.status === 201) {
-          this.notificationService.show(res.message, 'success', 3000);
+        this.isUploading = false;
+        
+        if ((res.status === 200 || res.status === 201) && (!res.errors || res.errors.length === 0)) {
+          this.notificationService.show(res.message || 'Import process completed successfully.', 'success', 3000);
           this.closeUploadModal();
           this.GetEmployeeFun();
         } else {
-          this.notificationService.show(res.message, 'error', 3000);
+          this.uploadResult = {
+            status: res.status || 422,
+            message: res.message || 'Import process completed with errors.',
+            errors: res.errors || []
+          };
         }
       },
       error: (err: any) => {
-        console.error('Bulk upload failed:', err);
-        const errorMsg = err.error?.message || err.message;
-        this.notificationService.show(errorMsg, 'error', 3000);
+        this.isUploading = false;
+        const errObj = err.originalError || err.error || err;
+        let formattedErrors: string[] = [];
+
+        if (errObj.errors) {
+          if (Array.isArray(errObj.errors)) {
+            formattedErrors = errObj.errors.map((e: any) => {
+              if (typeof e === 'object' && e !== null) {
+                 const col = e.column ? ` [${e.column}]` : '';
+                 return `Row ${e.row || 'N/A'}${col}: ${e.message || 'Unknown error'}`;
+              }
+              return String(e);
+            });
+          } else if (typeof errObj.errors === 'object') {
+             Object.values(errObj.errors).forEach((errArray: any) => {
+                if (Array.isArray(errArray)) {
+                  formattedErrors.push(...errArray);
+                } else if (typeof errArray === 'string') {
+                  formattedErrors.push(errArray);
+                }
+             });
+          }
+        }
+
+        this.uploadResult = {
+          status: err.status || errObj.status || 422,
+          message: errObj.message || 'Import process completed with errors.',
+          errors: formattedErrors.length > 0 ? formattedErrors : (errObj.errors || [])
+        };
       }
     });
   }
@@ -357,19 +414,30 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     this.bulkAssignModalOpen = true;
     this.selectedBulkAssignFile = null;
     this.selectedBulkAssignFileName = '';
+    this.bulkAssignResult = null;
     this.bulkAssignForm.reset();
   }
 
   closeBulkAssignModal() {
     this.bulkAssignModalOpen = false;
+    this.isBulkAssigning = false;
+    if (this.bulkAssignResult?.status === 200 && (!this.bulkAssignResult?.errors || this.bulkAssignResult.errors.length === 0)) {
+      this.selectedEmployeeIds.clear();
+      this.selectedEmployeeIdsForAssign = [];
+      this.loadShiftGroups();
+      this.GetEmployeeFun();
+    }
     this.selectedBulkAssignFile = null;
     this.selectedBulkAssignFileName = '';
+    this.bulkAssignResult = null;
     this.bulkAssignForm.reset();
   }
 
   onBulkAssignFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
+      this.isBulkAssigning = false;
+      this.bulkAssignResult = null;
       this.selectedBulkAssignFile = file;
       this.selectedBulkAssignFileName = file.name;
       this.bulkAssignForm.patchValue({ file: file });
@@ -381,6 +449,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
   removeBulkAssignFile(fileInput: any) {
     this.selectedBulkAssignFile = null;
     this.selectedBulkAssignFileName = '';
+    this.bulkAssignResult = null;
     this.bulkAssignForm.reset();
     if (fileInput) {
       fileInput.value = '';
@@ -393,24 +462,59 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isBulkAssigning = true;
+    this.bulkAssignResult = null;
+
     const file = this.selectedBulkAssignFile;
     this.shiftService.bulkUploadShiftAssignments(file).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
-        if (res.status === 200 || res.status === 201) {
-          this.notificationService.show(res.message, 'success', 3000);
+        this.isBulkAssigning = false;
+        
+        if ((res.status === 200 || res.status === 201) && (!res.errors || res.errors.length === 0)) {
+          this.notificationService.show(res.message || 'Bulk assignment completed successfully.', 'success', 3000);
           this.closeBulkAssignModal();
           this.selectedEmployeeIds.clear();
           this.selectedEmployeeIdsForAssign = [];
-          this.loadShiftGroups(); // Refresh count of chips
-          this.GetEmployeeFun(); // Refresh employee table view
+          this.loadShiftGroups();
+          this.GetEmployeeFun();
         } else {
-          this.notificationService.show(res.message, 'error', 3000);
+          this.bulkAssignResult = {
+            status: res.status || 422,
+            message: res.message || 'Bulk assignment completed with errors.',
+            errors: res.errors || []
+          };
         }
       },
       error: (err: any) => {
-        console.error('Bulk shift upload failed:', err);
-        const errMsg = err.error?.message || err.message;
-        this.notificationService.show(errMsg, 'error', 3000);
+        this.isBulkAssigning = false;
+        const errObj = err.originalError || err.error || err;
+        let formattedErrors: string[] = [];
+
+        if (errObj.errors) {
+          if (Array.isArray(errObj.errors)) {
+            formattedErrors = errObj.errors.map((e: any) => {
+              if (typeof e === 'object' && e !== null) {
+                 const col = e.column ? ` [${e.column}]` : '';
+                 return `Row ${e.row || 'N/A'}${col}: ${e.message || 'Unknown error'}`;
+              }
+              return String(e);
+            });
+          } else if (typeof errObj.errors === 'object') {
+             Object.values(errObj.errors).forEach((errArray: any) => {
+                if (Array.isArray(errArray)) {
+                  formattedErrors.push(...errArray);
+                } else if (typeof errArray === 'string') {
+                  formattedErrors.push(errArray);
+                }
+             });
+          }
+        }
+
+        this.bulkAssignResult = {
+          status: err.status || errObj.status || 422,
+          message: errObj.message || 'Bulk assignment completed with errors.',
+          errors: formattedErrors.length > 0 ? formattedErrors : (errObj.errors || [])
+        };
       }
     });
   }
@@ -479,7 +583,8 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
   }
 
   onTableSizeChange(event: any): void {
-    this.tableSize = event.target.value;
+    const value = event && event.target ? event.target.value : event;
+    this.tableSize = value === 'all' ? 'all' : Number(value);
     this.page = 1;
     this.GetEmployeeFun();
   }
@@ -608,11 +713,16 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             desigId = emp.designation_id;
           }
 
-          let rawRelay = String(emp.relay_shift || emp.relay || 'General').trim().toLowerCase();
-          let formattedRelay = 'General';
-          if (rawRelay === 'relay 1' || rawRelay === 'relay_1') formattedRelay = 'Relay 1';
-          else if (rawRelay === 'relay 2' || rawRelay === 'relay_2') formattedRelay = 'Relay 2';
-          else if (rawRelay === 'relay 3' || rawRelay === 'relay_3') formattedRelay = 'Relay 3';
+          let relayId = '';
+          if (emp.relay_id) {
+            relayId = emp.relay_id;
+          } else if (emp.relay_shift || emp.relay) {
+            let rawRelay = String(emp.relay_shift || emp.relay).trim().toLowerCase();
+            const matchingRelay = this.relaysList.find(r => r.name.toLowerCase() === rawRelay);
+            if (matchingRelay) {
+              relayId = matchingRelay.id;
+            }
+          }
 
           const formData = {
             empId: emp.employee_code || '',
@@ -627,7 +737,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             empType: emp.employee_type === 'permanent' ? 'Permanent' : (emp.employee_type === 'daily_wage' ? 'Daily Wage' : ''),
             department: deptId,
             designation: desigId,
-            relay: formattedRelay
+            relay: relayId
           };
 
           this.employeeForm.patchValue(formData);
@@ -660,15 +770,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       formData.append('emergency_contact', empData.emergencyContact || '');
       formData.append('address', empData.address || '');
       formData.append('father_name', empData.fatherName || '');
-
-      let formattedRelayShift = '';
-      if (empData.relay === 'Relay 1') formattedRelayShift = 'relay_1';
-      else if (empData.relay === 'Relay 2') formattedRelayShift = 'relay_2';
-      else if (empData.relay === 'Relay 3') formattedRelayShift = 'relay_3';
-      else if (empData.relay === 'General') formattedRelayShift = 'general';
-      else formattedRelayShift = empData.relay ? empData.relay.toLowerCase() : '';
-
-      formData.append('relay_shift', formattedRelayShift);
+      formData.append('relay_id', empData.relay || '');
 
       if (this.isEditMode) {
         formData.append('_method', 'PUT');
@@ -832,6 +934,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     return '';
   }
 
+/*
   openAssignShiftModal(employee?: any) {
     this.assignShiftModalOpen = true;
     this.assignShiftType = '';
@@ -995,4 +1098,5 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       selectComponent.filter('');
     }
   }
+*/
 }

@@ -31,6 +31,10 @@ export class ProductService {
     return this.apiService.get('v1/products', this.getHeaders());
   }
 
+  getAvailableProducts(): Observable<any> {
+    return this.apiService.get('v1/available-products', this.getHeaders());
+  }
+
   getProductById(id: string | number): Observable<any> {
     return this.apiService.get(`v1/admin/products/${id}`, this.getHeaders());
   }

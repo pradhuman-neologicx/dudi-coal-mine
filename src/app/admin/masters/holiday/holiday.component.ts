@@ -12,6 +12,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
@@ -29,6 +30,7 @@ import { HolidayService } from 'src/app/core/services/holiday.service';
     MatIconModule,
     MatButtonModule,
     NgxPaginationModule,
+    NgSelectModule,
   ],
   templateUrl: './holiday.component.html',
   styleUrl: './holiday.component.scss',
@@ -63,7 +65,7 @@ export class HolidayComponent implements OnInit, OnDestroy {
   viewHolidayForm!: FormGroup;
   
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
   totalRecords: any;
   page: number = 1;
   
@@ -147,7 +149,7 @@ export class HolidayComponent implements OnInit, OnDestroy {
   }
 
   onTableSizeChange(event: any): void {
-    this.tableSize = event.target.value;
+    this.tableSize = event && event.target ? event.target.value : event;
     this.page = 1;
     this.GetHolidayFun();
   }

@@ -92,6 +92,12 @@ export class SidenavComponent {
             },
             {
               index: 5,
+              icon: 'group_work',
+              label: 'Relay',
+              route: '/admin/master/relay',
+            },
+            {
+              index: 6,
               icon: 'event_available',
               label: 'Leave Type',
               route: '/admin/master/leave-type',
@@ -132,6 +138,18 @@ export class SidenavComponent {
               icon: 'build_circle',
               label: 'Breakdown Type',
               route: '/admin/master/breakdown-type',
+            },
+            {
+              index: 11,
+              icon: 'timer',
+              label: 'Delay Type',
+              route: '/admin/master/delay-type',
+            },
+            {
+              index: 12,
+              icon: 'place',
+              label: 'Dumping Point',
+              route: '/admin/master/dumping-point',
             },
             // {
             //   index: 10,
@@ -250,6 +268,12 @@ export class SidenavComponent {
               label: 'Equipments',
               route: '/admin/equipment-management/equipments',
             },
+            {
+              index: 3,
+              icon: 'miscellaneous_services',
+              label: 'Service Mgt.',
+              route: '/admin/service-management',
+            },
           ],
         },
         {
@@ -266,56 +290,43 @@ export class SidenavComponent {
             },
             {
               index: 2,
+              icon: 'miscellaneous_services',
+              label: 'Service Mgt.',
+              route: '/admin/service-management',
+            },
+            {
+              index: 3,
               icon: 'timer',
               label: 'Delay',
               route: '/admin/delay-report',
             },
             {
-              index: 3,
+              index: 4,
               icon: 'health_and_safety',
               label: 'Safety',
               route: '/admin/safety-management',
             },
             {
-              index: 4,
+              index: 5,
               icon: 'schedule',
               label: 'Shift',
               route: '/admin/shift-mgt',
             },
             {
-              index: 5,
+              index: 6,
               icon: 'local_gas_station',
               label: 'Fuel Mgt.',
               route: '/admin/fuel-mgt',
             },
+            {
+              index: 7,
+              icon: 'local_shipping',
+              label: 'Dumping ',
+              route: '/admin/dumping',
+            },
           ],
         },
-        // {
-        //   index: 13,
-        //   icon: 'local_shipping',
-        //   label: 'Dispatch & Dumping',
-        //   route: '/admin/dispatch-dumping',
-        //   subItems: [
-        //     {
-        //       index: 1,
-        //       icon: 'dashboard',
-        //       label: 'Dashboard',
-        //       route: '/admin/dispatch-dumping/dashboard',
-        //     },
-        //     {
-        //       index: 2,
-        //       icon: 'list_alt',
-        //       label: 'Dispatch Register',
-        //       route: '/admin/dispatch-dumping/register',
-        //     },
-        //     {
-        //       index: 3,
-        //       icon: 'assessment',
-        //       label: 'Fleet Performance',
-        //       route: '/admin/dispatch-dumping/fleet-performance',
-        //     }
-        //   ]
-        // },
+
         // {
         //   index: 10,
         //   icon: 'local_gas_station',
@@ -376,6 +387,82 @@ export class SidenavComponent {
           icon: 'home',
           label: 'Dashboard',
           route: 'dashboard',
+        },
+        {
+          index: 2,
+          icon: 'inventory',
+          label: 'Equipment Mgt.',
+          route: '/admin/equipment-management',
+          subItems: [
+            {
+              index: 1,
+              icon: 'widgets',
+              label: 'Master',
+              route: '/admin/equipment-management/equipment-master',
+            },
+            {
+              index: 2,
+              icon: 'precision_manufacturing',
+              label: 'Equipments',
+              route: '/admin/equipment-management/equipments',
+            },
+            {
+              index: 3,
+              icon: 'miscellaneous_services',
+              label: 'Service Mgt.',
+              route: '/admin/service-management',
+            },
+          ],
+        },
+        {
+          index: 3,
+          icon: 'engineering',
+          label: 'Operations',
+          route: '/admin/operations',
+          subItems: [
+            {
+              index: 1,
+              icon: 'build',
+              label: 'Breakdown',
+              route: '/admin/breakdown-and-maintenance',
+            },
+            {
+              index: 2,
+              icon: 'miscellaneous_services',
+              label: 'Service Mgt.',
+              route: '/admin/service-management',
+            },
+            {
+              index: 3,
+              icon: 'timer',
+              label: 'Delay',
+              route: '/admin/delay-report',
+            },
+            {
+              index: 4,
+              icon: 'health_and_safety',
+              label: 'Safety',
+              route: '/admin/safety-management',
+            },
+            {
+              index: 5,
+              icon: 'schedule',
+              label: 'Shift',
+              route: '/admin/shift-mgt',
+            },
+            {
+              index: 6,
+              icon: 'local_gas_station',
+              label: 'Fuel Mgt.',
+              route: '/admin/fuel-mgt',
+            },
+            {
+              index: 7,
+              icon: 'local_shipping',
+              label: 'Dumping ',
+              route: '/admin/dumping',
+            },
+          ],
         },
       ];
     }

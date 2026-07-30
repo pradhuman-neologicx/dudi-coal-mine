@@ -54,16 +54,7 @@
   width: 250px;
 }
 
-::ng-deep .custom-ng-select {
-  .ng-select-container {
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    min-height: 44px;
-  }
-  &.is-invalid .ng-select-container {
-    border-color: #dc3545;
-  }
-}
+
 
 /* Custom Modal dialog large heights & scrollbars */
 .h-auto-modal {

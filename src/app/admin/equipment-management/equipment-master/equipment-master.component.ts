@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { EquipmentService } from 'src/app/core/services/equipment.service';
@@ -15,7 +16,7 @@ export interface EquipmentCategory {
 @Component({
   selector: 'app-equipment-master',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NgSelectModule],
   templateUrl: './equipment-master.component.html',
   styleUrl: './equipment-master.component.scss'
 })
@@ -33,7 +34,7 @@ export class EquipmentMasterComponent implements OnInit, OnDestroy {
   totalRecords: number = 0;
   totalPages: number = 1;
   paginationNumbers: number[] = [];
-  tableSizes: any[] = [10, 20, 50, 100, 'all'];
+  tableSizes: any[] = [10, 20, 50, 100];
 
   constructor(
     private fb: FormBuilder,
@@ -97,8 +98,8 @@ export class EquipmentMasterComponent implements OnInit, OnDestroy {
   }
 
   onTableSizeChange(event: any) {
-    const val = event.target.value;
-    this.tableSize = val === 'all' ? 'all' : parseInt(val, 10);
+    const val = event.target ? event.target.value : event;
+    this.tableSize = val;
     this.page = 1;
     this.loadData();
   }

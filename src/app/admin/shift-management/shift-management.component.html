@@ -118,7 +118,7 @@
             <tr>
               <th style="width: 80px;"><p class="table-heading">Sr No.</p></th>
               <th><p class="table-heading">Employee Name</p></th>
-              <th><p class="table-heading">Site</p></th>
+              <!-- <th><p class="table-heading">Site</p></th> -->
               <th><p class="table-heading">Department</p></th>
               <th><p class="table-heading">Relay</p></th>
               <th style="width: 150px;"><p class="table-heading">Active Shift</p></th>
@@ -133,9 +133,9 @@
               <td>
                 <p>{{ emp.name }}</p>
               </td>
-              <td>
+              <!-- <td>
                 <p>{{ emp.location }}</p>
-              </td>
+              </td> -->
               <td>
                 <p>{{ emp.department }}</p>
               </td>
@@ -158,10 +158,10 @@
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
                   <!-- Swap Shift Button -->
-                  <button class="btn-action history-btn"
+                  <!-- <button class="btn-action history-btn"
                     (click)="openOverrideModal('swap', emp.id)" data-tooltip="Swap Shift" type="button">
                     <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                  </button>
+                  </button> -->
                 </p>
               </td>
             </tr>
@@ -240,7 +240,7 @@
               <i class="fa-solid fa-pen me-1"></i>Change Shift
             </label>
 
-            <input type="radio" class="btn-check" name="type" id="btnSwap" value="swap" formControlName="type">
+            <!-- <input type="radio" class="btn-check" name="type" id="btnSwap" value="swap" formControlName="type">
             <label class="btn btn-outline-primary py-2 fs-7" for="btnSwap">
               <i class="fa-solid fa-arrow-right-arrow-left me-1"></i>Swap Shifts
             </label>
@@ -248,7 +248,7 @@
             <input type="radio" class="btn-check" name="type" id="btnStandby" value="standby" formControlName="type">
             <label class="btn btn-outline-primary py-2 fs-7" for="btnStandby">
               <i class="fa-solid fa-user-plus me-1"></i>Assign Standby
-            </label>
+            </label> -->
           </div>
         </div>
 
@@ -300,7 +300,7 @@
           </div>
 
           <!-- 2. Swap Shifts: Swap With Employee Dropdown -->
-          <div class="col-md-12 animate-fade" *ngIf="overrideForm.get('type')?.value === 'swap'">
+          <!-- <div class="col-md-12 animate-fade" *ngIf="overrideForm.get('type')?.value === 'swap'">
             <label class="form-label form-lable-custom">Swap With Employee *</label>
             <ng-select
               [items]="employees"
@@ -321,10 +321,10 @@
             <div class="text-danger fs-8 mt-1" *ngIf="overrideForm.get('swapEmployeeId')?.invalid && overrideForm.get('swapEmployeeId')?.touched">
               Please select an employee to swap shifts with.
             </div>
-          </div>
+          </div> -->
 
           <!-- 3. Assign Standby: Standby Employee Dropdown -->
-          <div class="col-md-12 animate-fade" *ngIf="overrideForm.get('type')?.value === 'standby'">
+          <!-- <div class="col-md-12 animate-fade" *ngIf="overrideForm.get('type')?.value === 'standby'">
             <label class="form-label form-lable-custom">Select Standby Employee *</label>
             <ng-select
               [items]="employees"
@@ -345,7 +345,7 @@
             <div class="text-danger fs-8 mt-1" *ngIf="overrideForm.get('standbyEmployeeId')?.invalid && overrideForm.get('standbyEmployeeId')?.touched">
               Standby worker selection is required.
             </div>
-          </div>
+          </div> -->
         </div>
       </div>
 

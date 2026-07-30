@@ -34,7 +34,7 @@ export class EmployeePayrollComponent implements OnInit {
   penaltyForm!: FormGroup;
 
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
   totalRecords: any;
   page: number = 1;
   showreset: boolean = false;
@@ -176,7 +176,8 @@ export class EmployeePayrollComponent implements OnInit {
   }
 
   onTableSizeChange(event: any): void {
-    this.tableSize = event.target.value;
+    const value = event && event.target ? event.target.value : event;
+    this.tableSize = value === 'all' ? 'all' : Number(value);
     this.page = 1;
     this.GetEmployeeFun();
   }

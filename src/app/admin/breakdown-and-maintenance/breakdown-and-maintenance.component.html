@@ -1,17 +1,82 @@
 <div class="px-2 bg-[#f0f2f5] min-h-screen font-sans">
   <!-- Header -->
-  <div class="flex justify-between items-start mb-6">
+  <div class="flex justify-between items-start mb-4">
     <div>
       <h1 class="text-2xl font-bold text-gray-800 mb-1">Asset Health & Reliability</h1>
       <p class="text-gray-500 text-sm">Real-time breakdown monitoring and maintenance scheduling.</p>
     </div>
-    <button (click)="openModal()" class="btn-custom-primary flex items-center gap-2 rounded px-4 py-2 border-0">
-      <i class="fas fa-plus"></i> Breakdown & Maintenance Entry
+    <div class="flex items-center gap-2 ml-2">
+      <button (click)="openImportModal()"
+        class="bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 flex items-center gap-2 rounded px-4 py-2 shadow-sm transition-colors text-sm font-semibold">
+        <i class="fas fa-file-import text-blue-500"></i> Import
+      </button>
+      <button (click)="openModal()"
+        class="btn-custom-primary flex items-center gap-2 rounded px-4 py-2 border-0 shadow-sm">
+        <i class="fas fa-plus"></i> Breakdown & Maintenance Entry
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Area -->
+  <div class="flex justify-end items-center gap-3 mb-6 flex-wrap">
+    <!-- Shift Dropdown -->
+    <div class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-1 text-sm text-gray-700 min-w-[140px] shadow-sm focus-within:border-[#0f2a4a]">
+      <ng-select [items]="filterShifts" 
+                 bindLabel="name" 
+                 bindValue="id" 
+                 [(ngModel)]="selectedShift"
+                 (change)="onFilterChange()" 
+                 placeholder="All Shifts"
+                 class="flex-1 font-medium w-full custom-filter-select" 
+                 [clearable]="true">
+      </ng-select>
+    </div>
+
+    <!-- Date Range Dropdown -->
+    <!-- <select [(ngModel)]="selectedDateRange" (change)="onDateRangeChange()"
+      class="bg-white border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 font-medium shadow-sm focus:outline-none focus:border-[#0f2a4a]">
+      <option value="">Custom Range</option>
+      <option value="today">Today</option>
+      <option value="last7days">Last 7 Days</option>
+      <option value="thisMonth">This Month</option>
+    </select> -->
+
+    <!-- Date From -->
+    <div class="flex items-center bg-white border border-gray-300 rounded px-3 py-1.5 shadow-sm">
+      <label class="text-[10px] font-bold text-gray-500 mr-2 tracking-wide uppercase">From:</label>
+      <input type="date" [(ngModel)]="filterDateFrom" (change)="selectedDateRange=''; onFilterChange()"
+        class="text-sm text-gray-700 focus:outline-none bg-transparent">
+    </div>
+
+    <!-- Date To -->
+    <div class="flex items-center bg-white border border-gray-300 rounded px-3 py-1.5 shadow-sm">
+      <label class="text-[10px] font-bold text-gray-500 mr-2 tracking-wide uppercase">To:</label>
+      <input type="date" [(ngModel)]="filterDateTo" (change)="selectedDateRange=''; onFilterChange()" [min]="filterDateFrom"
+        class="text-sm text-gray-700 focus:outline-none bg-transparent">
+    </div>
+
+    <!-- Reset Button -->
+    <button *ngIf="selectedShift || filterDateFrom || filterDateTo || selectedCategory || selectedSeverity"
+      (click)="clearFilters()"
+      class="flex items-center btn-red gap-1 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white px-3 py-1.5 rounded shadow-sm text-sm transition-colors h-[34px]">
+      <i class="fa-solid fa-rotate-right"></i>
     </button>
   </div>
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <!-- Card 5 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        TOTAL EVENTS
+        <span class="text-purple-600 border border-purple-600 rounded px-[4px] py-[1px]"><i
+            class="fas fa-list-ol"></i></span>
+      </div>
+      <div class="text-4xl font-bold text-gray-900 mb-2">{{ $any(dashboardStats)?.total_events || 0 }}</div>
+      <div class="text-xs font-medium text-gray-500 flex items-center gap-1">
+        Breakdown Records
+      </div>
+    </div>
     <!-- Card 1 -->
     <div class="bg-white p-4 rounded border border-gray-200 shadow-sm relative overflow-hidden">
       <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
@@ -32,13 +97,13 @@
     <!-- Card 2 -->
     <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
       <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
-        CLOSED TODAY
+        CLOSED TICKETS
         <span class="text-green-600 border border-green-600 rounded-full px-[3px] py-[1px]"><i
             class="fas fa-check"></i></span>
       </div>
       <div class="text-4xl font-bold text-gray-900 mb-2">{{ dashboardStats.closed_today }}</div>
       <div class="text-xs font-medium text-gray-500 flex items-center gap-1">
-        Resolved Today
+        Resolved
       </div>
     </div>
 
@@ -65,13 +130,167 @@
         Mean Time To Repair
       </div>
     </div>
+
+
+
+    <!-- Card 6 -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        AFFECTED MACHINES
+        <span class="text-orange-500 border border-orange-500 rounded px-[3px] py-[1px]"><i
+            class="fas fa-cogs"></i></span>
+      </div>
+      <div class="text-4xl font-bold text-gray-900 mb-2">{{ dashboardStats.affected_machines }}</div>
+      <div class="text-xs font-medium text-gray-500 flex items-center gap-1">
+        Unique Machines
+      </div>
+    </div>
+
+    <!-- Card: Average Downtime Per Breakdown -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        AVG DOWNTIME / BREAKDOWN
+        <span class="text-indigo-500 border border-indigo-500 rounded px-[4px] py-[1px]"><i
+            class="fas fa-stopwatch"></i></span>
+      </div>
+      <div class="text-4xl font-bold text-gray-900 mb-2">{{ $any(dashboardStats)?.avg_downtime_per_breakdown_formatted
+        || '0 Hours' }}</div>
+      <div class="text-xs font-medium text-gray-500 flex items-center gap-1">
+        Average Repair Duration
+      </div>
+    </div>
+
+    <!-- Card: Most Reliable Machine -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm flex flex-col justify-between">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        MOST RELIABLE MACHINE
+        <span class="text-teal-600 border border-teal-600 rounded px-[4px] py-[1px]"><i class="fas fa-medal"></i></span>
+      </div>
+      <div class="grid grid-cols-2 gap-y-3 gap-x-2 mt-2">
+        <div class="flex flex-col">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Machine</span>
+          <span class="text-sm font-bold text-gray-900 truncate"
+            [title]="dashboardStats.most_reliable_machine?.machine || 'N/A'">{{ dashboardStats.most_reliable_machine?.machine || 'N/A'
+            }}</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Score</span>
+          <span class="text-sm font-bold text-teal-600 truncate"
+            [title]="(dashboardStats.most_reliable_machine?.reliability_score || 0) + '%'">{{
+            dashboardStats.most_reliable_machine?.reliability_score || 0 }}%</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Downtime</span>
+          <span class="text-sm font-bold text-gray-900 truncate"
+            [title]="dashboardStats.most_reliable_machine?.downtime || '0 Hrs'">{{
+            dashboardStats.most_reliable_machine?.downtime || '0 Hrs' }}</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Breakdowns</span>
+          <span class="text-sm font-bold text-gray-900 truncate"
+            [title]="dashboardStats.most_reliable_machine?.breakdowns || 0">{{ dashboardStats.most_reliable_machine?.breakdowns || 0
+            }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card: Least Reliable Machine -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm flex flex-col justify-between">
+      <div class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide flex justify-between">
+        LEAST RELIABLE MACHINE
+        <span class="text-red-500 border border-red-500 rounded px-[4px] py-[1px]"><i
+            class="fas fa-exclamation-triangle"></i></span>
+      </div>
+      <div class="grid grid-cols-2 gap-y-3 gap-x-2 mt-2">
+        <div class="flex flex-col">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Machine</span>
+          <span class="text-sm font-bold text-red-600 truncate"
+            [title]="dashboardStats.least_reliable_machine?.machine || 'N/A'">{{ dashboardStats.least_reliable_machine?.machine || 'N/A'
+            }}</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Score</span>
+          <span class="text-sm font-bold text-red-600 truncate"
+            [title]="(dashboardStats.least_reliable_machine?.reliability_score || 0) + '%'">{{
+            dashboardStats.least_reliable_machine?.reliability_score || 0 }}%</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Downtime</span>
+          <span class="text-sm font-bold text-red-600 truncate"
+            [title]="dashboardStats.least_reliable_machine?.downtime || '0 Hrs'">{{
+            dashboardStats.least_reliable_machine?.downtime || '0 Hrs' }}</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Breakdowns</span>
+          <span class="text-sm font-bold text-red-600 truncate"
+            [title]="dashboardStats.least_reliable_machine?.breakdowns || 0">{{
+            dashboardStats.least_reliable_machine?.breakdowns || 0 }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Chart 1: Breakdown Trend -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <i class="fas fa-chart-line text-indigo-500"></i> Breakdown Trend
+      </h3>
+      <div class="h-64">
+        <canvas id="breakdownTrendChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 2: Downtime by Machine -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <i class="fas fa-chart-bar text-red-500"></i> Downtime by Machine
+      </h3>
+      <div class="h-64">
+        <canvas id="downtimeMachineChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 3: Breakdown Category Analysis -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <i class="fas fa-chart-pie text-blue-500"></i> Breakdown Category Analysis
+      </h3>
+      <div class="h-64 relative flex items-center justify-center">
+        <canvas id="breakdownCategoryChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 4: Machine Reliability Ranking -->
+    <div class="bg-white p-4 rounded border border-gray-200 shadow-sm">
+      <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+        <i class="fas fa-sort-amount-down text-emerald-500"></i> Machine Reliability Ranking
+      </h3>
+      <div class="h-64">
+        <canvas id="reliabilityRankingChart"></canvas>
+      </div>
+    </div>
   </div>
 
   <!-- Table Section -->
   <div class="bg-white rounded border border-gray-200 shadow-sm">
     <!-- Table Header / Tabs -->
-    <div class="flex justify-between items-center border-b border-gray-200 px-4 py-3">
-      <h2 class="text-lg font-bold text-[#0f2a4a] ml-2">All Tickets</h2>
+    <div class="flex flex-wrap justify-between items-center border-b border-gray-200 px-4 py-3 gap-4">
+      <div class="flex items-center gap-4">
+        <h2 class="text-lg font-bold text-[#0f2a4a] ml-2">All Tickets</h2>
+        <div class="flex items-center gap-2 text-sm text-gray-600 border-l border-gray-300 pl-4 hidden sm:flex">
+          <span>Show</span>
+          <ng-select [items]="tableSizes" 
+                     [(ngModel)]="pageSize" 
+                     (change)="onLimitChange()" 
+                     [clearable]="false" 
+                     [searchable]="false" 
+                     class="custom-ng-select min-w-[80px]">
+          </ng-select>
+          <span>entries</span>
+        </div>
+      </div>
       <div class="flex items-center gap-4 text-gray-600">
         <button (click)="toggleFilter()" class="hover:text-[var(--primary-color)] focus:outline-none transition-colors"
           [ngClass]="{'text-[var(--primary-color)]': isFilterOpen}"><i class="fas fa-filter text-lg"></i></button>
@@ -105,9 +324,11 @@
           [(ngModel)]="selectedShift" (change)="onFilterChange()" [clearable]="true" class="custom-ng-select w-full">
         </ng-select>
       </div>
-      <div>
-        <button (click)="clearFilters()"
-          class="px-4 py-1.5 bg-gray-200 text-gray-700 rounded text-sm font-bold hover:bg-gray-300 transition-colors h-[34px]">Clear</button>
+      <div class="flex items-end h-[34px]">
+        <button (click)="clearFilters()" title="Reset Filters"
+          class="px-4 py-1.5 bg-gray-200 text-gray-700 rounded text-sm font-bold hover:bg-gray-300 transition-colors h-[34px] flex items-center justify-center">
+          <i class="fa-solid fa-rotate-right"></i>
+        </button>
       </div>
     </div>
 
@@ -127,7 +348,9 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
-          <tr *ngFor="let ticket of filteredTickets" class="hover:bg-gray-50">
+          <tr
+            *ngFor="let ticket of filteredTickets | paginate: { itemsPerPage: pageSize, currentPage: currentPage, totalItems: totalRecords }"
+            class="hover:bg-gray-50">
             <td class="px-3 py-3 font-medium text-gray-800 whitespace-nowrap">{{ticket.ticketNo}}</td>
             <td class="px-3 py-3">
               <div class="flex items-center gap-3">
@@ -182,25 +405,13 @@
     </div>
 
     <!-- Footer / Pagination -->
-    <div class="flex justify-between items-center px-4 py-3 border-t border-gray-200">
-      <div class="text-xs font-bold text-gray-500 tracking-wide">
-        SHOWING {{tickets.length}} OF {{totalRecords}} TICKETS
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center print:hidden">
+      <div class="text-sm text-gray-500">
+        Showing {{ totalRecords === 0 ? 0 : (currentPage - 1) * pageSize + 1 }} to {{ (currentPage * pageSize) >
+        totalRecords ?
+        totalRecords : (currentPage * pageSize) }} of {{ totalRecords }} entries
       </div>
-      <div class="flex items-center space-x-1" *ngIf="totalPages > 1">
-        <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"
-          class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50">
-          <i class="fas fa-chevron-left text-xs"></i>
-        </button>
-        <button *ngFor="let p of paginationNumbers" (click)="goToPage(p)"
-          [ngClass]="{'bg-custom-primary text-white': p === currentPage, 'bg-white text-gray-600 hover:bg-gray-50': p !== currentPage}"
-          class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 font-bold transition-colors">
-          {{p}}
-        </button>
-        <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
-          class="w-8 h-8 flex items-center justify-center rounded border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-50">
-          <i class="fas fa-chevron-right text-xs"></i>
-        </button>
-      </div>
+      <pagination-controls (pageChange)="goToPage($event)" class="text-sm"></pagination-controls>
     </div>
   </div>
 
@@ -227,25 +438,25 @@
           <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-4">Breakdown Event</h3>
           <div class="grid grid-cols-2 gap-6 mb-4">
             <div>
-              <label class="block text-[11px] font-bold text-gray-700 mb-1">Date & Time of Breakdown</label>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Date & Time of Breakdown <span class="text-red-500">*</span></label>
               <input type="datetime-local" [(ngModel)]="entryDate" (ngModelChange)="onDateChange()"
                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-gray-700 mb-1">Shift</label>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Shift <span class="text-red-500">*</span></label>
               <input type="text" [value]="shiftName" readonly placeholder="Auto-selected by Date & Time"
                 class="w-full border border-gray-300 bg-gray-100 rounded px-3 py-2 text-sm text-gray-500 focus:outline-none cursor-not-allowed">
             </div>
           </div>
           <div class="grid grid-cols-2 gap-6 mb-4">
             <div>
-              <label class="block text-[11px] font-bold text-gray-700 mb-1">Breakdown Type</label>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Breakdown Type <span class="text-red-500">*</span></label>
               <ng-select [items]="breakdownTypes" bindLabel="name" bindValue="id" placeholder="Select Breakdown Type"
                 [(ngModel)]="selectedBreakdownType" [clearable]="true" class="custom-ng-select w-full">
               </ng-select>
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-gray-700 mb-1">Severity</label>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Severity <span class="text-red-500">*</span></label>
               <ng-select placeholder="Select Severity" [(ngModel)]="entrySeverity" [clearable]="true"
                 class="custom-ng-select w-full">
                 <ng-option value="CRITICAL">CRITICAL</ng-option>
@@ -257,7 +468,7 @@
           </div>
           <div class="grid grid-cols-2 gap-6 mb-4">
             <div>
-              <label class="block text-[11px] font-bold text-gray-700 mb-1">Machine</label>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Machine <span class="text-red-500">*</span></label>
               <ng-select [items]="machinesList" bindValue="machine_id"
                 [placeholder]="machinesList.length === 0 ? 'No machines available' : 'Select Asset'"
                 [(ngModel)]="entryMachine" [disabled]="machinesList.length === 0" [clearable]="true"
@@ -271,7 +482,7 @@
               </ng-select>
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-gray-700 mb-1">Reported By</label>
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Reported By <span class="text-red-500">*</span></label>
               <div class="flex gap-1 items-start">
                 <ng-select [items]="employees$ | async" bindLabel="name" bindValue="id" [typeahead]="employeeInput$"
                   [loading]="employeesLoading" [(ngModel)]="selectedEmployee" [multiple]="false"
@@ -287,7 +498,7 @@
             </div>
           </div>
           <div>
-            <label class="block text-[11px] font-bold text-gray-700 mb-1">Problem Description</label>
+            <label class="block text-[11px] font-bold text-gray-700 mb-1">Problem Description <span class="text-red-500">*</span></label>
             <textarea rows="3" [(ngModel)]="entryDescription"
               placeholder="Describe the mechanical or electrical fault in detail..."
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)] resize-none"></textarea>
@@ -308,18 +519,18 @@
           </div>
           <div class="grid grid-cols-2 gap-6 mb-4">
             <div>
-              <label class="block text-[11px] font-bold text-gray-700 mb-1">Repair Start Time</label>
-              <input type="datetime-local" [(ngModel)]="entryRepairStart"
-                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Repair Start Time <span class="text-gray-400 font-normal ml-1">(Optional)</span></label>
+              <input type="datetime-local" [(ngModel)]="entryRepairStart" [min]="entryDate" readonly
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)] bg-gray-100 cursor-not-allowed">
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-gray-700 mb-1">Repair End Time</label>
-              <input type="datetime-local" [(ngModel)]="entryRepairEnd"
-                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Repair End Time <span class="text-gray-400 font-normal ml-1">(Optional)</span></label>
+              <input type="datetime-local" [(ngModel)]="entryRepairEnd" [min]="entryRepairStart || entryDate" readonly
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)] bg-gray-100 cursor-not-allowed">
             </div>
           </div>
           <div class="mb-6">
-            <label class="block text-[11px] font-bold text-gray-700 mb-1">Action Taken</label>
+            <label class="block text-[11px] font-bold text-gray-700 mb-1">Action Taken <span class="text-gray-400 font-normal ml-1">(Optional)</span></label>
             <textarea rows="3" [(ngModel)]="entryActionTaken"
               placeholder="Document the steps taken to resolve the issue (e.g. replaced hydraulic hose)..."
               class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)] resize-none"></textarea>
@@ -501,22 +712,101 @@
       </div>
     </div>
   </div>
-</div>
 
-<!-- Toast Notification -->
-<div *ngIf="showToast"
-  class="fixed top-4 right-4 z-[9999] max-w-sm w-full bg-white rounded-lg shadow-xl border-l-4 transition-all duration-300 transform"
-  [ngClass]="toastType === 'success' ? 'border-green-500' : 'border-red-500'">
-  <div class="p-4 flex items-start gap-3">
-    <div class="flex-shrink-0 mt-0.5">
-      <i class="fas"
-        [ngClass]="toastType === 'success' ? 'fa-check-circle text-green-500' : 'fa-exclamation-circle text-red-500'"></i>
+  <!-- Import Modal -->
+  <div *ngIf="isImportModalOpen"
+    class="fixed inset-0 bg-[#0f2a4a]/40 z-[110] flex items-center justify-center font-sans p-4 sm:p-6 backdrop-blur-[2px] transition-all duration-300">
+    <div class="bg-white w-full max-w-[600px] flex flex-col rounded-xl shadow-2xl relative border border-gray-100 animate-fade-in-up">
+      
+      <!-- Header -->
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50/80">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-lg shadow-sm">
+            <i class="fas fa-file-excel"></i>
+          </div>
+          <div>
+            <h2 class="text-lg font-bold text-gray-800 tracking-tight">Import Breakdowns</h2>
+            <p class="text-xs text-gray-500">Upload an Excel file to import breakdown records</p>
+          </div>
+        </div>
+        <button (click)="closeImportModal()" class="w-8 h-8 rounded bg-white border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-all shadow-sm">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="p-6">
+        <!-- File Upload Area -->
+        <div *ngIf="!importResult" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors relative cursor-pointer group"
+             (click)="fileInput.click()">
+          <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx, .xls, .csv" class="hidden">
+          
+          <div *ngIf="isImporting" class="flex flex-col items-center justify-center space-y-3">
+            <div class="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+            <p class="text-sm font-bold text-gray-600">Uploading and Processing...</p>
+          </div>
+
+          <div *ngIf="!isImporting" class="flex flex-col items-center justify-center">
+            <div class="w-16 h-16 bg-white group-hover:bg-blue-50 rounded-full flex items-center justify-center shadow-sm mb-4 transition-colors">
+              <i class="fas fa-cloud-upload-alt text-3xl text-blue-500"></i>
+            </div>
+            <p class="text-base font-bold text-gray-700 mb-1">Click to browse or drag and drop</p>
+            <p class="text-xs text-gray-500 mb-4">
+              Support for Excel (.xlsx) and CSV files<br>
+              <a href="assets/bulk_breakdown.xlsx" download class="text-blue-600 hover:text-blue-800 hover:underline mt-2 inline-block font-semibold">
+                <i class="fas fa-download mr-1"></i>Download Sample File
+              </a>
+            </p>
+            <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-lg transition-colors shadow-sm">
+              Select File
+            </button>
+          </div>
+        </div>
+
+        <!-- Result Area -->
+        <div *ngIf="importResult" class="space-y-4">
+          <!-- Success State -->
+          <div *ngIf="importResult.status === 'success'" class="bg-green-50 border border-green-200 rounded-xl p-6 text-center shadow-inner">
+            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-check text-3xl"></i>
+            </div>
+            <h3 class="text-lg font-bold text-green-800 mb-2">{{ importResult.message }}</h3>
+            <p class="text-sm text-green-600">All records have been imported successfully.</p>
+          </div>
+
+          <!-- Error State -->
+          <div *ngIf="importResult.status !== 'success'" class="bg-red-50 border border-red-200 rounded-xl p-5 shadow-inner">
+             <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm text-red-500">
+                  <i class="fas fa-exclamation-triangle text-2xl"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-red-800">{{ importResult.message || 'Import process completed with errors.' }}</h3>
+                  <p class="text-xs mt-1 font-medium text-red-600">The following issues were encountered during the import process:</p>
+                </div>
+             </div>
+             
+             <!-- Error List -->
+             <div *ngIf="importResult.errors && importResult.errors.length > 0" class="bg-white rounded-lg border border-red-100 p-4 max-h-56 overflow-y-auto custom-scrollbar shadow-sm">
+                <ul class="space-y-2.5">
+                  <li *ngFor="let err of importResult.errors" class="text-sm text-red-600 flex items-start gap-2.5 bg-red-50/50 p-2 rounded">
+                    <i class="fas fa-circle text-[6px] mt-2 flex-shrink-0 text-red-400"></i>
+                    <span class="font-medium leading-snug">{{ err }}</span>
+                  </li>
+                </ul>
+             </div>
+          </div>
+
+          <div class="flex justify-end pt-4 mt-2">
+            <button (click)="importResult = null" *ngIf="importResult.status !== 'success'" class="mr-4 text-sm font-bold text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-widest">
+              Try Again
+            </button>
+            <button (click)="closeImportModal()" class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold py-2.5 px-6 rounded shadow-sm transition-colors uppercase tracking-widest">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="flex-1 text-sm font-bold text-gray-800">
-      {{ toastMessage }}
-    </div>
-    <button (click)="showToast = false" class="text-gray-400 hover:text-gray-600 focus:outline-none">
-      <i class="fas fa-times"></i>
-    </button>
   </div>
 </div>

@@ -7,6 +7,7 @@ import { NgxPaginationModule } from 'ngx-pagination';
 import { CategoryService } from 'src/app/core/services/category.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 interface Category {
   id: number;
@@ -24,7 +25,7 @@ interface SubCategory {
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, NgxPaginationModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, NgxPaginationModule, NgSelectModule],
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.scss',
   animations: [
@@ -50,7 +51,7 @@ export class CategoriesComponent implements OnInit, OnDestroy {
   // Pagination parameters
   page = 1;
   tableSize: any = 10;
-  tableSizes: any = [10, 25, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
   totalRecords = 0;
 
   // Categories Datasets
@@ -260,7 +261,7 @@ export class CategoriesComponent implements OnInit, OnDestroy {
 
   // Sizing changes
   onTableSizeChange(event: any) {
-    this.tableSize = event.target.value;
+    this.tableSize = event.target ? event.target.value : event;
     this.page = 1;
     if (this.activeTab === 'Categories') {
       this.fetchCategories();

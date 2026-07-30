@@ -1,0 +1,304 @@
+<div class="container mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap">
+    <h1 class="text-primary table-heading-detail">Relay Management</h1>
+    <div>
+      <button class="btn btn-custom-primary px-4 py-2 me-2" (click)="openAddModal()">
+        Add Relay
+      </button>
+    </div>
+  </div>
+
+  <div class="card border-0 my-4 px-4 py-4">
+    <div class="d-md-flex justify-content-between align-items-center my-3">
+      <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
+        <span class="show-entery-text">Show</span>
+        <ng-select [items]="tableSizes" 
+                   [(ngModel)]="tableSize" 
+                   (change)="onTableSizeChange($event)" 
+                   [clearable]="false" 
+                   [searchable]="false" 
+                   class="custom-ng-select min-w-[80px]">
+        </ng-select>
+        <span class="show-entery-text">entries</span>
+      </div>
+
+      <div class="d-flex align-items-center">
+        <!-- Search logic will be connected later via reactive form -->
+        <div class="d-flex align-items-center">
+          <span class="me-1">Search:</span>
+          <div>
+            <input type="text" class="form-control search-user position-relative" autocomplete="off" placeholder="Search relays..." [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" />
+          </div>
+          <button class="btn btn-primary search-btn ms-2" (click)="onSearch()">
+            <span><i class="fa-solid fa-magnifying-glass form-control-feedback text-white"></i></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive-sm mt-2">
+      <!-- Table View -->
+      <div class="hidden lg:block">
+        <table class="table table-bordered table-hover table-striped mb-0">
+          <thead class="table-header">
+            <tr>
+              <th><p class="table-heading">Serial No.</p></th>
+              <th><p class="table-heading">Relay Name</p></th>
+              <th><p class="table-heading">Rotation Type</p></th>
+              <th><p class="table-heading">Current Shift</p></th>
+              <th><p class="table-heading">Status</p></th>
+              <th><p class="table-heading">Action</p></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="
+                let relay of relayList
+                  | paginate
+                    : {
+                        itemsPerPage: tableSize,
+                        currentPage: page,
+                        totalItems: totalRecords
+                      };
+                index as i
+              ">
+              <td>
+                {{ tableSize * (page - 1) + i + 1 > 0 ? tableSize * (page - 1) + i + 1 : i + 1 }}
+              </td>
+              <td>
+                <p>{{ relay.name }}</p>
+              </td>
+              <td>
+                <p>
+                  <i class="fa-solid me-1" [ngClass]="relay.is_rotating == 1 ? 'fa-sync-alt text-primary' : 'fa-lock text-secondary'"></i>
+                  {{ relay.is_rotating == 1 ? "Rotating Shift" : "Fixed General Shift" }}
+                </p>
+              </td>
+              <td>
+                <p class="fw-semibold text-dark">{{ relay.current_shift_name }}</p>
+              </td>
+              <td>
+                <p [ngClass]="{
+                    'active-status': relay.is_active == 1 ? 1 : 0,
+                    'deactive-status': relay.is_active == 1 ? 0 : 1
+                  }">
+                  {{ relay.is_active == 1 ? "Active" : "Inactive" }}
+                </p>
+              </td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <button *ngIf="relay.is_active == 1" class="btn-action edit-btn" (click)="OpenEditModal(relay)" title="Edit">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="btn-action view-btn" (click)="openviewModal(relay)" title="View Details">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                  <button class="btn-action" [ngClass]="relay.is_active ? 'deactivate-btn' : 'activate-btn'"
+                    (click)="toggleStatus(relay.id, relay.is_active ? 1 : 0)"
+                    [title]="relay.is_active ? 'Deactivate' : 'Activate'">
+                    <i class="fa-solid" [ngClass]="relay.is_active ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center mt-3">
+        <span class="showalltext">Showing
+          {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : 1 }} to
+          {{ tableSize * page <= totalRecords ? tableSize * page : totalRecords }} of 
+          {{ totalRecords != undefined ? totalRecords : "" }} entries
+        </span>
+        <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true"
+          (pageChange)="onTableDataChange($event)" target="_top"></pagination-controls>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Modal -->
+<div *ngIf="createRelayOpen" class="your-animation-class modal-container" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="modal-contenttop modal-content-50" [@fadeIn]>
+    <form [formGroup]="createRelayForm">
+      <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="modal-title pt-1 mb-0 tt-color">Add Relay</h5>
+          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button" (click)="closeModal()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-content-widthtop card-body mb-0" style="min-height: 300px;">
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Relay Name <span class="text-danger">*</span></label>
+              <input type="text" class="d-block form-control form-input-custom" formControlName="name" placeholder="e.g. Relay 1"
+                [ngClass]="{'is-invalid': createRelayForm.controls['name'].errors && (createRelayForm.controls['name'].touched || createRelayForm.controls['name'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createRelayForm.controls['name'].errors && (createRelayForm.controls['name'].touched || createRelayForm.controls['name'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createRelayForm.controls['name'].hasError('required')">
+                  Relay Name is required
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-12 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">
+                {{ createRelayForm.get('is_rotating')?.value ? 'Current Assigned Shift' : 'Fixed Assigned Shift' }} <span class="text-danger">*</span>
+              </label>
+              <ng-select [items]="shiftList" 
+                         bindLabel="shift_name" 
+                         bindValue="id" 
+                         formControlName="current_shift_id" 
+                         placeholder="Select current shift"
+                         class="custom-ng-select w-100"
+                         [ngClass]="{'is-invalid': createRelayForm.controls['current_shift_id'].errors && (createRelayForm.controls['current_shift_id'].touched || createRelayForm.controls['current_shift_id'].dirty)}">
+              </ng-select>
+              <div class="text-danger error-message d-block mt-1" *ngIf="createRelayForm.controls['current_shift_id'].errors && (createRelayForm.controls['current_shift_id'].touched || createRelayForm.controls['current_shift_id'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createRelayForm.controls['current_shift_id'].hasError('required')">
+                  Current Shift is required
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-12 mb-3 mt-2 d-flex justify-content-between align-items-center">
+              <span class="fw-bold text-muted" style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Rotation Settings</span>
+              <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                <input class="form-check-input cursor-pointer mt-0" type="checkbox" role="switch" id="isRotating" formControlName="is_rotating" style="width: 2.2em; height: 1.1em;">
+                <label class="form-check-label form-lable-custom mb-0 cursor-pointer fw-semibold" for="isRotating">Rotating Shift</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer text-end">
+          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button" (click)="closeModal()">Cancel</button>
+          <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="createRelay()">Create</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Update Modal -->
+<div *ngIf="updateRelayOpen" class="your-animation-class modal-container" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="modal-contenttop modal-content-50" [@fadeIn]>
+    <form [formGroup]="updateRelayForm">
+      <div class="card">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="modal-title pt-1 mb-0 tt-color">Update Relay</h5>
+          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button" (click)="closeModal()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-content-widthtop card-body mb-0" style="min-height: 300px;">
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Relay Name <span class="text-danger">*</span></label>
+              <input type="text" class="d-block form-control form-input-custom" formControlName="name"
+                [ngClass]="{'is-invalid': updateRelayForm.controls['name'].errors && (updateRelayForm.controls['name'].touched || updateRelayForm.controls['name'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateRelayForm.controls['name'].errors && (updateRelayForm.controls['name'].touched || updateRelayForm.controls['name'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateRelayForm.controls['name'].hasError('required')">
+                  Relay Name is required
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-12 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">
+                {{ updateRelayForm.get('is_rotating')?.value ? 'Current Assigned Shift' : 'Fixed Assigned Shift' }} <span class="text-danger">*</span>
+              </label>
+              <ng-select [items]="shiftList" 
+                         bindLabel="shift_name" 
+                         bindValue="id" 
+                         formControlName="current_shift_id" 
+                         placeholder="Select current shift"
+                         class="custom-ng-select w-100"
+                         [ngClass]="{'is-invalid': updateRelayForm.controls['current_shift_id'].errors && (updateRelayForm.controls['current_shift_id'].touched || updateRelayForm.controls['current_shift_id'].dirty)}">
+              </ng-select>
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateRelayForm.controls['current_shift_id'].errors && (updateRelayForm.controls['current_shift_id'].touched || updateRelayForm.controls['current_shift_id'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateRelayForm.controls['current_shift_id'].hasError('required')">
+                  Current Shift is required
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-12 mb-3 mt-2 d-flex justify-content-between align-items-center">
+              <span class="fw-bold text-muted" style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Rotation Settings</span>
+              <div class="form-check form-switch m-0 d-flex align-items-center gap-2">
+                <input class="form-check-input cursor-pointer mt-0" type="checkbox" role="switch" id="updateIsRotating" formControlName="is_rotating" style="width: 2.2em; height: 1.1em;">
+                <label class="form-check-label form-lable-custom mb-0 cursor-pointer fw-semibold" for="updateIsRotating">Rotating Shift</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer text-end">
+          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button" (click)="closeModal()">Cancel</button>
+          <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="updateRelay()">Update</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- View Modal -->
+<div *ngIf="viewRelayOpen" class="your-animation-class modal-container premium-detail-modal" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="modal-contenttop modal-content-50" [@fadeIn]>
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="modal-title pt-1 mb-0">Relay Details</h5>
+          <p class="modal-subtitle">Full configuration for Relay ID: #{{selectedRelay?.id}}</p>
+        </div>
+        <button class="cross-btn-icon border-0 p-0" type="button" (click)="closeModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="card-body mb-0">
+        <div class="dept-summary-banner">
+          <div class="banner-content">
+            <div class="banner-label">Active Relay Name</div>
+            <div class="banner-value">{{ selectedRelay?.name }}</div>
+            <div class="banner-subtitle">
+              <span class="pulse-indicator" [ngClass]="{'deactive': selectedRelay?.is_active !== 1}"></span>
+              Status: 
+              <span class="status-badge-pill" [ngClass]="selectedRelay?.is_active === 1 ? 'active' : 'deactive'">
+                {{ selectedRelay?.is_active === 1 ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-section-title">Rotation Parameters</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper timing">
+                <i class="fa-solid fa-sync-alt"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Rotation Type</span>
+                <span class="info-value text-dark fs-7">{{ selectedRelay?.is_rotating === 1 ? 'Rotating Shift' : 'Fixed General Shift' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper hours">
+                <i class="fa-solid fa-clock"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Current Shift</span>
+                <span class="info-value text-dark fs-7">{{ selectedRelay?.current_shift_name }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer text-end">
+        <button class="btn btn-premium-close px-4 py-2" type="button" (click)="closeModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

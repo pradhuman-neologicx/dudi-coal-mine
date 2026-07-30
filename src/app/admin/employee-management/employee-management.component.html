@@ -2,9 +2,9 @@
   <div class="d-flex justify-content-between align-items-center flex-wrap">
     <h1 class="text-primary table-heading-detail">Employee Management</h1>
     <div>
-      <button class="btn btn-outline-primary px-4 py-2 me-2" (click)="openAssignShiftModal()">
+      <!-- <button class="btn btn-outline-primary px-4 py-2 me-2" (click)="openAssignShiftModal()">
         <i class="fa-solid fa-calendar-check me-2"></i>Assign Shift
-      </button>
+      </button> -->
       <!-- <button class="btn btn-bulk-assign px-4 py-2 me-2" (click)="openBulkAssignModal()">
         <i class="fa-solid fa-users-gear me-2"></i>Bulk Assign Shift
       </button> -->
@@ -21,16 +21,20 @@
 
 
     <!-- Top Controls: Show Entries & Advanced Filters -->
-    <div class="row align-items-center mb-3 g-2">
-      <div class="col-md-2 d-flex align-items-center">
-        <span class="me-1 show-entery-text">Show</span>
-        <select class="form-control form-select show-entries-select mx-1" (change)="onTableSizeChange($event)">
-          <option *ngFor="let size of tableSizes" [value]="size">{{ size }}</option>
-        </select>
-        <span class="ms-1 show-entery-text">entries</span>
+    <div class="d-md-flex justify-content-between align-items-center my-3">
+      <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
+        <span class="show-entery-text">Show</span>
+        <ng-select [items]="tableSizes" 
+                   [(ngModel)]="tableSize" 
+                   (change)="onTableSizeChange($event)" 
+                   [clearable]="false" 
+                   [searchable]="false" 
+                   class="custom-ng-select min-w-[80px]">
+        </ng-select>
+        <span class="show-entery-text">entries</span>
       </div>
 
-      <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">
+      <div class="d-flex justify-content-end align-items-center gap-2 flex-wrap">
         <form [formGroup]="filterForm" class="d-flex gap-2" style="min-width: 200px;">
           <ng-select class="custom-ng-select w-100" formControlName="deptFilter" (change)="searchfun()"
             placeholder="All Departments" [searchable]="true" [clearable]="true">
@@ -104,10 +108,10 @@
               </td>
               <td>
                 <div class="d-flex align-items-center gap-2">
-                  <button *ngIf="emp.is_active == 1" class="btn-action edit-btn" (click)="openAssignShiftModal(emp)"
+                  <!-- <button *ngIf="emp.is_active == 1" class="btn-action edit-btn" (click)="openAssignShiftModal(emp)"
                     data-tooltip="Assign Shift">
                     <i class="fa-solid fa-calendar-day"></i>
-                  </button>
+                  </button> -->
                   <button *ngIf="emp.is_active == 1" class="btn-action edit-btn" (click)="openEditModal(emp)"
                     data-tooltip="Edit">
                     <i class="fa-solid fa-pen-to-square"></i>
@@ -138,10 +142,10 @@
             </div>
             <div>
               <div class="d-flex align-items-center gap-1">
-                <button *ngIf="emp.is_active == 1" class="btn-action edit-btn" (click)="openAssignShiftModal(emp)"
+                <!-- <button *ngIf="emp.is_active == 1" class="btn-action edit-btn" (click)="openAssignShiftModal(emp)"
                   data-tooltip="Assign Shift">
                   <i class="fa-solid fa-calendar-day"></i>
-                </button>
+                </button> -->
                 <button *ngIf="emp.is_active == 1" class="btn-action edit-btn" (click)="openEditModal(emp)"
                   data-tooltip="Edit">
                   <i class="fa-solid fa-pen-to-square"></i>
@@ -318,27 +322,15 @@
               [class.d-block]="employeeForm.get('designation')?.invalid && employeeForm.get('designation')?.touched">
               Designation is required.</div>
           </div>
-          <div class="col-md-12 mt-3">
-            <label class="form-label form-lable-custom d-block mb-2">Workforce Group *</label>
-            <div class="btn-group" role="group" aria-label="Workforce Group">
-              <input type="radio" class="btn-check" formControlName="relay" id="relay1" value="Relay 1"
-                autocomplete="off">
-              <label class="btn btn-outline-primary px-4" for="relay1">Relay 1</label>
-
-              <input type="radio" class="btn-check" formControlName="relay" id="relay2" value="Relay 2"
-                autocomplete="off">
-              <label class="btn btn-outline-primary px-4" for="relay2">Relay 2</label>
-
-              <input type="radio" class="btn-check" formControlName="relay" id="relay3" value="Relay 3"
-                autocomplete="off">
-              <label class="btn btn-outline-primary px-4" for="relay3">Relay 3</label>
-
-              <input type="radio" class="btn-check" formControlName="relay" id="relayGeneral" value="General"
-                autocomplete="off">
-              <label class="btn btn-outline-primary px-4" for="relayGeneral">General (Fixed Shift)</label>
-            </div>
-            <div class="text-danger mt-1 fs-8"
-              *ngIf="employeeForm.get('relay')?.invalid && employeeForm.get('relay')?.touched">Relay is required.</div>
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom">Workforce Group (Relay) *</label>
+            <ng-select class="custom-ng-select w-100" formControlName="relay" placeholder="Select Relay"
+              [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="relaysList"
+              [ngClass]="{'is-invalid': employeeForm.get('relay')?.invalid && employeeForm.get('relay')?.touched}">
+            </ng-select>
+            <div class="invalid-feedback"
+              [class.d-block]="employeeForm.get('relay')?.invalid && employeeForm.get('relay')?.touched">
+              Relay is required.</div>
           </div>
         </div>
 
@@ -543,20 +535,25 @@
           </a>
         </div>
         <form [formGroup]="uploadForm">
-          <div class="upload-zone p-5 text-center rounded-4 mb-4 border border-dashed"
+          <div *ngIf="!uploadResult" class="upload-zone p-5 text-center rounded-4 mb-4 border border-dashed"
             [ngClass]="{ 'has-file': selectedUploadFile }" (click)="fileInput.click()"
             style="min-height: 200px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
             <input type="file" #fileInput class="d-none" (change)="onUploadFileSelected($event)"
               accept=".csv, .xlsx, .xls" />
 
-            <div *ngIf="!selectedUploadFile">
+            <div *ngIf="isUploading" class="d-flex flex-column align-items-center justify-content-center">
+              <div class="spinner-border text-primary mb-3" role="status"></div>
+              <p class="small font-weight-bold text-secondary mb-0">Uploading and Processing...</p>
+            </div>
+
+            <div *ngIf="!isUploading && !selectedUploadFile">
               <div class="upload-icon-circle mx-auto mb-3">
                 <i class="fa-solid fa-cloud-arrow-up fs-2 text-primary"></i>
               </div>
               <p class="mb-1 fw-bold">Click to select file</p>
             </div>
 
-            <div *ngIf="selectedUploadFile" class="file-info-view">
+            <div *ngIf="!isUploading && selectedUploadFile" class="file-info-view">
               <i class="fa-solid fa-file-circle-check fs-1 text-success mb-2"></i>
               <h6 class="fw-bold mb-0 text-truncate px-3" style="max-width: 250px;">
                 {{ selectedUploadFileName }}
@@ -567,7 +564,37 @@
               </button>
             </div>
           </div>
+          
+          <!-- Error Result Area -->
+          <div *ngIf="uploadResult" class="d-flex flex-column gap-3 mb-4">
+            <div class="rounded p-3 shadow-sm border" style="background-color: #fef2f2; border-color: #fecaca;">
+               <div class="d-flex align-items-start gap-3 mb-3">
+                  <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center bg-white shadow-sm text-danger" style="width: 48px; height: 48px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem;"></i>
+                  </div>
+                  <div>
+                    <h3 class="h6 font-weight-bold mb-1" style="color: #991b1b;">{{ uploadResult.message || 'Import process completed with errors.' }}</h3>
+                    <p class="small font-weight-medium mb-0" style="color: #dc2626;">The following issues were encountered during the import process:</p>
+                  </div>
+               </div>
+               
+               <!-- Error List -->
+               <div *ngIf="uploadResult.errors && uploadResult.errors.length > 0" class="bg-white rounded border p-3 shadow-sm custom-scrollbar" style="border-color: #fee2e2; max-height: 14rem; overflow-y: auto;">
+                  <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                    <li *ngFor="let err of uploadResult.errors" class="small d-flex align-items-start gap-2 p-2 rounded" style="background-color: rgba(254, 242, 242, 0.5); color: #dc2626;">
+                      <i class="fas fa-circle mt-1 flex-shrink-0" style="font-size: 6px; color: #f87171;"></i>
+                      <span class="font-weight-medium" style="line-height: 1.3;">{{ err }}</span>
+                    </li>
+                  </ul>
+               </div>
+            </div>
 
+            <div class="d-flex justify-content-end pt-2">
+              <button (click)="uploadResult = null" type="button" class="btn btn-link text-muted font-weight-bold text-decoration-none small text-uppercase mr-3 me-3">
+                Try Again
+              </button>
+            </div>
+          </div>
 
         </form>
       </div>
@@ -577,15 +604,16 @@
       <button class="btn btn-secondary flex-grow-1 py-2" (click)="closeUploadModal()">
         Cancel
       </button>
-      <button class="btn btn-custom-primary flex-grow-1 py-2" [disabled]="!selectedUploadFile" (click)="uploadFile()">
-        <i class="fa-solid fa-upload me-2"></i> Start Import Process
+      <button *ngIf="!uploadResult" class="btn btn-custom-primary flex-grow-1 py-2" [disabled]="!selectedUploadFile || isUploading" (click)="uploadFile()">
+        <span *ngIf="isUploading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        <i *ngIf="!isUploading" class="fa-solid fa-upload me-2"></i> {{ isUploading ? 'Uploading...' : 'Start Import Process' }}
       </button>
     </div>
   </div>
 </div>
 
 <!-- Assign Shift Modal -->
-<div *ngIf="assignShiftModalOpen" class="modal-overlay" [@fadeIn]>
+<!-- <div *ngIf="assignShiftModalOpen" class="modal-overlay" [@fadeIn]>
   <div class="modal-dialog-medium bg-white rounded-3 shadow-lg d-flex flex-column">
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
       <h5 class="modal-title fw-bold text-primary mb-0">
@@ -597,7 +625,6 @@
     </div>
 
     <div class="modal-body-custom p-4 flex-grow-1" style="overflow: visible;">
-      <!-- Select Employees -->
       <div class="mb-3">
         <label class="form-label form-lable-custom">Select Employees <span class="text-danger">*</span></label>
         <ng-select [(ngModel)]="selectedEmployeeIdsForAssign" [items]="allEmployeesList" bindLabel="name" bindValue="id"
@@ -639,7 +666,6 @@
         </ng-select>
       </div>
 
-      <!-- Shift Type Select -->
       <div class="mb-3">
         <label class="form-label form-lable-custom">Shift Type <span class="text-danger">*</span></label>
         <ng-select [(ngModel)]="assignShiftType" class="custom-ng-select w-100" [items]="allShiftsList" bindLabel="name"
@@ -647,7 +673,6 @@
         </ng-select>
       </div>
 
-      <!-- Selected Employees Count Display -->
       <div class="mt-3" *ngIf="selectedEmployeeIdsForAssign && selectedEmployeeIdsForAssign.length > 0">
         <p class="text-muted fs-7 mb-0">Assigning shift to <strong>{{ selectedEmployeeIdsForAssign.length }}</strong>
           selected
@@ -668,7 +693,7 @@
       </button>
     </div>
   </div>
-</div>
+</div> -->
 
 <!-- Bulk Assign Shift (Excel/CSV Upload) Modal -->
 <div *ngIf="bulkAssignModalOpen" class="modal-overlay" [@fadeIn]>
@@ -693,13 +718,18 @@
         </div>
 
         <form [formGroup]="bulkAssignForm">
-          <div class="upload-zone p-5 text-center rounded-4 mb-4 border border-dashed"
+          <div *ngIf="!bulkAssignResult" class="upload-zone p-5 text-center rounded-4 mb-4 border border-dashed"
             [ngClass]="{ 'has-file': selectedBulkAssignFile }" (click)="bulkAssignFileInput.click()"
             style="min-height: 200px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
             <input type="file" #bulkAssignFileInput class="d-none" (change)="onBulkAssignFileSelected($event)"
               accept=".csv, .xlsx, .xls" />
 
-            <div *ngIf="!selectedBulkAssignFile">
+            <div *ngIf="isBulkAssigning" class="d-flex flex-column align-items-center justify-content-center">
+              <div class="spinner-border text-primary mb-3" role="status"></div>
+              <p class="small font-weight-bold text-secondary mb-0">Applying Assignments...</p>
+            </div>
+
+            <div *ngIf="!isBulkAssigning && !selectedBulkAssignFile">
               <div class="upload-icon-circle mx-auto mb-3">
                 <i class="fa-solid fa-file-excel fs-2 text-primary"></i>
               </div>
@@ -707,7 +737,7 @@
               <small class="text-muted d-block mt-1">Accepts .csv, .xls, .xlsx</small>
             </div>
 
-            <div *ngIf="selectedBulkAssignFile" class="file-info-view">
+            <div *ngIf="!isBulkAssigning && selectedBulkAssignFile" class="file-info-view">
               <i class="fa-solid fa-file-circle-check fs-1 text-success mb-2"></i>
               <h6 class="fw-bold mb-0 text-truncate px-3" style="max-width: 250px;">
                 {{ selectedBulkAssignFileName }}
@@ -718,6 +748,38 @@
               </button>
             </div>
           </div>
+
+          <!-- Error Result Area -->
+          <div *ngIf="bulkAssignResult" class="d-flex flex-column gap-3 mb-4">
+            <div class="rounded p-3 shadow-sm border" style="background-color: #fef2f2; border-color: #fecaca;">
+               <div class="d-flex align-items-start gap-3 mb-3">
+                  <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center bg-white shadow-sm text-danger" style="width: 48px; height: 48px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem;"></i>
+                  </div>
+                  <div>
+                    <h3 class="h6 font-weight-bold mb-1" style="color: #991b1b;">{{ bulkAssignResult.message || 'Assignment process completed with errors.' }}</h3>
+                    <p class="small font-weight-medium mb-0" style="color: #dc2626;">The following issues were encountered:</p>
+                  </div>
+               </div>
+               
+               <!-- Error List -->
+               <div *ngIf="bulkAssignResult.errors && bulkAssignResult.errors.length > 0" class="bg-white rounded border p-3 shadow-sm custom-scrollbar" style="border-color: #fee2e2; max-height: 14rem; overflow-y: auto;">
+                  <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                    <li *ngFor="let err of bulkAssignResult.errors" class="small d-flex align-items-start gap-2 p-2 rounded" style="background-color: rgba(254, 242, 242, 0.5); color: #dc2626;">
+                      <i class="fas fa-circle mt-1 flex-shrink-0" style="font-size: 6px; color: #f87171;"></i>
+                      <span class="font-weight-medium" style="line-height: 1.3;">{{ err }}</span>
+                    </li>
+                  </ul>
+               </div>
+            </div>
+
+            <div class="d-flex justify-content-end pt-2">
+              <button (click)="bulkAssignResult = null" type="button" class="btn btn-link text-muted font-weight-bold text-decoration-none small text-uppercase mr-3 me-3">
+                Try Again
+              </button>
+            </div>
+          </div>
+
         </form>
       </div>
     </div>
@@ -726,9 +788,10 @@
       <button class="btn btn-secondary flex-grow-1 py-2" (click)="closeBulkAssignModal()">
         Cancel
       </button>
-      <button class="btn btn-custom-primary flex-grow-1 py-2" [disabled]="!selectedBulkAssignFile"
+      <button *ngIf="!bulkAssignResult" class="btn btn-custom-primary flex-grow-1 py-2" [disabled]="!selectedBulkAssignFile || isBulkAssigning"
         (click)="uploadBulkAssignFile()">
-        <i class="fa-solid fa-circle-check me-2"></i> Apply Assignments
+        <span *ngIf="isBulkAssigning" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        <i *ngIf="!isBulkAssigning" class="fa-solid fa-circle-check me-2"></i> {{ isBulkAssigning ? 'Applying...' : 'Apply Assignments' }}
       </button>
     </div>
   </div>

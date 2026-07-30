@@ -64,17 +64,20 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   leaveApplyForm: FormGroup;
-  bulkUploadForm!: FormGroup;
   bulkUploadModalOpen: boolean = false;
+  bulkUploadForm!: FormGroup;
   selectedBulkUploadFile: any = null;
   selectedBulkUploadFileName: string = '';
-  isDragging: boolean = false;
+  isDragging = false;
+  isUploading: boolean = false;
+  uploadResult: any = null;
 
   pInbox: number = 1;
   pHistory: number = 1;
   pBalances: number = 1;
 
   showEntries: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
   totalItems: number = 0;
   searchText: string = '';
   filterMonth: string = '';
@@ -439,14 +442,14 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
     this.bulkUploadModalOpen = true;
     this.selectedBulkUploadFile = null;
     this.selectedBulkUploadFileName = '';
+    this.isUploading = false;
+    this.uploadResult = null;
     this.bulkUploadForm.reset();
   }
 
   closeBulkUploadModal() {
     this.bulkUploadModalOpen = false;
-    this.selectedBulkUploadFile = null;
-    this.selectedBulkUploadFileName = '';
-    this.bulkUploadForm.reset();
+    this.removeBulkUploadFile(null);
   }
 
   onBulkUploadFileSelected(event: any) {
@@ -463,6 +466,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   removeBulkUploadFile(fileInput: any) {
     this.selectedBulkUploadFile = null;
     this.selectedBulkUploadFileName = '';
+    this.uploadResult = null;
     this.bulkUploadForm.reset();
     if (fileInput) {
       fileInput.value = '';
@@ -475,32 +479,50 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.isUploading = true;
+    this.uploadResult = null;
+
     const formData = new FormData();
     formData.append('file', this.selectedBulkUploadFile);
 
     // Assuming a leaveService exists or using leaveManagementService
     (this.leaveManagementService as any).uploadBulkLeaves(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
-        if (res && res.status === 200) {
+        this.isUploading = false;
+        
+        if (res && (res.status === 200 || res.status === 201) && (!res.errors || res.errors.length === 0)) {
           this.notificationService.show(res.message || 'Leaves uploaded successfully', 'success', 3000);
           this.closeBulkUploadModal();
           this.loadLeaveRequests();
         } else {
-          this.notificationService.show(res.message || 'Failed to upload leaves', 'error', 3000);
+          this.uploadResult = {
+            status: res.status || 422,
+            message: res.message || 'Import process completed with errors.',
+            errors: res.errors || []
+          };
         }
       },
       error: (err: any) => {
+        this.isUploading = false;
         console.error('Bulk upload failed:', err);
         const originalError = err.originalError || err.error || err;
-        let errorMsg = originalError.message || err.message || 'An error occurred during upload';
         
+        // Ensure errors array contains strings for the UI
+        let formattedErrors: string[] = [];
         if (originalError.errors && Array.isArray(originalError.errors)) {
-          const formattedErrors = originalError.errors.map((e: any) => `Row ${e.row}: ${e.message}`).join('\n');
-          errorMsg += '\n' + formattedErrors;
+          formattedErrors = originalError.errors.map((e: any) => {
+            if (typeof e === 'object') {
+               return `Row ${e.row || 'N/A'}: ${e.message || 'Unknown error'}`;
+            }
+            return String(e);
+          });
         }
-
-        const duration = originalError.errors ? 8000 : 3000;
-        this.notificationService.show(errorMsg, 'error', duration);
+        
+        this.uploadResult = {
+          status: err.status || originalError.status || 422,
+          message: originalError.message || err.message || 'An error occurred during upload',
+          errors: formattedErrors
+        };
       }
     });
   }

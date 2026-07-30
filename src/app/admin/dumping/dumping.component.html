@@ -1,0 +1,696 @@
+<div class="container mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap">
+    <h1 class="text-primary table-heading-detail">Dispatch & Dumping Operations</h1>
+    <div class="d-flex gap-2">
+      <button (click)="openImportModal()"
+        class="bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 d-flex align-items-center gap-2 rounded px-4 py-2 shadow-sm transition-colors text-sm font-semibold">
+        <i class="fas fa-file-import text-blue-500"></i> Import
+      </button>
+      <button class="btn btn-custom-primary px-4 py-2 d-flex align-items-center gap-2" (click)="openAddModal()">
+        <i class="fas fa-plus"></i> Log Dumper Trip
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters Area -->
+  <div class="d-flex justify-content-end align-items-center gap-3 mt-3 flex-wrap">
+    <!-- Shift Dropdown -->
+    <div class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-1 text-sm text-gray-700 min-w-[140px] shadow-sm focus-within:border-[#0f2a4a]">
+      <ng-select [items]="allShifts"
+                 bindLabel="name"
+                 bindValue="id"
+                 [(ngModel)]="filterShiftId" 
+                 (change)="applyFilter()"
+                 placeholder="All Shifts"
+                 [clearable]="true"
+                 class="flex-1 font-medium w-full custom-filter-select">
+      </ng-select>
+    </div>
+
+    <!-- Date Range Dropdown -->
+    <!-- <select [(ngModel)]="selectedDateRange" (change)="onDateRangeChange()" class="bg-white border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 font-medium shadow-sm focus:outline-none focus:border-[#0f2a4a]">
+      <option value="">Custom Range</option>
+      <option value="today">Today</option>
+      <option value="last7days">Last 7 Days</option>
+      <option value="thisMonth">This Month</option>
+    </select> -->
+
+    <!-- Date From -->
+    <div class="d-flex align-items-center bg-white border border-gray-300 rounded px-3 py-1.5 shadow-sm">
+      <label class="text-[10px] font-bold text-gray-500 me-2 tracking-wide text-uppercase mb-0">From:</label>
+      <input type="date" [(ngModel)]="filterDateFrom" (change)="selectedDateRange=''; applyFilter()"
+        class="text-sm text-gray-700 focus:outline-none bg-transparent border-0">
+    </div>
+
+    <!-- Date To -->
+    <div class="d-flex align-items-center bg-white border border-gray-300 rounded px-3 py-1.5 shadow-sm">
+      <label class="text-[10px] font-bold text-gray-500 me-2 tracking-wide text-uppercase mb-0">To:</label>
+      <input type="date" [(ngModel)]="filterDateTo" (change)="selectedDateRange=''; applyFilter()" [min]="filterDateFrom"
+        class="text-sm text-gray-700 focus:outline-none bg-transparent border-0">
+    </div>
+
+    <!-- Reset Button -->
+    <button *ngIf="filterShiftId || filterDateFrom || filterDateTo" (click)="resetFilters()"
+      class="btn btn-outline-danger btn-red px-3 py-1.5 shadow-sm d-flex align-items-center gap-1"
+      style="font-size: 0.875rem; border-color: #ef4444; color: #ef4444">
+      <i class="fa-solid fa-rotate-right"></i>
+    </button>
+  </div>
+
+  <!-- Dumper Summary Cards -->
+  <div class="row mt-4 g-3 mb-4">
+    <div class="col-md-4">
+      <div class="summary-card glass-card trips-card">
+        <div class="card-icon">
+          <i class="fa-solid fa-truck"></i>
+        </div>
+        <div class="card-info">
+          <span class="info-label">Total Trips</span>
+          <span class="info-value">{{ totalTrips }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="summary-card glass-card qty-card">
+        <div class="card-icon">
+          <i class="fa-solid fa-cubes"></i>
+        </div>
+        <div class="card-info">
+          <span class="info-label">Total Quantity (BCM)</span>
+          <span class="info-value">{{ totalQuantity }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="summary-card glass-card time-card">
+        <div class="card-icon">
+          <i class="fa-solid fa-stopwatch"></i>
+        </div>
+        <div class="card-info">
+          <span class="info-label">Avg Cycle Time</span>
+          <span class="info-value">{{ avgCycleTime }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- New KPI Cards -->
+    <div class="col-md-4">
+      <div class="summary-card glass-card">
+        <div class="card-icon" style="color: #10b981;">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+        <div class="card-info">
+          <span class="info-label">Best Performing Dumper</span>
+          <span class="info-value" style="font-size: 1.5rem;">{{ bestPerformingDumper.dumper }}</span>
+          <span class="info-label" style="font-size: 0.8rem; margin-top: 4px;">{{ bestPerformingDumper.quantity | number
+            }} BCM</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="summary-card glass-card">
+        <div class="card-icon" style="color: #3b82f6;">
+          <i class="fa-solid fa-route"></i>
+        </div>
+        <div class="card-info">
+          <span class="info-label">Highest Trip Count Dumper</span>
+          <span class="info-value" style="font-size: 1.5rem;">{{ highestTripDumper.dumper }}</span>
+          <span class="info-label" style="font-size: 0.8rem; margin-top: 4px;">{{ highestTripDumper.trips }}
+            Trips</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="summary-card glass-card">
+        <div class="card-icon" style="color: #f59e0b;">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <div class="card-info">
+          <span class="info-label">Fastest Dumper</span>
+          <span class="info-value" style="font-size: 1.5rem;">{{ fastestDumper.dumper }}</span>
+          <span class="info-label" style="font-size: 0.8rem; margin-top: 4px;">{{ fastestDumper.cycleTime |
+            number:'1.1-1' }} Mins</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card border-0 my-4 px-4 py-4">
+    <!-- Top Controls -->
+    <div class="row align-items-center mb-3 g-2">
+      <div class="col-md-3 d-flex align-items-center gap-2">
+        <span class="show-entery-text">Show</span>
+        <ng-select class="custom-ng-select min-w-[80px]" 
+                   [items]="tableSizes" 
+                   [clearable]="false" 
+                   [searchable]="false" 
+                   (change)="onTableSizeChange($event)"
+                   [(ngModel)]="tableSize">
+        </ng-select>
+        <span class="show-entery-text">entries</span>
+      </div>
+
+      <div class="col-md-9 d-flex justify-content-end align-items-center gap-2 flex-wrap">
+        <form [formGroup]="searchbarform" (ngSubmit)="searchfun()" class="d-flex align-items-center ms-2">
+          <div class="position-relative">
+            <input type="text" class="form-control search-user" placeholder="Search Trips..."
+              formControlName="searchbar" autocomplete="off" />
+          </div>
+          <button type="submit" class="btn btn-primary search-btn ms-2">
+            <span><i class="fa-solid fa-magnifying-glass text-white"></i></span>
+          </button>
+          <button class="btn btn-secondary ms-2" (click)="resetsearchbar()" type="button" *ngIf="showreset">
+            <span><i class="fa-solid fa-rotate-right text-white"></i></span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-responsive-sm mt-2">
+      <div class="d-none d-lg-block">
+        <table class="table table-bordered table-hover table-striped mb-0">
+          <thead class="table-header">
+            <tr>
+              <th>
+                <p class="table-heading">Trip Ref No</p>
+              </th>
+              <th>
+                <p class="table-heading">Shift</p>
+              </th>
+              <th>
+                <p class="table-heading">Dumper No</p>
+              </th>
+              <th>
+                <p class="table-heading">Loading Point</p>
+              </th>
+              <th>
+                <p class="table-heading">Dumping Point</p>
+              </th>
+              <th>
+                <p class="table-heading">Cycle Time</p>
+              </th>
+              <th>
+                <p class="table-heading">Total Cycles</p>
+              </th>
+              <th>
+                <p class="table-heading">Qty (BCM)</p>
+              </th>
+              <th class="text-center">
+                <p class="table-heading">Action</p>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let t of displayTrips | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
+              <td><span class="badge bg-light text-dark border">{{ t.trip_ref_no }}</span></td>
+              <td>{{ t.shift_name }}</td>
+              <td><strong>{{ t.dumper_no }}</strong></td>
+              <td>{{ t.loading_point }}</td>
+              <td>{{ t.dumping_point }}</td>
+              <td>{{ t.cycle_time }}</td>
+              <td><strong>{{ t.total_cycles }}</strong></td>
+              <td><span class="badge bg-success">{{ t.quantity }}</span></td>
+              <td>
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                  <button class="btn-action edit-btn" (click)="openEditModal(t)" data-tooltip="Edit Details">
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button class="btn-action view-btn" (click)="openViewModal(t)" data-tooltip="View Details">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="displayTrips.length === 0">
+              <td colspan="9" class="text-center py-4 text-muted">No trips logged yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Card View -->
+      <div class="d-block d-lg-none mt-3">
+        <div class="card mb-3 shadow-sm border-0" *ngFor="let t of displayTrips; let i = index">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <h6 class="fw-bold text-primary mb-0">{{ t.trip_ref_no }}</h6>
+              <span class="badge bg-success">{{ t.status || 'LOGGED' }}</span>
+            </div>
+
+            <div class="text-muted small mb-3">
+              <div><i class="fa-regular fa-clock me-1 text-primary"></i> {{ t.start_time }} - {{ t.end_time }}</div>
+              <div><i class="fa-regular fa-calendar me-1 text-primary"></i> {{ t.shift_date }}</div>
+            </div>
+
+            <div class="row g-2 mb-3">
+              <div class="col-6">
+                <div class="p-2 bg-light rounded text-center border">
+                  <div class="small text-muted mb-1">Dumper</div>
+                  <div class="fw-bold text-dark">{{ t.dumper_no }}</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="p-2 bg-light rounded text-center border">
+                  <div class="small text-muted mb-1">Excavator</div>
+                  <div class="fw-bold text-dark">{{ t.excavator_no }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3 px-1">
+              <div>
+                <span class="small text-muted d-block">Quantity</span>
+                <span class="fw-bold text-success">{{ t.quantity }} BCM</span>
+              </div>
+              <div class="text-end">
+                <span class="small text-muted d-block">Distance</span>
+                <span class="fw-bold text-dark">{{ t.distance }} M</span>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary btn-sm flex-grow-1" (click)="openEditModal(t)">
+                <i class="fa-solid fa-pen me-1"></i> Edit
+              </button>
+              <button class="btn btn-outline-info btn-sm flex-grow-1" (click)="openViewModal(t)">
+                <i class="fa-solid fa-eye me-1"></i> View
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty State for Mobile -->
+        <div class="text-center py-4 text-muted bg-white rounded shadow-sm" *ngIf="displayTrips.length === 0">
+          <i class="fa-solid fa-truck-ramp-box fs-1 mb-2 text-light"></i>
+          <p class="mb-0">No trips found.</p>
+        </div>
+      </div>
+
+      <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center mt-3">
+        <span class="showalltext">
+          Showing {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : (totalRecords > 0 ? 1 : 0) }}
+          to {{ tableSize * page <= totalRecords ? tableSize * page : totalRecords }} of {{ totalRecords }} entries
+            </span>
+            <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true"
+              (pageChange)="onTableDataChange($event)"></pagination-controls>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Log Trip -->
+<div *ngIf="modalOpen" class="modal-overlay" [@fadeIn]>
+  <div class="modal-dialog-large">
+
+    <div
+      class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom flex-shrink-0">
+      <h4 class="mb-0 text-primary fw-bold">{{ isEditMode ? 'Edit' : 'Log' }} Dumper Trip</h4>
+      <button class="btn bg-transparent border-0 p-0" (click)="closeModal()">
+        <i class="fa-solid fa-xmark fs-4 text-muted"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="tripForm" (ngSubmit)="saveTrip()"
+      style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;">
+      <div style="flex:1; overflow-y:auto; padding: 24px;">
+
+        <div class="row g-3">
+
+          <!-- ── Shift Details (Date auto-selects Shift) ─────────────── -->
+          <div class="col-12">
+            <h6 class="text-secondary border-bottom pb-2 mb-2">Shift Details</h6>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom">Date & Time *</label>
+            <input type="datetime-local" class="form-control form-input-custom" [(ngModel)]="entryDate"
+              [ngModelOptions]="{standalone: true}" (change)="onDateChange()" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom text-primary fw-bold">Shift (Auto-selected)</label>
+            <input type="text" class="form-control form-input-custom bg-light" [value]="shiftName || ''"
+              placeholder="Auto selected by Date" readonly />
+          </div>
+
+          <!-- Equipment Section -->
+          <div class="col-12 mt-3">
+            <h6 class="text-secondary border-bottom pb-2 mb-2">Equipment & Operator Details</h6>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Driver Name *</label>
+            <ng-select formControlName="driver_name" [items]="drivers" bindLabel="name" bindValue="id"
+              placeholder="Select Driver" [clearable]="true" class="custom-ng-select w-full shadow-sm"
+              [ngClass]="{'is-invalid': tripForm.get('driver_name')?.invalid && tripForm.get('driver_name')?.touched}">
+            </ng-select>
+            <div *ngIf="tripForm.get('driver_name')?.invalid && tripForm.get('driver_name')?.touched" class="text-danger mt-1" style="font-size: 0.75rem;">
+              <i class="fas fa-exclamation-circle me-1"></i> Driver Name is required
+            </div>
+          </div>
+
+          <!-- <div class="col-md-4">
+            <label class="form-label form-lable-custom">Excavator No *</label>
+            <ng-select formControlName="excavator_no" [items]="excavators" bindLabel="machine_name"
+              bindValue="machine_id" placeholder="Select Excavator" [clearable]="true"
+              [ngClass]="{'is-invalid': tripForm.get('excavator_no')?.invalid && tripForm.get('excavator_no')?.touched}">
+            </ng-select>
+          </div> -->
+
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Dumper No *</label>
+            <ng-select formControlName="dumper_no" [items]="dumpers" bindLabel="machine_name" bindValue="machine_id"
+              placeholder="Select Dumper" [clearable]="true" class="custom-ng-select w-full shadow-sm"
+              [ngClass]="{'is-invalid': tripForm.get('dumper_no')?.invalid && tripForm.get('dumper_no')?.touched}">
+            </ng-select>
+            <div *ngIf="tripForm.get('dumper_no')?.invalid && tripForm.get('dumper_no')?.touched" class="text-danger mt-1" style="font-size: 0.75rem;">
+              <i class="fas fa-exclamation-circle me-1"></i> Dumper No is required
+            </div>
+          </div>
+
+          <!-- Route Section -->
+          <div class="col-12 mt-4">
+            <h6 class="text-secondary border-bottom pb-2 mb-2">Route Details</h6>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom text-primary fw-bold">Site (Auto-selected)</label>
+            <input type="text" class="form-control form-input-custom bg-light" [value]="getSiteName() || ''"
+              placeholder="Auto selected by Date" readonly />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Loading Point *</label>
+            <ng-select formControlName="loading_point" [items]="loadingPoints" bindLabel="name" bindValue="id"
+              placeholder="Select Loading Point" [clearable]="true" class="custom-ng-select w-full shadow-sm"
+              [ngClass]="{'is-invalid': tripForm.get('loading_point')?.invalid && tripForm.get('loading_point')?.touched}">
+            </ng-select>
+            <div *ngIf="tripForm.get('loading_point')?.invalid && tripForm.get('loading_point')?.touched" class="text-danger mt-1" style="font-size: 0.75rem;">
+              <i class="fas fa-exclamation-circle me-1"></i> Loading Point is required
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Dumping Point *</label>
+            <ng-select formControlName="dumping_point" [items]="dumpingPoints" bindLabel="name" bindValue="id"
+              placeholder="Select Dumping Point" [clearable]="true" class="custom-ng-select w-full shadow-sm"
+              [ngClass]="{'is-invalid': tripForm.get('dumping_point')?.invalid && tripForm.get('dumping_point')?.touched}">
+            </ng-select>
+            <div *ngIf="tripForm.get('dumping_point')?.invalid && tripForm.get('dumping_point')?.touched" class="text-danger mt-1" style="font-size: 0.75rem;">
+              <i class="fas fa-exclamation-circle me-1"></i> Dumping Point is required
+            </div>
+          </div>
+
+          <!-- Trip Details -->
+          <div class="col-12 mt-4">
+            <h6 class="text-secondary border-bottom pb-2 mb-2">Trip Timeline & Output</h6>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Distance (KM) *</label>
+            <input type="number" step="0.1" class="form-control form-input-custom" formControlName="distance"
+              placeholder="0.0"
+              [ngClass]="{'is-invalid': tripForm.get('distance')?.invalid && tripForm.get('distance')?.touched}" />
+            <div *ngIf="tripForm.get('distance')?.invalid && tripForm.get('distance')?.touched" class="text-danger mt-1" style="font-size: 0.75rem;">
+              <i class="fas fa-exclamation-circle me-1"></i> Valid Distance is required
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Start Time *</label>
+            <input type="time" class="form-control form-input-custom" formControlName="start_time"
+              [ngClass]="{'is-invalid': tripForm.get('start_time')?.invalid && tripForm.get('start_time')?.touched}" />
+            <div *ngIf="tripForm.get('start_time')?.invalid && tripForm.get('start_time')?.touched" class="text-danger mt-1" style="font-size: 0.75rem;">
+              <i class="fas fa-exclamation-circle me-1"></i> Start Time is required
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">End Time *</label>
+            <input type="time" class="form-control form-input-custom" formControlName="end_time"
+              [ngClass]="{'is-invalid': tripForm.get('end_time')?.invalid && tripForm.get('end_time')?.touched}" />
+            <div *ngIf="tripForm.get('end_time')?.invalid && tripForm.get('end_time')?.touched" class="text-danger mt-1" style="font-size: 0.75rem;">
+              <i class="fas fa-exclamation-circle me-1"></i> End Time is required
+            </div>
+          </div>
+
+          <div class="col-md-6 mt-3">
+            <label class="form-label form-lable-custom">Total Trips *</label>
+            <input type="number" class="form-control form-input-custom form-control-lg text-primary fw-bold"
+              formControlName="total_trips" placeholder="1"
+              [ngClass]="{'is-invalid': tripForm.get('total_trips')?.invalid && tripForm.get('total_trips')?.touched}" />
+            <div *ngIf="tripForm.get('total_trips')?.invalid && tripForm.get('total_trips')?.touched" class="text-danger mt-1" style="font-size: 0.75rem;">
+              <i class="fas fa-exclamation-circle me-1"></i> Total Trips must be at least 1
+            </div>
+          </div>
+
+          <div class="col-md-6 mt-3">
+            <label class="form-label form-lable-custom">Quantity Moved (BCM) *</label>
+            <input type="number" class="form-control form-input-custom form-control-lg text-primary fw-bold"
+              formControlName="quantity" placeholder="0"
+              [ngClass]="{'is-invalid': tripForm.get('quantity')?.invalid && tripForm.get('quantity')?.touched}" />
+            <div *ngIf="tripForm.get('quantity')?.invalid && tripForm.get('quantity')?.touched" class="text-danger mt-1" style="font-size: 0.75rem;">
+              <i class="fas fa-exclamation-circle me-1"></i> Valid Quantity (BCM) is required
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="px-4 py-3 border-top bg-light text-end flex-shrink-0">
+        <button class="btn btn-secondary px-4 py-2 me-3" type="button" (click)="closeModal()">Cancel</button>
+        <button class="btn btn-custom-primary px-4 py-2" type="submit">{{ isEditMode ? 'Update' : 'Log' }} Trip</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- View Modal -->
+<div *ngIf="viewModalOpen" class="your-animation-class modal-container premium-detail-modal"
+  aria-labelledby="modal-title" role="dialog" aria-modal="true">
+  <div class="modal-contenttop modal-content-50" [@fadeIn]>
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <div>
+          <h5 class="modal-title pt-1 mb-0">Trip Details</h5>
+          <p class="modal-subtitle">Full overview of hauling cycle</p>
+        </div>
+        <button class="cross-btn-icon border-0 p-0" type="button" (click)="closeModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="card-body mb-0">
+        <!-- Premium Summary Banner -->
+        <div class="dept-summary-banner mb-0">
+          <div class="banner-content">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <div class="banner-label">TRIP REFERENCE</div>
+                <div class="banner-value">{{ selectedTrip?.trip_ref_no }}</div>
+              </div>
+              <div *ngIf="selectedTrip?.status">
+                <span class="badge text-uppercase"
+                  [ngClass]="selectedTrip?.status === 'logged' ? 'bg-success' : 'bg-primary'">
+                  {{ selectedTrip?.status }}
+                </span>
+              </div>
+            </div>
+            <div class="banner-subtitle mt-2">
+              <i class="fa-solid fa-truck me-1"></i>
+              <strong>Dumper:</strong> {{ selectedTrip?.dumper_no }} &nbsp;|&nbsp;
+              <i class="fa-solid fa-tractor me-1"></i>
+              <strong>Excavator:</strong> {{ selectedTrip?.excavator_no }}
+            </div>
+            <div class="banner-subtitle mt-1">
+              <i class="fa-solid fa-user-tie me-1"></i>
+              <strong>Driver:</strong> {{ selectedTrip?.driver_name }}
+            </div>
+            <div class="banner-subtitle mt-1">
+              <i class="fa-solid fa-location-dot me-1"></i>
+              {{ selectedTrip?.site_name || 'N/A' }}
+              &nbsp;|&nbsp;
+              <i class="fa-regular fa-calendar me-1"></i>
+              {{ selectedTrip?.shift_date || 'N/A' }}
+              &nbsp;|&nbsp;
+              <i class="fa-solid fa-sun me-1"></i>
+              {{ selectedTrip?.shift_name || 'N/A' }}
+            </div>
+            <div class="banner-subtitle mt-1" *ngIf="selectedTrip?.created_at">
+              <small class="text-muted"><i class="fa-regular fa-clock me-1"></i> Logged at: {{ selectedTrip?.created_at
+                }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-4 g-3">
+          <div class="col-12">
+            <h6 class="grid-section-title">Timeline & Output</h6>
+          </div>
+          <div class="col-md-4">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper code"><i class="fa-regular fa-clock"></i></div>
+              <div class="card-info-content">
+                <span class="info-label">Cycle Time</span>
+                <span class="info-value">{{ selectedTrip?.cycle_time }}</span>
+                <small class="text-muted">{{ selectedTrip?.start_time }} to {{ selectedTrip?.end_time }}</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper code"
+                style="color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2);">
+                <i class="fa-solid fa-rotate"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Total Cycles</span>
+                <span class="info-value text-primary">{{ selectedTrip?.total_cycles }}</span>
+                <small class="text-muted">Trips completed</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper code"><i class="fa-solid fa-cubes"></i></div>
+              <div class="card-info-content">
+                <span class="info-label">Quantity Moved</span>
+                <span class="info-value text-success">{{ selectedTrip?.quantity }} BCM</span>
+                <small class="text-muted">{{ selectedTrip?.distance }} KM traveled</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 mt-3">
+            <h6 class="grid-section-title">Route Information</h6>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper type"><i class="fa-solid fa-arrow-up-from-ground-water"></i></div>
+              <div class="card-info-content">
+                <span class="info-label">Loading Point</span>
+                <span class="info-value">{{ selectedTrip?.loading_point }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper type"><i class="fa-solid fa-arrow-up-from-ground-water rotate-180"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Dumping Point</span>
+                <span class="info-value">{{ selectedTrip?.dumping_point }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer text-end mt-4">
+        <button class="btn btn-premium-close px-4 py-2" type="button" (click)="closeModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div *ngIf="isImportModalOpen"
+  class="fixed inset-0 bg-[#0f2a4a]/40 z-[110] flex items-center justify-center font-sans p-4 sm:p-6 backdrop-blur-[2px] transition-all duration-300" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1050; display: flex; align-items: center; justify-content: center;">
+  <div class="bg-white w-full max-w-[600px] flex flex-col rounded-xl shadow-2xl relative border border-gray-100 animate-fade-in-up">
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom border-gray-200" style="background-color: rgba(249, 250, 251, 0.8);">
+      <div class="d-flex align-items-center gap-3">
+        <div class="rounded bg-blue-50 border border-blue-100 text-blue-600 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; font-size: 1.125rem;">
+          <i class="fas fa-file-excel"></i>
+        </div>
+        <div>
+          <h2 class="h6 mb-0 font-weight-bold text-dark tracking-tight">Import Trips</h2>
+          <p class="small text-muted mb-0">Upload an Excel file to import dispatch records</p>
+        </div>
+      </div>
+      <button (click)="closeImportModal()" class="btn btn-light btn-sm border text-muted shadow-sm d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="p-4">
+      <!-- File Upload Area -->
+      <div *ngIf="!importResult" class="border-2 border-dashed border-gray-300 rounded p-5 text-center bg-light transition-colors relative" style="cursor: pointer;"
+           (click)="importFileInputRef.click()">
+        <input type="file" #importFileInputRef (change)="onImportFileSelected($event)" accept=".xlsx, .xls, .csv" class="d-none">
+        
+        <div *ngIf="isImporting" class="d-flex flex-column align-items-center justify-content-center">
+          <div class="spinner-border text-primary mb-3" role="status"></div>
+          <p class="small font-weight-bold text-secondary mb-0">Uploading and Processing...</p>
+        </div>
+
+        <div *ngIf="!isImporting" class="d-flex flex-column align-items-center justify-content-center">
+          <div class="bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm mb-3" style="width: 64px; height: 64px;">
+            <i class="fas fa-cloud-upload-alt text-primary" style="font-size: 1.875rem;"></i>
+          </div>
+          <p class="font-weight-bold text-dark mb-1">Click to browse or drag and drop</p>
+          <p class="small text-muted mb-3">
+            Support for Excel (.xlsx) and CSV files<br>
+            <a href="assets/bulk_dispatch.xlsx" download class="text-primary mt-2 d-inline-block fw-semibold text-decoration-none">
+              <i class="fas fa-download me-1"></i>Download Sample File
+            </a>
+          </p>
+          <button class="btn btn-primary btn-sm px-4 font-weight-bold shadow-sm">
+            Select File
+          </button>
+        </div>
+      </div>
+
+      <!-- Result Area -->
+      <div *ngIf="importResult" class="d-flex flex-column gap-3">
+        <!-- Success State -->
+        <div *ngIf="importResult.status === 'success'" class="rounded p-4 text-center shadow-sm border" style="background-color: #f0fdf4; border-color: #bbf7d0;">
+          <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 64px; height: 64px; background-color: #dcfce7; color: #16a34a;">
+            <i class="fas fa-check" style="font-size: 1.875rem;"></i>
+          </div>
+          <h3 class="h6 font-weight-bold mb-2" style="color: #166534;">{{ importResult.message || 'Import Successful' }}</h3>
+          <p class="small mb-0" style="color: #15803d;">All records have been imported successfully.</p>
+        </div>
+
+        <!-- Error State -->
+        <div *ngIf="importResult.status !== 'success'" class="rounded p-3 shadow-sm border" style="background-color: #fef2f2; border-color: #fecaca;">
+           <div class="d-flex align-items-start gap-3 mb-3">
+              <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center bg-white shadow-sm text-danger" style="width: 48px; height: 48px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem;"></i>
+              </div>
+              <div>
+                <h3 class="h6 font-weight-bold mb-1" style="color: #991b1b;">{{ importResult.message || 'Import process completed with errors.' }}</h3>
+                <p class="small font-weight-medium mb-0" style="color: #dc2626;">The following issues were encountered during the import process:</p>
+              </div>
+           </div>
+           
+           <!-- Error List -->
+           <div *ngIf="importResult.errors && importResult.errors.length > 0" class="bg-white rounded border p-3 shadow-sm custom-scrollbar" style="border-color: #fee2e2; max-height: 14rem; overflow-y: auto;">
+              <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+                <li *ngFor="let err of importResult.errors" class="small d-flex align-items-start gap-2 p-2 rounded" style="background-color: rgba(254, 242, 242, 0.5); color: #dc2626;">
+                  <i class="fas fa-circle mt-1 flex-shrink-0" style="font-size: 6px; color: #f87171;"></i>
+                  <span class="font-weight-medium" style="line-height: 1.3;">{{ err }}</span>
+                </li>
+              </ul>
+           </div>
+        </div>
+
+        <div class="d-flex justify-content-end pt-3 mt-1">
+          <button (click)="importResult = null" *ngIf="importResult.status !== 'success'" class="btn btn-link text-muted font-weight-bold text-decoration-none small text-uppercase mr-3 me-3">
+            Try Again
+          </button>
+          <button (click)="closeImportModal()" class="btn btn-dark btn-sm px-4 font-weight-bold shadow-sm text-uppercase" style="background-color: #0f2a4a;">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

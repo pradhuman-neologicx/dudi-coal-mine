@@ -14,6 +14,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { SiteService } from 'src/app/core/services/site.service';
 
@@ -28,6 +29,7 @@ import { SiteService } from 'src/app/core/services/site.service';
     MatIconModule,
     MatButtonModule,
     NgxPaginationModule,
+    NgSelectModule,
   ],
   templateUrl: './site-master.component.html',
   styleUrl: './site-master.component.scss',
@@ -62,7 +64,7 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
   viewSiteForm!: FormGroup;
   
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
   totalRecords: any;
   page: number = 1;
   
@@ -119,7 +121,7 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
   }
 
   onTableSizeChange(event: any): void {
-    this.tableSize = event.target.value;
+    this.tableSize = event && event.target ? event.target.value : event;
     this.page = 1;
     this.GetSiteFun();
   }

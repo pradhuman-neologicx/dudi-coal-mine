@@ -34,7 +34,7 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
   page: number = 1;
   tableSize: any = 10;
   totalRecords: number = 0;
-  tableSizes: any = [10, 25, 50, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
 
   // Filters
   filterSearch: string = '';
@@ -147,7 +147,7 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
   }
 
   onTableSizeChange(event: any) {
-    this.tableSize = event.target.value === 'all' ? 'all' : parseInt(event.target.value);
+    this.tableSize = event.target ? event.target.value : event;
     this.page = 1;
     this.loadData();
   }
@@ -162,12 +162,28 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
   openEditModal(equipment: Equipment) {
     this.isEditMode = true;
     this.selectedEquipmentId = equipment.id;
-    this.equipmentForm.patchValue({
-      name: equipment.name,
-      categoryId: equipment.categoryId,
-      isActive: equipment.isActive
-    });
-    this.isModalOpen = true;
+    
+    this.equipmentService.getEquipmentNameById(equipment.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          if (res.status === 200 && res.data) {
+            const item = res.data;
+            this.equipmentForm.patchValue({
+              name: item.equipment_name,
+              categoryId: item.equipment_category_id,
+              isActive: item.status === 1 || item.status === true
+            });
+            this.isModalOpen = true;
+          } else {
+            this.notificationService.show(res.message || 'Failed to fetch equipment details', 'error', 3000);
+          }
+        },
+        error: (err: any) => {
+          console.error('Error fetching equipment details:', err);
+          this.notificationService.show(err.message || 'Failed to fetch equipment details', 'error', 3000);
+        }
+      });
   }
 
   closeModal() {

@@ -14,6 +14,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { NgxPaginationModule } from 'ngx-pagination';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { LeaveTypeService } from 'src/app/core/services/leave-type.service';
 
@@ -28,6 +29,7 @@ import { LeaveTypeService } from 'src/app/core/services/leave-type.service';
     MatIconModule,
     MatButtonModule,
     NgxPaginationModule,
+    NgSelectModule,
   ],
   templateUrl: './leave-type.component.html',
   styleUrl: './leave-type.component.scss',
@@ -62,7 +64,7 @@ export class LeaveTypeComponent implements OnInit, OnDestroy {
   viewLeaveTypeForm!: FormGroup;
   
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100, 'all'];
+  tableSizes: any = [10, 20, 50, 100];
   totalRecords: any;
   page: number = 1;
   
@@ -125,7 +127,7 @@ export class LeaveTypeComponent implements OnInit, OnDestroy {
   }
 
   onTableSizeChange(event: any): void {
-    this.tableSize = event.target.value;
+    this.tableSize = event && event.target ? event.target.value : event;
     this.page = 1;
     this.GetLeaveTypeFun();
   }

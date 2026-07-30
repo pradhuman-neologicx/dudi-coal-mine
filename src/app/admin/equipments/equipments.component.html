@@ -1,0 +1,383 @@
+<div class="container mb-4" *ngIf="!selectedEquipmentHistory">
+  <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+    <h1 class="text-primary table-heading-detail">Equipments</h1>
+    <div>
+      <button class="btn btn-custom-primary px-4 py-2 me-2" (click)="openAddModal()">
+        Add Equipment
+      </button>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm table-card px-4 py-4">
+    <!-- Top Controls: Show Entries & Advanced Filters -->
+    <div class="row align-items-center mb-3 g-2">
+      <div class="col-md-2 d-flex align-items-center">
+        <span class="me-1">Show</span>
+        <select class="form-select form-control mx-1" style="width: auto;" (change)="onTableSizeChange($event)">
+          <option *ngFor="let size of tableSizes" [ngValue]="size">{{ size }}</option>
+        </select>
+        <span class="ms-1">entries</span>
+      </div>
+
+      <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">
+        <div style="width: 250px;">
+          <ng-select [items]="activeCategories" bindLabel="name" bindValue="id" placeholder="All Master Categories"
+            [(ngModel)]="filterCategory" (change)="onFilterChange()" [clearable]="true" class="custom-ng-select">
+          </ng-select>
+        </div>
+
+        <div class="d-flex align-items-center ms-2">
+          <input type="text" class="form-control" placeholder="Search Equipment..." [(ngModel)]="filterSearch"
+            autocomplete="off" />
+          <button class="btn btn-primary ms-2" (click)="onFilterChange()">
+            <i class="fa-solid fa-magnifying-glass text-white"></i>
+          </button>
+          <button class="btn btn-secondary ms-2" (click)="resetFilter()" type="button"
+            *ngIf="filterSearch || filterCategory">
+            <i class="fa-solid fa-rotate-right text-white"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards View -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-2">
+      <div class="col"
+        *ngFor="let eq of filteredEquipments | paginate : { itemsPerPage: tableSize !== 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
+        <div class="card h-100 shadow-sm border-0 table-card p-3">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <h5 class="card-title fw-bold text-primary mb-1">{{ eq.name }}</h5>
+                <span class="badge bg-secondary">{{ eq.categoryName }}</span>
+              </div>
+              <span class="badge" [ngClass]="eq.isActive ? 'bg-success' : 'bg-danger'">
+                {{ eq.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <div class="mt-auto d-flex justify-content-between align-items-center gap-1">
+              <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(eq)">
+                <i class="fa-solid fa-edit me-1"></i> Edit
+              </button>
+              <button class="btn btn-sm btn-outline-dark
+              " (click)="viewHistory(eq)">
+                <i class="fa-solid fa-history me-1"></i> History
+              </button>
+              <button class="btn btn-sm" [ngClass]="eq.isActive ? 'btn-outline-danger' : 'btn-outline-success'"
+                (click)="toggleActiveStatus(eq)">
+                <i class="fa-solid" [ngClass]="eq.isActive ? 'fa-ban' : 'fa-check-circle'"></i>
+                {{ eq.isActive ? 'Deact' : 'Act' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 text-center py-4 text-muted" *ngIf="filteredEquipments.length === 0">
+        No equipment found.
+      </div>
+    </div>
+
+    <div class="d-md-flex justify-content-between align-items-center mt-3">
+      <span>
+        Showing {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : (totalRecords > 0 ? 1 : 0) }}
+        to {{ (tableSize * page) <= totalRecords ? (tableSize * page) : totalRecords }} of {{ totalRecords }} entries
+          </span>
+          <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true"
+            (pageChange)="onTableDataChange($event)"></pagination-controls>
+    </div>
+  </div>
+</div>
+
+<!-- History Detail View (Vehicle Specific) -->
+<div *ngIf="selectedEquipmentHistory" class="animate-fade-in font-sans">
+  <div class="container mb-4">
+    <!-- Header with Back Button -->
+    <div class="d-flex align-items-center gap-3 mb-4 mt-2">
+      <button (click)="backToEquipments()" class="btn btn-outline-secondary rounded-circle shadow-sm"
+        style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+      <div>
+        <h2 class="mb-0 fw-bold text-primary d-flex align-items-center gap-2">
+          {{ selectedEquipmentHistory.name }}
+          <span class="badge bg-success" style="font-size: 0.55em; vertical-align: middle;">ACTIVE</span>
+        </h2>
+        <p class="text-muted mb-0" style="font-size: 0.9em;">Detailed service and maintenance record.</p>
+      </div>
+    </div>
+
+    <!-- Vehicle KPIs -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-4">
+      <div class="col">
+        <div class="card h-100 border-0 shadow-sm text-white"
+          style="background: linear-gradient(135deg, #0f2a4a, #1a3a6a);">
+          <div class="card-body position-relative overflow-hidden">
+            <i class="fas fa-rupee-sign position-absolute opacity-25"
+              style="font-size: 5rem; right: -10px; top: -10px;"></i>
+            <div class="text-uppercase fw-bold mb-1" style="color: #93c5fd; font-size: 0.75rem; letter-spacing: 1px;">
+              Total Expense</div>
+            <h3 class="fw-bold mb-0">₹{{ equipmentStats.totalExpenses | number }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100 border-0 shadow-sm">
+          <div class="card-body">
+            <div class="text-uppercase fw-bold text-muted mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Total
+              Services</div>
+            <h3 class="fw-bold text-dark mb-0">{{ equipmentStats.totalServices }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100 border-0 shadow-sm border-bottom border-4 border-info">
+          <div class="card-body">
+            <div class="text-uppercase fw-bold text-muted mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">General
+              Services</div>
+            <h3 class="fw-bold text-info mb-0">{{ equipmentStats.generalServicesCount }}</h3>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100 border-0 shadow-sm border-bottom border-4 border-danger">
+          <div class="card-body">
+            <div class="text-uppercase fw-bold text-muted mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Repair
+              Jobs</div>
+            <h3 class="fw-bold text-danger mb-0">{{ equipmentStats.repairServicesCount }}</h3>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Service Timeline / Table -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-light border-bottom px-4 py-3">
+        <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-history text-muted me-2"></i> Service History Log</h5>
+      </div>
+      <div class="card-body p-4">
+        <div *ngIf="equipmentServicesList.length === 0" class="text-center py-5 text-muted">
+          <i class="fas fa-clipboard-list fa-3x mb-3 opacity-50"></i>
+          <p>No service history available for this vehicle.</p>
+        </div>
+
+        <div class="position-relative ms-3 pb-3" style="border-left: 2px solid #e9ecef;"
+          *ngIf="equipmentServicesList.length > 0">
+
+          <div
+            *ngFor="let s of equipmentServicesList | paginate: { id: 'history_pager', itemsPerPage: historyPageSize, currentPage: historyPage }"
+            class="position-relative ps-4 mb-4">
+            <div class="position-absolute bg-white rounded-circle border border-primary border-3"
+              style="width: 16px; height: 16px; left: -9px; top: 8px;"></div>
+
+            <div class="card border border-light shadow-sm history-card transition-all">
+              <div class="position-absolute top-0 end-0 px-3 py-1 text-white fw-bold text-uppercase"
+                style="font-size: 10px; border-bottom-left-radius: 4px;"
+                [ngClass]="s.serviceType === 'Repair' ? 'bg-danger' : 'bg-primary'">
+                {{ s.serviceType }}
+              </div>
+
+              <div class="card-body p-4 pe-5 position-relative">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <h5 class="fw-bold text-dark mb-1">{{ s.serviceDate | date:'longDate' }}</h5>
+                    <div class="text-muted" style="font-size: 0.85rem;">
+                      <span class="me-3"><i class="fas fa-tachometer-alt"></i> Odo: {{ s.odometerReading || 'N/A'
+                        }}</span>
+                      <span class="text-success"><i class="fas fa-check-circle"></i> Status: {{ s.status }}</span>
+                    </div>
+                  </div>
+                  <div class="text-end mt-4 mt-sm-0">
+                    <div class="text-muted text-uppercase fw-bold mb-1" style="font-size: 10px; letter-spacing: 1px;">
+                      Service Cost</div>
+                    <div class="fw-bold text-danger fs-4">₹{{ s.totalCost | number }}</div>
+                  </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                  <span *ngIf="s.oilChange === 'Yes'" class="badge bg-warning text-dark border border-warning"><i
+                      class="fas fa-tint me-1"></i> Engine Oil</span>
+                  <span *ngIf="s.hydraulicOil === 'Yes'" class="badge bg-warning text-dark border border-warning"><i
+                      class="fas fa-tint me-1"></i> Hyd Oil</span>
+                  <span *ngIf="s.gearOil === 'Yes'" class="badge bg-warning text-dark border border-warning"><i
+                      class="fas fa-cogs me-1"></i> Gear Oil</span>
+                  <span *ngIf="s.sparePartsChange === 'Yes'" class="badge"
+                    style="background-color: #e9d5ff; color: #6b21a8; border: 1px solid #d8b4fe;"><i
+                      class="fas fa-tools me-1"></i> Spare Parts ({{ s.spareParts?.length || 0 }})</span>
+                </div>
+
+                <button (click)="openServiceDetails(s)" class="btn btn-link p-0 text-decoration-none fw-bold"
+                  style="font-size: 0.9em;">
+                  View Full Details <i class="fas fa-angle-right ms-1"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4" *ngIf="equipmentServicesList.length > 0">
+          <pagination-controls id="history_pager" (pageChange)="historyPage = $event"></pagination-controls>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Full Service Detail Modal -->
+<div *ngIf="isServiceViewModalOpen" class="modal-container font-sans" style="z-index: 1060;">
+  <div class="bg-white rounded-3 shadow-lg d-flex flex-column animate-scale-up mx-auto mt-5"
+    style="width: 700px; max-width: 95%;">
+    <div class="px-4 py-3 d-flex justify-content-between align-items-center"
+      style="background-color: #0f2a4a; color: white; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">
+      <h5 class="mb-0 fw-bold"><i class="fas fa-file-invoice me-2"></i> Detailed Service Report</h5>
+      <button class="btn bg-transparent border-0 p-0 text-white-50" (click)="closeServiceModal()">
+        <i class="fa-solid fa-xmark fs-5"></i>
+      </button>
+    </div>
+
+    <div class="p-4" style="overflow-y: auto; max-height: 75vh;" *ngIf="viewServiceModalData">
+      <div class="row mb-4 g-3">
+        <div class="col-sm-6">
+          <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 10px; letter-spacing: 1px;">Service Type
+          </div>
+          <div class="fw-bold text-dark">{{ viewServiceModalData.serviceType }} <span
+              class="text-muted ms-2 fw-normal">₹{{ viewServiceModalData.serviceTypeAmount || 0 }}</span></div>
+        </div>
+        <div class="col-sm-6">
+          <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 10px; letter-spacing: 1px;">Service Date
+          </div>
+          <div class="fw-bold text-dark">{{ viewServiceModalData.serviceDate | date:'mediumDate' }}</div>
+        </div>
+      </div>
+
+      <h6 class="text-muted fw-bold text-uppercase border-bottom pb-2 mb-3"
+        style="font-size: 11px; letter-spacing: 1px;">Replacements & Consumables</h6>
+      <div class="bg-light rounded p-3 mb-4 border">
+        <div class="row g-3">
+          <div class="col-6 col-sm-3">
+            <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 10px; letter-spacing: 1px;">Oil Change
+            </div>
+            <div class="fw-bold" [ngClass]="viewServiceModalData.oilChange === 'Yes' ? 'text-dark' : 'text-muted'"
+              style="font-size: 0.9em;">
+              {{ viewServiceModalData.oilChange }} <span *ngIf="viewServiceModalData.oilChange === 'Yes'">- ₹{{
+                viewServiceModalData.oilChangeAmount || 0 }}</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-3">
+            <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 10px; letter-spacing: 1px;">Hydraulic
+              Oil</div>
+            <div class="fw-bold" [ngClass]="viewServiceModalData.hydraulicOil === 'Yes' ? 'text-dark' : 'text-muted'"
+              style="font-size: 0.9em;">
+              {{ viewServiceModalData.hydraulicOil }} <span *ngIf="viewServiceModalData.hydraulicOil === 'Yes'">- ₹{{
+                viewServiceModalData.hydraulicOilAmount || 0 }}</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-3">
+            <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 10px; letter-spacing: 1px;">Gear Oil
+            </div>
+            <div class="fw-bold" [ngClass]="viewServiceModalData.gearOil === 'Yes' ? 'text-dark' : 'text-muted'"
+              style="font-size: 0.9em;">
+              {{ viewServiceModalData.gearOil }} <span *ngIf="viewServiceModalData.gearOil === 'Yes'">- ₹{{
+                viewServiceModalData.gearOilAmount || 0 }}</span>
+            </div>
+          </div>
+          <div class="col-6 col-sm-3">
+            <div class="text-muted fw-bold text-uppercase mb-1" style="font-size: 10px; letter-spacing: 1px;">Filters
+            </div>
+            <div class="fw-bold" style="font-size: 0.9em;">
+              <span
+                *ngIf="viewServiceModalData.fuelFilterChange === 'Yes' || viewServiceModalData.oilFilterChange === 'Yes'">Replaced</span>
+              <span
+                *ngIf="viewServiceModalData.fuelFilterChange === 'No' && viewServiceModalData.oilFilterChange === 'No'"
+                class="text-muted">None</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="viewServiceModalData.sparePartsChange === 'Yes' && viewServiceModalData.spareParts?.length">
+        <h6 class="fw-bold text-primary text-uppercase border-bottom pb-2 mb-3"
+          style="font-size: 11px; letter-spacing: 1px;">
+          <i class="fas fa-tools me-1"></i> Spare Parts Used
+        </h6>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered">
+            <thead class="table-light text-muted" style="font-size: 12px;">
+              <tr>
+                <th>Source</th>
+                <th>Part Name</th>
+                <th class="text-center">Qty</th>
+                <th class="text-end">Amount</th>
+              </tr>
+            </thead>
+            <tbody style="font-size: 13px;">
+              <tr *ngFor="let part of viewServiceModalData.spareParts">
+                <td><span class="badge bg-secondary">{{ part.source || 'Other Vendors' }}</span></td>
+                <td class="fw-bold">{{ part.partName }}</td>
+                <td class="text-center">{{ part.quantity }}</td>
+                <td class="text-end fw-bold">
+                  <ng-container *ngIf="part.source === 'Inventory'"><span class="text-muted">N/A</span></ng-container>
+                  <ng-container *ngIf="part.source !== 'Inventory'">₹{{ part.amount | number }}</ng-container>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-4 p-3 rounded d-flex justify-content-between align-items-center"
+        style="background-color: #fff1f2; border: 1px solid #ffe4e6;">
+        <div class="text-muted fw-bold text-uppercase" style="font-size: 10px; letter-spacing: 1px;">Total Billed Amount
+        </div>
+        <div class="fs-3 fw-bold text-danger">₹{{ viewServiceModalData.totalCost | number }}</div>
+      </div>
+    </div>
+
+    <div class="px-4 py-3 border-top bg-light text-end"
+      style="border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+      <button class="btn btn-outline-secondary px-4 py-2 fw-bold" (click)="closeServiceModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Add/Edit -->
+<div *ngIf="isModalOpen" class="modal-container">
+  <div class="bg-white rounded-3 shadow-lg d-flex flex-column" style="width: 500px; max-width: 90%;">
+    <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
+      <h4 class="mb-0 text-primary fw-bold">{{ isEditMode ? 'Edit Equipment' : 'Add New Equipment' }}</h4>
+      <button class="btn bg-transparent border-0 p-0" (click)="closeModal()">
+        <i class="fa-solid fa-xmark fs-4 text-muted"></i>
+      </button>
+    </div>
+
+    <form [formGroup]="equipmentForm" (ngSubmit)="saveEquipment()">
+      <div class="modal-body-custom px-4 py-4">
+        <div class="mb-3">
+          <label class="form-label form-lable-custom">Equipment Name *</label>
+          <input type="text" class="form-control form-input-custom" formControlName="name"
+            [ngClass]="{'is-invalid': equipmentForm.get('name')?.invalid && equipmentForm.get('name')?.touched}">
+          <div class="invalid-feedback">Equipment Name is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label form-lable-custom">Master Category *</label>
+          <ng-select [items]="activeCategories" bindLabel="name" bindValue="id"
+            placeholder="-- Select Master Category --" formControlName="categoryId"
+            [ngClass]="{'is-invalid': equipmentForm.get('categoryId')?.invalid && equipmentForm.get('categoryId')?.touched}"
+            class="custom-ng-select">
+          </ng-select>
+          <div class="text-danger mt-1" style="font-size: 0.875em;"
+            *ngIf="equipmentForm.get('categoryId')?.invalid && equipmentForm.get('categoryId')?.touched">
+            Master Category is required.
+          </div>
+        </div>
+
+      </div>
+      <div class="px-4 py-3 border-top bg-light text-end">
+        <button class="btn btn-secondary px-4 py-2 me-3" type="button" (click)="closeModal()">Cancel</button>
+        <button class="btn btn-custom-primary px-4 py-2" type="submit">
+          {{ isEditMode ? 'Update' : 'Save' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
