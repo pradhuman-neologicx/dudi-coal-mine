@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -8,16 +8,64 @@ import { Chart, registerables } from 'chart.js';
 import { ShiftPlanningService } from 'src/app/core/services/shift-planning.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { DelayService } from 'src/app/core/services/delay.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 Chart.register(...registerables);
 
-interface DelayLog {
-  shift: string;
-  delayType: string;
-  hoursLost: number;
-  remarks: string;
-  status: string;
-  otherReason?: string;
+export interface DelayLogItem {
+  id: number | string;
+  delay_log_date?: string;
+  shift_id?: number | string;
+  shift_name?: string;
+  delay_category_id?: number | string;
+  delay_category_name?: string;
+  start_time?: string;
+  end_time?: string;
+  total_delay_hours?: number;
+  equipment_name?: string;
+  equipment_name_id?: number | string;
+  equipment_id?: number | string;
+  linked_breakdown_id?: number | string;
+  description?: string;
+  remarks?: string;
+  severity?: string;
+  status?: string | number;
+  shift?: string;
+  delayType?: string;
+  duration_minutes?: number;
+  hoursLost?: number;
+  [key: string]: any;
+}
+
+export interface ShiftCategoryOption {
+  id: number | string;
+  name: string;
+  shift_name?: string;
+  [key: string]: any;
+}
+
+export interface DelayCategoryOption {
+  id: number | string;
+  name: string;
+  delay_category?: string;
+  delay_type?: string;
+  [key: string]: any;
+}
+
+export interface MachineOptionItem {
+  machine_id: number | string;
+  category_id?: number | string;
+  equipment_category_id?: number | string;
+  equipment_id?: number | string;
+  breakdown?: any;
+  [key: string]: any;
+}
+
+export interface ImportResult {
+  status: number | string;
+  message: string;
+  errors: string[];
 }
 
 @Component({
@@ -27,7 +75,8 @@ interface DelayLog {
   standalone: true,
   imports: [CommonModule, FormsModule, NgSelectModule, NgxPrintModule, NgxPaginationModule]
 })
-export class DelayReportComponent implements OnInit {
+export class DelayReportComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   constructor(
     private shiftPlanningService: ShiftPlanningService,
@@ -44,7 +93,7 @@ export class DelayReportComponent implements OnInit {
   // Import
   isImportModalOpen = false;
   isImporting = false;
-  importResult: any = null;
+  importResult: ImportResult | null = null;
   @ViewChild('fileInput') fileInput!: ElementRef;
 
   // Filters
@@ -56,14 +105,14 @@ export class DelayReportComponent implements OnInit {
   filterSearch = '';
   filterStatus = ''; // From existing if you want to keep
 
-  delayLogs: any[] = [];
-  filteredLogs: any[] = [];
+  delayLogs: DelayLogItem[] = [];
+  filteredLogs: DelayLogItem[] = [];
   kpiSummary: any = null;
   chartData: any = null;
 
   // Dropdown lists
-  allShifts: any[] = [];
-  allDelayCategories: any[] = [];
+  allShifts: ShiftCategoryOption[] = [];
+  allDelayCategories: DelayCategoryOption[] = [];
 
   // Modal State
   selectedShift = null;
@@ -81,7 +130,7 @@ export class DelayReportComponent implements OnInit {
   p: number = 1;
   totalItems: number = 0;
   itemsPerPage: number | string = 10;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSizes: number[] = [10, 20, 50, 100];
 
   get limitNumber(): number {
     return this.itemsPerPage === 'All' ? (this.totalItems || 1) : Number(this.itemsPerPage);
@@ -101,7 +150,7 @@ export class DelayReportComponent implements OnInit {
     breakdownId: null as any,
     description: ''
   };
-  machinesList: any[] = [];
+  machinesList: MachineOptionItem[] = [];
   breakdownList: any[] = [];
   shiftName = '';
   isBindingData = false;
@@ -114,14 +163,23 @@ export class DelayReportComponent implements OnInit {
     this.getDelayLogs();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.chart) this.chart.destroy();
+    if (this.chart1) this.chart1.destroy();
+    if (this.chart2) this.chart2.destroy();
+    if (this.chart4) this.chart4.destroy();
+  }
+
   fetchDropdowns() {
-    this.shiftPlanningService.getShifts().subscribe(res => {
+    this.shiftPlanningService.getShifts().pipe(takeUntil(this.destroy$)).subscribe(res => {
       if (res && res.status === 200) {
         const data = res.data?.data || res.data || [];
         this.allShifts = data.map((s: any) => ({ ...s, name: s.shift_name || s.name }));
       }
     });
-    this.shiftPlanningService.getDelayCategories().subscribe(res => {
+    this.shiftPlanningService.getDelayCategories().pipe(takeUntil(this.destroy$)).subscribe(res => {
       if (res && res.status === 200) {
         this.allDelayCategories = res.data.map((c: any) => ({ ...c, name: c.name || c.delay_category || c.delay_type }));
       }
@@ -147,7 +205,7 @@ export class DelayReportComponent implements OnInit {
       params.page = this.p;
       params.limit = this.itemsPerPage;
     }
-    this.delayService.getDelayLogs(params).subscribe({
+    this.delayService.getDelayLogs(params).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.delayLogs = res.data || [];
@@ -379,7 +437,7 @@ export class DelayReportComponent implements OnInit {
     if (log && index !== undefined) {
       this.editingIndex = index;
 
-      this.delayService.getDelayById(log.id).subscribe({
+      this.delayService.getDelayById(log.id).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res && res.status === 200 && res.data) {
             const data = res.data;
@@ -399,7 +457,7 @@ export class DelayReportComponent implements OnInit {
             this.shiftName = data.shift_name || data.shift?.name || data.shift || '';
 
             if (this.formData.date) {
-              this.shiftPlanningService.shiftPlanFilterByDate(this.formData.date).subscribe({
+              this.shiftPlanningService.shiftPlanFilterByDate(this.formData.date).pipe(takeUntil(this.destroy$)).subscribe({
                 next: (shiftRes: any) => {
                   if (shiftRes && shiftRes.status === 200 && shiftRes.data) {
                     this.shiftStartTime = shiftRes.data.start_time || '';
@@ -439,7 +497,7 @@ export class DelayReportComponent implements OnInit {
   }
 
   openViewModal(log: any) {
-    this.delayService.getDelayById(log.id).subscribe({
+    this.delayService.getDelayById(log.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200 && res.data) {
           this.viewDelayData = res.data;
@@ -508,7 +566,7 @@ export class DelayReportComponent implements OnInit {
     if (this.isBindingData) return;
 
     if (this.formData.date) {
-      this.shiftPlanningService.shiftPlanFilterByDate(this.formData.date).subscribe({
+      this.shiftPlanningService.shiftPlanFilterByDate(this.formData.date).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res && res.status === 200 && res.data) {
             console.log('Shift Data Response (by-datetime):', res.data);
@@ -646,7 +704,7 @@ export class DelayReportComponent implements OnInit {
 
     if (this.editingIndex > -1 && this.formData.id) {
       payload.append('_method', 'PUT');
-      this.delayService.updateDelay(this.formData.id, payload).subscribe({
+      this.delayService.updateDelay(this.formData.id, payload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.isSaving = false;
           if (res && (res.status === 200 || res.status === 201)) {
@@ -664,7 +722,7 @@ export class DelayReportComponent implements OnInit {
         }
       });
     } else {
-      this.delayService.saveDelay(payload).subscribe({
+      this.delayService.saveDelay(payload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.isSaving = false;
           if (res && (res.status === 200 || res.status === 201)) {
@@ -696,12 +754,13 @@ export class DelayReportComponent implements OnInit {
     this.getDelayLogs();
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files ? input.files[0] : null;
     if (file) {
       this.isImporting = true;
       this.importResult = null;
-      this.delayService.importDelays(file).subscribe({
+      this.delayService.importDelays(file).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.isImporting = false;
           if (res && (res.status === 200 || res.status === 201 || res.status === 'success') && (!res.errors || res.errors.length === 0)) {

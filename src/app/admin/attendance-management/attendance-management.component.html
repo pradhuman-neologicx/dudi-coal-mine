@@ -16,9 +16,20 @@
           [ngClass]="viewMode === 'monthly' ? 'btn-primary' : 'btn-outline-primary'" (click)="setViewMode('monthly')">
           Monthly
         </button>
+        <button type="button" class="btn fw-semibold px-4"
+          [ngClass]="viewMode === 'report' ? 'btn-primary' : 'btn-outline-primary'" (click)="setViewMode('report')">
+          Form D Register
+        </button>
       </div>
 
       <div class="d-flex gap-2">
+        <button *ngIf="viewMode === 'report'"
+          class="btn btn-outline-primary px-3 py-2 hover-up d-flex align-items-center gap-2" (click)="downloadFormD()"
+          [disabled]="isDownloadingFormD">
+          <i class="fa-solid fa-file-excel" *ngIf="!isDownloadingFormD"></i>
+          <span class="spinner-border spinner-border-sm" *ngIf="isDownloadingFormD" role="status"></span>
+          <span>Download Form D</span>
+        </button>
         <button class="btn btn-custom-primary px-3 py-2" (click)="openBulkUploadModal()">
           <i class="fa-solid fa-cloud-arrow-up me-2"></i>Bulk Upload
         </button>
@@ -113,25 +124,27 @@
     <!-- Filters Bar -->
     <div class="row g-3 mb-4 align-items-end">
       <!-- Search Filter -->
-      <div class="col-md-3 col-sm-12">
+      <div class="col-lg-3 col-md-4 col-sm-12" *ngIf="viewMode !== 'report'">
         <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Search Employee</label>
-        <form [formGroup]="searchbarform" class="d-flex align-items-center">
-          <div class="position-relative flex-grow-1">
-            <input type="text" class="form-control form-input-custom py-2" placeholder="Search Name/ID..."
-              autocomplete="off" formControlName="searchbar" (keyup.enter)="searchfun()" style="height: 42px;" />
+        <form [formGroup]="searchbarform" class="w-100">
+          <div class="input-group" style="height: 42px;">
+            <input type="text" class="form-control form-input-custom h-100" placeholder="Search Name/ID..."
+              autocomplete="off" formControlName="searchbar" (keyup.enter)="searchfun()" />
+            <button class="btn btn-primary px-3 h-100" (click)="searchfun()" type="button"
+              style="border-top-right-radius: 8px; border-bottom-right-radius: 8px;"
+              [ngStyle]="{'border-top-right-radius': showreset ? '0' : '8px', 'border-bottom-right-radius': showreset ? '0' : '8px'}">
+              <i class="fa-solid fa-magnifying-glass text-white"></i>
+            </button>
+            <button class="btn btn-secondary px-3 h-100" (click)="resetsearchbar()" type="button" *ngIf="showreset"
+              style="border-top-right-radius: 8px; border-bottom-right-radius: 8px;">
+              <i class="fa-solid fa-xmark text-white"></i>
+            </button>
           </div>
-          <button class="btn btn-primary search-btn ms-2" (click)="searchfun()" type="button" style="height: 42px;">
-            <span><i class="fa-solid fa-magnifying-glass text-white"></i></span>
-          </button>
-          <button class="btn btn-secondary ms-2" (click)="resetsearchbar()" type="button" *ngIf="showreset"
-            style="height: 42px;">
-            <span><i class="fa-solid fa-rotate-right text-white"></i></span>
-          </button>
         </form>
       </div>
 
       <!-- Date Filter (Daily) -->
-      <div class="col-md-3 col-sm-12" *ngIf="viewMode === 'daily'">
+      <div class="col-lg-3 col-md-4 col-sm-12" *ngIf="viewMode === 'daily'">
         <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Select Date</label>
         <div class="input-group" style="height: 42px;">
           <span class="input-group-text bg-white text-muted border-end-0 py-2 d-flex align-items-center">
@@ -142,8 +155,8 @@
         </div>
       </div>
 
-      <!-- Month Filter (Monthly) -->
-      <div class="col-md-3 col-sm-12" *ngIf="viewMode === 'monthly'">
+      <!-- Month Filter (Monthly & Report) -->
+      <div class="col-lg-3 col-md-4 col-sm-12" *ngIf="viewMode === 'monthly' || viewMode === 'report'">
         <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Select Month</label>
         <div class="input-group" style="height: 42px;">
           <span class="input-group-text bg-white text-muted border-end-0 py-2 d-flex align-items-center">
@@ -165,7 +178,7 @@
       -->
 
       <!-- Status Filter -->
-      <div class="col-md-3 col-sm-12">
+      <div class="col-lg-3 col-md-4 col-sm-12" *ngIf="viewMode !== 'report'">
         <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Status Filter</label>
         <ng-select [items]="['Present', 'Absent', 'Half Day', 'Leave', 'Rest Day']" placeholder="All Statuses"
           [(ngModel)]="filterStatus" (change)="applyFilters()" class="custom-ng-select" appendTo="body">
@@ -173,14 +186,24 @@
       </div>
 
       <!-- Reset Button -->
-      <div class="col-md-3 col-sm-12">
-        <label class="form-label form-lable-custom mb-1 d-none d-md-block" style="visibility: hidden;">Reset</label>
+      <div class="col-auto d-flex align-items-end">
         <button
           class="btn btn-outline-secondary py-2 d-flex align-items-center justify-content-center gap-2 hover-up px-4"
           (click)="resetFilters()" style="height: 42px; border-color: #ced4da;" title="Reset Filters">
           <i class="fa-solid fa-rotate-right text-muted"></i> <span
             class="d-md-none d-xl-inline text-muted fw-medium">Reset</span>
         </button>
+      </div>
+
+      <!-- Entries Select -->
+      <div class="col-auto ms-auto d-flex align-items-end">
+        <div class="d-flex align-items-center gap-2" style="height: 42px;">
+          <span class="show-entery-text fs-7 fw-medium text-muted">Show</span>
+          <ng-select [items]="tableSizes" [(ngModel)]="showEntries" (change)="onShowEntriesChange()" [clearable]="false"
+            [searchable]="false" class="custom-ng-select" style="min-width: 80px;">
+          </ng-select>
+          <span class="show-entery-text fs-7 fw-medium text-muted">entries</span>
+        </div>
       </div>
     </div>
 
@@ -231,20 +254,6 @@
       </div>
     </div>
 
-    <!-- Entries Select Row -->
-    <div class="d-md-flex justify-content-between align-items-center my-3">
-      <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
-        <span class="show-entery-text fs-7">Show</span>
-        <ng-select [items]="tableSizes" 
-                   [(ngModel)]="showEntries" 
-                   (change)="onShowEntriesChange()" 
-                   [clearable]="false" 
-                   [searchable]="false" 
-                   class="custom-ng-select min-w-[80px]">
-        </ng-select>
-        <span class="show-entery-text fs-7">entries</span>
-      </div>
-    </div>
 
     <div class="table-responsive-sm mt-2">
       <!-- Daily View -->
@@ -274,6 +283,9 @@
                 </th>
                 <th>
                   <p class="table-heading">Check Out</p>
+                </th>
+                <th>
+                  <p class="table-heading">Relay</p>
                 </th>
                 <th>
                   <p class="table-heading">Shift</p>
@@ -313,6 +325,9 @@
                 </td>
                 <td>
                   <p class="fw-medium text-muted fs-7">{{ record.checkOut || '--:--' }}</p>
+                </td>
+                <td>
+                  <span class="fw-medium text-dark fs-8">{{ record.relay }}</span>
                 </td>
                 <td>
                   <span class="badge bg-light text-muted border fs-9 px-2 py-1">{{ record.shift }}</span>
@@ -370,7 +385,7 @@
                 </td>
               </tr>
               <tr *ngIf="attendanceRecords.length === 0">
-                <td colspan="9" class="text-center py-4 text-muted">
+                <td colspan="10" class="text-center py-4 text-muted">
                   No attendance records found.
                 </td>
               </tr>
@@ -421,6 +436,10 @@
                   <div class="text-muted fs-8">Shift</div>
                   <div class="fw-medium"><span class="badge bg-light text-muted border fs-9">{{ record.shift }}</span>
                   </div>
+                </div>
+                <div class="col-6">
+                  <div class="text-muted fs-8">Relay</div>
+                  <div class="fw-medium text-dark fs-8">{{ record.relay }}</div>
                 </div>
               </div>
 
@@ -615,9 +634,150 @@
         </div>
       </ng-container>
 
+      <!-- Statutory Register View (Form D) -->
+      <ng-container *ngIf="viewMode === 'report'">
+        <div class="report-table-wrapper w-100 mt-2 pb-3 custom-scrollbar" style="overflow-x: auto; max-height: 70vh;">
+          <table class="table table-bordered table-hover report-table mb-0" style="min-width: 1500px;">
+            <thead class="table-header sticky-top" style="z-index: 10;">
+              <tr>
+                <th rowspan="2" class="text-center align-middle" style="min-width: 60px; max-width: 60px; width: 60px;">
+                  <p class="table-heading mb-0">S. No.</p>
+                </th>
+                <th rowspan="2" class="text-center align-middle"
+                  style="min-width: 200px; max-width: 200px; width: 200px;">
+                  <p class="table-heading mb-0">Name</p>
+                </th>
+                <th rowspan="2" class="text-center align-middle"
+                  style="min-width: 100px; max-width: 100px; width: 100px;">
+                  <p class="table-heading mb-0">Relay# or<br>set work</p>
+                </th>
+                <th rowspan="2" class="text-center align-middle"
+                  style="min-width: 120px; max-width: 120px; width: 120px;">
+                  <p class="table-heading mb-0">Place of Work<br><span class="text-white-50 fw-normal"
+                      style="font-size: 10px;">(Only in cases of Mines only)</span></p>
+                </th>
+                <th rowspan="2" class="text-center align-middle" style="min-width: 60px; max-width: 60px; width: 60px;">
+                  <p class="table-heading mb-0"></p>
+                </th>
+                <th [attr.colspan]="daysInMonth.length" class="text-center align-middle border-bottom-0">
+                  <p class="table-heading mb-0 fs-6">Dates</p>
+                </th>
+                <th rowspan="2" class="text-center align-middle" style="min-width: 80px; max-width: 80px; width: 80px;">
+                  <p class="table-heading mb-0">Summary<br>No. of Days</p>
+                </th>
+                <th rowspan="2" class="text-center align-middle" style="min-width: 80px; max-width: 80px; width: 80px;">
+                  <p class="table-heading mb-0">No. of OT<br>hours</p>
+                </th>
+                <th rowspan="2" class="text-center align-middle" style="min-width: 70px; max-width: 70px; width: 70px;">
+                  <p class="table-heading mb-0">Remarks</p>
+                </th>
+                <th rowspan="2" class="text-center align-middle" style="min-width: 90px; max-width: 90px; width: 90px;">
+                  <p class="table-heading mb-0">Signature of<br>Register<br>Keeper</p>
+                </th>
+              </tr>
+              <tr>
+                <th *ngFor="let day of daysInMonth" class="text-center align-middle p-1" style="min-width: 35px;">
+                  <p class="table-heading mb-0">{{ day }}</p>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container
+                *ngFor="let record of reportAttendanceRecords | paginate: { itemsPerPage: showEntries != 'all' ? showEntries : totalRecords, currentPage: p, totalItems: totalRecords }; let i = index">
+
+                <!-- IN Row -->
+                <tr class="hover-bg-light transition">
+                  <td rowspan="2" class="text-center align-middle">
+                    <span class="fw-bold text-dark">{{ i + 1 + (showEntries != 'all' ? (p - 1) * showEntries : 0)
+                      }}</span>
+                  </td>
+                  <td rowspan="2" class="align-middle" style="white-space: normal; word-break: break-word;">
+                    <div class="d-flex flex-column">
+                      <span class="fw-bold text-dark fs-7">{{ record.empName }}</span>
+                      <span class="text-muted fs-8">{{ record.empId }}</span>
+                    </div>
+                  </td>
+                  <td rowspan="2" class="text-center align-middle">
+                    <div class="d-flex flex-column gap-1 align-items-center">
+                      <span class="fw-medium text-dark fs-8">{{ record.relay }}</span>
+                      <span class="badge bg-light text-muted border fs-9 px-2 py-1" *ngIf="record.shift !== '--'">{{
+                        record.shift }}</span>
+                    </div>
+                  </td>
+                  <td rowspan="2" class="text-center align-middle">
+                    <span class="fw-medium text-dark fs-8">{{ record.placeOfWork }}</span>
+                  </td>
+                  <td class="text-center align-middle fw-bold text-secondary fs-8 py-1"
+                    style="border-bottom: 1px dashed #dee2e6;">
+                    IN
+                  </td>
+
+                  <td *ngFor="let day of daysInMonth" class="text-center align-middle p-1 fs-8"
+                    style="border-bottom: 1px dashed #dee2e6;">
+                    <ng-container *ngIf="record.days[day]">
+                      <span *ngIf="record.days[day].in" class="fw-medium text-dark">{{ record.days[day].in }}</span>
+                      <span *ngIf="!record.days[day].in && (record.days[day].status?.toLowerCase() === 'present')"
+                        class="text-success fw-bold">P</span>
+                      <span *ngIf="!record.days[day].in && (record.days[day].status?.toLowerCase() === 'absent')"
+                        class="text-danger fw-bold">A</span>
+                      <span
+                        *ngIf="!record.days[day].in && (record.days[day].status?.toLowerCase() === 'leave' || record.days[day].status?.toLowerCase() === 'paid_leave' || record.days[day].status?.toLowerCase() === 'unpaid_leave')"
+                        class="text-info fw-bold">L</span>
+                      <span
+                        *ngIf="!record.days[day].in && (record.days[day].status?.toLowerCase() === 'rest_day' || record.days[day].status?.toLowerCase() === 'rest day')"
+                        class="text-primary fw-bold">R</span>
+                      <span
+                        *ngIf="!record.days[day].in && (record.days[day].status?.toLowerCase() === 'half_day' || record.days[day].status?.toLowerCase() === 'half day')"
+                        class="text-warning fw-bold">H</span>
+                    </ng-container>
+                  </td>
+
+                  <td rowspan="2" class="text-center align-middle fw-bold text-dark">
+                    {{ record.summary.totalDays }}
+                  </td>
+                  <td rowspan="2" class="text-center align-middle text-dark">
+                    {{ record.summary.otHours }}
+                  </td>
+                  <td rowspan="2" class="text-center align-middle text-muted fs-8">
+                    {{ record.summary.remarks }}
+                  </td>
+                  <td rowspan="2" class="text-center align-middle">
+                    <!-- Empty box for signature -->
+                  </td>
+                </tr>
+
+                <!-- OUT Row -->
+                <tr class="hover-bg-light transition">
+                  <td class="text-center align-middle fw-bold text-secondary fs-8 py-1">
+                    OUT
+                  </td>
+
+                  <td *ngFor="let day of daysInMonth" class="text-center align-middle p-1 fs-8">
+                    <ng-container *ngIf="record.days[day]">
+                      <span *ngIf="record.days[day].out" class="fw-medium text-dark">{{ record.days[day].out }}</span>
+                      <span
+                        *ngIf="!record.days[day].out && (!record.days[day].status || (record.days[day].status?.toLowerCase() !== 'present' && record.days[day].status?.toLowerCase() !== 'half_day' && record.days[day].status?.toLowerCase() !== 'half day'))"
+                        class="text-muted">-</span>
+                    </ng-container>
+                  </td>
+                </tr>
+
+              </ng-container>
+
+              <tr *ngIf="reportAttendanceRecords.length === 0">
+                <td [attr.colspan]="daysInMonth.length + 9" class="text-center py-5 text-muted bg-white">
+                  <i class="fa-solid fa-folder-open fs-1 mb-3 text-light-gray"></i>
+                  <p class="mb-0 fs-6">No attendance records found for this month.</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
       <div
         class="d-flex flex-column flex-md-row justify-content-between bottom-0 end-0 py-2 align-items-center text-center text-md-start gap-3"
-        *ngIf="(viewMode === 'daily' && attendanceRecords.length > 0) || (viewMode === 'monthly' && monthlyAttendanceRecords.length > 0)">
+        *ngIf="(viewMode === 'daily' && attendanceRecords.length > 0) || (viewMode === 'monthly' && monthlyAttendanceRecords.length > 0) || (viewMode === 'report' && reportAttendanceRecords.length > 0)">
         <span class="showalltext">Showing
           {{ showEntries === 'all' ? (totalRecords > 0 ? 1 : 0) : (showEntries * (p - 1) > 0 ? showEntries * (p - 1) + 1
           : (totalRecords > 0 ? 1 : 0)) }} to
@@ -698,8 +858,8 @@
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Site <span class="text-danger">*</span></label>
-            <ng-select [items]="sites" bindLabel="name" bindValue="id" placeholder="Select Site" formControlName="site" class="custom-ng-select"
-              appendTo="body">
+            <ng-select [items]="sites" bindLabel="name" bindValue="id" placeholder="Select Site" formControlName="site"
+              class="custom-ng-select" appendTo="body">
             </ng-select>
             <div class="text-danger fs-8 mt-1"
               *ngIf="correctionForm.get('site')?.invalid && correctionForm.get('site')?.touched">
@@ -758,7 +918,7 @@
         class="upload-drop-zone flex-grow-1 d-flex flex-column align-items-center justify-content-center p-4 p-md-5 text-center"
         [class.drag-over]="isDragging" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)"
         (drop)="onDrop($event)" (click)="fileInput.click()">
-        
+
         <div *ngIf="isUploading" class="d-flex flex-column align-items-center justify-content-center w-100 py-3">
           <div class="spinner-border text-primary mb-3" role="status"></div>
           <p class="small font-weight-bold text-secondary mb-0">Uploading and Processing...</p>
@@ -770,36 +930,44 @@
           <p class="text-muted mb-4 fs-7">or click to browse (.xlsx, .csv)</p>
           <button class="btn btn-custom-primary px-4 py-2 hover-up">Select File</button>
         </ng-container>
-        
+
         <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx, .xls, .csv" class="d-none">
       </div>
 
       <!-- Error Result Area -->
       <div *ngIf="uploadResult" class="d-flex flex-column gap-3 mb-4 mt-3">
         <div class="rounded p-3 shadow-sm border" style="background-color: #fef2f2; border-color: #fecaca;">
-           <div class="d-flex align-items-start gap-3 mb-3">
-              <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center bg-white shadow-sm text-danger" style="width: 48px; height: 48px;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem;"></i>
-              </div>
-              <div>
-                <h3 class="h6 font-weight-bold mb-1" style="color: #991b1b;">{{ uploadResult.message || 'Import process completed with errors.' }}</h3>
-                <p class="small font-weight-medium mb-0" style="color: #dc2626;">The following issues were encountered during the import process:</p>
-              </div>
-           </div>
-           
-           <!-- Error List -->
-           <div *ngIf="uploadResult.errors && uploadResult.errors.length > 0" class="bg-white rounded border p-3 shadow-sm custom-scrollbar" style="border-color: #fee2e2; max-height: 14rem; overflow-y: auto;">
-              <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
-                <li *ngFor="let err of uploadResult.errors" class="small d-flex align-items-start gap-2 p-2 rounded" style="background-color: rgba(254, 242, 242, 0.5); color: #dc2626;">
-                  <i class="fas fa-circle mt-1 flex-shrink-0" style="font-size: 6px; color: #f87171;"></i>
-                  <span class="font-weight-medium" style="line-height: 1.3;">{{ err }}</span>
-                </li>
-              </ul>
-           </div>
+          <div class="d-flex align-items-start gap-3 mb-3">
+            <div
+              class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center bg-white shadow-sm text-danger"
+              style="width: 48px; height: 48px;">
+              <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem;"></i>
+            </div>
+            <div>
+              <h3 class="h6 font-weight-bold mb-1" style="color: #991b1b;">{{ uploadResult.message || 'Import process
+                completed with errors.' }}</h3>
+              <p class="small font-weight-medium mb-0" style="color: #dc2626;">The following issues were encountered
+                during the import process:</p>
+            </div>
+          </div>
+
+          <!-- Error List -->
+          <div *ngIf="uploadResult.errors && uploadResult.errors.length > 0"
+            class="bg-white rounded border p-3 shadow-sm custom-scrollbar"
+            style="border-color: #fee2e2; max-height: 14rem; overflow-y: auto;">
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+              <li *ngFor="let err of uploadResult.errors" class="small d-flex align-items-start gap-2 p-2 rounded"
+                style="background-color: rgba(254, 242, 242, 0.5); color: #dc2626;">
+                <i class="fas fa-circle mt-1 flex-shrink-0" style="font-size: 6px; color: #f87171;"></i>
+                <span class="font-weight-medium" style="line-height: 1.3;">{{ err }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div class="d-flex justify-content-end pt-2">
-          <button (click)="uploadResult = null" type="button" class="btn btn-link text-muted font-weight-bold text-decoration-none small text-uppercase mr-3 me-3">
+          <button (click)="uploadResult = null" type="button"
+            class="btn btn-link text-muted font-weight-bold text-decoration-none small text-uppercase mr-3 me-3">
             Try Again
           </button>
         </div>

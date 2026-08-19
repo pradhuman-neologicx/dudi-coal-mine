@@ -2,7 +2,6 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MaterialModule } from 'src/app/mat/mat.module';
-import * as XLSX from 'xlsx';
 import { EmployeeService } from 'src/app/core/services/Employee.service';
 import { AttendanceManagementService } from 'src/app/core/services/attendance-management.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
@@ -10,7 +9,21 @@ import { NgxPaginationModule } from 'ngx-pagination';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { Router } from '@angular/router';
+import { Router, Params } from '@angular/router';
+import { saveAs } from 'file-saver';
+
+export interface SiteOption {
+  id: number | string;
+  name: string;
+  [key: string]: any;
+}
+
+export interface UploadResult {
+  status: number;
+  message: string;
+  errors: string[];
+}
+
 interface RawBiometricLog {
   empId: string;
   date: string;
@@ -27,6 +40,7 @@ interface DailyAttendance {
   checkIn: string | null;
   checkOut: string | null;
   shift: string;
+  relay: string;
   status: 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day' | 'Weekend' | 'Not Marked';
   site: string;
 }
@@ -44,6 +58,26 @@ interface MonthlyAttendanceSummary {
   unpaidLeave?: number;
   exception: number;
   payableDays: number;
+}
+
+interface ReportRecord {
+  empId: string;
+  empName: string;
+  relay: string;
+  shift: string;
+  placeOfWork: string;
+  days: {
+    [key: number]: {
+      in: string | null;
+      out: string | null;
+      status: string;
+    }
+  };
+  summary: {
+    totalDays: number;
+    otHours: string;
+    remarks: string;
+  }
 }
 
 interface AttendanceCorrectionLog {
@@ -87,10 +121,12 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   // Master list of records
   allAttendanceRecords: DailyAttendance[] = [];
   monthlyAttendanceRecords: MonthlyAttendanceSummary[] = [];
+  reportAttendanceRecords: ReportRecord[] = [];
+  daysInMonth: number[] = [];
   monthlyP: number = 1;
 
   // Filter properties
-  viewMode: 'daily' | 'monthly' = 'daily';
+  viewMode: 'daily' | 'monthly' | 'report' = 'daily';
   filterDate: string = '';
   filterMonth: string = '';
   filterFromDate: string = '';
@@ -100,7 +136,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   filterSite: string = '';
   maxDate: string = '';
 
-  sites: any[] = [];
+  sites: SiteOption[] = [];
   mockSites: string[] = [];
 
   // Freeze date (e.g., records before 3rd of current month are locked)
@@ -110,7 +146,8 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   showCorrectionModal = false;
   showBulkUploadModal = false;
   isUploading = false;
-  uploadResult: any = null;
+  isDownloadingFormD = false;
+  uploadResult: UploadResult | null = null;
   correctionForm!: FormGroup;
   searchbarform!: FormGroup;
   showreset: boolean = false;
@@ -118,7 +155,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
   p: number = 1; // Pagination
   showEntries: any = 10;
-  tableSizes: any[] = [10, 20, 50, 100];
+  tableSizes: number[] = [10, 20, 50, 100];
   totalRecords: number = 0;
 
   selectedRecordIds = new Set<string>();
@@ -240,7 +277,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
-    
+
     this.maxDate = `${year}-${month}-${day}`;
     this.filterDate = this.maxDate;
     const mm = (today.getMonth() + 1).toString().padStart(2, '0');
@@ -302,6 +339,46 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       month = parseInt(m, 10).toString();
     }
 
+    if (this.viewMode === 'report') {
+      let y = new Date().getFullYear().toString();
+      let m = (new Date().getMonth() + 1).toString();
+      if (this.filterMonth) {
+        const [yy, mm] = this.filterMonth.split('-');
+        y = yy;
+        m = parseInt(mm, 10).toString();
+      }
+
+      this.attendanceService.getAttendanceRegister(limit, page, m, y)
+        .pipe(takeUntil(this.destroy$)).subscribe({
+          next: (response: any) => {
+            if (response.status === 200) {
+              const data = response.data || {};
+              this.totalRecords = data.pagination?.total || data.total || data.rows?.length || 0;
+              const numDays = data.days_in_month || new Date(parseInt(y), parseInt(m), 0).getDate();
+              this.daysInMonth = Array.from({ length: numDays }, (_, i) => (i + 1));
+
+              this.reportAttendanceRecords = (data.rows || []).map((record: any) => ({
+                empId: record.employee_code,
+                empName: record.name,
+                relay: record.relay || '--',
+                shift: '--',
+                placeOfWork: record.place_of_work || record.place_of_work_label || '--',
+                days: record.days || {},
+                summary: { totalDays: record.total_days, otHours: record.total_ot_hours, remarks: record.remarks || '' }
+              }));
+              this.calculateMetrics();
+            } else {
+              this.notificationService.show(response.message, 'error', 3000);
+            }
+          },
+          error: (err: any) => {
+            console.error('Error fetching attendance register:', err);
+            // this.notificationService.show(err.message, 'error', 3000);
+          }
+        });
+      return;
+    }
+
     this.attendanceService.getAttendance(limit, page, search, fromDate, toDate, status, viewType, month, year)
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (response: any) => {
@@ -318,9 +395,10 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
                 date: record.date || '',
                 checkIn: record.check_in || null,
                 checkOut: record.check_out || null,
-                shift: record.shift_name || '',
+                shift: record.shift_name || '--',
+                relay: record.relay_name || record.relay || '--',
                 status: this.mapStatusToFrontend(record.attendance_status),
-                site: record.site_name || ''
+                site: record.site_name || '--'
               }));
 
               if (response.summary) {
@@ -334,7 +412,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
               } else {
                 this.calculateMetrics();
               }
-            } else {
+            } else if (this.viewMode === 'monthly') {
               this.monthlyAttendanceRecords = (response.data || []).map((record: any) => ({
                 employee_id: record.employee_id,
                 empId: record.employee_code || record.employee_id?.toString() || '',
@@ -448,7 +526,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     this.loadAttendance();
   }
 
-  setViewMode(mode: 'daily' | 'monthly') {
+  setViewMode(mode: 'daily' | 'monthly' | 'report') {
     this.viewMode = mode;
     this.p = 1;
     this.loadAttendance();
@@ -459,7 +537,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
-    
+
     this.filterDate = `${year}-${month}-${day}`;
     const mm = (today.getMonth() + 1).toString().padStart(2, '0');
     this.filterMonth = `${today.getFullYear()}-${mm}`;
@@ -545,19 +623,19 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
           if (Array.isArray(errObj.errors)) {
             formattedErrors = errObj.errors.map((e: any) => {
               if (typeof e === 'object' && e !== null) {
-                 const col = e.column ? ` [${e.column}]` : '';
-                 return `Row ${e.row || 'N/A'}${col}: ${e.message || 'Unknown error'}`;
+                const col = e.column ? ` [${e.column}]` : '';
+                return `Row ${e.row || 'N/A'}${col}: ${e.message || 'Unknown error'}`;
               }
               return String(e);
             });
           } else if (typeof errObj.errors === 'object') {
-             Object.values(errObj.errors).forEach((errArray: any) => {
-                if (Array.isArray(errArray)) {
-                  formattedErrors.push(...errArray);
-                } else if (typeof errArray === 'string') {
-                  formattedErrors.push(errArray);
-                }
-             });
+            Object.values(errObj.errors).forEach((errArray: any) => {
+              if (Array.isArray(errArray)) {
+                formattedErrors.push(...errArray);
+              } else if (typeof errArray === 'string') {
+                formattedErrors.push(errArray);
+              }
+            });
           }
         }
 
@@ -712,19 +790,55 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     }
   }
 
-  viewRecord(record: any) {
-    const idToPass = record.employee_id || record.empId || record.id;
-    const queryParams: any = {};
+  viewRecord(record: DailyAttendance | MonthlyAttendanceSummary | any) {
+    const idToPass = record.employee_id || record.empId || (record as any).id;
+    const queryParams: { [key: string]: any } = {};
 
     // Check if it's from daily view (has date) or monthly view
     if (record.date) {
-      queryParams.date = record.date;
-    } else {
-      const [year, month] = this.filterMonth.split('-');
-      queryParams.month = month;
-      queryParams.year = year;
+      queryParams['date'] = record.date;
+    } else if (record.month_year) {
+      const [year, month] = record.month_year.split('-');
+      queryParams['month'] = month;
+      queryParams['year'] = year;
     }
 
     this.router.navigate(['/admin/attendance-management/attendance-detail', idToPass], { queryParams });
+  }
+
+  downloadFormD(): void {
+    let month = '';
+    let year = '';
+
+    if (this.filterMonth) {
+      const [y, m] = this.filterMonth.split('-');
+      year = y;
+      month = parseInt(m, 10).toString();
+    } else {
+      const today = new Date();
+      year = today.getFullYear().toString();
+      month = (today.getMonth() + 1).toString();
+    }
+
+    this.isDownloadingFormD = true;
+
+    this.employeeService.exportAttendanceRegister(parseInt(month), parseInt(year))
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response: any) => {
+          this.isDownloadingFormD = false;
+          // When observe: 'response' is used, the Blob is in response.body
+          const blob = response.body || response;
+          const fileName = `Form_D_Register_${month}_${year}.xlsx`;
+          saveAs(blob, fileName);
+          this.notificationService.show('Form D Register downloaded successfully.', 'success', 3000);
+        },
+        error: (err: any) => {
+          this.isDownloadingFormD = false;
+          console.error('Error downloading Form D Register:', err);
+          const errorMsg = err.error?.message || err.message || 'Form D Download failed.';
+          this.notificationService.show(errorMsg, 'error', 4000);
+        }
+      });
   }
 }

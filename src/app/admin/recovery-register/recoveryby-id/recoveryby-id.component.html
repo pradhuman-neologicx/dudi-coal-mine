@@ -1,0 +1,288 @@
+<div class="container mb-4 no-print">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-outline-secondary rounded-circle shadow-sm" (click)="goBack()"
+        style="width: 42px; height: 42px;">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
+      <div>
+        <h1 class="text-primary table-heading-detail mb-1">Recovery Details</h1>
+        <p class="text-muted mb-0 fs-6">Monthly penalty and damage recovery aggregation.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Aggregation Table Card -->
+  <div class="card border-0 shadow-sm my-4 px-4 py-4">
+    <!-- Toolbar Container inside Card -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+      <!-- Show Entries -->
+      <div class="d-flex align-items-center gap-2">
+        <span class="show-entery-text fs-7">Show</span>
+        <ng-select [items]="tableSizes" [(ngModel)]="overviewShowEntries" (change)="onOverviewShowEntriesChange()"
+          [clearable]="false" [searchable]="false" class="custom-ng-select" style="min-width: 80px;"></ng-select>
+        <span class="show-entery-text fs-7">entries</span>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="position-relative" style="width: 280px;">
+        <i class="fa-solid fa-magnifying-glass position-absolute text-muted"
+          style="top: 50%; left: 14px; transform: translateY(-50%); z-index: 4;"></i>
+        <input type="text" class="form-control bg-white shadow-sm" [(ngModel)]="overviewSearchTerm"
+          placeholder="Search Employee Name / Particulars..." style="height: 38px; padding-left: 38px;">
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover table-striped mb-0 text-nowrap align-middle">
+        <thead class="table-header text-center align-middle">
+          <tr>
+            <th>
+              <p class="table-heading text-center mb-0">Emp. Code</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Name</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0 text-wrap">Recovery Type <br> (Damage/ loss/ fine/ advance/
+                loans)</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Particulars</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Date of damage/Loss</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Amount</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Show cause issued</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Explanation heard in presence of</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Number of Installments</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">First Month/Year</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Last Month/Year</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Date of Complete Recovery</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Remarks</p>
+            </th>
+            <th>
+              <p class="table-heading text-center mb-0">Action</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let rec of filteredRecoveryRecords | paginate: { id: 'overviewPagination', itemsPerPage: overviewShowEntries, currentPage: overviewP }; let i = index"
+            class="text-center align-middle">
+            <td class="text-muted fw-bold fs-7">{{ (overviewP - 1) * overviewShowEntries + i + 1 }}</td>
+            <td class="fw-bold text-dark text-start fs-7">{{ rec.name }}</td>
+            <td><span class="badge bg-light text-dark border fs-8">{{ rec.recoveryType }}</span></td>
+            <td class="text-start text-truncate fs-8" style="max-width: 150px;" [title]="rec.particulars">{{
+              rec.particulars }}</td>
+            <td>{{ rec.dateOfDamageLoss || '--' }}</td>
+            <td class="fw-bold text-danger">₹{{ rec.amount | number }}</td>
+            <td>
+              <span [ngClass]="rec.showCauseIssued === 'Yes' ? 'text-success' : 'text-danger'">
+                <i class="fa-solid fa-circle me-1" style="font-size: 0.4rem;"></i> {{ rec.showCauseIssued }}
+              </span>
+            </td>
+            <td>{{ rec.witnessName || '--' }}</td>
+            <td class="fw-bold">{{ rec.installments }}</td>
+            <td>{{ rec.firstMonth }}</td>
+            <td>{{ rec.lastMonth }}</td>
+            <td>{{ rec.dateOfCompleteRecovery || '--' }}</td>
+            <td class="text-start text-truncate" style="max-width: 150px;" [title]="rec.remarks">{{ rec.remarks || '--'
+              }}</td>
+            <td class="text-center">
+              <button class="btn-action view-btn" title="View Details" (click)="openViewDetails(rec)">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer Pagination -->
+    <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center mt-3">
+      <div class="text-muted fs-7 fw-semibold">
+        Showing {{ filteredRecoveryRecords.length === 0 ? 0 : (overviewP - 1) * overviewShowEntries + 1 }} to {{
+        (overviewP * overviewShowEntries > filteredRecoveryRecords.length) ? filteredRecoveryRecords.length : (overviewP
+        * overviewShowEntries) }} of {{ filteredRecoveryRecords.length }} entries
+      </div>
+      <pagination-controls id="overviewPagination" (pageChange)="onOverviewPageChange($event)"
+        class="my-pagination"></pagination-controls>
+    </div>
+  </div>
+
+  <!-- View Details Modal Overlay -->
+  <div class="modal-overlay" *ngIf="viewDetailsOpen">
+    <div class="modal-content-custom premium-detail-modal">
+      <div class="card border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="modal-title pt-1 mb-0">Recovery Details</h5>
+            <p class="modal-subtitle">Government Form Recovery Record for {{ viewingRecord?.name }}</p>
+          </div>
+          <button class="cross-btn-icon border-0 p-0" type="button" (click)="closeViewDetails()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="card-body mb-0" *ngIf="viewingRecord">
+          <!-- Top Status & Amount Banner -->
+          <div class="leave-summary-banner"
+            [ngClass]="viewingRecord?.recoveryType === 'Damage' ? 'status-damage' : 'status-penalty'">
+            <div class="banner-left">
+              <div class="banner-label">RECOVERY TYPE</div>
+              <div class="banner-value">{{ viewingRecord?.recoveryType }} Recovery</div>
+            </div>
+            <div class="banner-right">
+              <span class="days-number">₹{{ viewingRecord?.amount | number }}</span>
+              <span class="days-label">TOTAL AMOUNT</span>
+            </div>
+          </div>
+
+          <!-- Employee Info Section -->
+          <div class="grid-section-title">EMPLOYEE INFORMATION</div>
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <div class="glass-info-card">
+                <div class="avatar-circle">
+                  {{ viewingRecord?.name?.charAt(0) || 'E' }}
+                </div>
+                <div class="card-info-content">
+                  <span class="info-label">EMPLOYEE NAME</span>
+                  <span class="info-value">{{ viewingRecord?.name }}</span>
+                  <span class="info-subtitle">Installment Plan: {{ viewingRecord?.installments }} Month(s)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recovery & Procedural Details -->
+          <div class="grid-section-title">RECOVERY & PROCEDURAL DETAILS</div>
+          <div class="row g-3 mb-4">
+            <!-- Date of Damage/Loss -->
+            <div class="col-md-6">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper calendar">
+                  <i class="fa-solid fa-calendar-minus"></i>
+                </div>
+                <div class="card-info-content">
+                  <span class="info-label">DATE OF DAMAGE / LOSS</span>
+                  <span class="info-value">{{ viewingRecord?.dateOfDamageLoss || '--' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Show Cause Issued -->
+            <div class="col-md-6">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper type">
+                  <i class="fa-solid fa-file-circle-exclamation"></i>
+                </div>
+                <div class="card-info-content">
+                  <span class="info-label">SHOW CAUSE ISSUED?</span>
+                  <span class="info-value"
+                    [ngClass]="viewingRecord?.showCauseIssued === 'Yes' ? 'text-success' : 'text-danger'">
+                    <i class="fa-solid fa-circle me-1" style="font-size: 0.5rem;"></i> {{ viewingRecord?.showCauseIssued
+                    }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Installment Duration (First to Last Month) -->
+            <div class="col-md-6">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper calendar">
+                  <i class="fa-solid fa-calendar-days"></i>
+                </div>
+                <div class="card-info-content">
+                  <span class="info-label">INSTALLMENT PERIOD</span>
+                  <span class="date-timeline">
+                    {{ viewingRecord?.firstMonth || '--' }}
+                    <i class="fa-solid fa-arrow-right mx-1"></i>
+                    {{ viewingRecord?.lastMonth || '--' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Date of Complete Recovery -->
+            <div class="col-md-6">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper type">
+                  <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div class="card-info-content">
+                  <span class="info-label">COMPLETE RECOVERY DATE</span>
+                  <span class="info-value text-dark">{{ viewingRecord?.dateOfCompleteRecovery || 'In Progress' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Witness / Presence -->
+            <div class="col-12">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper calendar">
+                  <i class="fa-solid fa-user-group"></i>
+                </div>
+                <div class="card-info-content">
+                  <span class="info-label">EXPLANATION HEARD IN PRESENCE OF (WITNESS)</span>
+                  <span class="info-value">{{ viewingRecord?.witnessName || 'None' }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Particulars of Damage/Loss Section -->
+          <div class="grid-section-title">PARTICULARS & REMARKS</div>
+          <div class="reason-detail-box mb-3">
+            <div class="icon-box">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="reason-content">
+              <div class="reason-title">PARTICULARS OF DAMAGE / LOSS</div>
+              <p class="reason-text">{{ viewingRecord?.particulars || '--' }}</p>
+            </div>
+          </div>
+
+          <div class="reason-detail-box" *ngIf="viewingRecord?.remarks">
+            <div class="icon-box">
+              <i class="fa-solid fa-comment-dots"></i>
+            </div>
+            <div class="reason-content">
+              <div class="reason-title">REMARKS</div>
+              <p class="reason-text">{{ viewingRecord?.remarks }}</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer text-end d-flex justify-content-end align-items-center">
+          <button class="btn btn-premium-close px-4 py-2" type="button" (click)="closeViewDetails()">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

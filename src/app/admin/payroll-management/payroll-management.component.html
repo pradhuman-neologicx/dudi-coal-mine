@@ -78,21 +78,17 @@
     <div class="d-flex align-items-center justify-content-between mb-4">
       <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
         <span class="show-entery-text fs-7">Show</span>
-        <ng-select [items]="tableSizes" 
-                   [(ngModel)]="showEntries" 
-                   (change)="onShowEntriesChange()" 
-                   [clearable]="false" 
-                   [searchable]="false" 
-                   class="custom-ng-select min-w-[80px]">
+        <ng-select [items]="tableSizes" [(ngModel)]="showEntries" (change)="onShowEntriesChange()" [clearable]="false"
+          [searchable]="false" class="custom-ng-select min-w-[80px]">
         </ng-select>
         <span class="show-entery-text fs-7">entries</span>
       </div>
-      <div class="d-flex gap-2">
+      <div class="d-flex gap-2 align-items-center">
         <button class="btn btn-outline-danger px-4 hover-up" (click)="openPenaltyModal()">
-          <i class="fa-solid fa-gavel me-2"></i>Add Penalty
+          <i class="fa-solid fa-gavel me-2"></i>Add Recovery
         </button>
         <button class="btn btn-danger px-4 hover-up" (click)="openBulkPenaltyModal()">
-          <i class="fa-solid fa-layer-group me-2"></i>Add Bulk Penalty
+          <i class="fa-solid fa-layer-group me-2"></i>Add Bulk Recovery
         </button>
       </div>
     </div>
@@ -128,7 +124,7 @@
                 <p class="table-heading text-center">Payable Days</p>
               </th>
               <th>
-                <p class="table-heading text-center">Penalty (₹)</p>
+                <p class="table-heading text-center">Recovery (₹)</p>
               </th>
               <th>
                 <p class="table-heading text-center">Monthly Salary</p>
@@ -188,7 +184,7 @@
               </td>
               <td class="text-center">
                 <button *ngIf="rec.penaltyTotalAmount > 0" class="btn btn-sm btn-outline-danger px-2 py-1 fs-9 hover-up"
-                  (click)="openViewPenaltyModal(rec)" data-tooltip="View Penalty Details">
+                  (click)="openViewPenaltyModal(rec)" data-tooltip="View Recovery Details">
                   <span class="fw-bold">₹{{ rec.penaltyTotalAmount.toLocaleString() }}</span>
                   <i class="fa-solid fa-circle-info ms-1"></i>
                 </button>
@@ -308,7 +304,7 @@
             </span>
           </div>
           <div class="mb-2 d-flex justify-content-between align-items-center">
-            <strong>Penalty (₹):</strong>
+            <strong>Recovery (₹):</strong>
             <button *ngIf="rec.penaltyTotalAmount > 0" class="btn btn-sm btn-outline-danger px-2 py-1 fs-9 hover-up"
               (click)="openViewPenaltyModal(rec)">
               <span class="fw-bold">₹{{ rec.penaltyTotalAmount.toLocaleString() }}</span>
@@ -325,13 +321,14 @@
           No employee records found matching the filters.
         </div>
       </div>
+    </div> <!-- End Standard View -->
 
-      <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center" *ngIf="totalRecords > 0">
-        <span class="showalltext">Showing
-          {{ showEntries * (p - 1) > 0 ? showEntries * (p - 1) + 1 : 1 }} to
-          {{ showEntries * p <= totalRecords ? showEntries * p : totalRecords }} of {{ totalRecords }} entries</span>
-            <pagination-controls (pageChange)="onPageChange($event)" class="my-pagination"></pagination-controls>
-      </div>
+
+    <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center" *ngIf="totalRecords > 0">
+      <span class="showalltext">Showing
+        {{ showEntries * (p - 1) > 0 ? showEntries * (p - 1) + 1 : 1 }} to
+        {{ showEntries * p <= totalRecords ? showEntries * p : totalRecords }} of {{ totalRecords }} entries</span>
+          <pagination-controls (pageChange)="onPageChange($event)" class="my-pagination"></pagination-controls>
     </div>
   </div>
 </div>
@@ -527,14 +524,20 @@
               </thead>
               <tbody style="font-size: 0.85rem; color: #334155;">
                 <tr class="border-bottom border-light">
-                  <td class="ps-0 py-2.5 text-start">Monthly Salary</td>
+                  <td class="ps-0 py-2.5 text-start">Basic Salary</td>
                   <td class="pe-0 py-2.5 text-end fw-semibold">₹{{ selectedPayslipRecord.basicSalary.toLocaleString() }}
+                  </td>
+                </tr>
+                <tr class="border-bottom border-light" *ngIf="selectedPayslipRecord.overtimePayment">
+                  <td class="ps-0 py-2.5 text-start">Overtime Payment</td>
+                  <td class="pe-0 py-2.5 text-end fw-semibold">₹{{
+                    selectedPayslipRecord.overtimePayment.toLocaleString() }}
                   </td>
                 </tr>
                 <tr class="fw-bold fs-7 text-dark">
                   <td class="ps-0 pt-3 text-start" style="padding-top: 50px !important;">Gross Earnings</td>
                   <td class="pe-0 pt-3 text-end" style="padding-top: 50px !important;">₹{{
-                    selectedPayslipRecord.basicSalary.toLocaleString() }}</td>
+                    selectedPayslipRecord.totalEarnings.toLocaleString() }}</td>
                 </tr>
               </tbody>
             </table>
@@ -598,8 +601,7 @@
           <span class="text-secondary fs-8 fw-semibold">Transferred electronically to bank account</span>
         </div>
         <div class="text-end">
-          <h2 class="mb-0 fw-extrabold net-salary-amount">₹{{ (selectedPayslipRecord.basicSalary -
-            selectedPayslipRecord.totalDeductions).toLocaleString() }}</h2>
+          <h2 class="mb-0 fw-extrabold net-salary-amount">₹{{ selectedPayslipRecord.netSalary.toLocaleString() }}</h2>
         </div>
       </div>
 
@@ -766,59 +768,238 @@
 
 <!-- Add Single Penalty Modal -->
 <div *ngIf="penaltyModalOpen" class="modal-overlay" [@fadeIn]>
-  <div class="modal-dialog-large bg-white rounded-3 shadow-lg d-flex flex-column" style="max-width: 650px;">
+  <div class="modal-dialog-large bg-white rounded-3 shadow-lg d-flex flex-column" style="max-width: 1000px;">
 
     <div
-      class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom bg-danger text-white">
-      <h4 class="mb-0 fw-bold text-white"><i class="fa-solid fa-gavel me-2"></i>Add Penalty</h4>
-      <button class="btn bg-transparent border-0 p-0" (click)="closePenaltyModal()">
-        <i class="fa-solid fa-xmark fs-4 text-white"></i>
+      class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom text-white shadow-sm"
+      style="background: linear-gradient(135deg, #468faf 0%, #2563eb 100%); border-top-left-radius: 12px; border-top-right-radius: 12px;">
+      <h4 class="mb-0 fw-bold text-white fs-6 d-flex align-items-center gap-2" style="letter-spacing: 0.3px;">
+        <i class="fa-solid fa-gavel text-white-50"></i> Add Recovery
+      </h4>
+      <button class="btn bg-transparent border-0 p-0 text-white hover-opacity" (click)="closePenaltyModal()">
+        <i class="fa-solid fa-xmark fs-5"></i>
       </button>
     </div>
 
-    <form [formGroup]="penaltyForm" class="d-flex flex-column flex-grow-1">
-      <div class="modal-body-custom px-4 py-4">
+    <form [formGroup]="penaltyForm" class="d-flex flex-column flex-grow-1" style="min-height: 0;">
+      <div class="modal-body-custom p-0"
+        style="overflow-y: auto; background-color: #f8fafc; flex: 1 1 auto; min-height: 0;">
 
-        <div class="mb-3">
-          <label class="form-label form-lable-custom">Select Employee *</label>
-          <ng-select [items]="employees" bindLabel="name" bindValue="id" placeholder="-- Search & Select Employee --"
-            formControlName="employeeId" class="custom-ng-select" appendTo="body"
-            [ngClass]="{'is-invalid': penaltyForm.get('employeeId')?.invalid && penaltyForm.get('employeeId')?.touched}">
-          </ng-select>
-          <div class="invalid-feedback"
-            *ngIf="penaltyForm.get('employeeId')?.invalid && penaltyForm.get('employeeId')?.touched">
-            Employee selection is required.
+        <div class="p-4">
+          <!-- Section 1: Recovery Details -->
+          <div class="bg-white p-4 rounded-4 border mb-4 shadow-sm" style="transition: all 0.3s ease;">
+            <h6 class="text-primary fw-bold mb-4 fs-7 d-flex align-items-center gap-2"
+              style="letter-spacing: 0.5px; text-transform: uppercase;">
+              <i class="fa-solid fa-file-invoice-dollar fs-5 text-primary"></i> Recovery Details
+            </h6>
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">Select Employee <span
+                    class="text-danger">*</span></label>
+                <ng-select [items]="employees" bindLabel="name" bindValue="id"
+                  placeholder="-- Search & Select Employee --" formControlName="employeeId" class="custom-ng-select"
+                  appendTo="body"
+                  [ngClass]="{'is-invalid': penaltyForm.get('employeeId')?.invalid && penaltyForm.get('employeeId')?.touched}">
+                </ng-select>
+                <div class="invalid-feedback"
+                  *ngIf="penaltyForm.get('employeeId')?.invalid && penaltyForm.get('employeeId')?.touched">Employee
+                  selection is required.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">Recovery Type <span
+                    class="text-danger">*</span></label>
+                <ng-select [items]="recoveryTypeOptions" placeholder="-- Select Type --" formControlName="recoveryType"
+                  class="custom-ng-select" appendTo="body" [searchable]="false" [clearable]="false"
+                  [ngClass]="{'is-invalid': penaltyForm.get('recoveryType')?.invalid && penaltyForm.get('recoveryType')?.touched}">
+                </ng-select>
+              </div>
+
+              <div class="col-md-12">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">Particulars / Reason <span
+                    class="text-danger">*</span></label>
+                <textarea class="form-control form-input-custom p-3" formControlName="particulars" rows="2"
+                  placeholder="Brief description of the reason..."
+                  [ngClass]="{'is-invalid': penaltyForm.get('particulars')?.invalid && penaltyForm.get('particulars')?.touched}"></textarea>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">Recovery Date <span
+                    class="text-danger">*</span></label>
+                <div class="position-relative">
+                  <input type="date" class="form-control" formControlName="penaltyDate"
+                    [ngClass]="{'is-invalid': penaltyForm.get('penaltyDate')?.invalid && penaltyForm.get('penaltyDate')?.touched}">
+                </div>
+                <div class="invalid-feedback"
+                  *ngIf="penaltyForm.get('penaltyDate')?.invalid && penaltyForm.get('penaltyDate')?.touched">Recovery
+                  date is required.</div>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">Amount (₹) <span
+                    class="text-danger">*</span></label>
+                <div class="input-group">
+                  <span class="input-group-text bg-white border-end-0 text-muted px-3"><i
+                      class="fa-solid fa-indian-rupee-sign"></i></span>
+                  <input type="number" class="form-control form-input-custom border-start-0 ps-0 py-2"
+                    formControlName="amount" placeholder="0.00" (blur)="onAmountBlur()"
+                    [ngClass]="{'is-invalid': penaltyForm.get('amount')?.invalid && penaltyForm.get('amount')?.touched}" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Compliance & Explanation -->
+          <div class="bg-white p-4 rounded-4 border mb-4 shadow-sm" style="transition: all 0.3s ease;">
+            <h6 class="text-primary fw-bold mb-4 fs-7 d-flex align-items-center gap-2"
+              style="letter-spacing: 0.5px; text-transform: uppercase;">
+              <i class="fa-solid fa-scale-balanced fs-5 text-primary"></i> Compliance & Explanation
+            </h6>
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">Whether show cause issued?</label>
+                <ng-select [items]="yesNoOptions" placeholder="-- Select --" formControlName="showCauseIssued"
+                  class="custom-ng-select" appendTo="body" [searchable]="false" [clearable]="false">
+                </ng-select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">Explanation heard in presence
+                  of</label>
+                <div class="input-group">
+                  <span class="input-group-text bg-white border-end-0 text-muted px-3"><i
+                      class="fa-solid fa-user-tie"></i></span>
+                  <input type="text" class="form-control form-input-custom border-start-0 ps-0 py-2"
+                    formControlName="witnessName" placeholder="Name of official/witness" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Installment Schedule -->
+          <div class="bg-white p-4 rounded-4 border shadow-sm" style="transition: all 0.3s ease;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h6 class="text-primary fw-bold mb-0 fs-7 d-flex align-items-center gap-2"
+                style="letter-spacing: 0.5px; text-transform: uppercase;">
+                <i class="fa-solid fa-calendar-check fs-5 text-primary"></i> Installment Schedule
+              </h6>
+            </div>
+
+            <div class="row g-4">
+              <div class="col-md-4">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">No. of Installments <span
+                    class="text-danger">*</span></label>
+                <input type="number" class="form-control form-input-custom bg-light py-2 text-muted"
+                  formControlName="installments" min="1" placeholder="e.g. 1" readonly />
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">First Month/Year <span
+                    class="text-danger">*</span></label>
+                <input type="month" class="form-control form-input-custom bg-light py-2 text-muted"
+                  formControlName="firstMonth" readonly />
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">Last Month/Year</label>
+                <input type="month" class="form-control form-input-custom bg-light py-2 text-muted"
+                  formControlName="lastMonth" readonly />
+              </div>
+
+              <!-- Installment Schedule Preview Table & Metrics Summary (Commented Out)
+              <div class="col-md-12 mt-3" *ngIf="previewScheduleList.length > 0 || isPreviewLoading || scheduleSummary">
+                <div class="p-3 bg-light rounded border">
+                  
+                  <div *ngIf="scheduleSummary" class="row g-2 mb-3">
+                    <div class="col-6 col-md-3">
+                      <div class="p-2 bg-white rounded border text-center">
+                        <small class="text-muted d-block fs-9 fw-bold text-uppercase">Installment Amt</small>
+                        <span class="fw-bold text-dark fs-7">₹{{ scheduleSummary.installmentAmount.toLocaleString() }}</span>
+                      </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <div class="p-2 bg-white rounded border text-center">
+                        <small class="text-muted d-block fs-9 fw-bold text-uppercase">Monthly Limit</small>
+                        <span class="fw-bold text-dark fs-7">₹{{ scheduleSummary.monthlyLimit.toLocaleString() }}</span>
+                      </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <div class="p-2 bg-white rounded border text-center">
+                        <small class="text-muted d-block fs-9 fw-bold text-uppercase">Complete Date</small>
+                        <span class="fw-bold text-primary fs-7">{{ scheduleSummary.dateOfCompleteRecovery || '--' }}</span>
+                      </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <div class="p-2 bg-white rounded border text-center d-flex flex-column justify-content-center align-items-center">
+                        <small class="text-muted d-block fs-9 fw-bold text-uppercase">Recovery Status</small>
+                        <span class="badge" [ngClass]="scheduleSummary.fullyRecoverable ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle'">
+                          <i class="fa-solid" [ngClass]="scheduleSummary.fullyRecoverable ? 'fa-circle-check' : 'fa-triangle-exclamation'"></i>
+                          {{ scheduleSummary.fullyRecoverable ? 'Fully Recoverable' : 'Exceeds Limit' }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fs-8 fw-bold text-uppercase text-secondary">
+                      <i class="fa-solid fa-list-ol me-1 text-primary"></i> Installment Breakdown Schedule
+                    </span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fs-9">
+                      {{ previewScheduleList.length }} Installment(s)
+                    </span>
+                  </div>
+
+                  <div *ngIf="isPreviewLoading" class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    <span class="ms-2 fs-8 text-muted">Calculating recovery schedule...</span>
+                  </div>
+
+                  <div *ngIf="!isPreviewLoading && previewScheduleList.length > 0" class="table-responsive rounded border bg-white" style="max-height: 200px; overflow-y: auto;">
+                    <table class="table table-sm table-bordered table-hover mb-0 fs-8 align-middle text-nowrap">
+                      <thead class="table-light">
+                        <tr>
+                          <th class="text-center" width="10%">#</th>
+                          <th width="35%">Month / Year</th>
+                          <th class="text-end" width="25%">Amount (₹)</th>
+                          <th class="text-end" width="30%">Balance (₹)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr *ngFor="let item of previewScheduleList; let idx = index">
+                          <td class="text-center fw-bold text-muted">{{ item.installment_no || item.installment || (idx + 1) }}</td>
+                          <td class="fw-semibold text-dark">{{ item.month_year || item.month || item.period || item.date }}</td>
+                          <td class="text-end fw-bold text-danger">₹{{ (item.amount || item.installment_amount || 0).toLocaleString() }}</td>
+                          <td class="text-end text-muted">₹{{ (item.remaining_balance || item.balance || 0).toLocaleString() }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              -->
+
+              <div class="col-md-12 mt-3">
+                <label class="form-label text-muted fs-8 fw-bold text-uppercase mb-1">Remarks</label>
+                <textarea class="form-control form-input-custom p-3" formControlName="remarks" rows="2"
+                  placeholder="Any additional notes..."></textarea>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="mb-3">
-          <label class="form-label form-lable-custom">Penalty Date *</label>
-          <input type="date" class="form-control form-input-custom" formControlName="penaltyDate"
-            [ngClass]="{'is-invalid': penaltyForm.get('penaltyDate')?.invalid && penaltyForm.get('penaltyDate')?.touched}" />
-          <div class="invalid-feedback">Date is required.</div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label form-lable-custom">Reason *</label>
-          <textarea class="form-control form-input-custom" formControlName="reason" rows="3"
-            placeholder="e.g., Uninformed leave, equipment damage"
-            [ngClass]="{'is-invalid': penaltyForm.get('reason')?.invalid && penaltyForm.get('reason')?.touched}"></textarea>
-          <div class="invalid-feedback">Reason is required.</div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label form-lable-custom">Amount (₹) *</label>
-          <input type="number" class="form-control form-input-custom" formControlName="amount"
-            placeholder="Enter Amount"
-            [ngClass]="{'is-invalid': penaltyForm.get('amount')?.invalid && penaltyForm.get('amount')?.touched}" />
-          <div class="invalid-feedback">Penalty Amount must be greater than 0.</div>
-        </div>
       </div>
 
-      <div class="px-4 py-3 border-top bg-light d-flex justify-content-end align-items-center gap-2">
-        <button class="btn btn-secondary px-4 py-2" type="button" (click)="closePenaltyModal()">Cancel</button>
-        <button class="btn btn-danger px-4 py-2" type="button" (click)="savePenalty()">
-          <i class="fa-solid fa-circle-exclamation me-2"></i>Apply Penalty
+      <div class="modal-footer px-4 py-2 border-top justify-content-between align-items-center"
+        style="background-color: #ffffff;">
+        <button type="button"
+          class="btn btn-light border text-secondary px-4 py-2 hover-up fw-semibold rounded-pill shadow-xs d-inline-flex align-items-center gap-2"
+          (click)="closePenaltyModal()">
+          <i class="fa-solid fa-xmark"></i> Cancel
+        </button>
+        <button type="button"
+          class="btn btn-custom-primary px-4 py-2 hover-up fw-bold rounded-pill shadow-sm d-inline-flex align-items-center gap-2"
+          (click)="savePenalty()">
+          <i class="fa-solid fa-check"></i> Save Recovery
         </button>
       </div>
     </form>
@@ -830,35 +1011,42 @@
   <div class="modal-dialog-large bg-white rounded-3 shadow-lg d-flex flex-column" style="max-width: 650px;">
     <div
       class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom bg-danger text-white">
-      <h4 class="mb-0 fw-bold text-white"><i class="fa-solid fa-layer-group me-2"></i>Add Bulk Penalty</h4>
+      <h4 class="mb-0 fw-bold text-white"><i class="fa-solid fa-layer-group me-2"></i>Add Bulk Recovery</h4>
       <button class="btn bg-transparent border-0 p-0" (click)="closeBulkPenaltyModal()">
         <i class="fa-solid fa-xmark fs-4 text-white"></i>
       </button>
     </div>
     <div class="modal-body-custom px-4 py-4 text-center">
-      
+
       <!-- Error Result Area -->
       <div *ngIf="uploadResult" class="text-start mb-4">
         <div class="rounded p-3 shadow-sm border" style="background-color: #fef2f2; border-color: #fecaca;">
-           <div class="d-flex align-items-start gap-3 mb-3">
-              <div class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center bg-white shadow-sm text-danger" style="width: 48px; height: 48px;">
-                <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem;"></i>
-              </div>
-              <div>
-                <h3 class="h6 font-weight-bold mb-1" style="color: #991b1b;">{{ uploadResult.message || 'Import process completed with errors.' }}</h3>
-                <p class="small font-weight-medium mb-0" style="color: #dc2626;">The following issues were encountered during the import process:</p>
-              </div>
-           </div>
-           
-           <!-- Error List -->
-           <div *ngIf="uploadResult.errors && uploadResult.errors.length > 0" class="bg-white rounded border p-3 shadow-sm custom-scrollbar" style="border-color: #fee2e2; max-height: 14rem; overflow-y: auto;">
-              <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
-                <li *ngFor="let err of uploadResult.errors" class="small d-flex align-items-start gap-2 p-2 rounded" style="background-color: rgba(254, 242, 242, 0.5); color: #dc2626;">
-                  <i class="fas fa-circle mt-1 flex-shrink-0" style="font-size: 6px; color: #f87171;"></i>
-                  <span class="font-weight-medium" style="line-height: 1.3;">{{ err }}</span>
-                </li>
-              </ul>
-           </div>
+          <div class="d-flex align-items-start gap-3 mb-3">
+            <div
+              class="rounded-circle flex-shrink-0 d-flex align-items-center justify-content-center bg-white shadow-sm text-danger"
+              style="width: 48px; height: 48px;">
+              <i class="fas fa-exclamation-triangle" style="font-size: 1.5rem;"></i>
+            </div>
+            <div>
+              <h3 class="h6 font-weight-bold mb-1" style="color: #991b1b;">{{ uploadResult.message || 'Import process
+                completed with errors.' }}</h3>
+              <p class="small font-weight-medium mb-0" style="color: #dc2626;">The following issues were encountered
+                during the import process:</p>
+            </div>
+          </div>
+
+          <!-- Error List -->
+          <div *ngIf="uploadResult.errors && uploadResult.errors.length > 0"
+            class="bg-white rounded border p-3 shadow-sm custom-scrollbar"
+            style="border-color: #fee2e2; max-height: 14rem; overflow-y: auto;">
+            <ul class="list-unstyled mb-0 d-flex flex-column gap-2">
+              <li *ngFor="let err of uploadResult.errors" class="small d-flex align-items-start gap-2 p-2 rounded"
+                style="background-color: rgba(254, 242, 242, 0.5); color: #dc2626;">
+                <i class="fas fa-circle mt-1 flex-shrink-0" style="font-size: 6px; color: #f87171;"></i>
+                <span class="font-weight-medium" style="line-height: 1.3;">{{ err }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
 
@@ -867,9 +1055,10 @@
         <div *ngIf="isUploading" class="d-flex justify-content-center mb-3">
           <div class="spinner-border text-danger" role="status"></div>
         </div>
-        
+
         <h5>{{ isUploading ? 'Uploading and Processing...' : 'Upload Excel File' }}</h5>
-        <p *ngIf="!isUploading" class="text-muted">Download the template, fill in employee details and penalty amounts, and upload.</p>
+        <p *ngIf="!isUploading" class="text-muted">Download the template, fill in employee details and penalty amounts,
+          and upload.</p>
 
         <div *ngIf="!isUploading" class="mb-4 text-start mt-3">
           <label class="form-label fw-bold text-muted fs-8 text-uppercase">Upload File</label>
@@ -877,7 +1066,8 @@
             (change)="onBulkFileChange($event)" style="display: block; width: 100%;" />
         </div>
 
-        <a *ngIf="!isUploading" href="/assets/Bulk_Penalty_Sample.xlsx" download class="text-primary text-decoration-none mt-2 d-inline-block">
+        <a *ngIf="!isUploading" href="/assets/Bulk_Penalty_Sample.xlsx" download
+          class="text-primary text-decoration-none mt-2 d-inline-block">
           <i class="fa-solid fa-download me-1"></i>Download Template
         </a>
       </ng-container>
@@ -885,10 +1075,12 @@
     </div>
     <div class="px-4 py-3 border-top bg-light d-flex justify-content-end align-items-center gap-2">
       <button class="btn btn-secondary px-4 py-2" (click)="closeBulkPenaltyModal()">Cancel</button>
-      
-      <button *ngIf="!uploadResult" class="btn btn-danger px-4 py-2" (click)="uploadBulkPenalty()" [disabled]="!selectedBulkFile || isUploading">
+
+      <button *ngIf="!uploadResult" class="btn btn-danger px-4 py-2" (click)="uploadBulkPenalty()"
+        [disabled]="!selectedBulkFile || isUploading">
         <span *ngIf="isUploading" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-        <i *ngIf="!isUploading" class="fa-solid fa-upload me-2"></i>{{ isUploading ? 'Uploading...' : 'Upload & Apply' }}
+        <i *ngIf="!isUploading" class="fa-solid fa-upload me-2"></i>{{ isUploading ? 'Uploading...' : 'Upload & Apply'
+        }}
       </button>
 
       <button *ngIf="uploadResult" type="button" class="btn btn-danger px-4 py-2" (click)="uploadResult = null">
@@ -905,7 +1097,7 @@
     <!-- Header -->
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
       <h4 class="mb-0 fw-bold text-primary">
-        <i class="fa-solid fa-circle-exclamation me-2"></i>Penalty Details
+        <i class="fa-solid fa-circle-exclamation me-2"></i>Recovery Details
       </h4>
       <button class="btn bg-transparent border-0 p-0 hover-up" (click)="closeViewPenaltyModal()">
         <i class="fa-solid fa-xmark fs-4 text-dark"></i>
@@ -922,14 +1114,14 @@
               selectedPenaltyEmployee?.empId }})</span></div>
         </div>
         <div class="text-end">
-          <div class="fs-8 text-muted fw-bold text-uppercase mb-1">Total Penalty</div>
+          <div class="fs-8 text-muted fw-bold text-uppercase mb-1">Total Recovery</div>
           <div class="fs-5 fw-bold text-danger">₹{{ selectedPenaltyEmployee?.penaltyTotalAmount?.toLocaleString() }}
           </div>
         </div>
       </div>
 
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="fw-bold text-dark mb-0">Penalty History ({{ currentMonth | date:'MMM yyyy' }})</h6>
+        <h6 class="fw-bold text-dark mb-0">Recovery History ({{ currentMonth | date:'MMM yyyy' }})</h6>
       </div>
 
       <!-- Penalty Table -->
@@ -954,7 +1146,7 @@
                 ₹{{ pen.amount?.toLocaleString() }}
               </td>
             </tr>
-            <tr *ngIf="!selectedPenaltyEmployee?.penalties || selectedPenaltyEmployee?.penalties.length === 0">
+            <tr *ngIf="!selectedPenaltyEmployee?.penalties || selectedPenaltyEmployee?.penalties?.length === 0">
               <td colspan="3" class="text-center py-4 text-muted">
                 <i class="fa-solid fa-check-circle fs-3 text-success opacity-50 mb-2 d-block"></i>
                 No penalties found for this month.

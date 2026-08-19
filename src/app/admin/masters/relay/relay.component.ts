@@ -7,6 +7,32 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { RelayService } from '../../../core/services/relay.service';
 import { NotificationService } from '../../../core/services/notificationnew.service';
 import { ShiftService } from '../../../core/services/shift.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+export interface RelayMasterItem {
+  id: number | string;
+  name: string;
+  is_rotating?: number | boolean;
+  shift_id?: number | string;
+  shift_name?: string;
+  current_shift_id?: number | string;
+  current_shift_name?: string;
+  status?: boolean | number;
+  is_active?: number;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any;
+}
+
+export interface ShiftDropdownOption {
+  id: number | string;
+  shift_name?: string;
+  name?: string;
+  status?: number | boolean;
+  is_active?: number | boolean;
+  [key: string]: any;
+}
 
 @Component({
   selector: 'app-relay',
@@ -21,7 +47,8 @@ import { ShiftService } from '../../../core/services/shift.service';
     ]),
   ],
 })
-export class RelayComponent implements OnInit {
+export class RelayComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   // Form Groups
   createRelayForm!: FormGroup;
   updateRelayForm!: FormGroup;
@@ -32,16 +59,16 @@ export class RelayComponent implements OnInit {
   viewRelayOpen: boolean = false;
   
   // Data state
-  relayList: any[] = [];
-  selectedRelay: any = null;
-  currentRelayId: any = null;
+  relayList: RelayMasterItem[] = [];
+  selectedRelay: RelayMasterItem | null = null;
+  currentRelayId: number | string | null = null;
   
   // Shift Dropdown Data
-  shiftList: any[] = [];
+  shiftList: ShiftDropdownOption[] = [];
   
   // Pagination
-  tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSize: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
   totalRecords: number = 0;
   page: number = 1;
   searchQuery: string = '';
@@ -74,8 +101,13 @@ export class RelayComponent implements OnInit {
     this.loadRelays();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadShifts() {
-    this.shiftService.getAllShifts().subscribe({
+    this.shiftService.getAllShifts().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           // Filter to only include active shifts (status == 1 or is_active == 1)
@@ -91,7 +123,7 @@ export class RelayComponent implements OnInit {
   }
 
   loadRelays() {
-    this.relayService.getRelays(this.page, this.tableSize, this.searchQuery).subscribe({
+    this.relayService.getRelays(this.page, this.tableSize, this.searchQuery).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.relayList = res.data.map((r: any) => ({
@@ -120,13 +152,17 @@ export class RelayComponent implements OnInit {
     });
   }
 
-  onTableSizeChange(event: any): void {
-    this.tableSize = event && event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number): void {
+    if (typeof event === 'number') {
+      this.tableSize = event;
+    } else if (event && event.target) {
+      this.tableSize = Number((event.target as HTMLInputElement).value);
+    }
     this.page = 1;
     this.loadRelays();
   }
 
-  onTableDataChange(event: any) {
+  onTableDataChange(event: number) {
     this.page = event;
     this.loadRelays();
   }
@@ -141,9 +177,9 @@ export class RelayComponent implements OnInit {
     this.createRelayOpen = true;
   }
 
-  OpenEditModal(relay: any): void {
+  OpenEditModal(relay: RelayMasterItem): void {
     this.currentRelayId = relay.id;
-    this.relayService.getRelayById(relay.id).subscribe({
+    this.relayService.getRelayById(relay.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.updateRelayForm.patchValue({
@@ -162,11 +198,11 @@ export class RelayComponent implements OnInit {
     });
   }
 
-  openviewModal(relay: any): void {
+  openviewModal(relay: RelayMasterItem): void {
     this.selectedRelay = null;
     this.viewRelayOpen = true;
     
-    this.relayService.getRelayById(relay.id).subscribe({
+    this.relayService.getRelayById(relay.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.selectedRelay = {
@@ -204,7 +240,7 @@ export class RelayComponent implements OnInit {
         shift_id: val.current_shift_id
       };
 
-      this.relayService.createRelay(payload).subscribe({
+      this.relayService.createRelay(payload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res && res.status === 200) {
             this.notificationService.show(res.message || 'Relay created successfully', 'success');
@@ -240,7 +276,7 @@ export class RelayComponent implements OnInit {
         shift_id: val.current_shift_id
       };
 
-      this.relayService.updateRelay(this.currentRelayId, payload).subscribe({
+      this.relayService.updateRelay(this.currentRelayId, payload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res && res.status === 200) {
             this.notificationService.show(res.message || 'Relay updated successfully', 'success');
@@ -265,8 +301,8 @@ export class RelayComponent implements OnInit {
     }
   }
 
-  toggleStatus(id: number, currentStatus: number) {
-    this.relayService.updateRelayStatus(id).subscribe({
+  toggleStatus(id: number | string, currentStatus: number) {
+    this.relayService.updateRelayStatus(id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.notificationService.show(res.message || 'Status updated successfully', 'success');

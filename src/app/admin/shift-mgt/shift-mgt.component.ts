@@ -1,10 +1,57 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { ShiftPlanningService, ShiftPlanFilters, ShiftPlan } from '../../core/services/shift-planning.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+export interface ShiftSiteOption {
+  id: number | string;
+  site_name?: string;
+  name?: string;
+  [key: string]: any;
+}
+
+export interface SupervisorOption {
+  id: number | string;
+  name: string;
+  designation?: string;
+}
+
+export interface ShiftFilterOption {
+  id: number | string;
+  name: string;
+}
+
+export interface ShiftPlanTableItem {
+  id: number | string;
+  date: string;
+  shiftCode: string;
+  shiftName: string;
+  location: string;
+  supervisor: string;
+  targetBCM: number;
+  actualBCM: number;
+  status: string;
+}
+
+export interface ShiftPlanDetailView {
+  id: number | string;
+  site_name?: string;
+  supervisor_name?: string;
+  planning_date?: string;
+  target_bcm?: number | string;
+  actual_bcm?: number | string;
+  status?: string;
+  summary?: any;
+  shift_plan?: any;
+  machinery_allocations?: any[];
+  workforce?: any[];
+  [key: string]: any;
+}
 
 @Component({
   selector: 'app-shift-mgt',
@@ -13,7 +60,8 @@ import { ShiftPlanningService, ShiftPlanFilters, ShiftPlan } from '../../core/se
   templateUrl: './shift-mgt.component.html',
   styleUrls: ['./shift-mgt.component.scss']
 })
-export class ShiftMgtComponent implements OnInit {
+export class ShiftMgtComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   summary = {
     total_scheduled_shifts: 0,
     active_personnel: 0,
@@ -22,10 +70,10 @@ export class ShiftMgtComponent implements OnInit {
     current_efficiency: 0
   };
   pagination: any = { current_page: 1, last_page: 1, total: 0, from: 0, to: 0, per_page: 10 };
-  tableSizes: any = [10, 20, 50, 100];
+  tableSizes: number[] = [10, 20, 50, 100];
 
-  filterLocations: any[] = [];
-  selectedLocation: any = null;
+  filterLocations: ShiftSiteOption[] = [];
+  selectedLocation: number | string | null = null;
 
   filterStatuses = [
     { id: 'draft', name: 'Draft' },
@@ -35,8 +83,8 @@ export class ShiftMgtComponent implements OnInit {
   ];
   selectedStatus: string | null = null;
 
-  filterSupervisors: any[] = [];
-  selectedSupervisor: any = null;
+  filterSupervisors: SupervisorOption[] = [];
+  selectedSupervisor: number | string | null = null;
 
   filterStartDate: string | null = null;
   filterEndDate: string | null = null;
@@ -44,15 +92,15 @@ export class ShiftMgtComponent implements OnInit {
 
   searchQuery: string = '';
 
-  filterShifts: any[] = [];
-  selectedShiftFilter: any = null;
+  filterShifts: ShiftFilterOption[] = [];
+  selectedShiftFilter: number | string | null = null;
 
-  shifts: any[] = [];
+  shifts: ShiftPlanTableItem[] = [];
 
-  selectedShift: any = null;
+  selectedShift: ShiftPlanTableItem | null = null;
 
   // View Details Modal State
-  viewShiftPlanData: any = null;
+  viewShiftPlanData: ShiftPlanDetailView | null = null;
   isViewDetailsModalOpen: boolean = false;
   viewModalLoading: boolean = false;
 
@@ -68,15 +116,21 @@ export class ShiftMgtComponent implements OnInit {
     this.loadShiftPlans();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    document.body.style.overflow = '';
+  }
+
   loadSites() {
-    this.shiftPlanningService.getSites().subscribe((res: any) => {
+    this.shiftPlanningService.getSites().pipe(takeUntil(this.destroy$)).subscribe((res: any) => {
       const data = res.data?.data || res.data || [];
       this.filterLocations = data;
     });
   }
 
   loadEmployees() {
-    this.shiftPlanningService.getEmployees('supervisor').subscribe((res: any) => {
+    this.shiftPlanningService.getEmployees('supervisor').pipe(takeUntil(this.destroy$)).subscribe((res: any) => {
       const data = res.data?.data || res.data || [];
       // Sirf name and designation extract kar rahe hain as requested
       this.filterSupervisors = data.map((emp: any) => ({
@@ -87,7 +141,7 @@ export class ShiftMgtComponent implements OnInit {
   }
 
   loadShifts() {
-    this.shiftPlanningService.getShifts().subscribe((res: any) => {
+    this.shiftPlanningService.getShifts().pipe(takeUntil(this.destroy$)).subscribe((res: any) => {
       const data = res.data?.data || res.data || [];
       // API returns shift_name, but ng-select uses 'name' bindLabel
       this.filterShifts = data.map((shift: any) => ({
@@ -156,7 +210,7 @@ export class ShiftMgtComponent implements OnInit {
     if (this.searchQuery) filters.search = this.searchQuery;
     if (this.selectedStatus) (filters as any).status = this.selectedStatus;
 
-    this.shiftPlanningService.getShiftPlans(filters).subscribe({
+    this.shiftPlanningService.getShiftPlans(filters).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res) => {
         if (res.status === 200 && res.data) {
           this.shifts = res.data.map((item: ShiftPlan) => {
@@ -203,7 +257,7 @@ export class ShiftMgtComponent implements OnInit {
     return Math.min((actual / target) * 100, 100);
   }
 
-  openViewModal(shift: any) {
+  openViewModal(shift: ShiftPlanTableItem) {
     this.router.navigate(['/admin/shift-mgt/summary', shift.id]);
   }
 
@@ -212,14 +266,14 @@ export class ShiftMgtComponent implements OnInit {
     document.body.style.overflow = '';
   }
 
-  openShiftPlanDetails(shift: any) {
+  openShiftPlanDetails(shift: ShiftPlanTableItem) {
     this.isViewDetailsModalOpen = true;
     this.viewModalLoading = true;
     this.viewShiftPlanData = null;
     // Add overflow hidden to body to prevent scrolling when modal is open
     document.body.style.overflow = 'hidden';
 
-    this.shiftPlanningService.getShiftPlanView(shift.id).subscribe({
+    this.shiftPlanningService.getShiftPlanView(shift.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res.status === 200 && res.data) {
           this.viewShiftPlanData = res.data;
@@ -243,7 +297,7 @@ export class ShiftMgtComponent implements OnInit {
     this.router.navigate(['/admin/shift-mgt/add']);
   }
 
-  editShift(id: string) {
+  editShift(id: string | number) {
     this.router.navigate(['/admin/shift-mgt/edit', id]);
   }
 }

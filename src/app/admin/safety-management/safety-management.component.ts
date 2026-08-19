@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpParams } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -10,6 +10,64 @@ import { SafetyService } from '../../core/services/safety.service';
 import { IncidentTypeService } from '../../core/services/incident-type.service';
 import { NotificationService } from '../../core/services/notificationnew.service';
 import { ShiftPlanningService } from '../../core/services/shift-planning.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+export interface IncidentItem {
+  id: number | string;
+  incident_date?: string;
+  shift_id?: number | string;
+  shift_name?: string;
+  incident_type_id?: number | string;
+  severity?: string;
+  location_id?: number | string;
+  person_involved_id?: number | string;
+  person_involved_name?: string;
+  person_involved_employee_code?: string;
+  incident_type?: string;
+  location_name?: string;
+  incident_no?: string;
+  incident_description?: string;
+  action_taken?: string;
+  preventive_measures?: string;
+  equipment_id?: number | string;
+  equipment_name_id?: number | string;
+  status?: string;
+  notes?: string[];
+  media?: any[];
+  [key: string]: any;
+}
+
+export interface IncidentTypeOption {
+  id: number | string;
+  name: string;
+  [key: string]: any;
+}
+
+export interface EmployeeOption {
+  id: number | string;
+  name: string;
+  [key: string]: any;
+}
+
+export interface LocationOption {
+  id: number | string;
+  name: string;
+  site_name?: string;
+  [key: string]: any;
+}
+
+export interface MachineCategoryOption {
+  id: number | string;
+  name: string;
+  [key: string]: any;
+}
+
+export interface ImportResult {
+  status: number | string;
+  message: string;
+  errors: string[];
+}
 
 @Component({
   selector: 'app-safety-management',
@@ -18,25 +76,26 @@ import { ShiftPlanningService } from '../../core/services/shift-planning.service
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, NgxPrintModule, NgxPaginationModule, NgSelectModule]
 })
-export class SafetyManagementComponent implements OnInit {
+export class SafetyManagementComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   
   isModalOpen = false;
   isDetailsPanelOpen = false;
   isFilterOpen = false;
   p: number = 1;
-  selectedIncident: any = null;
+  selectedIncident: IncidentItem | null = null;
   isEditMode = false;
   
   isImportModalOpen = false;
   isImporting = false;
-  importResult: any = null;
+  importResult: ImportResult | null = null;
   
-  mockEmployees: any[] = [];
+  mockEmployees: EmployeeOption[] = [];
 
-  mockLocations: any[] = [];
+  mockLocations: LocationOption[] = [];
   mockShifts: any[] = [];
-  mockIncidentTypes: any[] = [];
-  machineCategories: any[] = [];
+  mockIncidentTypes: IncidentTypeOption[] = [];
+  machineCategories: MachineCategoryOption[] = [];
   machineNames: any[] = [];
   shiftMachines: any[] = [];
   activeShiftEmployees: any[] = [];
@@ -56,7 +115,7 @@ export class SafetyManagementComponent implements OnInit {
     shift_name: '' // added for readonly shift field
   };
 
-  incidents: any[] = [];
+  incidents: IncidentItem[] = [];
   dashboardStats: any = {};
   pagination: any = {
     current_page: 1,
@@ -64,7 +123,7 @@ export class SafetyManagementComponent implements OnInit {
     total: 0
   };
   limit: number | string = 10;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSizes: number[] = [10, 20, 50, 100];
   searchQuery = '';
 
   constructor(
@@ -79,8 +138,13 @@ export class SafetyManagementComponent implements OnInit {
     this.loadIncidents();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadDropdowns() {
-    this.safetyService.getShifts().subscribe({
+    this.safetyService.getShifts().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.mockShifts = res.data;
@@ -88,7 +152,7 @@ export class SafetyManagementComponent implements OnInit {
       }
     });
 
-    this.safetyService.getSites().subscribe({
+    this.safetyService.getSites().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.mockLocations = res.data;
@@ -96,7 +160,7 @@ export class SafetyManagementComponent implements OnInit {
       }
     });
 
-    this.safetyService.getPublicIncidentTypes().subscribe({
+    this.safetyService.getPublicIncidentTypes().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.mockIncidentTypes = res.data;
@@ -104,7 +168,7 @@ export class SafetyManagementComponent implements OnInit {
       }
     });
 
-    this.safetyService.getEmployees().subscribe({
+    this.safetyService.getEmployees().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.mockEmployees = res.data;
@@ -112,7 +176,7 @@ export class SafetyManagementComponent implements OnInit {
       }
     });
 
-    this.safetyService.getMachineCategories().subscribe({
+    this.safetyService.getMachineCategories().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.machineCategories = res.data.map((c: any) => ({
@@ -133,7 +197,7 @@ export class SafetyManagementComponent implements OnInit {
           .filter((m: any) => m.category_id === categoryId)
           .map((m: any) => ({ id: m.machine_id, name: m.machine_name }));
       } else {
-        this.safetyService.getMachineNames(categoryId).subscribe({
+        this.safetyService.getMachineNames(categoryId).pipe(takeUntil(this.destroy$)).subscribe({
           next: (res: any) => {
             if (res && res.status === 200) {
               this.machineNames = res.data.map((m: any) => ({
@@ -231,7 +295,7 @@ export class SafetyManagementComponent implements OnInit {
       return;
     }
 
-    this.shiftPlanningService.shiftPlanFilterByDate(this.newIncidentForm.incident_date).subscribe({
+    this.shiftPlanningService.shiftPlanFilterByDate(this.newIncidentForm.incident_date).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200 && res.data) {
           this.newIncidentForm.shift_id = res.data.id || res.data.shift_id || res.data;
@@ -330,7 +394,7 @@ export class SafetyManagementComponent implements OnInit {
     if (this.filterDateFrom) params = params.set('date_from', this.formatDate(this.filterDateFrom));
     if (this.filterDateTo) params = params.set('date_to', this.formatDate(this.filterDateTo));
 
-    this.safetyService.getIncidents(params).subscribe({
+    this.safetyService.getIncidents(params).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.incidents = res.data || [];
@@ -352,10 +416,10 @@ export class SafetyManagementComponent implements OnInit {
       const formData = new FormData();
       formData.append('_method', 'PATCH');
       
-      this.safetyService.closeIncident(this.selectedIncident.id, formData).subscribe({
+      this.safetyService.closeIncident(this.selectedIncident.id, formData).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res && (res.status === 200 || res.status === 201)) {
-            this.selectedIncident.status = 'Investigation Closed';
+            if (this.selectedIncident) this.selectedIncident.status = 'Investigation Closed';
             this.notificationService.show(res.message || 'Case status updated to "Investigation Closed"', 'success', 3000);
             this.closeDetailsPanel();
             this.loadIncidents();
@@ -372,6 +436,7 @@ export class SafetyManagementComponent implements OnInit {
   }
 
   addNote() {
+    if (!this.selectedIncident) return;
     const note = prompt("Enter investigation note:");
     if (note) {
       if (!this.selectedIncident.notes) {
@@ -387,8 +452,9 @@ export class SafetyManagementComponent implements OnInit {
 
   editIncidentFiles: { file: File, preview: string | ArrayBuffer | null }[] = [];
 
-  onEditFileSelected(event: any) {
-    const files: FileList = event.target.files;
+  onEditFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files: FileList | null = input.files;
     if (files && files.length > 0) {
       const existingMediaCount = this.selectedIncident?.media ? this.selectedIncident.media.length : 0;
       const currentNewFilesCount = this.editIncidentFiles.length;
@@ -396,7 +462,7 @@ export class SafetyManagementComponent implements OnInit {
 
       if (remainingSlots <= 0) {
         this.notificationService.show('You can only have a maximum of 3 files.', 'error', 3000);
-        event.target.value = '';
+        (event.target as HTMLInputElement).value = '';
         return;
       }
 
@@ -417,7 +483,7 @@ export class SafetyManagementComponent implements OnInit {
         reader.readAsDataURL(file);
       }
     }
-    event.target.value = '';
+    (event.target as HTMLInputElement).value = '';
   }
 
   removeEditFile(index: number) {
@@ -437,7 +503,7 @@ export class SafetyManagementComponent implements OnInit {
     ];
 
     fieldsToUpdate.forEach(key => {
-      let value = this.selectedIncident[key];
+      let value = this.selectedIncident![key];
       if (value !== null && value !== undefined && value !== '') {
         if (key === 'incident_date' && value) {
           if (value.includes('T')) {
@@ -457,7 +523,7 @@ export class SafetyManagementComponent implements OnInit {
       });
     }
 
-    this.safetyService.updateIncident(this.selectedIncident.id, formData).subscribe({
+    this.safetyService.updateIncident(this.selectedIncident.id, formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && (res.status === 200 || res.status === 201)) {
           this.notificationService.show(res.message || 'Incident updated successfully!', 'success', 3000);
@@ -551,7 +617,7 @@ export class SafetyManagementComponent implements OnInit {
       });
     }
 
-    this.safetyService.addIncident(formData).subscribe({
+    this.safetyService.addIncident(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && (res.status === 200 || res.status === 201)) {
           this.notificationService.show(res.message || 'Incident logged successfully!', 'success', 3000);
@@ -571,7 +637,7 @@ export class SafetyManagementComponent implements OnInit {
   }
 
   viewDetails(incident: any) {
-    this.safetyService.getIncidentById(incident.id).subscribe({
+    this.safetyService.getIncidentById(incident.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.selectedIncident = res.data;
@@ -590,13 +656,14 @@ export class SafetyManagementComponent implements OnInit {
 
   newIncidentFiles: { file: File, preview: string | ArrayBuffer | null }[] = [];
 
-  onNewIncidentFileSelected(event: any) {
-    const files: FileList = event.target.files;
+  onNewIncidentFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const files: FileList | null = input.files;
     if (files && files.length > 0) {
       const remainingSlots = 3 - this.newIncidentFiles.length;
       if (remainingSlots <= 0) {
         this.notificationService.show('You can only upload a maximum of 3 files.', 'error', 3000);
-        event.target.value = '';
+        (event.target as HTMLInputElement).value = '';
         return;
       }
       
@@ -617,7 +684,7 @@ export class SafetyManagementComponent implements OnInit {
         reader.readAsDataURL(file);
       }
     }
-    event.target.value = ''; // Reset input to allow selecting same files again
+    (event.target as HTMLInputElement).value = ''; // Reset input to allow selecting same files again
   }
 
   removeNewIncidentFile(index: number) {
@@ -643,8 +710,9 @@ export class SafetyManagementComponent implements OnInit {
     this.isImportModalOpen = true;
   }
 
-  onImportFileSelected(event: any) {
-    const file = event.target.files[0];
+  onImportFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files ? input.files[0] : null;
     if (!file) return;
 
     const formData = new FormData();
@@ -652,7 +720,7 @@ export class SafetyManagementComponent implements OnInit {
 
     this.isImporting = true;
     this.importResult = null;
-    this.safetyService.importIncidents(formData).subscribe({
+    this.safetyService.importIncidents(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         this.isImporting = false;
         if (res && (res.status === 200 || res.status === 201 || res.status === 'success') && (!res.errors || res.errors.length === 0)) {
@@ -667,7 +735,7 @@ export class SafetyManagementComponent implements OnInit {
             errors: res.errors || []
           };
         }
-        event.target.value = '';
+        (event.target as HTMLInputElement).value = '';
       },
       error: (err: any) => {
         this.isImporting = false;
@@ -700,7 +768,7 @@ export class SafetyManagementComponent implements OnInit {
           message: errObj.message || err.message || 'Failed to import.',
           errors: formattedErrors.length > 0 ? formattedErrors : (errObj.errors || [])
         };
-        event.target.value = '';
+        (event.target as HTMLInputElement).value = '';
       }
     });
   }

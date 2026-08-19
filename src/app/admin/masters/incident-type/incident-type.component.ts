@@ -12,6 +12,16 @@ import { takeUntil } from 'rxjs/operators';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { IncidentTypeService } from 'src/app/core/services/incident-type.service';
 
+export interface IncidentTypeItem {
+  id: number | string;
+  name?: string;
+  incident_type?: string;
+  description?: string;
+  is_active?: number | boolean;
+  status?: number | boolean | string;
+  [key: string]: any;
+}
+
 @Component({
   selector: 'app-incident-type',
   templateUrl: './incident-type.component.html',
@@ -32,16 +42,16 @@ export class IncidentTypeComponent implements OnInit, OnDestroy {
   updateForm!: FormGroup;
   viewForm!: FormGroup;
   
-  tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
-  totalRecords: any;
+  tableSize: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
+  totalRecords: number = 0;
   page: number = 1;
   
   createModalOpen: boolean = false;
   updateModalOpen: boolean = false;
   viewModalOpen: boolean = false;
-  selectedItem: any = null;
-  currentId: any;
+  selectedItem: IncidentTypeItem | null = null;
+  currentId: number | string | null = null;
 
   table_heading = [
     {
@@ -53,14 +63,14 @@ export class IncidentTypeComponent implements OnInit, OnDestroy {
   ];
 
   // MOCK DATA
-  masterList: any[] = [
+  masterList: IncidentTypeItem[] = [
     { id: 1, name: 'Fire', is_active: 1 },
     { id: 2, name: 'Spill', is_active: 1 },
     { id: 3, name: 'Equipment Failure', is_active: 1 },
     { id: 4, name: 'Accident', is_active: 0 },
     { id: 5, name: 'Medical Emergency', is_active: 1 }
   ];
-  filteredList: any[] = [];
+  filteredList: IncidentTypeItem[] = [];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -93,13 +103,17 @@ export class IncidentTypeComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  onTableSizeChange(event: any): void {
-    this.tableSize = event && event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number): void {
+    if (typeof event === 'number') {
+      this.tableSize = event;
+    } else if (event && event.target) {
+      this.tableSize = Number((event.target as HTMLInputElement).value);
+    }
     this.page = 1;
     this.GetListFun();
   }
 
-  onTableDataChange(event: any) {
+  onTableDataChange(event: number) {
     this.page = event;
     this.GetListFun();
   }
@@ -157,7 +171,7 @@ export class IncidentTypeComponent implements OnInit, OnDestroy {
     this.updateForm.reset();
   }
 
-  OpenEditModal(user: any): void {
+  OpenEditModal(user: IncidentTypeItem): void {
     this.currentId = user.id;
     this.incidentTypeService.getIncidentTypeById(user.id)
       .pipe(takeUntil(this.destroy$))
@@ -177,11 +191,11 @@ export class IncidentTypeComponent implements OnInit, OnDestroy {
       });
   }
 
-  openviewModal(user: any): void {
+  openviewModal(user: IncidentTypeItem): void {
     this.viewModalOpen = true;
     this.currentId = user.id;
     this.selectedItem = user;
-    this.viewForm.patchValue({ Name: user.name });
+    this.viewForm.patchValue({ Name: user.name || user.incident_type });
   }
 
   createItem() {
@@ -241,7 +255,7 @@ export class IncidentTypeComponent implements OnInit, OnDestroy {
     }
   }
 
-  Status(id: number, status: any) {
+  Status(id: number | string, status: boolean | number | string) {
     const formData = new FormData();
     formData.append('_method', 'PATCH');
     formData.append('status', status.toString());

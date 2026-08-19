@@ -1,0 +1,109 @@
+<div class="container mb-4 mt-3">
+  <div class="card border-0 mb-4 px-4 py-4 shadow-sm rounded">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="text-primary fw-bold mb-0">Employee Details</h5>
+    </div>
+
+    <!-- Massive Data Table -->
+    <div class="table-responsive" style="max-height: 65vh; overflow-x: auto; overflow-y: auto;">
+      <table class="table table-bordered table-hover table-striped mb-0 table-register"
+        style="white-space: nowrap; width: max-content;">
+        <thead class="sticky-header table-header">
+          <tr>
+            <th class="sticky-col align-middle" style="left: 0; width: 50px; min-width: 50px; max-width: 50px;">S.No.
+            </th>
+            <th class="sticky-col align-middle" style="left: 50px; width: 130px; min-width: 130px; max-width: 130px;">
+              Employee Code</th>
+            <th class="sticky-col align-middle"
+              style="left: 180px; width: 200px; min-width: 200px; max-width: 200px; border-right: 2px solid #cbd5e1;">
+              Name</th>
+            <th class="align-middle px-3" style="min-width: 120px;">Surname</th>
+            <th class="align-middle px-3">Gender (Male, Female, Transgender)</th>
+            <th class="align-middle px-3">Father's/Husband's Name</th>
+            <th class="align-middle px-3">Date of Birth</th>
+            <th class="align-middle px-3">Nationality</th>
+            <th class="align-middle px-3">Education Level</th>
+            <th class="align-middle px-3">Date of Joining</th>
+            <th class="align-middle px-3">Designation</th>
+            <th class="align-middle px-3">Category/Address (H S / S / S S / U S)</th>
+            <th class="align-middle px-3">Type of Employment</th>
+            <th class="align-middle px-3">Place of Employment</th>
+            <th class="align-middle px-3">Mobile</th>
+            <th class="align-middle px-3">EPF UAN</th>
+            <th class="align-middle px-3">PAN</th>
+            <th class="align-middle px-3">ESIC IP</th>
+            <th class="align-middle px-3">LWF</th>
+            <th class="align-middle px-3">Aadhaar Number</th>
+            <th class="align-middle px-3">Bank A/c Number</th>
+            <th class="align-middle px-3">Bank</th>
+            <th class="align-middle px-3">Branch (IFSC)</th>
+            <th class="align-middle px-3" style="max-width: 250px;">Present Address</th>
+            <th class="align-middle px-3" style="max-width: 250px;">Permanent Address</th>
+            <th class="align-middle px-3">Service Book No.</th>
+            <th class="align-middle px-3">Date of Exit</th>
+            <th class="align-middle px-3" style="max-width: 250px;">Reason for Exit</th>
+            <th class="align-middle px-3">Mark of Identification</th>
+            <th class="align-middle px-3">Photo</th>
+            <th class="align-middle px-3">Specimen Signature/Thumb Impression</th>
+            <th class="align-middle px-3" style="max-width: 250px;">Remarks (if any)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let emp of employeeList | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
+            <td class="sticky-col align-middle" style="left: 0; width: 50px; min-width: 50px; max-width: 50px;">{{ (page
+              - 1) * (tableSize === 'all' ? totalRecords : +tableSize) + i + 1 }}</td>
+            <td class="sticky-col align-middle" style="left: 50px; width: 130px; min-width: 130px; max-width: 130px;">{{
+              emp.empId || emp.employee_code }}</td>
+            <td class="sticky-col align-middle text-truncate"
+              style="left: 180px; width: 200px; min-width: 200px; max-width: 200px;"
+              title="{{ emp.employee_name || emp.name }}">{{ emp.employee_name || emp.name }}</td>
+            <td class="align-middle px-3">{{ emp.surname || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.gender || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.father_name || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.dob || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.nationality || 'Indian' }}</td>
+            <td class="align-middle px-3">{{ emp.education_level || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.joining_date || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.designation || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.skill_category_label || '--' }}</td>
+            <td class="align-middle px-3" style="text-transform: capitalize;">{{ emp.employee_type || 'Permanent' }}
+            </td>
+            <td class="align-middle px-3">{{ emp.place_of_employment || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.mobile || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.payroll?.uan || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.payroll?.pan || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.payroll?.esic_ip_number || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.payroll?.lwf_number || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.payroll?.aadhaar_number || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.payroll?.bank_account_number || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.payroll?.bank_name || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.payroll?.ifsc_code || '--' }}</td>
+            <td class="align-middle px-3 text-truncate" style="max-width: 250px;" title="{{ emp.address }}">{{
+              emp.address || '--' }}</td>
+            <td class="align-middle px-3 text-truncate" style="max-width: 250px;" title="{{ emp.permanent_address }}">{{
+              emp.permanent_address || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.service_book_no || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.date_of_exit || '--' }}</td>
+            <td class="align-middle px-3 text-truncate" style="max-width: 250px;">{{ emp.reason_for_exit || '--' }}</td>
+            <td class="align-middle px-3">{{ emp.identification_mark || '--' }}</td>
+            <td class="align-middle px-3"><i class="fa-solid fa-image"></i></td>
+            <td class="align-middle px-3">--</td>
+            <td class="align-middle px-3 text-truncate" style="max-width: 250px;">{{ emp.remarks || '--' }}</td>
+          </tr>
+          <tr *ngIf="employeeList.length === 0">
+            <td colspan="32" class="text-center py-4">No records found</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center mt-3">
+      <span class="showalltext">Showing {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : 1 }} to {{
+        tableSize * page <= totalRecords ? tableSize * page : totalRecords }} of {{ totalRecords !=undefined ?
+          totalRecords : "" }} entries</span>
+          <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true"
+            (pageChange)="onTableDataChange($event)"></pagination-controls>
+    </div>
+  </div>
+</div>

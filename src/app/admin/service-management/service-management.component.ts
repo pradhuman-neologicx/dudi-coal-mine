@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxPaginationModule } from 'ngx-pagination';
@@ -9,6 +9,77 @@ import { EquipmentService } from 'src/app/core/services/equipment.service';
 import { BreakdownTypeService } from 'src/app/core/services/breakdown-type.service';
 import { ProductService } from 'src/app/core/services/product.service';
 import { ShiftPlanningService } from 'src/app/core/services/shift-planning.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+export interface MachineOption {
+  id: number | string;
+  name: string;
+  categoryName?: string;
+}
+
+export interface BreakdownTypeItem {
+  id: number | string;
+  name: string;
+  is_active?: number;
+  status?: number;
+  [key: string]: any;
+}
+
+export interface SparePartItem {
+  id: number | string;
+  product_id?: number | string;
+  name: string;
+  product_name?: string;
+  category?: string;
+  subCategory?: string;
+  availableQty?: number;
+  price?: number;
+  [key: string]: any;
+}
+
+export interface ActiveBreakdownItem {
+  id: number | string;
+  ticketNumber: string;
+  machineId: number | string;
+  equipmentName: string;
+  type: string;
+  description: string;
+  date?: string;
+}
+
+export interface ServiceRecordItem {
+  id: number | string;
+  ticketNumber?: string;
+  breakdownId?: number | string | null;
+  machineId?: number | string | null;
+  machineName?: string;
+  serviceDate?: string;
+  serviceStartTime?: string;
+  serviceEndTime?: string;
+  downtimeMinutes?: number;
+  odometerReading?: number | string;
+  kmRun?: number | string;
+  timeGap?: number | string;
+  serviceType?: string;
+  serviceTypeAmount?: number;
+  oilChange?: string;
+  oilChangeAmount?: number;
+  hydraulicOil?: string;
+  hydraulicOilAmount?: number;
+  gearOil?: string;
+  gearOilAmount?: number;
+  fuelFilterChange?: string;
+  fuelFilterChangeAmount?: number;
+  oilFilterChange?: string;
+  oilFilterChangeAmount?: number;
+  sparePartsChange?: string;
+  spareParts?: any[];
+  totalCost?: number;
+  status?: string;
+  remarks?: string;
+  attachments?: any[];
+}
 
 @Component({
   selector: 'app-service-management',
@@ -17,7 +88,8 @@ import { ShiftPlanningService } from 'src/app/core/services/shift-planning.servi
   templateUrl: './service-management.component.html',
   styleUrl: './service-management.component.scss'
 })
-export class ServiceManagementComponent implements OnInit {
+export class ServiceManagementComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
   isLoading = false;
   isSubmitting = false;
   selectedFiles: File[] = [];
@@ -53,16 +125,12 @@ export class ServiceManagementComponent implements OnInit {
     avgServiceTime: '4 Hours'
   };
 
-  // Mock Data
-  machines: any[] = [];
-
-  breakdownTypes: any[] = [];
-  
-  sparePartsList: any[] = [];
-
-  activeBreakdowns: any[] = [];
-
-  servicesList: any[] = [];
+  // Datasets
+  machines: MachineOption[] = [];
+  breakdownTypes: BreakdownTypeItem[] = [];
+  sparePartsList: SparePartItem[] = [];
+  activeBreakdowns: ActiveBreakdownItem[] = [];
+  servicesList: ServiceRecordItem[] = [];
 
   // Breakdown auto-fill dynamic data
   breakdownShifts: any[] = [];
@@ -91,8 +159,13 @@ export class ServiceManagementComponent implements OnInit {
     this.totalRecords = this.servicesList.length;
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   fetchMachines() {
-    this.equipmentService.getActiveMachines().subscribe({
+    this.equipmentService.getActiveMachines().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200 && res.data) {
           const list = Array.isArray(res.data) ? res.data : (res.data?.data || res.data || []);
@@ -108,7 +181,7 @@ export class ServiceManagementComponent implements OnInit {
   }
 
   fetchBreakdownTypes() {
-    this.breakdownService.getPublicBreakdownTypes().subscribe({
+    this.breakdownService.getPublicBreakdownTypes().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200 && res.data) {
           this.breakdownTypes = res.data.filter((type: any) => type.is_active === 1 || type.status === 1)
@@ -123,7 +196,7 @@ export class ServiceManagementComponent implements OnInit {
   }
 
   fetchActiveBreakdowns() {
-    this.breakdownService.getOpenBreakdowns().subscribe({
+    this.breakdownService.getOpenBreakdowns().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200 && res.data) {
           const list = Array.isArray(res.data) ? res.data : (res.data?.data || res.data || []);
@@ -143,7 +216,7 @@ export class ServiceManagementComponent implements OnInit {
   }
 
   fetchSparePartsList() {
-    this.productService.getAvailableProducts().subscribe({
+    this.productService.getAvailableProducts().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200 && res.data) {
           const list = Array.isArray(res.data) ? res.data : (res.data?.data || res.data || []);
@@ -168,7 +241,7 @@ export class ServiceManagementComponent implements OnInit {
       service_type: this.filterServiceType === 'All' ? null : (this.filterServiceType === 'General Service' ? 'general' : 'repair'),
       date_from: this.filterFromDate || null,
       date_to: this.filterEndDate || null
-    }).subscribe({
+    }).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         this.isLoading = false;
         if (res && res.status === 200 && res.data) {
@@ -321,7 +394,7 @@ export class ServiceManagementComponent implements OnInit {
 
   onBreakdownDateChange(dateTime: string) {
     if (dateTime) {
-      this.shiftPlanningService.shiftPlanFilterByDate(dateTime).subscribe({
+      this.shiftPlanningService.shiftPlanFilterByDate(dateTime).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res && res.status === 200 && res.data) {
             const data = res.data;
@@ -645,7 +718,7 @@ export class ServiceManagementComponent implements OnInit {
     
     this.populateEditForm(this.parseServiceRecordData(service, service));
 
-    this.serviceRecordService.getServiceRecordById(service.id).subscribe({
+    this.serviceRecordService.getServiceRecordById(service.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         const data = res?.data || res;
         if (data && (data.id || data.ticket_number || data.machine)) {
@@ -715,7 +788,7 @@ export class ServiceManagementComponent implements OnInit {
   viewService(service: any) {
     this.viewModalData = this.parseServiceRecordData(service, service);
     this.isViewModalOpen = true;
-    this.serviceRecordService.getServiceRecordById(service.id).subscribe({
+    this.serviceRecordService.getServiceRecordById(service.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         const data = res?.data || res;
         if (data) {
@@ -758,7 +831,7 @@ export class ServiceManagementComponent implements OnInit {
         reported_by: val.reportedBy
       };
 
-      this.breakdownService.createBreakdown(payload).subscribe({
+      this.breakdownService.createBreakdown(payload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.isSubmitting = false;
           if (res && (res.status === 200 || res.status === 201)) {
@@ -861,7 +934,7 @@ export class ServiceManagementComponent implements OnInit {
         ? this.serviceRecordService.updateServiceRecord(this.editingServiceId, formData)
         : this.serviceRecordService.createServiceRecord(formData);
 
-      apiCall.subscribe({
+      apiCall.pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.isSubmitting = false;
           this.notificationService.show(res?.message || 'Service record saved successfully', 'success', 3000);

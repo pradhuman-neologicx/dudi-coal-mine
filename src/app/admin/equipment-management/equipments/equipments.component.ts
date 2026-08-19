@@ -16,6 +16,11 @@ export interface Equipment {
   isActive: boolean;
 }
 
+export interface EquipmentCategoryOption {
+  id: number;
+  name: string;
+}
+
 @Component({
   selector: 'app-equipments',
   standalone: true,
@@ -26,25 +31,29 @@ export interface Equipment {
 export class EquipmentsComponent implements OnInit, OnDestroy {
   equipments: Equipment[] = [];
   filteredEquipments: Equipment[] = [];
-  categories: {id: number, name: string}[] = [];
-  activeCategories: {id: number, name: string}[] = [];
+  categories: EquipmentCategoryOption[] = [];
+  activeCategories: EquipmentCategoryOption[] = [];
   private destroy$ = new Subject<void>();
 
   // Pagination
   page: number = 1;
   tableSize: any = 10;
   totalRecords: number = 0;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSizes: any[] = [10, 20, 50, 100];
 
   // Filters
   filterSearch: string = '';
-  filterCategory: any = null;
+  filterCategory: number | null = null;
 
   // Modal
   isModalOpen = false;
   isEditMode = false;
   equipmentForm!: FormGroup;
   selectedEquipmentId: number | null = null;
+
+  trackByEquipmentId(index: number, item: Equipment): number {
+    return item.id;
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -141,13 +150,14 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
     this.onFilterChange();
   }
 
-  onTableDataChange(event: any) {
-    this.page = event;
+  onTableDataChange(pageNumber: number) {
+    this.page = pageNumber;
     this.loadData();
   }
 
-  onTableSizeChange(event: any) {
-    this.tableSize = event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number) {
+    const target = (event as Event).target as HTMLSelectElement | null;
+    this.tableSize = target ? Number(target.value) : Number(event);
     this.page = 1;
     this.loadData();
   }

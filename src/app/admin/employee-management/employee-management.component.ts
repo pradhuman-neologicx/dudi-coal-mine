@@ -23,6 +23,63 @@ import { RelayService } from 'src/app/core/services/relay.service';
 import { forkJoin, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+export interface DropdownItem {
+  id: number | string;
+  name: string;
+  status?: number;
+  is_active?: number;
+}
+
+export interface Employee {
+  id: number | string;
+  employee_code?: string;
+  empId?: string;
+  name: string;
+  surname?: string;
+  father_name?: string;
+  fatherName?: string;
+  mobile?: string;
+  dob?: string;
+  joining_date?: string;
+  joiningDate?: string;
+  gender?: string;
+  department_id?: number | string;
+  department?: any;
+  designation_id?: number | string;
+  designation?: any;
+  site_id?: number | string;
+  site?: any;
+  relay_id?: number | string;
+  relay?: any;
+  employee_type?: string;
+  empType?: string;
+  skill_category?: string;
+  category?: string;
+  address?: string;
+  permanent_address?: string;
+  emergency_contact?: string;
+  emergencyContact?: string;
+  status?: number;
+  is_active?: number;
+  placeOfWork?: string;
+  remarks?: string;
+  shift?: string;
+  relay_shift?: string;
+  nationality?: string;
+  educationLevel?: string;
+  identificationMark?: string;
+  permanentAddress?: string;
+  skillCategory?: string;
+  serviceBookNo?: string;
+  [key: string]: any;
+}
+
+export interface UploadResult {
+  status: number;
+  message: string;
+  errors: string[];
+}
+
 @Component({
   selector: 'app-employee-management',
   standalone: true,
@@ -79,41 +136,44 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
   employeeForm!: FormGroup;
 
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
-  totalRecords: any;
+  tableSizes: any[] = [10, 20, 50, 100];
+  totalRecords: number = 0;
   page: number = 1;
 
   employeeModalOpen: boolean = false;
   isEditMode: boolean = false;
   viewEmployeeOpen: boolean = false;
-  currentEmployeeId: any;
-  selectedEmployee: any = null;
+  currentEmployeeId: number | string | null = null;
+  selectedEmployee: Employee | null = null;
+
+  selectedPhoto: File | null = null;
+  selectedSignature: File | null = null;
 
   activeTab: 'personal' | 'employment' = 'personal';
 
-  employeeList: any[] = [];
+  employeeList: Employee[] = [];
 
   table_heading = ['S.No.', 'Emp Code', 'Name', 'Contact', 'Department', 'Designation', 'Relay/General', 'Shift Type', 'Status', 'Action'];
 
-  sitesList: any[] = [];
-  departmentsList: any[] = [];
-  designationsList: any[] = [];
-  relaysList: any[] = [];
+  sitesList: DropdownItem[] = [];
+  departmentsList: DropdownItem[] = [];
+  designationsList: DropdownItem[] = [];
+  relaysList: DropdownItem[] = [];
 
   uploadModalOpen: boolean = false;
   uploadForm!: FormGroup;
-  selectedUploadFile: any = null;
+  selectedUploadFile: File | null = null;
   selectedUploadFileName: string = '';
   isUploading: boolean = false;
-  uploadResult: any = null;
+  uploadResult: UploadResult | null = null;
 
   // Bulk Assign Shift variables
   bulkAssignModalOpen: boolean = false;
   bulkAssignForm!: FormGroup;
-  selectedBulkAssignFile: any = null;
+  selectedBulkAssignFile: File | null = null;
   selectedBulkAssignFileName: string = '';
   isBulkAssigning: boolean = false;
-  bulkAssignResult: any = null;
+  bulkAssignResult: UploadResult | null = null;
 
   // Assign Shift variables
   assignShiftModalOpen: boolean = false;
@@ -218,21 +278,47 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       // Personal
       empId: ['', [Validators.required]],
       name: ['', [Validators.required]],
+      surname: [''],
       fatherName: ['', [Validators.required]],
       dob: ['', [Validators.required]],
       gender: ['', [Validators.required]],
+      nationality: ['Indian'],
+      educationLevel: [''],
+      markOfIdentification: [''],
       mobile: ['', [Validators.required, Validators.pattern('^[0-9]{10}$')]],
-      address: ['', [Validators.required]],
+      address: ['', [Validators.required]], // Present Address
+      permanentAddress: [''],
+      sameAsPresent: [false],
       emergencyContact: ['', [Validators.pattern('^[0-9]{10}$')]],
+      photo: [null],
+      signature: [null],
 
       // Employment
       joiningDate: ['', [Validators.required]],
-      empType: [''],
+      category: ['', [Validators.required]],
+      empType: ['permanent'],
       department: ['', [Validators.required]],
       designation: ['', [Validators.required]],
       relay: ['', [Validators.required]],
-
+      serviceBookNo: [''],
+      dateOfExit: [''],
+      reasonForExit: [''],
+      placeOfWork: [''],
+      remarks: [''],
+      site: ['', [Validators.required]]
     });
+  }
+
+  onSameAsPresentChange(event: any) {
+    if (event.target.checked) {
+      this.employeeForm.patchValue({
+        permanentAddress: this.employeeForm.get('address')?.value
+      });
+    } else {
+      this.employeeForm.patchValue({
+        permanentAddress: ''
+      });
+    }
   }
 
   loadDropdownData() {
@@ -550,7 +636,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     if (tab === 'personal') {
       controls = ['empId', 'name', 'fatherName', 'dob', 'gender', 'mobile', 'address'];
     } else if (tab === 'employment') {
-      controls = ['joiningDate', 'empType', 'department', 'designation'];
+      controls = ['joiningDate', 'category', 'department', 'designation', 'relay', 'site'];
     }
 
     let isValid = true;
@@ -619,11 +705,16 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
 
   openAddModal() {
     this.isEditMode = false;
+    this.currentEmployeeId = null;
     this.employeeForm.reset({
-      isMessApplicable: 'No',
-      isOthersDeductionApplicable: 'No',
-      othersDeductionAmount: ''
+      nationality: 'Indian',
+      sameAsPresent: false,
+      gender: '',
+      category: '',
+      empType: 'permanent'
     });
+    this.selectedPhoto = null;
+    this.selectedSignature = null;
     this.activeTab = 'personal';
     this.employeeModalOpen = true;
   }
@@ -632,6 +723,24 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     this.employeeModalOpen = false;
     this.viewEmployeeOpen = false;
     this.selectedEmployee = null;
+    this.selectedPhoto = null;
+    this.selectedSignature = null;
+  }
+
+  onFileSelected(event: any, field: 'photo' | 'signature') {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        this.notificationService.show(`${field === 'photo' ? 'Photo' : 'Signature'} size should not exceed 2MB.`, 'error', 3000);
+        event.target.value = ''; // Reset input
+        return;
+      }
+      if (field === 'photo') {
+        this.selectedPhoto = file;
+      } else {
+        this.selectedSignature = file;
+      }
+    }
   }
 
   openviewModal(employee: any): void {
@@ -664,6 +773,15 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             bankName: emp.bank_name,
             accountNumber: emp.bank_account_number,
             ifscCode: emp.ifsc_code,
+            nationality: emp.nationality,
+            educationLevel: emp.education_level,
+            identificationMark: emp.identification_mark,
+            permanentAddress: emp.permanent_address,
+            serviceBookNo: emp.service_book_no,
+            skillCategory: emp.skill_category,
+            site: emp.site,
+            placeOfWork: emp.place_of_work,
+            remarks: emp.remarks,
             is_active: emp.status !== undefined ? emp.status : emp.is_active
           };
         } else {
@@ -679,6 +797,20 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     });
   }
 
+  private findIdByNameOrId(list: any[], value: any, fallbackId: any): string {
+    if (!list || list.length === 0) return fallbackId || '';
+    if (value) {
+      const valStr = String(value).trim().toLowerCase();
+      const obj = list.find(item => 
+        (item.name && item.name.trim().toLowerCase() === valStr) ||
+        String(item.id) === valStr ||
+        item.id === fallbackId
+      );
+      if (obj) return obj.id;
+    }
+    return fallbackId || '';
+  }
+
   openEditModal(employee: any): void {
     this.isEditMode = true;
     this.currentEmployeeId = employee.id;
@@ -688,56 +820,47 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
         if (response.status === 200 && response.data) {
           const emp = Array.isArray(response.data) ? response.data[0] : response.data;
 
-          // Find department ID and designation ID based on name or ID properties
-          let deptId = '';
-          if (emp.department) {
-            const deptObj = this.departmentsList.find(d =>
-              (d.name && d.name.trim().toLowerCase() === emp.department.trim().toLowerCase()) ||
-              d.id === emp.department_id ||
-              String(d.id) === String(emp.department)
-            );
-            if (deptObj) deptId = deptObj.id;
-          } else if (emp.department_id) {
-            deptId = emp.department_id;
-          }
+          const deptId = this.findIdByNameOrId(this.departmentsList, emp.department, emp.department_id);
+          const desigId = this.findIdByNameOrId(this.designationsList, emp.designation, emp.designation_id);
+          const relayId = this.findIdByNameOrId(this.relaysList, emp.relay_shift || emp.relay, emp.relay_id);
+          const siteId = this.findIdByNameOrId(this.sitesList, emp.site, emp.site_id);
 
-          let desigId = '';
-          if (emp.designation) {
-            const desigObj = this.designationsList.find(d =>
-              (d.name && d.name.trim().toLowerCase() === emp.designation.trim().toLowerCase()) ||
-              d.id === emp.designation_id ||
-              String(d.id) === String(emp.designation)
-            );
-            if (desigObj) desigId = desigObj.id;
-          } else if (emp.designation_id) {
-            desigId = emp.designation_id;
-          }
+          let cat = emp.skill_category || emp.category || '';
+          if (cat === 'highly_skilled' || cat === 'HS') cat = 'highly_skilled';
+          else if (cat === 'skilled' || cat === 'S') cat = 'skilled';
+          else if (cat === 'semi_skilled' || cat === 'SS') cat = 'semi_skilled';
+          else if (cat === 'un_skilled' || cat === 'unskilled' || cat === 'US') cat = 'unskilled';
+          else cat = (cat || '').toLowerCase();
 
-          let relayId = '';
-          if (emp.relay_id) {
-            relayId = emp.relay_id;
-          } else if (emp.relay_shift || emp.relay) {
-            let rawRelay = String(emp.relay_shift || emp.relay).trim().toLowerCase();
-            const matchingRelay = this.relaysList.find(r => r.name.toLowerCase() === rawRelay);
-            if (matchingRelay) {
-              relayId = matchingRelay.id;
-            }
-          }
+          let eType = (emp.employee_type || emp.empType || '').toLowerCase();
+          const genderVal = emp.gender ? emp.gender.toLowerCase() : '';
 
           const formData = {
             empId: emp.employee_code || '',
             name: emp.name || '',
+            surname: emp.surname || '',
             fatherName: emp.father_name || '',
             dob: this.formatDateToYYYYMMDD(emp.dob),
-            gender: emp.gender ? (emp.gender.charAt(0).toUpperCase() + emp.gender.slice(1)) : '',
+            gender: genderVal,
+            nationality: emp.nationality || 'Indian',
+            educationLevel: emp.education_level || '',
+            markOfIdentification: emp.identification_mark || emp.mark_of_identification || '',
             mobile: emp.mobile || '',
             address: emp.address || '',
+            permanentAddress: emp.permanent_address || '',
             emergencyContact: emp.emergency_contact || '',
             joiningDate: this.formatDateToYYYYMMDD(emp.joining_date),
-            empType: emp.employee_type === 'permanent' ? 'Permanent' : (emp.employee_type === 'daily_wage' ? 'Daily Wage' : ''),
+            category: cat,
+            empType: eType,
             department: deptId,
             designation: desigId,
-            relay: relayId
+            relay: relayId,
+            serviceBookNo: emp.service_book_no || '',
+            dateOfExit: this.formatDateToYYYYMMDD(emp.date_of_exit),
+            reasonForExit: emp.reason_for_exit || '',
+            placeOfWork: emp.place_of_work || '',
+            remarks: emp.remarks || '',
+            site: siteId
           };
 
           this.employeeForm.patchValue(formData);
@@ -760,60 +883,71 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
 
       const formData = new FormData();
       formData.append('name', empData.name || '');
+      formData.append('surname', empData.surname || '');
       formData.append('mobile', empData.mobile || '');
       formData.append('employee_code', empData.empId || '');
       formData.append('dob', this.formatDateToDMY(empData.dob));
       formData.append('joining_date', this.formatDateToDMY(empData.joiningDate));
       formData.append('gender', empData.gender ? empData.gender.toLowerCase() : '');
+      formData.append('nationality', empData.nationality || '');
+      formData.append('education_level', empData.educationLevel || '');
+      formData.append('identification_mark', empData.markOfIdentification || '');
       formData.append('department_id', empData.department || '');
       formData.append('designation_id', empData.designation || '');
+      formData.append('site_id', empData.site || '');
       formData.append('emergency_contact', empData.emergencyContact || '');
       formData.append('address', empData.address || '');
+      formData.append('permanent_address', empData.permanentAddress || '');
       formData.append('father_name', empData.fatherName || '');
       formData.append('relay_id', empData.relay || '');
+      
+      let skillCat = empData.category || '';
+      if (skillCat === 'unskilled') skillCat = 'un_skilled';
+      formData.append('skill_category', skillCat);
+      
+      let eType = empData.empType ? empData.empType.toLowerCase() : '';
+      formData.append('employee_type', eType);
+
+      formData.append('service_book_no', empData.serviceBookNo || '');
+      formData.append('date_of_exit', this.formatDateToDMY(empData.dateOfExit));
+      formData.append('reason_for_exit', empData.reasonForExit || '');
+      formData.append('place_of_work', empData.placeOfWork || '');
+      formData.append('remarks', empData.remarks || '');
+
+      if (this.selectedPhoto) {
+        formData.append('photo', this.selectedPhoto);
+      }
+      if (this.selectedSignature) {
+        formData.append('signature', this.selectedSignature);
+      }
 
       if (this.isEditMode) {
         formData.append('_method', 'PUT');
-        this.employeeManagementService.updateEmployee(this.currentEmployeeId, formData).pipe(takeUntil(this.destroy$)).subscribe({
-          next: (response: any) => {
-            if (response.status === 200 || response.status === 201) {
-              this.notificationService.show(response.message, 'success', 3000);
-              this.closeModal();
-              this.GetEmployeeFun();
-            } else {
-              this.notificationService.show(response.message, 'error', 3000);
-            }
-          },
-          error: (error: any) => {
-            console.error('Update Employee failed:', error);
-            let errorMsg = error.error?.message || error.message;
-            if (error.error?.errors) {
-              errorMsg = Object.values(error.error.errors).flat().join(' | ');
-            }
-            this.notificationService.show(errorMsg, 'error', 3000);
-          }
-        });
-      } else {
-        this.employeeManagementService.createEmployee(formData).pipe(takeUntil(this.destroy$)).subscribe({
-          next: (response: any) => {
-            if (response.status === 200 || response.status === 201) {
-              this.notificationService.show(response.message, 'success', 3000);
-              this.closeModal();
-              this.GetEmployeeFun();
-            } else {
-              this.notificationService.show(response.message, 'error', 3000);
-            }
-          },
-          error: (error: any) => {
-            console.error('Create Employee failed:', error);
-            let errorMsg = error.error?.message || error.message;
-            if (error.error?.errors) {
-              errorMsg = Object.values(error.error.errors).flat().join(' | ');
-            }
-            this.notificationService.show(errorMsg, 'error', 3000);
-          }
-        });
       }
+
+      const saveObservable$ = this.isEditMode
+        ? this.employeeManagementService.updateEmployee(this.currentEmployeeId, formData)
+        : this.employeeManagementService.createEmployee(formData);
+
+      saveObservable$.pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.notificationService.show(response.message, 'success', 3000);
+            this.closeModal();
+            this.GetEmployeeFun();
+          } else {
+            this.notificationService.show(response.message, 'error', 3000);
+          }
+        },
+        error: (error: any) => {
+          console.error(this.isEditMode ? 'Update Employee failed:' : 'Create Employee failed:', error);
+          let errorMsg = error.error?.message || error.message;
+          if (error.error?.errors) {
+            errorMsg = Object.values(error.error.errors).flat().join(' | ');
+          }
+          this.notificationService.show(errorMsg, 'error', 3000);
+        }
+      });
     } else {
       this.employeeForm.markAllAsTouched();
       this.notificationService.show('Please fill all required fields correctly.', 'error', 3000);
@@ -847,7 +981,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       });
   }
 
-  async Status(id: string, status: any) {
+  async Status(id: string | number, status: any) {
     const formData = new FormData();
     formData.append('status', status.toString());
     formData.append('_method', 'PATCH');

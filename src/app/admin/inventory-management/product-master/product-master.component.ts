@@ -10,6 +10,25 @@ import { ProductService } from 'src/app/core/services/product.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
+export interface CategoryGroupedOption {
+  id?: number | string;
+  name: string;
+  category: string;
+}
+
+export interface ProductDetailResponse {
+  id: number;
+  name: string;
+  category_name?: string;
+  sub_category_name?: string;
+  sub_category_id?: number;
+  min_stock: number;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any;
+}
+
 interface Product {
   id: number;
   name: string;
@@ -44,51 +63,11 @@ export class ProductMasterComponent implements OnInit, OnDestroy {
   // Pagination parameters
   page = 1;
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSizes: any[] = [10, 20, 50, 100];
   totalRecords = 0;
 
-  // Mock Categories list with Subcategories grouped under them
-  categories: { name: string; subcategories: string[] }[] = [
-    {
-      name: 'Pump House',
-      subcategories: ['Pump House', 'Pump House Fitting', 'Water Pump', 'Sump Pump']
-    },
-    {
-      name: 'IRP',
-      subcategories: ['IRP', 'IRP Valve', 'Pressure Gauge', 'Agitator Motor', 'Air Blower']
-    },
-    {
-      name: 'Pump House+IRP',
-      subcategories: ['Pump House+IRP', 'Integrated Pump', 'Flow Meter']
-    },
-    {
-      name: 'JCB',
-      subcategories: ['JCB', 'JCB Bucket', 'Hydraulic Hose']
-    },
-    {
-      name: 'Misc',
-      subcategories: ['Misc', 'General Tools', 'Safety Gear']
-    },
-    {
-      name: 'RMC/Road Work',
-      subcategories: ['RMC/Road Work', 'Admixture', 'Aggregate (10 MM)', 'Aggregate (20 MM)']
-    },
-    {
-      name: 'Civil Work',
-      subcategories: ['Civil Work', 'Cement Bags', 'Steel Rods']
-    },
-    {
-      name: 'Combine',
-      subcategories: ['Combine', 'Cut Off Machine', 'Harvester Blade']
-    },
-    {
-      name: 'Road Work',
-      subcategories: ['Road Work', 'Adjustable Props', 'Asphalt Mix']
-    }
-  ];
-
   // Flat Categories list with group mapping for ng-select
-  categoriesGrouped: any[] = [
+  categoriesGrouped: CategoryGroupedOption[] = [
     { name: 'Pump House', category: 'Pump House' },
     { name: 'Pump House Fitting', category: 'Pump House' },
     { name: 'Water Pump', category: 'Pump House' },
@@ -130,7 +109,7 @@ export class ProductMasterComponent implements OnInit, OnDestroy {
     { name: 'Asphalt Mix', category: 'Road Work' }
   ];
 
-  // Mock Products list removed, will be populated via API
+  // Products list populated via API
   products: Product[] = [];
   filteredProducts: Product[] = [];
 
@@ -145,7 +124,7 @@ export class ProductMasterComponent implements OnInit, OnDestroy {
   viewProductForm!: FormGroup;
 
   selectedProduct: Product | null = null;
-  selectedProductDetails: any = null;
+  selectedProductDetails: ProductDetailResponse | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -251,8 +230,9 @@ export class ProductMasterComponent implements OnInit, OnDestroy {
     this.refreshFilteredData();
   }
 
-  onTableSizeChange(event: any) {
-    this.tableSize = event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number) {
+    const target = (event as Event).target as HTMLSelectElement | null;
+    this.tableSize = target ? Number(target.value) : Number(event);
     this.page = 1;
     this.refreshFilteredData();
   }

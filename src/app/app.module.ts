@@ -29,6 +29,8 @@ import { EmployeePayrollComponent } from './admin/employee-payroll/employee-payr
 import { IncidentTypeComponent } from './admin/masters/incident-type/incident-type.component';
 import { SeverityLevelComponent } from './admin/masters/severity-level/severity-level.component';
 import { RelaySettingsComponent } from './admin/relay-settings/relay-settings.component';
+import { WageMasterComponent } from './admin/masters/wage-master/wage-master.component';
+import { SalaryPayrollManagementComponent } from './admin/salary-payroll-management/salary-payroll-management.component';
 
 
 
@@ -50,6 +52,8 @@ import { RelaySettingsComponent } from './admin/relay-settings/relay-settings.co
     IncidentTypeComponent,
     SeverityLevelComponent,
     RelaySettingsComponent,
+    WageMasterComponent,
+    SalaryPayrollManagementComponent,
 
   ],
   imports: [

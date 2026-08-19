@@ -18,6 +18,16 @@ import { MatButtonModule } from '@angular/material/button';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { NgSelectModule } from '@ng-select/ng-select';
 
+export interface DesignationItem {
+  id: number | string;
+  name?: string;
+  designation_name?: string;
+  status?: boolean | number | string;
+  updated_at?: string;
+  is_active?: boolean | number | string;
+  [key: string]: any;
+}
+
 @Component({
   selector: 'app-designation',
   standalone: true,
@@ -68,14 +78,14 @@ export class DesignationComponent implements OnInit, OnDestroy {
 
   showreset: boolean = false;
   searchbarform!: FormGroup;
-  tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
-  totalRecords: any;
+  tableSize: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
+  totalRecords: number = 0;
   page: number = 1;
   viewDesignationOpen: boolean = false;
-  selectedDesignation: any = null;
+  selectedDesignation: DesignationItem | null = null;
 
-  designationList: any[] = [];
+  designationList: DesignationItem[] = [];
   table_heading = ['Serial No.', 'Designation Name', 'Status', 'Action'];
 
   constructor(
@@ -96,13 +106,17 @@ export class DesignationComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  onTableSizeChange(event: any): void {
-    this.tableSize = event && event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number): void {
+    if (typeof event === 'number') {
+      this.tableSize = event;
+    } else if (event && event.target) {
+      this.tableSize = Number((event.target as HTMLInputElement).value);
+    }
     this.page = 1;
     this.GetDesignationFun();
   }
 
-  onTableDataChange(event: any) {
+  onTableDataChange(event: number) {
     this.page = event;
     this.GetDesignationFun();
   }
@@ -120,7 +134,7 @@ export class DesignationComponent implements OnInit, OnDestroy {
     this.GetDesignationFun();
   }
 
-  openviewModal(designation: any): void {
+  openviewModal(designation: DesignationItem): void {
     this.viewDesignationOpen = true;
     this.selectedDesignation = null;
 
@@ -162,7 +176,7 @@ export class DesignationComponent implements OnInit, OnDestroy {
       });
   }
 
-  async Status(id: string, status: any) {
+  async Status(id: number | string, status: boolean | number | string) {
     const formData = new FormData();
     formData.append('_method', 'PATCH');
     formData.append('status', status.toString());

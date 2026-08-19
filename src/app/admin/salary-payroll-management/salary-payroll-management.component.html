@@ -1,0 +1,803 @@
+<div class="container mb-4 no-print">
+
+  <!-- View 1: Overview Dashboard -->
+  <div *ngIf="currentView === 'overview'">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+      <div>
+        <h1 class="text-primary table-heading-detail mb-1">Salary Overview</h1>
+        <p class="text-muted mb-0 fs-6">Manage and review employee salaries month-wise.</p>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+
+        <!-- Premium Year Selector using custom Bootstrap UI + Material Datepicker Engine -->
+        <div class="position-relative">
+          <!-- Invisible input provides anchor coordinates for the Datepicker popup -->
+          <input [matDatepicker]="yearPicker" [value]="selectedDate"
+            style="position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; opacity: 0; pointer-events: none; z-index: -1;">
+          <mat-datepicker #yearPicker startView="multi-year"
+            (yearSelected)="chosenYearHandler($event, yearPicker)"></mat-datepicker>
+
+          <button class="btn bg-white border px-3 py-2 hover-up d-flex align-items-center gap-2 shadow-sm"
+            style="height: 42px; min-width: 120px; justify-content: space-between; border-color: #dee2e6 !important;"
+            (click)="yearPicker.open()">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-calendar-days text-primary"></i>
+              <span class="fw-bold text-dark" style="font-size: 0.95rem;">{{ selectedYear }}</span>
+            </div>
+            <i class="fa-solid fa-chevron-down ms-1 text-muted" style="font-size: 0.75rem;"></i>
+          </button>
+        </div>
+
+        <button class="btn btn-outline-secondary px-4 py-2 hover-up d-flex align-items-center gap-2 shadow-sm"
+          style="height: 42px;" (click)="exportReports()" [disabled]="isExporting">
+          <span *ngIf="isExporting" class="spinner-border spinner-border-sm" role="status"></span>
+          <i *ngIf="!isExporting" class="fa-solid fa-download"></i> {{ isExporting ? 'Exporting...' : 'Export' }}
+        </button>
+        <button class="btn btn-custom-primary px-4 py-2 hover-up d-flex align-items-center gap-2 shadow-sm"
+          (click)="goToAdd()" style="height: 42px;">
+          <i class="fa-solid fa-plus"></i> Add Salary
+        </button>
+      </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="card border-0 shadow-sm my-4 px-4 py-4">
+
+      <!-- Toolbar -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
+          <span class="show-entery-text fs-7">Show</span>
+          <ng-select [items]="tableSizes" [(ngModel)]="overviewShowEntries" (change)="onOverviewShowEntriesChange()"
+            [clearable]="false" [searchable]="false" class="custom-ng-select" style="min-width: 80px;">
+          </ng-select>
+          <span class="show-entery-text fs-7">entries</span>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped mb-0 text-nowrap">
+          <thead class="table-header">
+            <tr>
+              <th>
+                <p class="table-heading">Month</p>
+              </th>
+              <th>
+                <p class="table-heading text-center">Total Employees</p>
+              </th>
+              <th>
+                <p class="table-heading text-end">Total Gross Salary</p>
+              </th>
+              <th>
+                <p class="table-heading text-end">Total Deductions</p>
+              </th>
+              <th>
+                <p class="table-heading text-end">Total Net Salary</p>
+              </th>
+              <!-- <th><p class="table-heading text-center">Status</p></th> -->
+              <th>
+                <p class="table-heading text-center">Action</p>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoadingOverview">
+              <td colspan="6" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="text-muted fs-8 mt-2">Loading salary reports...</div>
+              </td>
+            </tr>
+            <tr *ngIf="!isLoadingOverview && monthlySalaries.length === 0">
+              <td colspan="6" class="text-center py-4 text-muted fs-7">
+                No salary records found for {{ selectedYear }}.
+              </td>
+            </tr>
+            <ng-container *ngIf="!isLoadingOverview">
+              <tr
+                *ngFor="let m of monthlySalaries | paginate: { itemsPerPage: overviewShowEntries, currentPage: overviewP, totalItems: monthlySalaries.length, id: 'overview-pagination' }"
+                class="align-middle">
+                <td>
+                  <div class="fw-bold text-dark fs-7">{{ m.month }} {{ m.year }}</div>
+                </td>
+                <td class="text-center">
+                  <span class="text-dark fs-8 fw-semibold">{{ m.totalEmployees }}</span>
+                </td>
+                <td class="text-end">
+                  <span class="text-dark fs-8 fw-semibold">{{ m.grossSalary === '-' ? '-' : '₹' + (m.grossSalary | number)
+                    }}</span>
+                </td>
+                <td class="text-end">
+                  <span class="text-danger fs-8 fw-bold">{{ m.totalDeductions === '-' ? '-' : '₹' + (m.totalDeductions |
+                    number) }}</span>
+                </td>
+                <td class="text-end">
+                  <span class="fs-7 fw-bold text-primary">{{ m.netSalary === '-' ? '-' : '₹' + (m.netSalary | number)
+                    }}</span>
+                </td>
+                <!-- <td class="text-center">
+                  <span *ngIf="m.status === 'GENERATED'" class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 fs-8 fw-semibold">
+                    GENERATED
+                  </span>
+                  <span *ngIf="m.status !== 'GENERATED'" class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2.5 py-1.5 fs-8 fw-semibold">
+                    NOT GENERATED
+                  </span>
+                </td> -->
+                <td class="text-center">
+                  <button *ngIf="m.status === 'GENERATED'" class="btn-action view-btn" (click)="goToDetail(m)"
+                    title="View Details">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                  <span *ngIf="m.status !== 'GENERATED'" class="text-muted fs-8">-</span>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center border-top mt-3"
+        *ngIf="monthlySalaries.length > 0">
+        <span class="showalltext text-muted fs-8">Showing
+          {{ overviewShowEntries * (overviewP - 1) > 0 ? overviewShowEntries * (overviewP - 1) + 1 : 1 }} to
+          {{ overviewShowEntries * overviewP <= monthlySalaries.length ? overviewShowEntries * overviewP :
+            monthlySalaries.length }} of {{ monthlySalaries.length }} entries</span>
+            <pagination-controls (pageChange)="onOverviewPageChange($event)" id="overview-pagination"
+              class="my-pagination"></pagination-controls>
+      </div>
+    </div>
+  </div>
+
+  <!-- View 2: Detail View -->
+  <div *ngIf="currentView === 'detail'">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4 border-bottom pb-3"
+      style="margin-top: 15px;">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-link text-muted p-0 text-decoration-none hover-up" (click)="goToOverview()">
+          <i class="fa-solid fa-arrow-left fs-4"></i>
+        </button>
+        <div>
+          <h1 class="text-primary table-heading-detail mb-1">{{ selectedReportSummary?.monthLabel || (selectedMonthDetails?.month + ' ' + selectedMonthDetails?.year) }} Salary</h1>
+          <div class="text-muted fs-8 fw-semibold d-flex gap-3 flex-wrap">
+            <span>Generated: {{ selectedReportSummary?.generatedAt || selectedMonthDetails?.generatedAt || 'N/A' }}</span>
+            <span>Total Employees: {{ selectedReportSummary?.employeeCount ?? selectedMonthDetails?.totalEmployees }}</span>
+            <span>Gross: ₹{{ (selectedReportSummary?.totalEarnings ?? selectedMonthDetails?.grossSalary) | number }}</span>
+            <span>Net: ₹{{ (selectedReportSummary?.totalNet ?? selectedMonthDetails?.netSalary) | number }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100 position-relative">
+          <div class="text-muted fs-9 fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Total Employees</div>
+          <div class="fs-4 fw-bold text-dark">{{ (selectedReportSummary?.employeeCount ?? selectedMonthDetails?.totalEmployees) }}</div>
+          <i class="fa-solid fa-users-cog position-absolute text-muted fs-4"
+            style="top: 24px; right: 24px; opacity: 0.5;"></i>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100 position-relative">
+          <div class="text-muted fs-9 fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Gross Salary</div>
+          <div class="fs-4 fw-bold text-dark">₹{{ (selectedReportSummary?.totalEarnings ?? selectedMonthDetails?.grossSalary) | number }}</div>
+          <i class="fa-solid fa-money-bill-wave position-absolute text-muted fs-4"
+            style="top: 24px; right: 24px; opacity: 0.5;"></i>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100 position-relative border-bottom border-danger border-3">
+          <div class="text-muted fs-9 fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Total Deductions</div>
+          <div class="fs-4 fw-bold text-danger">₹{{ (selectedReportSummary?.totalDeductions ?? selectedMonthDetails?.totalDeductions) | number }}</div>
+          <i class="fa-solid fa-level-down-alt position-absolute text-danger fs-4"
+            style="top: 24px; right: 24px; opacity: 0.5;"></i>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 shadow-sm p-4 h-100 position-relative border-bottom border-primary border-3">
+          <div class="text-muted fs-9 fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Net Salary</div>
+          <div class="fs-4 fw-bold text-primary">₹{{ (selectedReportSummary?.totalNet ?? selectedMonthDetails?.netSalary) | number }}</div>
+          <i class="fa-solid fa-wallet position-absolute text-primary fs-4"
+            style="top: 24px; right: 24px; opacity: 0.5;"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Details Table -->
+    <div class="card border-0 shadow-sm my-4 px-4 py-4">
+
+      <!-- Toolbar -->
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
+          <span class="show-entery-text fs-7">Show</span>
+          <ng-select [items]="tableSizes" [(ngModel)]="showEntries" (change)="onShowEntriesChange()" [clearable]="false"
+            [searchable]="false" class="custom-ng-select" style="min-width: 80px;">
+          </ng-select>
+          <span class="show-entery-text fs-7">entries</span>
+        </div>
+
+        <!-- Premium Search Bar -->
+        <div class="d-flex gap-3 flex-grow-1 ms-4" style="max-width: 320px;">
+          <div class="position-relative w-100">
+            <i class="fa-solid fa-magnifying-glass position-absolute text-muted"
+              style="top: 50%; left: 14px; transform: translateY(-50%); font-size: 0.85rem; z-index: 4;"></i>
+            <input type="text" class="form-control shadow-sm" placeholder="Search employees..." [(ngModel)]="detailSearchQuery" (keyup.enter)="onDetailSearch()" (input)="onDetailSearch()"
+              style="height: 42px; padding-left: 38px; border-radius: 6px; border-color: #dee2e6; font-size: 0.9rem;">
+          </div>
+        </div>
+
+        <button class="btn btn-outline-secondary ms-3 px-3 hover-up d-flex align-items-center gap-2 shadow-sm"
+          style="height: 42px; font-size: 0.85rem;" (click)="exportSingleReportDetail()" [disabled]="isExporting">
+          <span *ngIf="isExporting" class="spinner-border spinner-border-sm" role="status"></span>
+          <i *ngIf="!isExporting" class="fa-solid fa-download"></i> {{ isExporting ? 'Exporting...' : 'Export CSV' }}
+        </button>
+      </div>
+
+      <!-- Table -->
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped mb-0 text-nowrap align-middle">
+          <thead class="table-header text-center align-middle" style="font-size: 0.75rem;">
+            <tr>
+              <th rowspan="2" class="align-middle" style="width: 50px;">S. No.</th>
+              <th rowspan="2" class="align-middle">Name</th>
+              <th rowspan="2" class="align-middle">Rate of Wage</th>
+              <th rowspan="2" class="align-middle">No. of days<br>worked</th>
+              <th rowspan="2" class="align-middle">Overtime hours<br>Worked</th>
+              <th rowspan="2" class="align-middle">Basic</th>
+              <th rowspan="2" class="align-middle">Special basic</th>
+              <th rowspan="2" class="align-middle">Dearness<br>Allowance</th>
+              <th rowspan="2" class="align-middle">Payments<br>Overtime</th>
+              <th rowspan="2" class="align-middle">HRA</th>
+              <th rowspan="2" class="align-middle">*Others</th>
+              <th rowspan="2" class="align-middle fw-bold bg-light text-dark">Total</th>
+              <th colspan="8" class="text-center border-bottom bg-light text-dark">Deduction</th>
+              <th rowspan="2" class="align-middle fw-bold bg-light text-primary">Net Payment</th>
+              <th rowspan="2" class="align-middle">Employer Share PF<br>Welfare Fund</th>
+              <th rowspan="2" class="align-middle">Receipt by Employee/<br>Bank Transaction ID</th>
+              <th rowspan="2" class="align-middle">Date of Payment</th>
+              <th rowspan="2" class="align-middle">Remarks</th>
+            </tr>
+            <tr class="bg-light text-dark">
+              <th>PF</th>
+              <th>ESIC</th>
+              <th>Society</th>
+              <th>Income Tax</th>
+              <th>Insurance</th>
+              <th>Others</th>
+              <th>Recoveries</th>
+              <th class="fw-bold">Total</th>
+            </tr>
+            <!-- Number row (1 to 25) -->
+            <tr class="text-muted bg-light" style="font-size: 0.65rem;">
+              <th *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]">{{i}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoadingDetail">
+              <td colspan="25" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="text-muted fs-8 mt-2">Loading report details...</div>
+              </td>
+            </tr>
+            <tr *ngIf="!isLoadingDetail && employeeSalaries.length === 0">
+              <td colspan="25" class="text-center py-4 text-muted fs-7">
+                No employee salary records found.
+              </td>
+            </tr>
+            <ng-container *ngIf="!isLoadingDetail">
+              <tr
+                *ngFor="let emp of employeeSalaries | paginate: { itemsPerPage: showEntries, currentPage: p, totalItems: totalRecordsDetail }; let i = index"
+                class="text-center align-middle" style="font-size: 0.8rem;">
+                <td class="text-muted fw-bold">{{ (p - 1) * showEntries + i + 1 }}</td>
+                <td class="fw-bold text-dark text-start" style="min-width: 150px;">
+                  <div>{{ emp.name }}</div>
+                  <div class="text-muted fs-9 font-monospace" *ngIf="emp.id">{{ emp.id }}</div>
+                </td>
+                <td>{{ emp.rateOfWage ? ('₹' + (emp.rateOfWage | number)) : '-' }}</td>
+                <td>{{ emp.daysWorked }}</td>
+                <td>{{ emp.overtimeHours }}</td>
+                <td>₹{{ emp.basic | number }}</td>
+                <td>{{ emp.specialBasic ? ('₹' + (emp.specialBasic | number)) : '-' }}</td>
+                <td>{{ emp.da ? ('₹' + (emp.da | number)) : '-' }}</td>
+                <td>₹{{ emp.overtimePayments | number }}</td>
+                <td>{{ emp.hra ? ('₹' + (emp.hra | number)) : '-' }}</td>
+                <td>{{ emp.othersEarn ? ('₹' + (emp.othersEarn | number)) : '-' }}</td>
+                <td class="fw-bold text-success bg-light">₹{{ emp.totalEarn | number }}</td>
+
+                <!-- Deductions -->
+                <td class="text-danger">₹{{ emp.pf | number }}</td>
+                <td class="text-danger">{{ emp.esic ? ('₹' + (emp.esic | number)) : '-' }}</td>
+                <td class="text-danger">{{ emp.society ? ('₹' + (emp.society | number)) : '-' }}</td>
+                <td class="text-danger">{{ emp.incomeTax ? ('₹' + (emp.incomeTax | number)) : '-' }}</td>
+                <td class="text-danger">{{ emp.insurance ? ('₹' + (emp.insurance | number)) : '-' }}</td>
+                <td class="text-danger">₹{{ emp.othersDed | number }}</td>
+                <td class="text-danger">₹{{ emp.recoveries | number }}</td>
+                <td class="fw-bold text-danger bg-light">₹{{ emp.totalDed | number }}</td>
+
+                <td class="fw-bold text-primary bg-light" style="font-size: 0.9rem;">₹{{ emp.netSalary | number }}</td>
+                <td>{{ emp.employerPfWelfare ? ('₹' + (emp.employerPfWelfare | number)) : '-' }}</td>
+                <td class="text-muted" style="min-width: 130px;">{{ emp.bankTxnId }}</td>
+                <td class="text-muted">{{ emp.paymentDate }}</td>
+                <td class="text-muted" style="min-width: 120px;">{{ emp.remarks }}</td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer -->
+      <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center border-top mt-3"
+        *ngIf="totalRecordsDetail > 0">
+        <span class="showalltext text-muted fs-8">Showing
+          {{ showEntries * (p - 1) > 0 ? showEntries * (p - 1) + 1 : 1 }} to
+          {{ showEntries * p <= totalRecordsDetail ? showEntries * p : totalRecordsDetail }} of {{ totalRecordsDetail }}
+            entries</span>
+            <pagination-controls (pageChange)="onPageChange($event)" class="my-pagination"></pagination-controls>
+      </div>
+    </div>
+  </div>
+
+  <!-- View 3: Add / Generate View -->
+  <div *ngIf="currentView === 'add'">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+      <div>
+        <div class="d-flex gap-2 align-items-center mb-1">
+          <button class="btn btn-link text-muted p-0 text-decoration-none hover-up me-2" (click)="goToOverview()">
+            <i class="fa-solid fa-arrow-left fs-4"></i>
+          </button>
+          <h1 class="text-primary table-heading-detail mb-0">Generate Salary</h1>
+        </div>
+        <p class="text-muted mb-0 fs-6 ms-5">Select the salary month and year to generate monthly salary.</p>
+      </div>
+    </div>
+
+    <!-- Single Unified Card -->
+    <div class="card border-0 shadow-sm mt-3">
+      <div class="card-body p-0">
+        <div class="row g-0">
+
+          <!-- LEFT: Upload Area -->
+          <div class="col-md-8 border-end">
+            <div class="p-5">
+              <h5 class="fw-bold text-dark border-bottom pb-3 mb-4">Upload Salary Data</h5>
+
+              <!-- Drop Zone -->
+              <div *ngIf="!selectedFile && !isValidating && !uploadedFileSummary"
+                class="border border-2 border-dashed rounded-3 p-5 text-center bg-light cursor-pointer hover-bg-gray transition"
+                (click)="fileInput.click()">
+                <input type="file" #fileInput style="display: none;" (change)="onFileSelected($event)" accept=".xlsx, .xls">
+                <div class="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm"
+                  style="width: 60px; height: 60px;">
+                  <i class="fa-solid fa-cloud-arrow-up fs-3"></i>
+                </div>
+                <h6 class="fw-bold text-dark mb-1">Drag & Drop your completed Excel file here or Choose File</h6>
+                <p class="text-muted fs-8 mb-4">Support: .xlsx, .xls (Max 10MB)</p>
+                <button type="button" class="btn px-4 py-2 rounded-pill fw-bold fs-7 hover-up shadow-sm text-white"
+                  style="background-color: #6b7a87;" (click)="fileInput.click(); $event.stopPropagation()">
+                  Browse Files
+                </button>
+              </div>
+
+              <!-- File Selected -->
+              <div *ngIf="(selectedFile || uploadedFileSummary) && !isValidating"
+                class="bg-primary-subtle border border-primary rounded-3 p-3 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                  <i class="fa-solid fa-file-excel fs-1 text-primary"></i>
+                  <div>
+                    <div class="fw-bold text-dark fs-7">{{ selectedFile?.name || uploadedFileSummary?.fileName }}</div>
+                    <div class="text-muted fs-8 fw-semibold" *ngIf="fileSizeStr">{{ fileSizeStr }}</div>
+                  </div>
+                </div>
+                <button (click)="removeFile()" class="btn btn-link text-danger p-0 hover-up fs-5">
+                  <i class="fa-regular fa-trash-can"></i>
+                </button>
+              </div>
+
+              <!-- Validating -->
+              <div *ngIf="isValidating" class="border-start border-primary border-4 rounded-2 bg-primary-subtle p-4 d-flex align-items-center gap-4">
+                <div class="text-primary spinner-border" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <div>
+                  <h5 class="fw-bold text-dark mb-1">Validating Salary File...</h5>
+                  <p class="text-muted mb-0 fs-7">Please wait while we validate employee salary records.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Select Salary Period -->
+          <div class="col-md-4">
+            <div class="p-4 d-flex flex-column h-100">
+              <h6 class="fw-bold text-muted text-uppercase fs-8 mb-3" style="letter-spacing: 0.5px;">Select Salary Period</h6>
+
+              <!-- Month + Year Picker -->
+              <div class="position-relative mb-3">
+                <input [matDatepicker]="monthPicker" [value]="addSelectedDate"
+                  style="position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; opacity: 0; pointer-events: none; z-index: -1;">
+                <mat-datepicker #monthPicker startView="year"
+                  (monthSelected)="chosenMonthHandler($event, monthPicker)"></mat-datepicker>
+
+                <button class="btn bg-white border w-100 py-2 hover-up d-flex align-items-center justify-content-between shadow-sm"
+                  style="height: 48px; border-color: #dee2e6 !important;" (click)="monthPicker.open()">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="fa-solid fa-calendar-days text-primary fs-6"></i>
+                    <span class="fw-bold text-dark fs-6 ms-1">{{ addMonth }} {{ addYear }}</span>
+                  </div>
+                  <i class="fa-solid fa-chevron-down text-muted fs-8"></i>
+                </button>
+              </div>
+
+              <!-- Check Salary Button -->
+              <button (click)="continueToCheckSalary()" [disabled]="isValidating"
+                class="btn btn-custom-primary w-100 py-2 hover-up fw-bold d-flex align-items-center justify-content-center gap-2"
+                style="height: 48px; font-size: 0.95rem;">
+                <span *ngIf="!isValidating">Check Salary <i class="fa-solid fa-arrow-right fs-9 ms-1"></i></span>
+                <span *ngIf="isValidating" class="d-flex align-items-center gap-2">
+                  <span class="spinner-border spinner-border-sm"></span> Checking...
+                </span>
+              </button>
+
+              <!-- Status Messages -->
+              <div class="mt-3">
+                <!-- Success: downloaded -->
+                <div *ngIf="apiFile && !isValidating"
+                  class="rounded-3 p-3 d-flex align-items-start gap-2 bg-success-subtle border border-success-subtle">
+                  <i class="fa-solid fa-circle-check text-success mt-1"></i>
+                  <div>
+                    <p class="fw-bold text-success mb-0 fs-7">File Downloaded!</p>
+                    <p class="text-muted fs-8 mb-0">{{ apiFile.name }}</p>
+                  </div>
+                </div>
+
+                <!-- Already Generated -->
+                <div *ngIf="isAlreadyGenerated && !isValidating"
+                  class="rounded-3 p-3 d-flex align-items-start gap-2 bg-warning-subtle border border-warning-subtle">
+                  <i class="fa-solid fa-circle-info text-warning mt-1"></i>
+                  <div>
+                    <p class="fw-bold text-dark mb-0 fs-7">Already Available</p>
+                    <p class="text-muted fs-8 mb-0">Salary data for {{ addMonth }} {{ addYear }} is already in the system.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+
+    <!-- SUMMARY TABLE (Same view as Add) -->
+    <div *ngIf="uploadedFileSummary && currentView === 'add'" class="mt-5 pt-3 border-top border-2">
+      <div class="mb-3">
+        <h4 class="fw-bold text-dark d-flex align-items-center gap-2 mb-1">
+          Data Preview
+          <span *ngIf="hasValidationErrors"
+            class="badge rounded-pill bg-danger-subtle text-danger px-2 py-1 fs-9 border border-danger-subtle">ERRORS
+            FOUND</span>
+        </h4>
+        <p class="text-muted fs-7 mb-0">Review the uploaded file summary before proceeding.</p>
+      </div>
+
+      <div class="card border rounded-3 shadow-sm mb-4 overflow-hidden">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover mb-0 text-nowrap align-middle">
+            <thead class="table-header text-center align-middle">
+              <tr>
+                <th>
+                  <p class="table-heading text-center mb-0">Document ID</p>
+                </th>
+                <th>
+                  <p class="table-heading text-center mb-0">File Name</p>
+                </th>
+                <th>
+                  <p class="table-heading text-center mb-0">Upload By</p>
+                </th>
+                <th>
+                  <p class="table-heading text-center mb-0">Status</p>
+                </th>
+                <th>
+                  <p class="table-heading text-center mb-0">Action</p>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="text-center align-middle">
+                <td class="text-muted fw-bold fs-7">{{ uploadedFileSummary.documentId }}</td>
+                <td class="text-primary fw-bold fs-7">{{ uploadedFileSummary.fileName }}</td>
+                <td class="text-dark fs-7">{{ uploadedFileSummary.uploadBy }}</td>
+                <td>
+                  <span class="badge px-3 py-2 fs-8 fw-bold"
+                    [ngClass]="(uploadedFileSummary.status === 'Ready' || uploadedFileSummary.status === 'Success') && !uploadedFileSummary.hasErrors ? 'bg-success-subtle text-success border border-success' : 'bg-danger-subtle text-danger border border-danger'">
+                    <i class="fa-solid me-1"
+                      [ngClass]="(uploadedFileSummary.status === 'Ready' || uploadedFileSummary.status === 'Success') && !uploadedFileSummary.hasErrors ? 'fa-check-circle' : 'fa-circle-xmark'"></i>
+                    {{ uploadedFileSummary.status }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <button class="btn btn-sm btn-outline-primary px-3 py-1 fs-8 fw-bold" title="Preview"
+                    (click)="openFilePreview(uploadedFileSummary.uploadId)">
+                    <i class="fa-solid fa-eye me-1"></i> Preview
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+        <button class="btn px-4 py-2 rounded-pill fw-bold shadow-sm"
+          [ngClass]="hasValidationErrors ? 'btn-secondary' : 'btn-custom-primary'" (click)="submitSalary()"
+          [disabled]="hasValidationErrors || isSubmitting">
+          <span *ngIf="!isSubmitting">
+            <i class="fa-solid fa-check me-2"></i> Submit Data
+          </span>
+          <span *ngIf="isSubmitting" class="d-flex align-items-center gap-2">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: Preview / Errors (Row Level Details) -->
+  <div *ngIf="currentView === 'file-preview-details'">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+      <div>
+        <div class="d-flex gap-2 align-items-center mb-1">
+          <button class="btn btn-link text-muted p-0 text-decoration-none hover-up me-2" (click)="goBackToUpload()">
+            <i class="fa-solid fa-arrow-left fs-4"></i>
+          </button>
+          <h1 class="text-primary table-heading-detail mb-0">Row Level Preview</h1>
+        </div>
+        <p class="text-muted mb-0 fs-6 ms-5">Review and fix highlighted errors cell by cell.</p>
+      </div>
+    </div>
+
+    <!-- Data Preview Table -->
+    <div class="card border rounded-3 shadow-sm mb-4 overflow-hidden">
+      <div class="table-responsive">
+        <table class="table table-bordered mb-0 align-middle text-nowrap">
+          <thead class="table-header text-center align-middle" style="font-size: 0.75rem;">
+            <tr>
+              <th rowspan="2" class="align-middle" style="width: 50px;">S. No.</th>
+              <th rowspan="2" class="align-middle">EMP ID</th>
+              <th rowspan="2" class="align-middle">Name</th>
+              <th rowspan="2" class="align-middle">Rate of Wage</th>
+              <th rowspan="2" class="align-middle">No. of days<br>worked</th>
+              <th rowspan="2" class="align-middle">Overtime hours<br>Worked</th>
+              <th rowspan="2" class="align-middle">Basic</th>
+              <th rowspan="2" class="align-middle">Special basic</th>
+              <th rowspan="2" class="align-middle">Dearness<br>Allowance</th>
+              <th rowspan="2" class="align-middle">Payments<br>Overtime</th>
+              <th rowspan="2" class="align-middle">HRA</th>
+              <th rowspan="2" class="align-middle">*Others</th>
+              <th rowspan="2" class="align-middle fw-bold bg-success-subtle text-success">Total</th>
+              <th colspan="8" class="text-center border-bottom bg-danger-subtle text-danger">Deduction</th>
+              <th rowspan="2" class="align-middle fw-bold bg-primary-subtle text-primary">Net Payment</th>
+              <th rowspan="2" class="align-middle">Employer Share PF<br>Welfare Fund</th>
+              <th rowspan="2" class="align-middle">Receipt by Employee/<br>Bank Transaction ID</th>
+              <th rowspan="2" class="align-middle">Date of Payment</th>
+              <th rowspan="2" class="align-middle">Remarks</th>
+              <th rowspan="2" class="align-middle">STATUS</th>
+            </tr>
+            <tr class="bg-danger-subtle text-danger">
+              <th>PF</th>
+              <th>ESIC</th>
+              <th>Society</th>
+              <th>Income Tax</th>
+              <th>Insurance</th>
+              <th>Others</th>
+              <th>Recoveries</th>
+              <th class="fw-bold">Total</th>
+            </tr>
+            <!-- Number row (1 to 27) -->
+            <tr class="text-muted bg-light" style="font-size: 0.65rem;">
+              <th *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]">{{i}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoadingPreviewDetails">
+              <td colspan="28" class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <div class="text-muted fs-8 mt-2">Loading row preview data...</div>
+              </td>
+            </tr>
+            <tr *ngIf="!isLoadingPreviewDetails && previewData.length === 0">
+              <td colspan="28" class="text-center py-4 text-muted fs-7">
+                No preview rows found.
+              </td>
+            </tr>
+            <ng-container *ngIf="!isLoadingPreviewDetails">
+              <tr *ngFor="let row of previewData | paginate: { itemsPerPage: previewShowEntries, currentPage: previewP, totalItems: totalPreviewRecords, id: 'preview-pagination' }; let i = index" class="text-center align-middle"
+                style="font-size: 0.8rem;" [ngStyle]="{'background-color': row.hasError ? '#fcf0f0' : '#ffffff'}">
+                <td class="text-muted fw-bold">{{ (previewP - 1) * previewShowEntries + i + 1 }}</td>
+
+                <!-- EMP ID -->
+                <td class="text-start" (click)="editField(row, 'id')">
+                  <div *ngIf="row.idError && !row.isEditingid"
+                    class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 fw-semibold shadow-sm cursor-pointer">
+                    {{ row.id }} <i class="fa-regular fa-circle-exclamation"></i>
+                  </div>
+                  <input *ngIf="row.isEditingid" type="text" class="form-control form-control-sm"
+                    [(ngModel)]="row.id" (blur)="saveField(row, 'id')" (keyup.enter)="saveField(row, 'id')"
+                    (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.idError && !row.isEditingid" class="text-dark fw-semibold cursor-pointer">{{ row.id }}</div>
+                </td>
+
+                <!-- NAME -->
+                <td class="fw-bold text-dark text-start" style="min-width: 150px;" (click)="editField(row, 'name')">
+                  <div *ngIf="row.nameError && !row.isEditingname"
+                    class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 fw-semibold shadow-sm cursor-pointer">
+                    {{ row.name }} <i class="fa-regular fa-circle-exclamation"></i>
+                  </div>
+                  <input *ngIf="row.isEditingname" type="text" class="form-control form-control-sm"
+                    [(ngModel)]="row.name" (blur)="saveField(row, 'name')" (keyup.enter)="saveField(row, 'name')"
+                    (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.nameError && !row.isEditingname" class="text-dark fw-semibold cursor-pointer">{{ row.name }}</div>
+                </td>
+
+                <!-- Other Columns -->
+                <td>₹{{ row.rateOfWage | number }}</td>
+                <td>{{ row.daysWorked }}</td>
+                <td>{{ row.overtimeHours }}</td>
+                <td>₹{{ row.basic | number }}</td>
+                <td>₹{{ row.specialBasic | number }}</td>
+                <td>₹{{ row.da | number }}</td>
+                <td>₹{{ row.overtimePayments | number }}</td>
+                <td>₹{{ row.hra | number }}</td>
+                <td>₹{{ row.othersEarn | number }}</td>
+                <td class="fw-bold text-success bg-success-subtle">₹{{ row.totalEarn | number }}</td>
+
+                <!-- Deductions -->
+                <td>₹{{ row.pf | number }}</td>
+                <td>₹{{ row.esic | number }}</td>
+                <td>₹{{ row.society | number }}</td>
+                <td>₹{{ row.incomeTax | number }}</td>
+                <td>₹{{ row.insurance | number }}</td>
+                <td>₹{{ row.othersDed | number }}</td>
+                <td>₹{{ row.recoveries | number }}</td>
+                <td class="fw-bold text-danger bg-danger-subtle">₹{{ row.totalDed | number }}</td>
+
+                <!-- Net Payment with Error Check -->
+                <td class="fw-bold bg-primary-subtle text-primary"
+                  [ngClass]="{'cursor-pointer': row.netSalaryError && !row.isEditingnetSalary}"
+                  (click)="row.netSalaryError && !row.isEditingnetSalary ? editField(row, 'netSalary') : null">
+                  <div *ngIf="row.netSalaryError && !row.isEditingnetSalary"
+                    class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm">
+                    ₹{{ row.netSalary | number }} <i class="fa-regular fa-circle-exclamation"></i>
+                  </div>
+                  <input *ngIf="row.netSalaryError && row.isEditingnetSalary" type="number"
+                    class="form-control form-control-sm" [(ngModel)]="row.netSalary" (blur)="saveField(row, 'netSalary')"
+                    (keyup.enter)="saveField(row, 'netSalary')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.netSalaryError">₹{{ row.netSalary | number }}</div>
+                </td>
+
+                <td>₹{{ row.employerPfWelfare | number }}</td>
+                <td>{{ row.bankTxnId || 'N/A' }}</td>
+                <td>{{ row.paymentDate || 'N/A' }}</td>
+                <td class="text-start" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;">{{ row.remarks
+                  }}</td>
+
+                <!-- STATUS -->
+                <td class="text-center bg-light">
+                  <i *ngIf="!row.hasError" class="fa-regular fa-circle-check text-success fs-5"></i>
+                  <i *ngIf="row.hasError" class="fa-regular fa-circle-xmark text-danger fs-5"></i>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 px-3 align-items-center border-top mt-3"
+        *ngIf="totalPreviewRecords > 0">
+        <span class="showalltext text-muted fs-8">Showing
+          {{ previewShowEntries * (previewP - 1) > 0 ? previewShowEntries * (previewP - 1) + 1 : 1 }} to
+          {{ previewShowEntries * previewP <= totalPreviewRecords ? previewShowEntries * previewP : totalPreviewRecords }} of {{ totalPreviewRecords }} entries</span>
+        <pagination-controls (pageChange)="onPreviewPageChange($event)" id="preview-pagination"
+          class="my-pagination"></pagination-controls>
+      </div>
+    </div>
+
+    <!-- Action Buttons for Preview -->
+    <div class="d-flex justify-content-end align-items-center gap-2">
+      <button class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold shadow-sm" (click)="goBackToUpload()">
+        <i class="fa-solid fa-arrow-left me-2"></i> Back to Summary
+      </button>
+      <button class="btn btn-secondary px-4 py-2 rounded-pill fw-bold shadow-sm" (click)="closeRowPreview()">
+        <i class="fa-solid fa-xmark me-2"></i> Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Template Preview Modal -->
+<div class="modal fade show" tabindex="-1" style="display: block; background-color: rgba(0,0,0,0.5);"
+  *ngIf="showTemplateModal">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-light border-bottom">
+        <h5 class="modal-title fw-bold text-dark d-flex align-items-center gap-2">
+          <i class="fa-regular fa-file-excel text-success"></i> Salary Template Format
+        </h5>
+        <button type="button" class="btn-close" (click)="closeTemplate()" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4 bg-white">
+        <p class="text-muted fs-7 mb-4">This is the required 27-column structure for the salary Excel file. Please
+          ensure your offline file exactly matches these headers before uploading.</p>
+
+        <div class="table-responsive rounded border shadow-sm">
+          <table class="table table-bordered mb-0 align-middle text-nowrap">
+            <thead class="table-header text-center align-middle" style="font-size: 0.75rem;">
+              <tr class="bg-primary-subtle text-dark">
+                <th>S. No.</th>
+                <th>EMP ID</th>
+                <th>Name</th>
+                <th>Rate of Wage</th>
+                <th>No. of days<br>worked</th>
+                <th>Overtime hours<br>Worked</th>
+                <th>Basic</th>
+                <th>Special basic</th>
+                <th>Dearness<br>Allowance</th>
+                <th>Payments<br>Overtime</th>
+                <th>HRA</th>
+                <th>*Others</th>
+                <th class="fw-bold bg-success-subtle text-success">Total Earn</th>
+                <th colspan="8" class="text-center border-bottom bg-danger-subtle text-danger">Deduction (PF, ESIC,
+                  Society, Income Tax, Insurance, Others, Recoveries, Total)</th>
+                <th class="fw-bold bg-primary-subtle text-primary">Net Payment</th>
+                <th>Employer Share PF<br>Welfare Fund</th>
+                <th>Receipt by Employee/<br>Bank Transaction ID</th>
+                <th>Date of Payment</th>
+                <th>Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="text-center text-muted" style="font-size: 0.75rem;">
+                <td>1</td>
+                <td>EMP-1042</td>
+                <td>Sarah Jenkins</td>
+                <td>1000</td>
+                <td>26</td>
+                <td>10</td>
+                <td>26000</td>
+                <td>5000</td>
+                <td>2000</td>
+                <td>3000</td>
+                <td>8000</td>
+                <td>1000</td>
+                <td class="text-success fw-bold">45000</td>
+                <td colspan="8" class="text-danger fw-bold">[Deduction Columns...]</td>
+                <td class="text-primary fw-bold">40760</td>
+                <td>1950</td>
+                <td>TXN8912347901</td>
+                <td>2026-02-05</td>
+                <td>Valid record</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer bg-light border-top">
+        <button type="button" class="btn btn-outline-secondary" (click)="closeTemplate()">Close</button>
+        <button type="button" class="btn btn-custom-primary d-flex align-items-center gap-2"
+          (click)="downloadTemplate(); closeTemplate()">
+          <i class="fa-solid fa-download"></i> Download Template File
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

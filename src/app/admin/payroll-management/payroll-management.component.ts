@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MaterialModule } from 'src/app/mat/mat.module';
@@ -10,6 +10,51 @@ import { EmployeeManagementService } from 'src/app/core/services/employee-manage
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { SiteService } from 'src/app/core/services/site.service';
 import { DepartmentService } from 'src/app/core/services/department.service';
+import { Subject, of } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil, switchMap, catchError } from 'rxjs/operators';
+
+export interface EmployeeOption {
+  id: number | string;
+  name: string;
+  employee_code?: string;
+  [key: string]: any;
+}
+
+export interface SiteOption {
+  id: number | string;
+  name: string;
+  [key: string]: any;
+}
+
+export interface DepartmentOption {
+  id: number | string;
+  name: string;
+  [key: string]: any;
+}
+
+export interface UploadResult {
+  status: number;
+  message: string;
+  errors: string[];
+}
+
+export interface SchedulePreviewItem {
+  installment_no: number;
+  month_year: string;
+  amount: number;
+  remaining_balance: number;
+  [key: string]: any;
+}
+
+export interface ScheduleSummary {
+  installmentAmount: number;
+  numberOfInstallments: number;
+  firstMonthStr: string;
+  lastMonthStr: string;
+  dateOfCompleteRecovery: string;
+  monthlyLimit: number;
+  fullyRecoverable: boolean;
+}
 
 interface PayrollRecord {
   empId: string;
@@ -36,6 +81,7 @@ interface PayrollRecord {
   incentives: number;
   penalties: any[];
   penaltyTotalAmount: number;
+  overtimePayment?: number;
   totalEarnings: number;
   totalDeductions: number;
   netSalary: number;
@@ -63,56 +109,68 @@ interface PayrollRecord {
   styleUrl: './payroll-management.component.scss',
   providers: [DatePipe]
 })
-export class PayrollManagementComponent implements OnInit {
-  employees: any[] = [];
+export class PayrollManagementComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  private fetchScheduleSubject$ = new Subject<void>();
+
+  employees: EmployeeOption[] = [];
   allAttendanceRecords: any[] = [];
-  
+
   // Filters
   currentMonth: string = '';
   currentMaxMonth: string = '';
   selectedSite: number | null = null;
   selectedDept: number | null = null;
   filterSearch: string = '';
-  
+
   // State Machine
   payrollState: 'Draft' | 'Pending Verification' | 'Finalized' = 'Draft';
-  
+  activeView: 'standard' | 'government' = 'standard';
+
   // Calculated Payroll list
   payrollRecords: PayrollRecord[] = [];
   filteredPayrollRecords: PayrollRecord[] = [];
-  
+
   // Pagination
   p: number = 1;
   showEntries: number = 10;
   tableSizes: number[] = [10, 20, 50, 100];
   totalRecords: number = 0;
-  
+
   // Selected Payslip for A4 Print/Preview
   selectedPayslipRecord: PayrollRecord | null = null;
   showPayslipModal: boolean = false;
-  
+
   // Adjustments Modal (Draft mode only)
   showEditModal: boolean = false;
   editForm!: FormGroup;
+  recoveryTypeOptions: string[] = ['Damage', 'Loss', 'Fine', 'Advance', 'Loans'];
+  yesNoOptions: string[] = ['No', 'Yes'];
   currentEditingRecord: PayrollRecord | null = null;
 
   // Add Manual Record Modal
   showAddModal: boolean = false;
   addForm!: FormGroup;
-  
+
   // Penalty Modals
   penaltyModalOpen: boolean = false;
   bulkPenaltyModalOpen: boolean = false;
   isUploading: boolean = false;
-  uploadResult: any = null;
+  uploadResult: UploadResult | null = null;
   penaltyForm!: FormGroup;
   viewPenaltyModalOpen: boolean = false;
-  selectedPenaltyEmployee: any = null;
+  selectedPenaltyEmployee: PayrollRecord | null = null;
   selectedBulkFile: File | null = null;
-  
+
+  // Installments Schedule Preview State
+  previewScheduleList: SchedulePreviewItem[] = [];
+  scheduleSummary: ScheduleSummary | null = null;
+  isPreviewLoading: boolean = false;
+  previewErrorMessage: string = '';
+
   // Dropdown options
-  sites: any[] = [];
-  departments: any[] = [];
+  sites: SiteOption[] = [];
+  departments: DepartmentOption[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -153,10 +211,140 @@ export class PayrollManagementComponent implements OnInit {
 
     this.penaltyForm = this.fb.group({
       employeeId: ['', Validators.required],
+      recoveryType: ['', Validators.required],
+      particulars: ['', Validators.required],
       penaltyDate: ['', Validators.required],
-      reason: ['', Validators.required],
-      amount: [null, [Validators.required, Validators.min(1)]]
+      amount: [null, [Validators.required, Validators.min(1)]],
+      showCauseIssued: ['No'],
+      witnessName: [''],
+      installments: [null, [Validators.required, Validators.min(1)]],
+      firstMonth: ['', Validators.required],
+      lastMonth: [''],
+      remarks: ['']
     });
+
+
+
+    this.penaltyForm.get('recoveryType')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.fetchSchedulePreview());
+    this.penaltyForm.get('employeeId')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.fetchSchedulePreview());
+    this.penaltyForm.get('penaltyDate')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.fetchSchedulePreview());
+
+    // Setup switchMap for handling race conditions on API calls
+    this.fetchScheduleSubject$.pipe(
+      switchMap(() => {
+        const formVal = this.penaltyForm.value;
+        if (!formVal.employeeId || !formVal.amount || !formVal.recoveryType) {
+          this.previewScheduleList = [];
+          this.scheduleSummary = null;
+          this.isPreviewLoading = false;
+          return of(null);
+        }
+
+        const penaltyDateVal = formVal.penaltyDate || (formVal.firstMonth ? `${formVal.firstMonth}-01` : this.datePipe.transform(new Date(), 'yyyy-MM-dd')) || '';
+        const payload = {
+          employee_id: String(formVal.employeeId),
+          penalty_date: penaltyDateVal,
+          recovery_type: formVal.recoveryType ? String(formVal.recoveryType).toLowerCase() : '',
+          amount: String(formVal.amount)
+        };
+
+        this.isPreviewLoading = true;
+        this.previewErrorMessage = '';
+
+        return this.employeeManagementService.previewPenaltySchedule(payload).pipe(
+          catchError((err: any) => {
+            this.isPreviewLoading = false;
+            this.previewScheduleList = [];
+            this.scheduleSummary = null;
+            console.error('Error loading penalty schedule preview:', err);
+            return of(null);
+          })
+        );
+      }),
+      takeUntil(this.destroy$)
+    ).subscribe((res: any) => {
+      if (!res) return;
+
+      this.isPreviewLoading = false;
+      if (res && (res.status === 200 || res.status === 201 || res.status === 'success') && res.data) {
+        const data = res.data;
+
+        const firstMStr = (data.first_year && data.first_month) ? `${data.first_year}-${String(data.first_month).padStart(2, '0')}` : '';
+        const lastMStr = (data.last_year && data.last_month) ? `${data.last_year}-${String(data.last_month).padStart(2, '0')}` : '';
+
+        this.scheduleSummary = {
+          installmentAmount: data.installment_amount || 0,
+          numberOfInstallments: data.number_of_installments || 1,
+          firstMonthStr: firstMStr,
+          lastMonthStr: lastMStr,
+          dateOfCompleteRecovery: data.date_of_complete_recovery || '',
+          monthlyLimit: data.monthly_limit || 0,
+          fullyRecoverable: data.fully_recoverable !== false
+        };
+
+        this.penaltyForm.patchValue({
+          installments: data.number_of_installments || 1,
+          lastMonth: lastMStr || this.penaltyForm.get('lastMonth')?.value
+        }, { emitEvent: false });
+
+        if (firstMStr && !this.penaltyForm.get('firstMonth')?.value) {
+          this.penaltyForm.patchValue({ firstMonth: firstMStr }, { emitEvent: false });
+        }
+
+        if (Array.isArray(data.schedule)) {
+          this.previewScheduleList = data.schedule;
+        } else if (Array.isArray(data.installments)) {
+          this.previewScheduleList = data.installments;
+        } else if (data.number_of_installments) {
+          this.previewScheduleList = [];
+          let currM = Number(data.first_month || 1);
+          let currY = Number(data.first_year || new Date().getFullYear());
+          const formAmt = this.penaltyForm.get('amount')?.value;
+          const totalAmt = Number(formAmt) || ((data.installment_amount || 0) * (data.number_of_installments || 1));
+          let remBal = totalAmt;
+
+          for (let i = 0; i < data.number_of_installments; i++) {
+            const mStr = `${currY}-${String(currM).padStart(2, '0')}`;
+            const instAmt = data.installment_amount || 0;
+            remBal = Math.max(0, remBal - instAmt);
+
+            this.previewScheduleList.push({
+              installment_no: i + 1,
+              month_year: mStr,
+              amount: instAmt,
+              remaining_balance: remBal
+            });
+
+            currM++;
+            if (currM > 12) {
+              currM = 1;
+              currY++;
+            }
+          }
+        } else {
+          this.previewScheduleList = [];
+        }
+      } else {
+        this.previewScheduleList = [];
+        this.scheduleSummary = null;
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onAmountBlur(): void {
+    const amtVal = this.penaltyForm.get('amount')?.value;
+    const amt = parseFloat(String(amtVal));
+    if (amtVal !== null && amtVal !== undefined && !isNaN(amt) && amt > 0) {
+      this.fetchSchedulePreview();
+    } else {
+      this.previewScheduleList = [];
+      this.scheduleSummary = null;
+    }
   }
 
   ngOnInit(): void {
@@ -170,7 +358,7 @@ export class PayrollManagementComponent implements OnInit {
   }
 
   loadActiveEmployees(): void {
-    this.employeeManagementService.getActiveEmployees().subscribe({
+    this.employeeManagementService.getActiveEmployees().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           const apiData = res.data || [];
@@ -187,7 +375,7 @@ export class PayrollManagementComponent implements OnInit {
   }
 
   loadSites(): void {
-    this.siteService.getAllSites().subscribe({
+    this.siteService.getAllSites().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.sites = res.data || [];
@@ -197,7 +385,7 @@ export class PayrollManagementComponent implements OnInit {
   }
 
   loadDepartments(): void {
-    this.departmentService.getAllDepartments().subscribe({
+    this.departmentService.getAllDepartments().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
           this.departments = res.data || [];
@@ -208,59 +396,65 @@ export class PayrollManagementComponent implements OnInit {
 
   loadPayrollData(): void {
     const [year, month] = this.currentMonth.split('-').map(Number);
-    this.employeeManagementService.getPayroll(month, year, this.showEntries, this.p, this.filterSearch, this.selectedDept, this.selectedSite).subscribe({
-      next: (res: any) => {
-        if (res && res.status === 200) {
-          const apiData = res.data || [];
-          
-          this.payrollRecords = apiData.map((emp: any) => {
-            return {
-              empId: emp.employee_code,
-              dbId: emp.id || emp.employee_id,
-              empName: emp.name,
-              designation: emp.designation || 'N/A',
-              department: emp.department || 'N/A',
-              site: emp.site || 'N/A',
-              basicSalary: emp.basic_salary || 0,
-              shiftAllowance: emp.shift_allowance || 0,
-              totalDays: emp.days_in_month || 0,
-              presentCount: emp.present_days || 0,
-              halfDayCount: emp.half_days || 0,
-              exceptionCount: 0,
-              absentCount: emp.absent_days || 0,
-              leaveCount: emp.paid_leave_days || 0,
-              unpaidLeaveCount: emp.unpaid_leave_days || 0,
-              restDayCount: emp.rest_days || 0,
-              payableDays: emp.payable_days !== undefined ? Number(emp.payable_days) : 0,
-              pfDeduction: emp.pf_deduction || 0,
-              messDeduction: emp.mess_deduction || 0,
-              leaveDeduction: emp.leave_deduction || 0,
-              othersDeduction: emp.other_deduction || 0,
-              incentives: emp.incentives || 0,
-              penalties: [],
-              penaltyTotalAmount: emp.penalty_amount || 0,
-              totalEarnings: emp.gross_salary || 0,
-              totalDeductions: (emp.pf_deduction || 0) + (emp.mess_deduction || 0) + (emp.leave_deduction || 0) + (emp.other_deduction || 0) + (emp.penalty_amount || 0),
-              netSalary: emp.net_salary || 0,
-              monthly_salary: emp.monthly_salary || 0,
-              createdAt: emp.created_at || new Date()
-            };
-          });
-          this.filteredPayrollRecords = [...this.payrollRecords];
-          this.totalRecords = res.pagination?.total || this.payrollRecords.length;
-        } else {
+    this.employeeManagementService.getPayroll(month, year, this.showEntries, this.p, this.filterSearch, this.selectedDept, this.selectedSite)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: (res: any) => {
+          if (res && res.status === 200) {
+            const apiData = res.data || [];
+
+            this.payrollRecords = apiData.map((emp: any) => {
+              return {
+                empId: emp.employee_code,
+                dbId: emp.id || emp.employee_id,
+                empName: emp.name,
+                designation: emp.designation || 'N/A',
+                department: emp.department || 'N/A',
+                site: emp.site || 'N/A',
+                basicSalary: emp.basic_salary || 0,
+                shiftAllowance: emp.shift_allowance || 0,
+                totalDays: emp.days_in_month || 0,
+                presentCount: emp.present_days || 0,
+                halfDayCount: emp.half_days || 0,
+                exceptionCount: 0,
+                absentCount: emp.absent_days || 0,
+                leaveCount: emp.paid_leave_days || 0,
+                unpaidLeaveCount: emp.unpaid_leave_days || 0,
+                restDayCount: emp.rest_days || 0,
+                payableDays: emp.payable_days !== undefined ? Number(emp.payable_days) : 0,
+                pfDeduction: emp.pf_deduction || 0,
+                messDeduction: emp.mess_deduction || 0,
+                leaveDeduction: emp.leave_deduction || 0,
+                othersDeduction: emp.other_deduction || 0,
+                incentives: emp.incentives || 0,
+                penalties: [],
+                penaltyTotalAmount: emp.penalty_amount || 0,
+                overtimePayment: emp.overtime_payment || 0,
+                totalEarnings: emp.gross_salary || 0,
+                totalDeductions: (emp.pf_deduction || 0) + (emp.mess_deduction || 0) + (emp.leave_deduction || 0) + (emp.other_deduction || 0) + (emp.penalty_amount || 0),
+                netSalary: emp.net_salary || 0,
+                monthly_salary: emp.monthly_salary || 0,
+                createdAt: emp.created_at || new Date()
+              };
+            });
+            this.filteredPayrollRecords = [...this.payrollRecords];
+            this.totalRecords = res.pagination?.total || this.payrollRecords.length;
+          } else {
+            this.payrollRecords = [];
+            this.filteredPayrollRecords = [];
+            this.totalRecords = 0;
+          }
+        },
+        error: () => {
           this.payrollRecords = [];
           this.filteredPayrollRecords = [];
           this.totalRecords = 0;
+          this.notificationService.show('Failed to fetch payroll data', 'error', 3000);
         }
-      },
-      error: () => {
-        this.payrollRecords = [];
-        this.filteredPayrollRecords = [];
-        this.totalRecords = 0;
-        this.notificationService.show('Failed to fetch payroll data', 'error', 3000);
-      }
-    });
+      });
+  }
+
+  setView(view: 'standard' | 'government'): void {
+    this.activeView = view;
   }
 
   applyFilters(): void {
@@ -370,11 +564,11 @@ export class PayrollManagementComponent implements OnInit {
       this.addForm.patchValue({
         empId: selectedEmp.id,
         empName: selectedEmp.name,
-        designation: selectedEmp.designation,
-        department: selectedEmp.department,
-        site: selectedEmp.site,
-        basicSalary: selectedEmp.basicSalary,
-        pfDeduction: Math.round(selectedEmp.basicSalary * 0.1)
+        designation: (selectedEmp as any).designation,
+        department: (selectedEmp as any).department,
+        site: (selectedEmp as any).site,
+        basicSalary: (selectedEmp as any).basicSalary,
+        pfDeduction: Math.round(((selectedEmp as any).basicSalary || 0) * 0.1)
       });
     }
   }
@@ -406,7 +600,7 @@ export class PayrollManagementComponent implements OnInit {
         absent_days: rawVal.absentCount
       };
 
-      this.employeeManagementService.createEmployeePayroll(payload).subscribe({
+      this.employeeManagementService.createEmployeePayroll(payload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.notificationService.show(`Manual payroll record added for ${rawVal.empName}`, 'success', 3000);
           this.closeAddModal();
@@ -437,7 +631,7 @@ export class PayrollManagementComponent implements OnInit {
   // Edit Adjustments
   openEditModal(rec: PayrollRecord): void {
     if (this.payrollState !== 'Draft') return;
-    
+
     this.currentEditingRecord = rec;
     this.editForm.patchValue({
       empId: rec.empId,
@@ -465,7 +659,7 @@ export class PayrollManagementComponent implements OnInit {
         other_deduction: formVal.othersDeduction
       };
 
-      this.employeeManagementService.updateEmployeePayroll(this.currentEditingRecord.dbId, payload).subscribe({
+      this.employeeManagementService.updateEmployeePayroll(this.currentEditingRecord.dbId, payload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.notificationService.show(`Adjustments saved for ${this.currentEditingRecord?.empName}`, 'success', 3000);
           this.closeEditModal();
@@ -486,7 +680,7 @@ export class PayrollManagementComponent implements OnInit {
       return;
     }
     const [year, month] = this.currentMonth.split('-').map(Number);
-    this.employeeManagementService.getPayrollDetail(rec.dbId, month, year).subscribe({
+    this.employeeManagementService.getPayrollDetail(rec.dbId, month, year).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200 && res.data) {
           const emp = res.data;
@@ -518,6 +712,7 @@ export class PayrollManagementComponent implements OnInit {
             incentives: emp.earnings?.incentives || rec.incentives,
             penalties: emp.penalties || [],
             penaltyTotalAmount: emp.deductions?.penalty_amount || rec.penaltyTotalAmount,
+            overtimePayment: emp.earnings?.overtime_payment || rec.overtimePayment,
             totalEarnings: emp.earnings?.gross_salary || rec.totalEarnings,
             totalDeductions: emp.deductions?.total_deductions || rec.totalDeductions,
             netSalary: emp.net_salary || rec.netSalary,
@@ -551,7 +746,7 @@ export class PayrollManagementComponent implements OnInit {
 
   downloadMockPDF(): void {
     if (!this.selectedPayslipRecord) return;
-    
+
     const rec = this.selectedPayslipRecord;
     const content = `========================================================================
                           DUDI COAL MINE PVT. LTD.
@@ -601,10 +796,10 @@ This is a computer-generated payslip and does not require an authorized signatur
   numberToWords(num: number): string {
     const a = ['', 'One ', 'Two ', 'Three ', 'Four ', 'Five ', 'Six ', 'Seven ', 'Eight ', 'Nine ', 'Ten ', 'Eleven ', 'Twelve ', 'Thirteen ', 'Fourteen ', 'Fifteen ', 'Sixteen ', 'Seventeen ', 'Eighteen ', 'Nineteen '];
     const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-    
+
     const n = Math.floor(num);
     if (n === 0) return 'Zero';
-    
+
     const convert = (val: number): string => {
       let str = '';
       if (val >= 100) {
@@ -635,11 +830,32 @@ This is a computer-generated payslip and does not require an authorized signatur
   }
 
   // Penalty Modals Logic
+
+
+  fetchSchedulePreview(): void {
+    this.fetchScheduleSubject$.next();
+  }
+
   openPenaltyModal(): void {
     const today = new Date();
     const defaultDate = this.datePipe.transform(today, 'yyyy-MM-dd') || '';
+    const currentMonthStr = this.datePipe.transform(today, 'yyyy-MM') || '';
+    this.previewScheduleList = [];
+    this.scheduleSummary = null;
+    this.isPreviewLoading = false;
+    this.previewErrorMessage = '';
     this.penaltyForm.reset({
-      penaltyDate: defaultDate
+      employeeId: '',
+      recoveryType: '',
+      particulars: '',
+      penaltyDate: defaultDate,
+      amount: null,
+      showCauseIssued: 'No',
+      witnessName: '',
+      installments: null,
+      firstMonth: '',
+      lastMonth: '',
+      remarks: ''
     });
     this.penaltyModalOpen = true;
   }
@@ -651,17 +867,24 @@ This is a computer-generated payslip and does not require an authorized signatur
   savePenalty(): void {
     if (this.penaltyForm.valid) {
       const formValue = this.penaltyForm.value;
+      const penaltyDateVal = formValue.penaltyDate || (formValue.firstMonth ? `${formValue.firstMonth}-01` : this.datePipe.transform(new Date(), 'yyyy-MM-dd'));
+
       const payload = {
-        employee_id: formValue.employeeId,
-        penalty_date: formValue.penaltyDate,
-        reason: formValue.reason,
-        amount: formValue.amount
+        employee_id: String(formValue.employeeId),
+        penalty_date: penaltyDateVal,
+        recovery_type: formValue.recoveryType ? String(formValue.recoveryType).toLowerCase() : '',
+        reason: formValue.particulars,
+        particulars: formValue.particulars,
+        amount: formValue.amount,
+        show_cause_issued: (formValue.showCauseIssued === 'Yes' || formValue.showCauseIssued === '1' || formValue.showCauseIssued === 1) ? 1 : 0,
+        witness_name: formValue.witnessName || '',
+        remarks: formValue.remarks || ''
       };
 
-      this.employeeManagementService.addPenalty(payload).subscribe({
+      this.employeeManagementService.addPenalty(payload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
-          if (res && res.status === 200) {
-            this.notificationService.show('Penalty applied successfully!', 'success', 3000);
+          if (res && (res.status === 200 || res.status === 201 || res.status === 'success')) {
+            this.notificationService.show(res.message || 'Penalty applied successfully', 'success', 3000);
             this.closePenaltyModal();
             this.loadPayrollData();
           } else {
@@ -669,7 +892,8 @@ This is a computer-generated payslip and does not require an authorized signatur
           }
         },
         error: (err: any) => {
-          this.notificationService.show(err?.error?.message || 'Failed to apply penalty', 'error', 3000);
+          const errorMsg = err?.error?.message || err?.message || 'Failed to apply penalty';
+          // this.notificationService.show(errorMsg, 'error', 3000);
         }
       });
     } else {
@@ -689,8 +913,9 @@ This is a computer-generated payslip and does not require an authorized signatur
     this.selectedBulkFile = null;
   }
 
-  onBulkFileChange(event: any): void {
-    const file = event.target.files[0];
+  onBulkFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files ? input.files[0] : null;
     if (file) {
       this.selectedBulkFile = file;
     }
@@ -701,13 +926,13 @@ This is a computer-generated payslip and does not require an authorized signatur
       this.notificationService.show('Please select a file to upload', 'error', 3000);
       return;
     }
-    
+
     this.isUploading = true;
     this.uploadResult = null;
     const formData = new FormData();
     formData.append('file', this.selectedBulkFile);
 
-    this.employeeManagementService.uploadBulkPenalties(formData).subscribe({
+    this.employeeManagementService.uploadBulkPenalties(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         this.isUploading = false;
         if (res && (res.status === 200 || res.status === 201 || res.status === 'success') && (!res.errors || res.errors.length === 0)) {
@@ -732,20 +957,20 @@ This is a computer-generated payslip and does not require an authorized signatur
           if (Array.isArray(errObj.errors)) {
             formattedErrors = errObj.errors.map((e: any) => {
               if (typeof e === 'object' && e !== null) {
-                 const col = e.column ? ` [${e.column}]` : '';
-                 const msg = Array.isArray(e.errors) ? e.errors.join(', ') : (e.message || 'Unknown error');
-                 return `Row ${e.row || 'N/A'}${col}: ${msg}`;
+                const col = e.column ? ` [${e.column}]` : '';
+                const msg = Array.isArray(e.errors) ? e.errors.join(', ') : (e.message || 'Unknown error');
+                return `Row ${e.row || 'N/A'}${col}: ${msg}`;
               }
               return String(e);
             });
           } else if (typeof errObj.errors === 'object') {
-             Object.values(errObj.errors).forEach((errArray: any) => {
-                if (Array.isArray(errArray)) {
-                  formattedErrors.push(...errArray);
-                } else if (typeof errArray === 'string') {
-                  formattedErrors.push(errArray);
-                }
-             });
+            Object.values(errObj.errors).forEach((errArray: any) => {
+              if (Array.isArray(errArray)) {
+                formattedErrors.push(...errArray);
+              } else if (typeof errArray === 'string') {
+                formattedErrors.push(errArray);
+              }
+            });
           }
         }
 
@@ -762,11 +987,11 @@ This is a computer-generated payslip and does not require an authorized signatur
     this.selectedPenaltyEmployee = rec;
     this.selectedPenaltyEmployee.penalties = []; // Clear old/initial data
     const [year, month] = this.currentMonth.split('-').map(Number);
-    
+
     if (rec.dbId) {
-      this.employeeManagementService.getEmployeePenalties(rec.dbId, month, year).subscribe({
+      this.employeeManagementService.getEmployeePenalties(rec.dbId, month, year).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
-          if (res && res.status === 200 && res.data) {
+          if (res && res.status === 200 && res.data && this.selectedPenaltyEmployee) {
             this.selectedPenaltyEmployee.penalties = res.data.penalties.map((p: any) => ({
               date: p.date || p.penalty_date,
               reason: p.reason,

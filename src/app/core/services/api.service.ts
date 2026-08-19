@@ -82,14 +82,17 @@ export class ApiService {
   //     .pipe(map((response: any) => response["routesModel"]));
 
   // }
-  get(path: string, header: any, params?: HttpParams): Observable<any> {
+  get(path: string, header: any, params?: HttpParams, responseType?: string): Observable<any> {
     const options: any = { headers: header };
     if (params) {
       options.params = params;
     }
+    if (responseType) {
+      options.responseType = responseType;
+    }
     return this.http
       .get(`${environment.api_url}${path}`, options)
-      .pipe(catchError(this.formatErrors));
+      .pipe(catchError(this.handleError));
   }
 
   put(path: string, body: any, header: any): Observable<any> {
@@ -147,7 +150,8 @@ export class ApiService {
       errorMessage = `Error: ${error.error.message}`;
     } else {
       // server-side error
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+      const backendMessage = error.error?.message || error.message;
+      errorMessage = backendMessage;
     }
 
     if (error.status == 401 || error.status == 403) {

@@ -22,6 +22,26 @@ interface SubCategory {
   is_active: number;
 }
 
+export interface CategoryDetailResponse {
+  id: number;
+  name: string;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any;
+}
+
+export interface SubCategoryDetailResponse {
+  id: number;
+  name: string;
+  category_id: number;
+  category_name?: string;
+  status: number;
+  created_at?: string;
+  updated_at?: string;
+  [key: string]: any;
+}
+
 @Component({
   selector: 'app-categories',
   standalone: true,
@@ -51,7 +71,7 @@ export class CategoriesComponent implements OnInit, OnDestroy {
   // Pagination parameters
   page = 1;
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSizes: any[] = [10, 20, 50, 100];
   totalRecords = 0;
 
   // Categories Datasets
@@ -83,9 +103,9 @@ export class CategoriesComponent implements OnInit, OnDestroy {
 
   // Trackers
   selectedCategory: Category | null = null;
-  selectedCategoryDetails: any = null;
+  selectedCategoryDetails: CategoryDetailResponse | null = null;
   selectedSubCategory: SubCategory | null = null;
-  selectedSubCategoryDetails: any = null;
+  selectedSubCategoryDetails: SubCategoryDetailResponse | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -260,8 +280,9 @@ export class CategoriesComponent implements OnInit, OnDestroy {
   }
 
   // Sizing changes
-  onTableSizeChange(event: any) {
-    this.tableSize = event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number) {
+    const target = (event as Event).target as HTMLSelectElement | null;
+    this.tableSize = target ? Number(target.value) : Number(event);
     this.page = 1;
     if (this.activeTab === 'Categories') {
       this.fetchCategories();

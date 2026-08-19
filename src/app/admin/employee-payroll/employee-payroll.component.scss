@@ -617,3 +617,23 @@ input[type="date"].is-invalid {
     transform: translateY(0);
   }
 }
+
+/* Employee Register (Form A/B) Table Styles */
+tbody td.sticky-col {
+  position: sticky;
+  background-color: var(--bs-table-bg, #fff);
+  z-index: 10;
+}
+
+thead th.sticky-col {
+  position: sticky;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  z-index: 20;
+}
+
+.sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}

@@ -21,6 +21,15 @@ import { MatButtonModule } from '@angular/material/button';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { NgSelectModule } from '@ng-select/ng-select';
 
+export interface DepartmentItem {
+  id: number | string;
+  name: string;
+  status?: boolean | number | string;
+  updated_at?: string;
+  is_active?: boolean | number | string;
+  [key: string]: any;
+}
+
 @Component({
   selector: 'app-department',
   standalone: true,
@@ -96,17 +105,22 @@ export class DepartmentComponent implements OnInit, OnDestroy {
   createDepartmentForm!: FormGroup;
   updateDepartmentForm!: FormGroup;
   viewDepartmentForm!: FormGroup;
-  tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
-  totalRecords: any;
+  tableSize: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
+  totalRecords: number = 0;
   page: number = 1;
   createDepartmentOpen: boolean = false;
   updateDepartmentOpen: boolean = false;
   viewDepartmentOpen: boolean = false;
-  selectedDepartment: any = null;
+  selectedDepartment: DepartmentItem | null = null;
+  departmentList: DepartmentItem[] = [];
 
-  onTableSizeChange(event: any): void {
-    this.tableSize = event && event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number): void {
+    if (typeof event === 'number') {
+      this.tableSize = event;
+    } else if (event && event.target) {
+      this.tableSize = Number((event.target as HTMLInputElement).value);
+    }
     this.page = 1;
     this.GetDepartmentFun();
   }
@@ -158,7 +172,6 @@ export class DepartmentComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  departmentList: any;
   table_heading = [
     {
       heading0: 'Serial No.',
@@ -229,7 +242,7 @@ export class DepartmentComponent implements OnInit, OnDestroy {
           if (response.status === 200 || response.status === 201) {
             this.closeModal();
             this.notificationService.show(response.message || 'Department updated successfully', 'success', 3000);
-            this.ngOnInit();
+            this.GetDepartmentFun();
           } else {
             this.notificationService.show(
               response.message || response.error || 'Something went wrong',
@@ -254,7 +267,7 @@ export class DepartmentComponent implements OnInit, OnDestroy {
     }
   }
 
-  onTableDataChange(event: any) {
+  onTableDataChange(event: number) {
     this.page = event;
     this.GetDepartmentFun();
   }
@@ -283,7 +296,7 @@ export class DepartmentComponent implements OnInit, OnDestroy {
           if (response.status === 200 || response.status === 201) {
             this.closeModal();
             this.notificationService.show(response.message || 'Department created successfully', 'success', 3000);
-            this.ngOnInit();
+            this.GetDepartmentFun();
           } else {
             this.notificationService.show(
               response.message || response.error || 'Something went wrong',
@@ -330,8 +343,8 @@ export class DepartmentComponent implements OnInit, OnDestroy {
       });
   }
 
-  async Status(id: string, status: any) {
-    const department = this.departmentList?.find((d: any) => d.id === id);
+  async Status(id: number | string, status: boolean | number | string) {
+    const department = this.departmentList?.find((d: DepartmentItem) => d.id === id);
     if (!department) return;
 
     const formData = new FormData();

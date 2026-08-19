@@ -1,0 +1,1085 @@
+<div class="container mb-4 no-print">
+
+  <!-- ============================================== -->
+  <!-- 1. OVERVIEW VIEW (MONTHLY AGGREGATION)         -->
+  <!-- ============================================== -->
+  <div *ngIf="currentView === 'overview'">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+      <div>
+        <h1 class="text-primary table-heading-detail mb-1">Recovery Register</h1>
+        <p class="text-muted mb-0 fs-6">Monthly penalty and damage recovery aggregation.</p>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <div class="input-group shadow-sm" style="width: 140px; height: 42px;">
+          <input type="text" class="form-control bg-white border-end-0 h-100 fw-bold text-dark" [value]="selectedYear"
+            readonly style="cursor: pointer;" (click)="yearPicker.open()">
+          <span class="input-group-text bg-white border-start-0 h-100" style="cursor: pointer; border-color: #cbd5e1;"
+            (click)="yearPicker.open()">
+            <i class="fa-regular fa-calendar" style="color: #64748b;"></i>
+          </span>
+          <input [matDatepicker]="yearPicker"
+            style="position: absolute; bottom: 0; left: 0; width: 100%; height: 0; opacity: 0; border: none; padding: 0; pointer-events: none;"
+            readonly tabindex="-1">
+          <mat-datepicker #yearPicker startView="multi-year" yPosition="below"
+            (yearSelected)="setYear($event, yearPicker)">
+          </mat-datepicker>
+        </div>
+        <button class="btn btn-custom-primary px-4 py-2 hover-up d-flex align-items-center gap-2 shadow-sm"
+          (click)="goToAdd()" style="height: 42px;">
+          <i class="fa-solid fa-file-excel"></i> Upload Recoveries
+        </button>
+      </div>
+    </div>
+
+    <!-- Monthly Uploaded Files Table -->
+    <div class="card border-0 shadow-sm my-4 px-4 py-4">
+      <!-- Toolbar Container inside Card -->
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <!-- Show Entries -->
+        <div class="d-flex align-items-center gap-2">
+          <span class="show-entery-text fs-7">Show</span>
+          <ng-select [items]="tableSizes" [(ngModel)]="overviewShowEntries" (change)="onOverviewShowEntriesChange()"
+            [clearable]="false" [searchable]="false" class="custom-ng-select" style="min-width: 80px;"></ng-select>
+          <span class="show-entery-text fs-7">entries</span>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="position-relative" style="width: 280px;">
+          <i class="fa-solid fa-magnifying-glass position-absolute text-muted"
+            style="top: 50%; left: 14px; transform: translateY(-50%); z-index: 4;"></i>
+          <input type="text" class="form-control bg-white shadow-sm" [(ngModel)]="overviewSearchTerm"
+            (keyup.enter)="loadRecoveryUploads()" placeholder="Search Month / File Name..."
+            style="height: 38px; padding-left: 38px;">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped mb-0 text-nowrap align-middle">
+          <thead class="table-header text-center align-middle">
+            <tr>
+              <th>
+                <p class="table-heading text-center mb-0">S. No.</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Month</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">File Name</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Total Employees</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Uploaded By</p>
+              </th>
+
+              <th>
+                <p class="table-heading text-center mb-0">Action</p>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let file of uploadedFilesList | paginate: { id: 'overviewPagination', itemsPerPage: overviewShowEntries, currentPage: overviewP, totalItems: totalOverviewRecords }; let i = index"
+              class="text-center align-middle">
+              <td class="text-muted fw-bold fs-7">{{ (overviewP - 1) * overviewShowEntries + i + 1 }}</td>
+              <td class="fw-bold text-dark text-start fs-7">{{ file.month.includes(file.year + '') ? file.month :
+                (file.month
+                + ' ' + file.year) }}</td>
+              <td><span class="text-primary fs-8"><i class="fa-solid fa-file-excel me-1"></i> {{ file.fileName }}</span>
+              </td>
+              <td class="fs-8 fw-bold">{{ file.totalEmployees }}</td>
+              <td class="fs-8">{{ file.userName }}</td>
+
+              <td class="text-center">
+                <button
+                  class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-3 py-1 fw-bold fs-8 d-inline-flex align-items-center gap-1 hover-up"
+                  title="Preview Recovery Data" (click)="openUploadRowsPreview(file)">
+                  <i class="fa-solid fa-eye"></i>
+                  <span>Preview</span>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="uploadedFilesList.length === 0">
+              <td colspan="6" class="text-center py-4 text-muted">
+                <span *ngIf="isLoadingUploads" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                {{ isLoadingUploads ? 'Loading recovery records...' : 'No recovery uploads found.' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Pagination -->
+      <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center mt-3">
+        <div class="text-muted fs-7 fw-semibold">
+          Showing {{ totalOverviewRecords === 0 ? 0 : (overviewP - 1) * overviewShowEntries + 1 }} to {{ (overviewP
+          * overviewShowEntries > totalOverviewRecords) ? totalOverviewRecords : (overviewP *
+          overviewShowEntries) }} of {{ totalOverviewRecords }} entries
+        </div>
+        <pagination-controls id="overviewPagination" (pageChange)="onOverviewPageChange($event)"
+          class="my-pagination"></pagination-controls>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================== -->
+  <!-- 2. DETAIL VIEW (13-COLUMN TABLE)               -->
+  <!-- ============================================== -->
+  <div *ngIf="currentView === 'detail'">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-outline-secondary rounded-circle shadow-sm" (click)="goToOverview()"
+          style="width: 42px; height: 42px;">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div>
+          <h1 class="text-primary table-heading-detail mb-1">Details: {{ selectedMonthDetails?.month }} {{
+            selectedMonthDetails?.year }}</h1>
+          <p class="text-muted mb-0 fs-6">Government Recovery Register for selected month.</p>
+        </div>
+      </div>
+      <button class="btn btn-outline-secondary px-4 py-2 hover-up shadow-sm">
+        <i class="fa-solid fa-download me-2"></i> Export Report
+      </button>
+    </div>
+
+    <!-- KPI Stat Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4 h-100 position-relative border-bottom border-danger border-3">
+          <div class="text-muted fs-9 fw-bold text-uppercase mb-2">Total Amount Recovered</div>
+          <div class="fs-4 fw-bold text-danger">₹{{ selectedMonthDetails?.totalAmount | number }}</div>
+          <i class="fa-solid fa-indian-rupee-sign position-absolute text-danger fs-4"
+            style="top: 24px; right: 24px; opacity: 0.5;"></i>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4 h-100 position-relative border-bottom border-primary border-3">
+          <div class="text-muted fs-9 fw-bold text-uppercase mb-2">Total Penalties</div>
+          <div class="fs-4 fw-bold text-primary">{{ selectedMonthDetails?.totalPenalties }}</div>
+          <i class="fa-solid fa-users position-absolute text-primary fs-4"
+            style="top: 24px; right: 24px; opacity: 0.5;"></i>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm p-4 h-100 position-relative border-bottom border-success border-3">
+          <div class="text-muted fs-9 fw-bold text-uppercase mb-2">Status</div>
+          <div class="fs-4 fw-bold text-success">{{ selectedMonthDetails?.status }}</div>
+          <i class="fa-solid fa-check-circle position-absolute text-success fs-4"
+            style="top: 24px; right: 24px; opacity: 0.5;"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- 13-Column Government Register Table -->
+    <div class="card border-0 shadow-sm my-4 px-4 py-4">
+      <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="show-entery-text fs-7">Show</span>
+          <ng-select [items]="tableSizes" [(ngModel)]="showEntries" (change)="onShowEntriesChange()" [clearable]="false"
+            [searchable]="false" class="custom-ng-select" style="min-width: 80px;"></ng-select>
+          <span class="show-entery-text fs-7">entries</span>
+        </div>
+        <div class="position-relative w-100 ms-4" style="max-width: 320px;">
+          <i class="fa-solid fa-magnifying-glass position-absolute text-muted"
+            style="top: 50%; left: 14px; transform: translateY(-50%); z-index: 4;"></i>
+          <input type="text" class="form-control shadow-sm" [(ngModel)]="searchTerm" placeholder="Search employees..."
+            style="height: 42px; padding-left: 38px;">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover table-striped mb-0 text-nowrap align-middle">
+          <thead class="table-header text-center align-middle">
+            <tr>
+              <th class="align-middle" style="font-size: 0.75rem;">S. No.</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Name</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Recovery Type</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Particulars</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Date of<br>damage/Loss*</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Amount</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Whether show<br>cause issued*</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Explanation heard<br>in presence of*</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Number of<br>Installments</th>
+              <th class="align-middle" style="font-size: 0.75rem;">First Month/Year</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Last Month/Year</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Date of<br>Complete Recovery</th>
+              <th class="align-middle" style="font-size: 0.75rem;">Remarks</th>
+            </tr>
+            <!-- Number row (1 to 13) -->
+            <tr class="bg-light text-dark fw-bold" style="font-size: 0.75rem;">
+              <th *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12,13]">{{i}}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let rec of recoveryRecords | paginate: { id: 'detailPagination', itemsPerPage: showEntries, currentPage: p }; let i = index"
+              class="text-center align-middle" style="font-size: 0.8rem;">
+              <td class="text-muted fw-bold">{{ (p - 1) * showEntries + i + 1 }}</td>
+              <td class="fw-bold text-dark text-start">{{ rec.name }}</td>
+              <td><span class="badge bg-light text-dark border">{{ rec.recoveryType }}</span></td>
+              <td class="text-start text-truncate" style="max-width: 150px;" [title]="rec.particulars">{{
+                rec.particulars }}</td>
+              <td>{{ rec.dateOfDamageLoss || '--' }}</td>
+              <td class="fw-bold text-danger">₹{{ rec.amount | number }}</td>
+              <td>
+                <span [ngClass]="rec.showCauseIssued === 'Yes' ? 'text-success' : 'text-danger'">
+                  <i class="fa-solid fa-circle me-1" style="font-size: 0.4rem;"></i> {{ rec.showCauseIssued }}
+                </span>
+              </td>
+              <td>{{ rec.witnessName || '--' }}</td>
+              <td class="fw-bold">{{ rec.installments }}</td>
+              <td>{{ rec.firstMonth }}</td>
+              <td>{{ rec.lastMonth }}</td>
+              <td>{{ rec.dateOfCompleteRecovery || '--' }}</td>
+              <td class="text-start text-truncate" style="max-width: 150px;" [title]="rec.remarks">{{ rec.remarks ||
+                '--' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="d-md-flex justify-content-end mt-3">
+        <pagination-controls id="detailPagination" (pageChange)="onPageChange($event)"
+          class="my-pagination"></pagination-controls>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================== -->
+  <!-- 3. ADD / UPLOAD VIEW (EXCEL FLOW)              -->
+  <!-- ============================================== -->
+  <div *ngIf="currentView === 'add'">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+      <div>
+        <div class="d-flex gap-2 align-items-center mb-1">
+          <button class="btn btn-link text-muted p-0 text-decoration-none hover-up me-2" (click)="goToOverview()">
+            <i class="fa-solid fa-arrow-left fs-4"></i>
+          </button>
+          <h1 class="text-primary table-heading-detail mb-0">Upload Recovery Data (Excel)</h1>
+        </div>
+        <p class="text-muted mb-0 fs-6 ms-5">Download the template, fill it out, and upload to generate bulk recoveries.
+        </p>
+      </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+      <div class="col-12">
+        <div class="card border-0 shadow-sm mb-4">
+          <div class="card-body p-5">
+            <div class="d-flex align-items-center border-bottom pb-3 mb-4 gap-3">
+              <a class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1" href="assets/Loan_Recovery.xlsx"
+                target="_blank">
+                <i class="fa-solid fa-file-excel me-1"></i> View sample file
+              </a>
+              <h5 class="fw-bold text-dark mb-0">Upload Recovery Data</h5>
+            </div>
+
+            <!-- Drag & Drop Zone -->
+            <input type="file" #fileInput (change)="onFileSelected($event)"
+              accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+              style="display: none;">
+
+            <div *ngIf="!selectedFile"
+              class="border border-2 border-dashed rounded-3 p-5 text-center bg-light hover-bg-gray transition cursor-pointer"
+              (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
+              (click)="fileInput.click()">
+
+              <div
+                class="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm"
+                style="width: 60px; height: 60px;">
+                <i class="fa-solid fa-cloud-arrow-up fs-3"></i>
+              </div>
+              <h6 class="fw-bold text-dark mb-1">Drag & Drop your completed Excel file here or Choose File</h6>
+              <p class="text-muted fs-8 mb-4">Support: .xlsx, .xls (Max 10MB)</p>
+
+              <button type="button" class="btn px-4 py-2 rounded-pill fw-bold fs-7 hover-up shadow-sm text-white"
+                style="background-color: #6b7a87;" (click)="fileInput.click(); $event.stopPropagation()">
+                Browse Files
+              </button>
+            </div>
+
+            <!-- File Selected State -->
+            <div *ngIf="selectedFile"
+              class="bg-primary-subtle border border-primary rounded p-3 d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center gap-3">
+                <div
+                  class="bg-white text-success rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm"
+                  style="width: 48px; height: 48px;">
+                  <i class="fa-solid fa-file-excel fs-4"></i>
+                </div>
+                <div>
+                  <h6 class="fw-bold mb-0 text-dark">{{ selectedFile.name }}</h6>
+                  <p class="text-muted fs-8 mb-0">{{ fileSizeStr }}</p>
+                </div>
+              </div>
+              <button class="btn btn-sm btn-outline-danger px-3 py-1.5 rounded-pill fw-bold"
+                (click)="removeFile(); $event.stopPropagation()">
+                <i class="fa-solid fa-trash me-1"></i> Remove File
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation Loader -->
+    <div *ngIf="isValidating" class="d-flex flex-column align-items-center justify-content-center py-5 my-4">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+      <h5 class="fw-bold text-muted">Validating Excel Data...</h5>
+      <p class="text-muted fs-7">Checking records for errors and mandatory fields.</p>
+    </div>
+
+    <!-- Preview Table -->
+    <div *ngIf="showPreviewTable" class="card border-0 shadow-sm mt-4 px-4 py-4 rounded-3">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-table me-2"></i> Data Preview</h5>
+        <span *ngIf="hasValidationErrors"
+          class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill fs-7">
+          <i class="fa-solid fa-triangle-exclamation me-1"></i> Errors Found in Data
+        </span>
+        <span *ngIf="!hasValidationErrors"
+          class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill fs-7">
+          <i class="fa-solid fa-check-circle me-1"></i> Data Validated Successfully
+        </span>
+      </div>
+
+      <div class="table-responsive border rounded-3" *ngIf="uploadedFileSummary">
+        <table class="table table-bordered table-hover mb-0 text-nowrap align-middle">
+          <thead class="table-header text-center align-middle">
+            <tr>
+              <th>
+                <p class="table-heading text-center mb-0">Document ID</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">File Name</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Upload By</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Status</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Action</p>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="text-center align-middle">
+              <td class="text-muted fw-bold fs-7">{{ uploadedFileSummary.documentId }}</td>
+              <td class="fw-bold text-dark text-start fs-7">{{ uploadedFileSummary.fileName }}</td>
+              <td class="fs-7">{{ uploadedFileSummary.uploadBy }}</td>
+              <td>
+                <span class="badge fs-8 px-2 py-1"
+                  [ngClass]="hasValidationErrors ? 'bg-danger-subtle text-danger border border-danger-subtle' : 'bg-success-subtle text-success border border-success-subtle'">
+                  {{ hasValidationErrors ? 'Failed' : 'Success' }}
+                </span>
+              </td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-outline-primary px-3 py-1 fs-8 fw-bold" title="Preview"
+                  (click)="openFilePreview()">
+                  <i class="fa-solid fa-eye me-1"></i> Preview
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+        <button class="btn btn-outline-secondary px-4 py-2 me-3 rounded-pill fw-bold" (click)="goToOverview()"
+          [disabled]="isSubmitting">Cancel</button>
+        <button class="btn px-4 py-2 rounded-pill fw-bold shadow-sm"
+          [ngClass]="hasValidationErrors ? 'btn-secondary' : 'btn-custom-primary'" (click)="submitPenaltyData()"
+          [disabled]="hasValidationErrors || isSubmitting">
+          <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-2" role="status"></span>
+          <i *ngIf="!isSubmitting" class="fa-solid fa-check me-2"></i> Submit Data
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================== -->
+  <!-- 4. FILE PREVIEW DETAILS VIEW (EDIT ROW)        -->
+  <!-- ============================================== -->
+  <div *ngIf="currentView === 'file-preview-details'">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-outline-secondary rounded-circle shadow-sm" (click)="goBackToUpload()"
+          style="width: 42px; height: 42px;">
+          <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <div>
+          <h1 class="text-primary table-heading-detail mb-1">Row Level Preview</h1>
+          <p class="text-muted mb-0 fs-6">Review and correct the errors before submitting the data.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mt-4 px-4 py-4 rounded-3">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold text-primary mb-0"><i class="fa-solid fa-table me-2"></i> File Details</h5>
+        <span *ngIf="hasValidationErrors"
+          class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill fs-7">
+          <i class="fa-solid fa-triangle-exclamation me-1"></i> Fix remaining errors to submit
+        </span>
+        <span *ngIf="!hasValidationErrors"
+          class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill fs-7">
+          <i class="fa-solid fa-check-circle me-1"></i> Data Validated Successfully
+        </span>
+      </div>
+
+      <div class="table-responsive border rounded-3">
+        <table class="table table-bordered table-hover mb-0 text-nowrap align-middle">
+          <thead class="table-header text-center align-middle">
+            <tr>
+              <th>
+                <p class="table-heading text-center mb-0">Emp. Code</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Name</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0 text-wrap">Recovery Type <br> (Damage/ loss/ fine/ advance/
+                  loans)</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Particulars</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Date of damage/Loss</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Amount</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Show cause issued</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Explanation heard in presence of</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Number of Installments</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">First Month/Year</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Last Month/Year</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Date of Complete Recovery</p>
+              </th>
+              <th>
+                <p class="table-heading text-center mb-0">Remarks</p>
+              </th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of previewRecords; let i = index" class="text-center align-middle"
+              [ngClass]="row.isExtra ? 'table-warning' : (row.hasError ? 'table-danger' : '')">
+
+              <!-- Emp Code -->
+              <td class="text-muted fw-bold fs-7 position-relative" style="cursor: pointer;"
+                (click)="!row.isEditingempCode ? editField(row, 'empCode') : null">
+                <span *ngIf="!row.isEditingempCode">
+                  <div class="d-flex align-items-center justify-content-center">
+                    <i *ngIf="row.errorMessages && row.errorMessages.length > 0"
+                      class="fa-solid fa-triangle-exclamation text-warning me-2"
+                      [title]="row.errorMessages.join('\n')"></i>
+                    {{ row.empCode || row.sNo }}
+                  </div>
+                </span>
+                <input *ngIf="row.isEditingempCode" type="text" class="form-control form-control-sm"
+                  [(ngModel)]="row.empCode" (blur)="saveField(row, 'empCode')" (keyup.enter)="saveField(row, 'empCode')"
+                  (click)="$event.stopPropagation()">
+              </td>
+
+              <!-- Name -->
+              <td class="fw-bold text-dark text-start fs-7 position-relative" style="cursor: pointer;"
+                (click)="!row.isEditingname ? editField(row, 'name') : null">
+                <span *ngIf="!row.isEditingname">{{ row.name }}</span>
+                <input *ngIf="row.isEditingname" type="text" class="form-control form-control-sm" [(ngModel)]="row.name"
+                  (blur)="saveField(row, 'name')" (keyup.enter)="saveField(row, 'name')"
+                  (click)="$event.stopPropagation()">
+              </td>
+
+              <!-- Recovery Type -->
+              <td class="fs-8 position-relative" style="cursor: pointer;"
+                (click)="!row.isEditingrecoveryType ? editField(row, 'recoveryType') : null">
+                <span *ngIf="!row.isEditingrecoveryType" [ngClass]="{'text-danger fw-bold': row.typeError}">{{
+                  row.recoveryType }}</span>
+                <select *ngIf="row.isEditingrecoveryType" class="form-select form-select-sm"
+                  [(ngModel)]="row.recoveryType" (change)="saveField(row, 'recoveryType')"
+                  (blur)="saveField(row, 'recoveryType')" (click)="$event.stopPropagation()">
+                  <option value="DAMAGE">DAMAGE</option>
+                  <option value="LOSS">LOSS</option>
+                  <option value="FINE">FINE</option>
+                  <option value="ADVANCE">ADVANCE</option>
+                  <option value="LOANS">LOANS</option>
+                </select>
+              </td>
+
+              <!-- Particulars -->
+              <td class="text-start fs-8 position-relative" style="cursor: pointer;"
+                (click)="!row.isEditingparticulars ? editField(row, 'particulars') : null">
+                <span *ngIf="!row.isEditingparticulars">{{ row.particulars || '-' }}</span>
+                <input *ngIf="row.isEditingparticulars" type="text" class="form-control form-control-sm"
+                  [(ngModel)]="row.particulars" (blur)="saveField(row, 'particulars')"
+                  (keyup.enter)="saveField(row, 'particulars')" (click)="$event.stopPropagation()">
+              </td>
+
+              <!-- Date of Damage / Loss -->
+              <td class="fs-8">{{ row.dateOfDamageLoss || '-' }}</td>
+
+              <!-- Amount -->
+              <td class="fw-bold fs-7 position-relative" style="cursor: pointer;"
+                (click)="!row.isEditingamount ? editField(row, 'amount') : null">
+                <span *ngIf="!row.isEditingamount" [ngClass]="{'text-danger': row.amountError}">₹{{ row.amount | number
+                  }}</span>
+                <input *ngIf="row.isEditingamount" type="number" class="form-control form-control-sm"
+                  [(ngModel)]="row.amount" (blur)="saveField(row, 'amount')" (keyup.enter)="saveField(row, 'amount')"
+                  (click)="$event.stopPropagation()">
+              </td>
+
+              <!-- Show Cause Issued -->
+              <td>
+                <span class="badge fs-8 px-2 py-1"
+                  [ngClass]="row.showCauseIssued === 'Yes' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle'">
+                  {{ row.showCauseIssued }}
+                </span>
+              </td>
+
+              <!-- Witness -->
+              <td class="fs-8">{{ row.witnessName || '-' }}</td>
+
+              <!-- Installments -->
+              <td class="fs-7 fw-semibold">{{ row.installments }}</td>
+
+              <!-- First Month -->
+              <td class="fs-8 text-muted fw-bold">{{ row.firstMonth }}</td>
+
+              <!-- Last Month -->
+              <td class="fs-8 text-muted fw-bold">{{ row.lastMonth }}</td>
+
+              <!-- Date of Complete Recovery -->
+              <td class="fs-8">{{ row.dateOfCompleteRecovery || '-' }}</td>
+
+              <!-- Remarks -->
+              <td class="text-start fs-8 position-relative" style="cursor: pointer;"
+                (click)="!row.isEditingremarks ? editField(row, 'remarks') : null">
+                <span *ngIf="!row.isEditingremarks">{{ row.remarks || '-' }}</span>
+                <input *ngIf="row.isEditingremarks" type="text" class="form-control form-control-sm"
+                  [(ngModel)]="row.remarks" (blur)="saveField(row, 'remarks')" (keyup.enter)="saveField(row, 'remarks')"
+                  (click)="$event.stopPropagation()">
+              </td>
+
+              <!-- Actions -->
+              <td class="text-center">
+                <button *ngIf="row.isExtra" class="btn btn-sm btn-outline-danger px-2 py-1 fs-8 fw-bold"
+                  title="Delete Row" (click)="deletePreviewRow(i)">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
+        <button class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold shadow-sm" (click)="goBackToUpload()">
+          <i class="fa-solid fa-arrow-left me-2"></i> Back
+        </button>
+        <button class="btn btn-secondary px-4 py-2 rounded-pill fw-bold shadow-sm" (click)="closeRowPreview()">
+          <i class="fa-solid fa-xmark me-2"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================== -->
+  <!-- 5. UPLOAD ROWS PREVIEW VIEW                     -->
+  <!-- ============================================== -->
+  <div *ngIf="currentView === 'upload-rows-preview'">
+    <!-- Top Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <button
+          class="btn btn-outline-secondary rounded-circle shadow-sm d-flex align-items-center justify-content-center flex-shrink-0"
+          (click)="goToOverview()" style="width: 42px; height: 42px;">
+          <i class="fa-solid fa-arrow-left fs-6"></i>
+        </button>
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h1 class="text-primary table-heading-detail mb-0">
+              Recovery Upload Preview
+            </h1>
+            <span *ngIf="selectedUploadSummary?.document_id"
+              class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 rounded-pill fw-bold fs-8">
+              {{ selectedUploadSummary?.document_id }}
+            </span>
+          </div>
+          <p class="text-muted mb-0 fs-6">
+            Detailed recovery records from file <strong>{{ selectedUploadSummary?.file_name }}</strong> for {{
+            selectedUploadSummary?.month }}.
+          </p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+        <button class="btn btn-outline-secondary px-3 px-sm-4 py-2 hover-up shadow-sm rounded-pill fw-bold fs-7"
+          (click)="goToOverview()">
+          <i class="fa-solid fa-arrow-left me-2"></i> Back to Overview
+        </button>
+      </div>
+    </div>
+
+    <!-- KPI Stat Cards -->
+    <div class="row g-3 mb-4">
+      <!-- File Info -->
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div
+          class="card border-0 shadow-sm p-3 h-100 position-relative border-bottom border-primary border-3 rounded-3">
+          <div class="d-flex align-items-center gap-3">
+            <div
+              class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              style="width: 48px; height: 48px;">
+              <i class="fa-solid fa-file-excel fs-4"></i>
+            </div>
+            <div class="overflow-hidden">
+              <div class="text-muted fs-9 fw-bold text-uppercase">File Name</div>
+              <div class="fs-7 fw-bold text-dark text-truncate" [title]="selectedUploadSummary?.file_name">
+                {{ selectedUploadSummary?.file_name }}
+              </div>
+              <div class="fs-8 text-primary fw-semibold">{{ selectedUploadSummary?.document_id }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Meta -->
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm p-3 h-100 position-relative border-bottom border-info border-3 rounded-3">
+          <div class="d-flex align-items-center gap-3">
+            <div
+              class="bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              style="width: 48px; height: 48px;">
+              <i class="fa-solid fa-user-check fs-4"></i>
+            </div>
+            <div class="overflow-hidden">
+              <div class="text-muted fs-9 fw-bold text-uppercase">Uploaded By & Month</div>
+              <div class="fs-7 fw-bold text-dark text-truncate">{{ selectedUploadSummary?.uploaded_by }}</div>
+              <div class="fs-8 text-muted fw-medium">{{ selectedUploadSummary?.month }} </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Employees -->
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div
+          class="card border-0 shadow-sm p-3 h-100 position-relative border-bottom border-warning border-3 rounded-3">
+          <div class="d-flex align-items-center gap-3">
+            <div
+              class="bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              style="width: 48px; height: 48px;">
+              <i class="fa-solid fa-users fs-4"></i>
+            </div>
+            <div>
+              <div class="text-muted fs-9 fw-bold text-uppercase">Total Records</div>
+              <div class="fs-4 fw-bold text-dark">{{ selectedUploadSummary?.total_employees || totalUploadRowsRecords }}
+              </div>
+              <div class="fs-8 text-muted">Employees included</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Amount -->
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-0 shadow-sm p-3 h-100 position-relative border-bottom border-danger border-3 rounded-3">
+          <div class="d-flex align-items-center gap-3">
+            <div
+              class="bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+              style="width: 48px; height: 48px;">
+              <i class="fa-solid fa-indian-rupee-sign fs-4"></i>
+            </div>
+            <div>
+              <div class="text-muted fs-9 fw-bold text-uppercase">Total Recovery Amount</div>
+              <div class="fs-4 fw-bold text-danger">₹{{ calculateUploadTotalAmount() | number:'1.2-2' }}</div>
+              <div class="fs-8 text-muted">Sum of all rows</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Table Card -->
+    <div class="card border-0 shadow-sm my-4 p-3 p-sm-4 rounded-3">
+      <!-- Toolbar -->
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="show-entery-text fs-7">Show</span>
+          <ng-select [items]="tableSizes" [(ngModel)]="uploadRowsShowEntries" (change)="onUploadRowsShowEntriesChange()"
+            [clearable]="false" [searchable]="false" class="custom-ng-select" style="min-width: 80px;"></ng-select>
+          <span class="show-entery-text fs-7">entries</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-3 w-100-mobile" style="max-width: 320px; width: 100%;">
+          <!-- Search Bar -->
+          <div class="position-relative w-100">
+            <i class="fa-solid fa-magnifying-glass position-absolute text-muted"
+              style="top: 50%; left: 14px; transform: translateY(-50%); z-index: 4;"></i>
+            <input type="text" class="form-control bg-white shadow-sm" [(ngModel)]="uploadRowsSearchTerm"
+              (keyup.enter)="loadUploadRows(selectedRecord?.id)" placeholder="Search Employee, Code, Type..."
+              style="height: 38px; padding-left: 38px;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Upload Rows Table -->
+      <div class="table-responsive border rounded-3">
+        <table class="table table-bordered table-hover table-striped mb-0 text-nowrap align-middle">
+          <thead class="table-header text-center align-middle">
+            <tr>
+              <th style="font-size: 0.75rem;">S. No.</th>
+              <th style="font-size: 0.75rem;">Emp. Code</th>
+              <th style="font-size: 0.75rem;">Employee Name</th>
+              <th style="font-size: 0.75rem;">Recovery Type</th>
+              <th style="font-size: 0.75rem;">Particulars</th>
+              <th style="font-size: 0.75rem;">Amount (₹)</th>
+              <th style="font-size: 0.75rem;">Date of Damage/Loss</th>
+              <th style="font-size: 0.75rem;">Show Cause Issued</th>
+              <th style="font-size: 0.75rem;">Explanation Witness</th>
+              <th style="font-size: 0.75rem;">Installments</th>
+              <th style="font-size: 0.75rem;">First Month/Year</th>
+              <th style="font-size: 0.75rem;">Last Month/Year</th>
+              <th style="font-size: 0.75rem;">Complete Recovery Date</th>
+              <th style="font-size: 0.75rem;">Remarks</th>
+              <th style="font-size: 0.75rem;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              *ngFor="let rec of uploadRowsList | paginate: { id: 'uploadRowsPagination', itemsPerPage: uploadRowsShowEntries, currentPage: uploadRowsP, totalItems: totalUploadRowsRecords }; let i = index"
+              class="text-center align-middle" style="font-size: 0.8rem;">
+              <td class="text-muted fw-bold">{{ (uploadRowsP - 1) * uploadRowsShowEntries + i + 1 }}</td>
+              <td><span class="badge bg-secondary-subtle text-dark border px-2 py-1 font-monospace">{{ rec.employeeCode
+                  }}</span></td>
+              <td class="fw-bold text-dark text-start">
+                <i class="fa-solid fa-user-gear text-muted me-1 fs-8"></i> {{ rec.employeeName }}
+              </td>
+              <td>
+                <span class="badge px-2 py-1 fw-bold fs-8" [ngClass]="getRecoveryTypeBadgeClass(rec.recoveryType)">
+                  {{ rec.recoveryType }}
+                </span>
+              </td>
+              <td class="text-start text-truncate" style="max-width: 160px;" [title]="rec.particulars">
+                {{ rec.particulars }}
+              </td>
+              <td class="fw-bold text-danger">₹{{ rec.amount | number:'1.2-2' }}</td>
+              <td>{{ rec.damageLossDate }}</td>
+              <td>
+                <span class="badge px-2 py-1 fs-8"
+                  [ngClass]="rec.showCauseIssued ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle'">
+                  <i [ngClass]="rec.showCauseIssued ? 'fa-solid fa-check me-1' : 'fa-solid fa-xmark me-1'"></i>
+                  {{ rec.showCauseIssued ? 'Yes' : 'No' }}
+                </span>
+              </td>
+              <td>{{ rec.explanationWitness }}</td>
+              <td class="fw-bold"><span class="badge bg-light text-dark border px-2 py-1">{{ rec.numberOfInstallments
+                  }}</span></td>
+              <td class="fw-semibold text-muted">{{ rec.firstMonthYear }}</td>
+              <td class="fw-semibold text-muted">{{ rec.lastMonthYear }}</td>
+              <td>{{ rec.completeRecoveryDate }}</td>
+              <td class="text-start text-truncate" style="max-width: 160px;" [title]="rec.remarks">
+                {{ rec.remarks }}
+              </td>
+              <td class="text-center">
+                <button
+                  class="btn btn-sm btn-outline-primary shadow-sm rounded-pill px-3 py-1 fw-bold fs-8 d-inline-flex align-items-center gap-1 hover-up"
+                  title="View Single Recovery Details" (click)="openSingleRecoveryDetail(rec)">
+                  <i class="fa-solid fa-eye"></i>
+                  <span>View</span>
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="uploadRowsList.length === 0">
+              <td colspan="15" class="text-center py-5 text-muted">
+                <span *ngIf="isLoadingUploadRows" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                {{ isLoadingUploadRows ? 'Loading recovery rows preview data...' : 'No recovery rows found for this
+                upload.' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer Pagination -->
+      <div
+        class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-3 pt-2 text-center text-md-start">
+        <div class="text-muted fs-7 fw-semibold">
+          Showing {{ totalUploadRowsRecords === 0 ? 0 : (uploadRowsP - 1) * uploadRowsShowEntries + 1 }} to {{
+          (uploadRowsP
+          * uploadRowsShowEntries > totalUploadRowsRecords) ? totalUploadRowsRecords : (uploadRowsP *
+          uploadRowsShowEntries) }} of {{ totalUploadRowsRecords }} entries
+        </div>
+        <pagination-controls id="uploadRowsPagination" (pageChange)="onUploadRowsPageChange($event)"
+          class="my-pagination"></pagination-controls>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ============================================== -->
+  <!-- 6. SINGLE RECOVERY DETAIL VIEW                 -->
+  <!-- ============================================== -->
+  <div *ngIf="currentView === 'single-recovery-detail'">
+    <!-- Top Header -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <button
+          class="btn btn-outline-secondary rounded-circle shadow-sm d-flex align-items-center justify-content-center flex-shrink-0"
+          (click)="goBackToUploadPreview()" style="width: 42px; height: 42px;">
+          <i class="fa-solid fa-arrow-left fs-6"></i>
+        </button>
+        <div>
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <h1 class="text-primary table-heading-detail mb-0">
+              Recovery Record Details
+            </h1>
+            <span *ngIf="singleRecoveryDetail?.documentId"
+              class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill fw-bold fs-8">
+              <i class="fa-solid fa-file-contract me-1"></i> {{ singleRecoveryDetail?.documentId }}
+            </span>
+          </div>
+          <p class="text-muted mb-0 fs-6">
+            Detailed government recovery breakdown for <strong>{{ singleRecoveryDetail?.employeeName }}</strong> ({{
+            singleRecoveryDetail?.employeeCode }}).
+          </p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-2 ms-auto ms-sm-0">
+        <button class="btn btn-outline-secondary px-3 px-sm-4 py-2 hover-up shadow-sm rounded-pill fw-bold fs-7"
+          (click)="goBackToUploadPreview()">
+          <i class="fa-solid fa-arrow-left me-2"></i> Back to Preview
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div *ngIf="isLoadingSingleDetail" class="d-flex flex-column align-items-center justify-content-center py-5 my-5">
+      <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+      <h5 class="fw-bold text-muted">Loading Recovery Details...</h5>
+    </div>
+
+    <!-- Detail Content Container Card -->
+    <div *ngIf="!isLoadingSingleDetail && singleRecoveryDetail"
+      class="card border-0 shadow-sm p-3 p-sm-4 rounded-3 mb-4 bg-white">
+
+      <!-- Top Banner Summary -->
+      <div class="leave-summary-banner status-damage mb-4">
+        <div class="banner-left">
+          <div class="banner-label">RECOVERY TYPE</div>
+          <div class="banner-value">{{ singleRecoveryDetail.recoveryType }}</div>
+        </div>
+        <div class="banner-right">
+          <span class="days-number">₹{{ singleRecoveryDetail.totalAmount | number:'1.2-2' }}</span>
+          <span class="days-label">TOTAL RECOVERY</span>
+        </div>
+      </div>
+
+      <!-- Employee Info Section -->
+      <div class="grid-section-title">
+        <i class="fa-solid fa-user-tie text-primary"></i> EMPLOYEE & DOCUMENT INFO
+      </div>
+      <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+          <div class="glass-info-card">
+            <div class="avatar-circle">
+              {{ singleRecoveryDetail.employeeName.charAt(0) || 'E' }}
+            </div>
+            <div class="card-info-content overflow-hidden">
+              <span class="info-label">EMPLOYEE NAME & CODE</span>
+              <span class="info-value text-truncate">{{ singleRecoveryDetail.employeeName }}</span>
+              <span class="info-subtitle"><i class="fa-solid fa-id-badge me-1 text-muted"></i> Emp Code: {{
+                singleRecoveryDetail.employeeCode }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <div class="glass-info-card">
+            <div class="card-icon-wrapper calendar flex-shrink-0">
+              <i class="fa-solid fa-file-invoice"></i>
+            </div>
+            <div class="card-info-content overflow-hidden">
+              <span class="info-label">DOCUMENT ID & RECORD ID</span>
+              <span class="info-value text-truncate">{{ singleRecoveryDetail.documentId }}</span>
+              <span class="info-subtitle">Record ID #{{ singleRecoveryDetail.id }} (Upload #{{
+                singleRecoveryDetail.recoveryUploadId }})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial & Installment Breakdown -->
+      <div class="grid-section-title">
+        <i class="fa-solid fa-indian-rupee-sign text-success"></i> FINANCIAL & INSTALLMENT BREAKDOWN
+      </div>
+      <div class="row g-3 mb-4">
+        <!-- Installments -->
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="glass-info-card">
+            <div class="card-icon-wrapper calendar flex-shrink-0">
+              <i class="fa-solid fa-list-ol"></i>
+            </div>
+            <div class="card-info-content">
+              <span class="info-label">INSTALLMENTS</span>
+              <span class="info-value">{{ singleRecoveryDetail.installments }} Months</span>
+              <span class="info-subtitle text-success fw-semibold"
+                *ngIf="singleRecoveryDetail && singleRecoveryDetail.installments > 0">
+                ₹{{ (singleRecoveryDetail.totalAmount / singleRecoveryDetail.installments) | number:'1.2-2' }} / month
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- First Month/Year -->
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="glass-info-card">
+            <div class="card-icon-wrapper calendar flex-shrink-0">
+              <i class="fa-solid fa-calendar-day"></i>
+            </div>
+            <div class="card-info-content">
+              <span class="info-label">START MONTH/YEAR</span>
+              <span class="info-value">{{ singleRecoveryDetail.firstMonthYear }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Last Month/Year -->
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="glass-info-card">
+            <div class="card-icon-wrapper calendar flex-shrink-0">
+              <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="card-info-content">
+              <span class="info-label">END MONTH/YEAR</span>
+              <span class="info-value">{{ singleRecoveryDetail.lastMonthYear }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Complete Recovery Date -->
+        <div class="col-12 col-sm-6 col-lg-3">
+          <div class="glass-info-card">
+            <div class="card-icon-wrapper type flex-shrink-0">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="card-info-content">
+              <span class="info-label">COMPLETE RECOVERY DATE</span>
+              <span class="info-value text-dark">{{ singleRecoveryDetail.completeRecoveryDate }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legal & Procedural Details -->
+      <div class="grid-section-title">
+        <i class="fa-solid fa-scale-balanced text-info"></i> PROCEDURAL DETAILS
+      </div>
+      <div class="row g-3 mb-4">
+        <!-- Date of Damage/Loss -->
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="glass-info-card">
+            <div class="card-icon-wrapper money flex-shrink-0">
+              <i class="fa-solid fa-calendar-minus"></i>
+            </div>
+            <div class="card-info-content">
+              <span class="info-label">DATE OF DAMAGE / LOSS</span>
+              <span class="info-value">{{ singleRecoveryDetail.damageLossDate }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Show Cause Issued -->
+        <div class="col-12 col-sm-6 col-md-4">
+          <div class="glass-info-card">
+            <div class="card-icon-wrapper type flex-shrink-0">
+              <i class="fa-solid fa-file-circle-exclamation"></i>
+            </div>
+            <div class="card-info-content">
+              <span class="info-label">SHOW CAUSE ISSUED</span>
+              <span class="info-value"
+                [ngClass]="singleRecoveryDetail.showCauseIssued ? 'text-success' : 'text-danger'">
+                <i
+                  [ngClass]="singleRecoveryDetail.showCauseIssued ? 'fa-solid fa-circle-check me-1' : 'fa-solid fa-circle-xmark me-1'"></i>
+                {{ singleRecoveryDetail.showCauseIssued ? 'Yes' : 'No' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Explanation Witness -->
+        <div class="col-12 col-md-4">
+          <div class="glass-info-card">
+            <div class="card-icon-wrapper calendar flex-shrink-0">
+              <i class="fa-solid fa-user-group"></i>
+            </div>
+            <div class="card-info-content">
+              <span class="info-label">EXPLANATION WITNESS</span>
+              <span class="info-value">{{ singleRecoveryDetail.explanationWitness }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Particulars & Remarks Boxes -->
+      <div class="grid-section-title">
+        <i class="fa-solid fa-comment-medical text-warning"></i> PARTICULARS & REMARKS
+      </div>
+      <div class="reason-detail-box mb-3">
+        <div class="icon-box flex-shrink-0">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div class="reason-content">
+          <div class="reason-title">PARTICULARS OF DAMAGE / LOSS</div>
+          <p class="reason-text">{{ singleRecoveryDetail.particulars }}</p>
+        </div>
+      </div>
+
+      <div class="reason-detail-box" *ngIf="singleRecoveryDetail.remarks">
+        <div class="icon-box flex-shrink-0" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">
+          <i class="fa-solid fa-comment-dots"></i>
+        </div>
+        <div class="reason-content">
+          <div class="reason-title">REMARKS</div>
+          <p class="reason-text">{{ singleRecoveryDetail.remarks }}</p>
+        </div>
+      </div>
+
+      <!-- Footer Buttons -->
+      <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
+        <button class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold shadow-sm"
+          (click)="goBackToUploadPreview()">
+          <i class="fa-solid fa-arrow-left me-2"></i> Back
+        </button>
+        <button class="btn btn-outline-primary px-4 py-2 rounded-pill fw-bold shadow-sm" (click)="goBackToUpload()">
+          <i class="fa-solid fa-cloud-arrow-up me-2"></i> Upload Recovery Data
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { Subject } from 'rxjs';
 
 export interface TrainingSession {
   id: string;
@@ -14,6 +15,18 @@ export interface TrainingSession {
   employeeIds: string[];
   startDate: string;
   endDate: string;
+}
+
+export interface TrainingTypeOption {
+  id: string;
+  name: string;
+  is_active: number;
+}
+
+export interface TrainingEmployeeOption {
+  id: string;
+  name: string;
+  department: string;
 }
 
 @Component({
@@ -34,7 +47,9 @@ export interface TrainingSession {
     ])
   ]
 })
-export class TrainingManagementComponent implements OnInit {
+export class TrainingManagementComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+
   trainingSessions: TrainingSession[] = [
     {
       id: 'TRN-001',
@@ -49,25 +64,25 @@ export class TrainingManagementComponent implements OnInit {
   ];
   displaySessions: TrainingSession[] = [];
 
-  mockTypes = [
+  mockTypes: TrainingTypeOption[] = [
     { id: 'TT-001', name: 'Safety Training', is_active: 1 },
     { id: 'TT-002', name: 'Equipment Operations', is_active: 1 },
     { id: 'TT-003', name: 'Emergency Response', is_active: 1 },
   ];
 
-  mockEmployees = [
+  mockEmployees: TrainingEmployeeOption[] = [
     { id: 'E001', name: 'Ramesh Kumar', department: 'Mining' },
     { id: 'E002', name: 'Suresh Singh', department: 'Operations' },
     { id: 'E003', name: 'Amit Patel', department: 'Maintenance' },
     { id: 'E004', name: 'Vikas Yadav', department: 'Safety' },
   ];
 
-  mockSupervisors = ['John Doe', 'Jane Smith', 'Robert Brown', 'Emily Davis'];
+  mockSupervisors: string[] = ['John Doe', 'Jane Smith', 'Robert Brown', 'Emily Davis'];
 
   page: number = 1;
   totalRecords: number = 0;
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSizes: any[] = [10, 20, 50, 100];
 
   filterSearch: string = '';
   filterStatus: string = '';
@@ -94,6 +109,11 @@ export class TrainingManagementComponent implements OnInit {
     this.filterData();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   filterData(): void {
     this.displaySessions = this.trainingSessions.filter((s) => {
       const matchSearch = s.name.toLowerCase().includes(this.filterSearch.toLowerCase()) || 
@@ -116,12 +136,13 @@ export class TrainingManagementComponent implements OnInit {
     this.filterData();
   }
 
-  onTableDataChange(event: any): void {
-    this.page = event;
+  onTableDataChange(pageNumber: number): void {
+    this.page = pageNumber;
   }
 
-  onTableSizeChange(event: any): void {
-    this.tableSize = event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number): void {
+    const target = (event as Event).target as HTMLSelectElement | null;
+    this.tableSize = target ? Number(target.value) : Number(event);
     this.page = 1;
   }
 

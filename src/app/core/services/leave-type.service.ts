@@ -50,6 +50,25 @@ export class LeaveTypeService {
     );
   }
 
+  getActiveLeaveTypes(): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.apiservice.get(`v1/leave-types`, headers).pipe(
+      map((response: any) => {
+        if (response.status === 200 && response.data) {
+          response.data = response.data.map((item: any) => ({
+            ...item,
+            leaveName: item.name,
+            isPaid: item.leave_category === 'paid',
+            annualLimit: item.Annual_limit,
+            is_active: item.status !== undefined ? item.status : item.is_active
+          }));
+        }
+        return response;
+      })
+    );
+  }
+
   getLeaveTypeById(id: any): Observable<any> {
     const token = this.jwtService.getToken();
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });

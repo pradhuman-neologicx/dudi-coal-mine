@@ -61,4 +61,22 @@ export class LeaveManagementService {
   uploadBulkLeaves(formData: FormData): Observable<any> {
     return this.apiservice.post(`v1/admin/leaves/bulk-upload`, formData, this.getHeaders());
   }
+
+  generateLeaveRegister(year: string, replace: string = '0'): Observable<any> {
+    const payload = { year, replace };
+    return this.apiservice.post(`v1/admin/leave-register/generate`, payload, this.getHeaders());
+  }
+
+  getLeaveRegisterReports(year: string, page: number, limit: number): Observable<any> {
+    let params = new HttpParams();
+    params = params.set('year', year);
+    params = params.set('page', page.toString());
+    params = params.set('limit', limit.toString());
+    return this.apiservice.get(`v1/admin/leave-register/reports`, this.getHeaders(), params);
+  }
+
+  exportLeaveRegister(year: string): Observable<Blob> {
+    const params = new HttpParams().set('year', year);
+    return this.apiservice.get(`v1/admin/leave-register/export`, this.getHeaders(), params, 'blob');
+  }
 }

@@ -18,6 +18,21 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { ShiftService } from 'src/app/core/services/shift.service';
 
+export interface ShiftMasterItem {
+  id: number | string;
+  name?: string;
+  shiftName?: string;
+  startTime?: string;
+  endTime?: string;
+  minWorkingHours?: number | string;
+  is_night_shift?: number | boolean;
+  status?: boolean | number | string;
+  created_at?: string;
+  updated_at?: string;
+  is_active?: boolean | number | string;
+  [key: string]: any;
+}
+
 @Component({
   selector: 'app-shift',
   standalone: true,
@@ -63,18 +78,18 @@ export class ShiftComponent implements OnInit, OnDestroy {
   updateShiftForm!: FormGroup;
   viewShiftForm!: FormGroup;
   
-  tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
-  totalRecords: any;
+  tableSize: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
+  totalRecords: number = 0;
   page: number = 1;
   
   createShiftOpen: boolean = false;
   updateShiftOpen: boolean = false;
   viewShiftOpen: boolean = false;
-  currentShiftId: any;
-  selectedShift: any = null;
+  currentShiftId: number | string | null = null;
+  selectedShift: ShiftMasterItem | null = null;
   
-  shiftList: any[] = [];
+  shiftList: ShiftMasterItem[] = [];
   originalStartTime: string = '';
   originalEndTime: string = '';
   originalIsNightShift: boolean = false;
@@ -242,13 +257,17 @@ export class ShiftComponent implements OnInit, OnDestroy {
     };
   }
 
-  onTableSizeChange(event: any): void {
-    this.tableSize = event && event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number): void {
+    if (typeof event === 'number') {
+      this.tableSize = event;
+    } else if (event && event.target) {
+      this.tableSize = Number((event.target as HTMLInputElement).value);
+    }
     this.page = 1;
     this.GetShiftFun();
   }
 
-  onTableDataChange(event: any) {
+  onTableDataChange(event: number) {
     this.page = event;
     this.GetShiftFun();
   }
@@ -280,13 +299,13 @@ export class ShiftComponent implements OnInit, OnDestroy {
     this.createShiftForm.reset();
   }
 
-  OpenEditModal(shift: any): void {
+  OpenEditModal(shift: ShiftMasterItem): void {
     this.currentShiftId = shift.id;
     this.updateShiftOpen = true;
     this.GetupdateShiftbyid(this.currentShiftId);
   }
 
-  openviewModal(shift: any): void {
+  openviewModal(shift: ShiftMasterItem): void {
     this.viewShiftOpen = true;
     this.currentShiftId = shift.id;
     this.selectedShift = null;
@@ -296,7 +315,7 @@ export class ShiftComponent implements OnInit, OnDestroy {
         if (response.status === 200) {
           this.selectedShift = response.data;
           this.viewShiftForm.patchValue({ 
-            shiftName: response.data.shiftName,
+            shiftName: response.data.shiftName || response.data.name,
             startTime: response.data.startTime,
             endTime: response.data.endTime,
             minWorkingHours: response.data.minWorkingHours
@@ -309,7 +328,7 @@ export class ShiftComponent implements OnInit, OnDestroy {
     });
   }
 
-  GetupdateShiftbyid(shiftId: any) {
+  GetupdateShiftbyid(shiftId: number | string) {
     this.shiftService.getShiftById(shiftId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         if (response.status === 200) {
@@ -449,7 +468,7 @@ export class ShiftComponent implements OnInit, OnDestroy {
       });
   }
 
-  async Status(id: string, status: any) {
+  async Status(id: number | string, status: boolean | number | string) {
     const formData = new FormData();
     formData.append('_method', 'PATCH');
     formData.append('status', status.toString());

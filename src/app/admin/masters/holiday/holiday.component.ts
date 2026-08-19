@@ -19,6 +19,26 @@ import { NotificationService } from 'src/app/core/services/notificationnew.servi
 import { SiteService } from 'src/app/core/services/site.service';
 import { HolidayService } from 'src/app/core/services/holiday.service';
 
+export interface SiteItem {
+  id: number | string;
+  name: string;
+  [key: string]: any;
+}
+
+export interface HolidayItem {
+  id: number | string;
+  holidayName?: string;
+  holiday_name?: string;
+  date?: string;
+  holiday_date?: string;
+  site?: number | string;
+  holidayType?: string;
+  holiday_type?: string;
+  status?: number | boolean | string;
+  is_active?: number | boolean;
+  [key: string]: any;
+}
+
 @Component({
   selector: 'app-holiday',
   standalone: true,
@@ -64,18 +84,18 @@ export class HolidayComponent implements OnInit, OnDestroy {
   updateHolidayForm!: FormGroup;
   viewHolidayForm!: FormGroup;
   
-  tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
-  totalRecords: any;
+  tableSize: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
+  totalRecords: number = 0;
   page: number = 1;
   
   createHolidayOpen: boolean = false;
   updateHolidayOpen: boolean = false;
   viewHolidayOpen: boolean = false;
-  currentHolidayId: any;
-  selectedHoliday: any = null;
+  currentHolidayId: number | string | null = null;
+  selectedHoliday: HolidayItem | null = null;
   
-  holidayList: any[] = [];
+  holidayList: HolidayItem[] = [];
   
   table_heading = [
     {
@@ -89,7 +109,7 @@ export class HolidayComponent implements OnInit, OnDestroy {
     },
   ];
 
-  sites: any[] = [];
+  sites: SiteItem[] = [];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -148,13 +168,17 @@ export class HolidayComponent implements OnInit, OnDestroy {
       });
   }
 
-  onTableSizeChange(event: any): void {
-    this.tableSize = event && event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number): void {
+    if (typeof event === 'number') {
+      this.tableSize = event;
+    } else if (event && event.target) {
+      this.tableSize = Number((event.target as HTMLInputElement).value);
+    }
     this.page = 1;
     this.GetHolidayFun();
   }
 
-  onTableDataChange(event: any) {
+  onTableDataChange(event: number) {
     this.page = event;
     this.GetHolidayFun();
   }
@@ -184,13 +208,13 @@ export class HolidayComponent implements OnInit, OnDestroy {
     this.createHolidayForm.reset({ site: '', holidayType: 'Festival' });
   }
 
-  OpenEditModal(holiday: any): void {
+  OpenEditModal(holiday: HolidayItem): void {
     this.currentHolidayId = holiday.id;
     this.updateHolidayOpen = true;
     this.GetupdateHolidaybyid(this.currentHolidayId);
   }
 
-  openviewModal(holiday: any): void {
+  openviewModal(holiday: HolidayItem): void {
     this.viewHolidayOpen = true;
     this.currentHolidayId = holiday.id;
     this.selectedHoliday = null;
@@ -227,7 +251,7 @@ export class HolidayComponent implements OnInit, OnDestroy {
     return `${year}-${month}-${day}`;
   }
 
-  GetupdateHolidaybyid(holidayId: any) {
+  GetupdateHolidaybyid(holidayId: number | string) {
     this.holidayService.getHolidayById(holidayId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -365,7 +389,7 @@ export class HolidayComponent implements OnInit, OnDestroy {
       });
   }
 
-  async Status(id: string, status: any) {
+  async Status(id: number | string, status: boolean | number | string) {
     const formData = new FormData();
     formData.append('_method', 'PATCH');
     formData.append('status', status.toString());

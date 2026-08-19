@@ -25,6 +25,7 @@ import { ShiftManagementComponent } from './admin/shift-management/shift-managem
 import { AttendanceManagementComponent } from './admin/attendance-management/attendance-management.component';
 import { LeaveManagementComponent } from './admin/leave-management/leave-management.component';
 import { PayrollManagementComponent } from './admin/payroll-management/payroll-management.component';
+import { SalaryPayrollManagementComponent } from './admin/salary-payroll-management/salary-payroll-management.component';
 
 import { EquipmentManagementComponent } from './admin/equipment-management/equipment-management.component';
 import { EquipmentCategoryComponent } from './admin/masters/equipment-category/equipment-category.component';
@@ -51,6 +52,8 @@ import { DelayTypeComponent } from './admin/masters/delay-type/delay-type.compon
 import { DumpingPointComponent } from './admin/masters/dumping-point/dumping-point.component';
 import { DumpingComponent } from './admin/dumping/dumping.component';
 import { RelaySettingsComponent } from './admin/relay-settings/relay-settings.component';
+import { WageMasterComponent } from './admin/masters/wage-master/wage-master.component';
+import { EmployeeDetailsComponent } from './admin/employee-details/employee-details.component';
 
 const routes: Routes = [
   {
@@ -113,6 +116,11 @@ const routes: Routes = [
         canActivate: [AuthGuard],
       },
       {
+        path: 'employee-details',
+        component: EmployeeDetailsComponent,
+        canActivate: [AuthGuard],
+      },
+      {
         path: 'shift-management',
         component: ShiftManagementComponent,
         canActivate: [AuthGuard],
@@ -136,6 +144,16 @@ const routes: Routes = [
       {
         path: 'payroll-management',
         component: PayrollManagementComponent,
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'salary-payroll-management',
+        component: SalaryPayrollManagementComponent,
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'recovery-register',
+        loadComponent: () => import('./admin/recovery-register/recovery-register.component').then(m => m.RecoveryRegisterComponent),
         canActivate: [AuthGuard],
       },
       {
@@ -234,6 +252,10 @@ const routes: Routes = [
           {
             path: 'dumping-point',
             component: DumpingPointComponent,
+          },
+          {
+            path: 'wage-master',
+            component: WageMasterComponent,
           },
         ],
       },

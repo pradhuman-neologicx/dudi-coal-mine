@@ -215,7 +215,15 @@
   }
 }
 
-
+// Custom ng-select styling
+::ng-deep .custom-ng-select {
+  .ng-select-container {
+    height: 42px !important;
+    min-height: 42px !important;
+    border: 1px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+  }
+}
 
 // Pagination overrides
 ::ng-deep .my-pagination {
@@ -335,5 +343,118 @@
   
   &:hover {
     background-color: #f8fafc !important;
+  }
+}
+
+// Statutory Register Report Table (Form D) Styles
+.report-table-wrapper {
+  // Hide scrollbar but keep functionality
+  &.custom-scrollbar {
+    &::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+    &::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+      &:hover {
+        background: #94a3b8;
+      }
+    }
+  }
+}
+
+.report-table {
+  border-collapse: separate;
+  border-spacing: 0;
+
+  .table-header {
+    th {
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      font-weight: 500;
+      font-size: 11px;
+      text-transform: uppercase;
+      padding: 6px;
+      
+      &.sticky-top {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+    }
+  }
+
+  td {
+    border: 1px solid #e2e8f0;
+    padding: 6px;
+    background-color: #ffffff; // Crucial for sticky elements to not overlap transparently
+  }
+
+  // Sticky Positioning
+  .sticky-col {
+    position: sticky;
+    background-color: #ffffff !important; // Explicit solid background
+    box-shadow: inset -1px 0 0 #cbd5e1; // visual separator
+  }
+
+  .right-sticky {
+    position: sticky;
+    background-color: #ffffff !important; // Explicit solid background
+    box-shadow: inset 1px 0 0 #cbd5e1; // visual separator
+  }
+  
+  .table-header {
+    th.sticky-col, th.right-sticky {
+      background-color: #f8fafc !important;
+      z-index: 25 !important; // Must be higher than body sticky cols
+    }
+  }
+
+  // Handle row hover for sticky columns
+  tr:hover .sticky-col, tr:hover .right-sticky {
+    background-color: #f1f5f9 !important;
+  }
+
+  .border-bottom-style-dashed {
+    border-bottom: 1px dashed #cbd5e1 !important;
+  }
+}
+
+// Print Styles for Form D
+@media print {
+  @page {
+    size: landscape A3;
+    margin: 1cm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .report-table-wrapper, .report-table-wrapper * {
+    visibility: visible;
+  }
+
+  .report-table-wrapper {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .report-table {
+    min-width: 100% !important;
+    width: 100%;
+    
+    .sticky-col, .right-sticky {
+      position: static !important;
+      box-shadow: none !important;
+    }
   }
 }

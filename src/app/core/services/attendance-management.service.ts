@@ -3,6 +3,7 @@ import { Injectable } from "@angular/core";
 import { ApiService } from "./api.service";
 import { JwtService } from "./jwt.service";
 import { BehaviorSubject, Observable } from "rxjs";
+import { environment } from "src/environments/environment";
 
 @Injectable({
   providedIn: "root",
@@ -240,5 +241,33 @@ export class AttendanceManagementService {
 
   getSites(): Observable<any> {
     return this.apiservice.get('v1/sites', this.getHeaders());
+  }
+
+  getAttendanceRegister(limit: any, page: any, month?: string, year?: string): Observable<any> {
+    const headers = this.getHeaders().set('Content-Type', 'application/json');
+    let params = new HttpParams();
+
+    if (limit !== 'all') {
+      params = params.set('limit', String(limit)).set('page', String(page));
+    }
+    if (month) {
+      params = params.set('month', month);
+    }
+    if (year) {
+      params = params.set('year', year);
+    }
+
+    return this.apiservice.get(`v1/admin/attendance/register`, headers, params);
+  }
+
+  downloadFormDRegister(month?: string, year?: string): Observable<Blob> {
+    let params = new HttpParams();
+    if (month) params = params.set('month', month);
+    if (year) params = params.set('year', year);
+    return this.http.get(`${environment.api_url}v1/admin/attendance/form-d/download`, {
+      headers: this.getHeaders(),
+      params: params,
+      responseType: 'blob'
+    });
   }
 }

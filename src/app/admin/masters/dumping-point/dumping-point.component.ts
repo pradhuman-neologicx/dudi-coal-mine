@@ -10,6 +10,13 @@ import { NotificationService } from 'src/app/core/services/notificationnew.servi
 import { DumpingPointService } from '../../../core/services/dumping-point.service';
 
 
+export interface SiteItem {
+  id: string | number;
+  name: string;
+  siteName?: string;
+  [key: string]: any;
+}
+
 export interface DumpingPoint {
   id: string;
   site_id: string;
@@ -17,6 +24,7 @@ export interface DumpingPoint {
   type: string;
   name: string;
   is_active: number | boolean;
+  [key: string]: any;
 }
 
 @Component({
@@ -42,12 +50,12 @@ export class DumpingPointComponent implements OnInit, OnDestroy {
 
   dumpingPoints: DumpingPoint[] = [];
   displayPoints: DumpingPoint[] = [];
-  sites: any[] = [];
+  sites: SiteItem[] = [];
 
   page: number = 1;
   totalRecords: number = 0;
-  tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSize: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
 
   searchbarform!: FormGroup;
   filterStatus: string = '';
@@ -151,14 +159,18 @@ export class DumpingPointComponent implements OnInit, OnDestroy {
     this.GetDumpingPointsFun();
   }
 
-  onTableDataChange(event: any): void {
+  onTableDataChange(event: number): void {
     this.page = event;
     this.GetDumpingPointsFun();
   }
 
-  onTableSizeChange(event: any): void {
-    const value = event && event.target ? event.target.value : event;
-    this.tableSize = value === 'all' ? 'all' : Number(value);
+  onTableSizeChange(event: Event | number): void {
+    if (typeof event === 'number') {
+      this.tableSize = event;
+    } else if (event && event.target) {
+      const value = (event.target as HTMLInputElement).value;
+      this.tableSize = value === 'all' ? 1000 : Number(value); // Default to a large number for 'all' or fix pagination
+    }
     this.page = 1;
     this.GetDumpingPointsFun();
   }

@@ -407,6 +407,32 @@ $border-color: #e2e8f0;
   /* Compact bottom text */
 }
 
+// Responsive Adjustments for Modals and Forms
+@media (max-width: 768px) {
+  .modal-dialog-large {
+    width: 96% !important;
+    max-width: 100% !important;
+    max-height: 95vh !important;
+    margin: 10px;
+  }
+
+  .modal-body-custom {
+    max-height: calc(95vh - 130px) !important;
+  }
+
+  .bg-white.p-4 {
+    padding: 1.25rem !important; 
+  }
+
+  .modal-header-custom, .modal-footer {
+    padding: 1rem !important;
+  }
+
+  .row.g-4 > div {
+    margin-bottom: 1rem;
+  }
+}
+
 // Print styles using media queries
 @media print {
 

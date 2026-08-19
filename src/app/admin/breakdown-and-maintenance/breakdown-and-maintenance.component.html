@@ -505,39 +505,34 @@
           </div>
         </section>
 
-        <hr class="border-gray-200">
-
-        <!-- Section 3: Maintenance Window -->
-        <section>
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Maintenance Window</h3>
-            <!-- <div
-              class="flex items-center gap-2 bg-blue-50 text-blue-800 text-xs font-semibold px-3 py-1 rounded border border-blue-200">
-              <i class="far fa-clock"></i>
-              Total Down Time: <span class="bg-white px-1 border border-blue-200 rounded">4.5</span> Hours
-            </div> -->
-          </div>
-          <div class="grid grid-cols-2 gap-6 mb-4">
-            <div>
-              <label class="block text-[11px] font-bold text-gray-700 mb-1">Repair Start Time <span class="text-gray-400 font-normal ml-1">(Optional)</span></label>
-              <input type="datetime-local" [(ngModel)]="entryRepairStart" [min]="entryDate" readonly
-                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)] bg-gray-100 cursor-not-allowed">
+        <ng-container *ngIf="editingTicketId">
+          <hr class="border-gray-200">
+          
+          <!-- Section 3: Maintenance Window -->
+          <section>
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Maintenance Window</h3>
             </div>
-            <div>
-              <label class="block text-[11px] font-bold text-gray-700 mb-1">Repair End Time <span class="text-gray-400 font-normal ml-1">(Optional)</span></label>
-              <input type="datetime-local" [(ngModel)]="entryRepairEnd" [min]="entryRepairStart || entryDate" readonly
-                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)] bg-gray-100 cursor-not-allowed">
+            <div class="grid grid-cols-2 gap-6 mb-4">
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Repair Start Time <span class="text-gray-400 font-normal ml-1">(Optional)</span></label>
+                <input type="datetime-local" [(ngModel)]="entryRepairStart" [min]="entryDate"
+                  class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-gray-700 mb-1">Repair End Time <span class="text-gray-400 font-normal ml-1">(Optional)</span></label>
+                <input type="datetime-local" [(ngModel)]="entryRepairEnd" [min]="entryRepairStart || entryDate"
+                  class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
+              </div>
             </div>
-          </div>
-          <div class="mb-6">
-            <label class="block text-[11px] font-bold text-gray-700 mb-1">Action Taken <span class="text-gray-400 font-normal ml-1">(Optional)</span></label>
-            <textarea rows="3" [(ngModel)]="entryActionTaken"
-              placeholder="Document the steps taken to resolve the issue (e.g. replaced hydraulic hose)..."
-              class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)] resize-none"></textarea>
-          </div>
-
-
-        </section>
+            <div class="mb-6">
+              <label class="block text-[11px] font-bold text-gray-700 mb-1">Action Taken <span class="text-gray-400 font-normal ml-1">(Optional)</span></label>
+              <textarea rows="3" [(ngModel)]="entryActionTaken"
+                placeholder="Document the steps taken to resolve the issue (e.g. replaced hydraulic hose)..."
+                class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)] resize-none"></textarea>
+            </div>
+          </section>
+        </ng-container>
 
       </div>
 

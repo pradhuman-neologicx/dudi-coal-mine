@@ -756,3 +756,46 @@
     background-color: rgba(16, 185, 129, 0.02);
   }
 }
+
+// Leave Register specific table styles
+.table-header .sticky-col {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+tbody td.sticky-col {
+  background-color: var(--bs-table-bg, #fff);
+  position: sticky;
+  z-index: 11;
+  background-clip: padding-box;
+}
+
+.sticky-col {
+  position: sticky;
+  z-index: 11;
+  background-clip: padding-box;
+}
+
+.table-register {
+  border-collapse: separate;
+  border-spacing: 0;
+  
+  th, td {
+    padding: 8px 10px;
+    font-size: 12px;
+    border-bottom: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+  }
+  
+  thead th {
+    border-top: 1px solid #dee2e6;
+  }
+
+  th:first-child, td:first-child {
+    border-left: 1px solid #dee2e6;
+  }
+}
+
+.border-right-heavy {
+  border-right: 2px solid #cbd5e1 !important;
+}

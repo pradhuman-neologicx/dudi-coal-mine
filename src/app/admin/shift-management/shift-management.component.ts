@@ -11,12 +11,58 @@ import { ShiftService } from 'src/app/core/services/shift.service';
 import { EmployeeManagementService } from 'src/app/core/services/employee-management.service';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { NgxPaginationModule } from 'ngx-pagination';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, of } from 'rxjs';
+import { takeUntil, switchMap } from 'rxjs/operators';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+
+export interface ShiftItem {
+  id: number | string;
+  code?: string;
+  name: string;
+  time?: string;
+  badgeClass?: string;
+  shift_name?: string;
+}
+
+export interface ShiftEmployee {
+  id: number | string;
+  empId?: string;
+  employee_code?: string;
+  name: string;
+  site?: string;
+  location?: string;
+  relay?: string;
+  shift?: string;
+  shift_id?: number | string;
+  rotationGroup?: string;
+  rotationPattern?: string;
+  department?: string;
+  [key: string]: any;
+}
+
+export interface ActiveWeekDay {
+  name: string;
+  dateStr: string;
+  label: string;
+  date: Date;
+}
+
+export interface WeekOption {
+  label: string;
+  value: string;
+}
+
+export interface RotationLog {
+  id: string;
+  timestamp: Date;
+  type: string;
+  description: string;
+  supervisor: string;
+  reason?: string;
+}
 
 @Component({
   selector: 'app-shift-management',
@@ -70,21 +116,21 @@ import { MatInputModule } from '@angular/material/input';
 export class ShiftManagementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   currentDate = new Date();
-  activeWeekDays: any[] = [];
+  activeWeekDays: ActiveWeekDay[] = [];
   isOverrideModalOpen = false;
   overrideForm!: FormGroup;
   isBulkRotateModalOpen = false;
   bulkRotateForm!: FormGroup;
   shiftGroups: { [groupName: string]: string[] } = {};
-  filteredEmployeesForRotation: any[] = [];
-  selectedEmployeeIdsForRotation: any[] = [];
-  allShiftsList: any[] = [];
-  tabShiftsList: any[] = [];
+  filteredEmployeesForRotation: ShiftEmployee[] = [];
+  selectedEmployeeIdsForRotation: (number | string)[] = [];
+  allShiftsList: ShiftItem[] = [];
+  tabShiftsList: ShiftItem[] = [];
 
   // Tab and Week/Month filtering state
   activeTab: string = 'Shift A';
-  activeTabId: any = null;
-  weeksList: any[] = [];
+  activeTabId: number | string | null = null;
+  weeksList: WeekOption[] = [];
   selectedWeekMondayStr: string = '';
   selectedMonth: string = '2026-05';
   
@@ -99,25 +145,25 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
 
   // Details Modal state
   isDetailsModalOpen = false;
-  selectedEmployeeForDetails: any = null;
+  selectedEmployeeForDetails: ShiftEmployee | null = null;
 
   // Predefined shifts
-  shifts = [
-    { code: 'Shift A', name: 'Shift A (Morning)', time: '06:00 - 14:00', badgeClass: 'shift-a-badge' },
-    { code: 'Shift B', name: 'Shift B (Afternoon)', time: '14:00 - 22:00', badgeClass: 'shift-b-badge' },
-    { code: 'Shift C', name: 'Shift C (Night)', time: '22:00 - 06:00', badgeClass: 'shift-c-badge' },
-    { code: 'Off', name: 'Weekly Off', time: 'Rest Day', badgeClass: 'shift-off-badge' }
+  shifts: ShiftItem[] = [
+    { code: 'Shift A', name: 'Shift A (Morning)', time: '06:00 - 14:00', badgeClass: 'shift-a-badge', id: 'shift-a' },
+    { code: 'Shift B', name: 'Shift B (Afternoon)', time: '14:00 - 22:00', badgeClass: 'shift-b-badge', id: 'shift-b' },
+    { code: 'Shift C', name: 'Shift C (Night)', time: '22:00 - 06:00', badgeClass: 'shift-c-badge', id: 'shift-c' },
+    { code: 'Off', name: 'Weekly Off', time: 'Rest Day', badgeClass: 'shift-off-badge', id: 'shift-off' }
   ];
 
   // List of employees loaded from the live API response
-  employees: any[] = [];
-  weeklyShiftEmployees: any[] = [];
+  employees: ShiftEmployee[] = [];
+  weeklyShiftEmployees: ShiftEmployee[] = [];
 
   // Shift Assignments Roster: { [empId]: { [dateStr]: shiftCode } }
   shiftAssignments: { [empId: string]: { [dateStr: string]: string } } = {};
 
   // Audit Logs
-  rotationLogs: any[] = [];
+  rotationLogs: RotationLog[] = [];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -189,7 +235,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     const fromDate = this.activeWeekDays[0].dateStr;
     const toDate = this.activeWeekDays[6].dateStr;
 
-    this.shiftService.getShiftRotation(fromDate, toDate, this.activeTabId).pipe(takeUntil(this.destroy$)).subscribe({
+    this.shiftService.getShiftRotation(fromDate, toDate, this.activeTabId || undefined).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res.status === 200 && res.data) {
           this.weeklyShiftEmployees = res.data.map((emp: any) => ({
@@ -422,7 +468,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
           return {
             shiftCode,
             dateStr: d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
-            timeLabel: matched ? matched.time : ''
+            timeLabel: matched ? (matched.time || '') : ''
           };
         }
       }
@@ -435,7 +481,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     return {
       shiftCode: fallbackShift,
       dateStr: tomorrow.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
-      timeLabel: matched ? matched.time : '06:00 - 14:00'
+      timeLabel: matched ? (matched.time || '06:00 - 14:00') : '06:00 - 14:00'
     };
   }
 
@@ -603,7 +649,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
   getDaysInMonthListForMetrics(empId: string): any[] {
     const tempEmp = this.selectedEmployeeForDetails;
     const targetEmp = this.employees.find(e => e.id === empId);
-    this.selectedEmployeeForDetails = targetEmp;
+    this.selectedEmployeeForDetails = targetEmp || null;
     const list = this.getDaysInMonthList();
     this.selectedEmployeeForDetails = tempEmp;
     return list;
@@ -668,7 +714,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     this.selectedMonth = `${year}-${mStr}`;
     
     if (this.selectedEmployeeForDetails) {
-      this.fetchMonthlyDetails(this.selectedEmployeeForDetails.id, this.selectedMonth);
+      this.fetchMonthlyDetails(String(this.selectedEmployeeForDetails.id), this.selectedMonth);
     }
   }
 
@@ -795,13 +841,13 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
   getShiftBadgeClass(empId: string, dateStr: string): string {
     const shiftCode = this.shiftAssignments[empId]?.[dateStr] || 'Off';
     const matched = this.shifts.find(s => s.code === shiftCode);
-    return matched ? matched.badgeClass : 'shift-off-badge';
+    return matched ? (matched.badgeClass || 'shift-off-badge') : 'shift-off-badge';
   }
 
   getShiftTimeLabel(empId: string, dateStr: string): string {
     const shiftCode = this.shiftAssignments[empId]?.[dateStr] || 'Off';
     const matched = this.shifts.find(s => s.code === shiftCode);
-    return matched ? matched.time : 'Rest Day';
+    return matched ? (matched.time || 'Rest Day') : 'Rest Day';
   }
 
   // Helper to get date range array
@@ -941,26 +987,24 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.shiftService.rotateShiftBulk({ employee_ids: [String(employeeId)], target_shift_id: String(targetShift1.id), override: true }).pipe(takeUntil(this.destroy$)).subscribe({
+      this.shiftService.rotateShiftBulk({ employee_ids: [String(employeeId)], target_shift_id: String(targetShift1.id), override: true }).pipe(
+        switchMap(() => this.shiftService.rotateShiftBulk({ employee_ids: [String(swapEmployeeId)], target_shift_id: String(targetShift2.id), override: true })),
+        takeUntil(this.destroy$)
+      ).subscribe({
         next: () => {
-          this.shiftService.rotateShiftBulk({ employee_ids: [String(swapEmployeeId)], target_shift_id: String(targetShift2.id), override: true }).pipe(takeUntil(this.destroy$)).subscribe({
-            next: (res: any) => {
-              this.rotationLogs.unshift({
-                id: Math.floor(1000 + Math.random() * 9000).toString(),
-                timestamp: new Date(),
-                type: 'Shift Swap',
-                description: `Swapped shifts between ${emp1?.name} (${shift1}) and ${emp2?.name} (${shift2}).`,
-                supervisor: 'Supervisor Admin'
-              });
-
-              this.notificationService.show('Shifts swapped successfully!', 'success', 3000);
-              this.loadLiveEmployees();
-              this.closeModal();
-            },
-            error: (err: any) => this.notificationService.show('Failed to complete swap assignment for second employee.', 'error', 3000)
+          this.rotationLogs.unshift({
+            id: Math.floor(1000 + Math.random() * 9000).toString(),
+            timestamp: new Date(),
+            type: 'Shift Swap',
+            description: `Swapped shifts between ${emp1?.name} (${shift1}) and ${emp2?.name} (${shift2}).`,
+            supervisor: 'Supervisor Admin'
           });
+
+          this.notificationService.show('Shifts swapped successfully!', 'success', 3000);
+          this.loadLiveEmployees();
+          this.closeModal();
         },
-        error: (err: any) => this.notificationService.show('Failed to complete swap assignment for first employee.', 'error', 3000)
+        error: (err: any) => this.notificationService.show(err?.error?.message || 'Failed to complete swap assignment.', 'error', 3000)
       });
 
     } else if (type === 'standby') {
@@ -985,34 +1029,30 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // 1. Assign original shift to standby employee
-      this.shiftService.rotateShiftBulk({ employee_ids: [String(standbyEmployeeId)], target_shift_id: String(originalShiftObj.id), override: true }).pipe(takeUntil(this.destroy$)).subscribe({
-        next: () => {
-          // 2. Assign off shift (if exists)
-          const nextFn = () => {
-            this.rotationLogs.unshift({
-              id: Math.floor(1000 + Math.random() * 9000).toString(),
-              timestamp: new Date(),
-              type: 'Standby Assignment',
-              description: `Assigned standby ${standbyEmp?.name} to replace ${emp1?.name} for ${originalShift} shift.`,
-              supervisor: 'Supervisor Admin'
-            });
-
-            this.notificationService.show('Standby shift assigned successfully!', 'success', 3000);
-            this.loadLiveEmployees();
-            this.closeModal();
-          };
-
+      // 1. Assign original shift to standby employee then off shift to original employee via RxJS switchMap
+      this.shiftService.rotateShiftBulk({ employee_ids: [String(standbyEmployeeId)], target_shift_id: String(originalShiftObj.id), override: true }).pipe(
+        switchMap(() => {
           if (offShiftObj) {
-            this.shiftService.rotateShiftBulk({ employee_ids: [String(employeeId)], target_shift_id: String(offShiftObj.id), override: true }).pipe(takeUntil(this.destroy$)).subscribe({
-              next: () => nextFn(),
-              error: () => nextFn()
-            });
-          } else {
-            nextFn();
+            return this.shiftService.rotateShiftBulk({ employee_ids: [String(employeeId)], target_shift_id: String(offShiftObj.id), override: true });
           }
+          return of(null);
+        }),
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: () => {
+          this.rotationLogs.unshift({
+            id: Math.floor(1000 + Math.random() * 9000).toString(),
+            timestamp: new Date(),
+            type: 'Standby Assignment',
+            description: `Assigned standby ${standbyEmp?.name} to replace ${emp1?.name} for ${originalShift} shift.`,
+            supervisor: 'Supervisor Admin'
+          });
+
+          this.notificationService.show('Standby shift assigned successfully!', 'success', 3000);
+          this.loadLiveEmployees();
+          this.closeModal();
         },
-        error: (err: any) => this.notificationService.show('Failed to assign standby employee to shift.', 'error', 3000)
+        error: (err: any) => this.notificationService.show(err?.error?.message || 'Failed to assign standby employee to shift.', 'error', 3000)
       });
     }
   }

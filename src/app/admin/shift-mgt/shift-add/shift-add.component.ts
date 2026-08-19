@@ -105,6 +105,10 @@ export class ShiftAddComponent implements OnInit {
   showDeleteEmployeeModal = false;
   employeeToDelete: any = null;
 
+  // Validation Modal State
+  showValidationModal = false;
+  validationErrors: Record<string, { status: boolean; message: string }> | null = null;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -665,13 +669,31 @@ export class ShiftAddComponent implements OnInit {
 
     this.shiftPlanningService.publishShiftPlan(this.shiftPlanId).subscribe({
       next: (res: any) => {
+        if (res.status === 422 && res.data && res.data.validations) {
+          this.validationErrors = res.data.validations;
+          this.showValidationModal = true;
+          this.notificationService.show(res.message || 'Validation errors occurred.', 'error', 3000);
+          return;
+        }
         this.notificationService.show(res.message || 'Shift Plan published successfully!', 'success', 3000);
         this.router.navigate(['/admin/shift-mgt']);
       },
       error: (err: any) => {
-        const errorMsg = err?.error?.message || err?.message || 'Failed to publish shift plan.';
+        const apiError = err.originalError || err.error || err;
+        if (apiError?.status === 422 && apiError?.data?.validations) {
+          this.validationErrors = apiError.data.validations;
+          this.showValidationModal = true;
+          // Note: api.service.ts already shows the toast notification for 422 errors, so we don't need to show it again here.
+          return;
+        }
+        const errorMsg = apiError?.message || err?.message || 'Failed to publish shift plan.';
         this.notificationService.show(errorMsg, 'error', 3000);
       }
     });
+  }
+
+  closeValidationModal() {
+    this.showValidationModal = false;
+    this.validationErrors = null;
   }
 }

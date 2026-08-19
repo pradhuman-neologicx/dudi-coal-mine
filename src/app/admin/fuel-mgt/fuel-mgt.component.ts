@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -7,8 +7,53 @@ import { FuelManagementService } from 'src/app/core/services/fuel-management.ser
 import { ShiftPlanningService } from 'src/app/core/services/shift-planning.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { Chart, registerables } from 'chart.js';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 Chart.register(...registerables);
+
+export interface FuelEntryTableItem {
+  id: number | string;
+  machineId: string;
+  machineDesc: string;
+  shiftName: string;
+  date: string;
+  opening: number;
+  issued: number;
+  closing: number;
+  consumption: number;
+  fuelBcm: number;
+  trend?: string;
+  efficiencyClass?: string;
+  originalData?: any;
+}
+
+export interface FuelShiftOption {
+  id: number | string;
+  name?: string;
+  shift_name?: string;
+  [key: string]: any;
+}
+
+export interface MachineCategoryOption {
+  id: number | string;
+  name?: string;
+  category_name?: string;
+  [key: string]: any;
+}
+
+export interface MachineShiftItem {
+  machine_id: number | string;
+  category_id?: number | string;
+  machine_name?: string;
+  [key: string]: any;
+}
+
+export interface ImportResult {
+  status: number | string;
+  message: string;
+  errors: string[];
+}
 
 @Component({
   selector: 'app-fuel-mgt',
@@ -17,7 +62,8 @@ Chart.register(...registerables);
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule, NgSelectModule]
 })
-export class FuelMgtComponent implements OnInit, AfterViewInit {
+export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   isModalOpen = false;
   isEditMode = false;
@@ -36,7 +82,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
   };
 
   tableSize: number | string = 10;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSizes: number[] = [10, 20, 50, 100];
 
   topDateRange = 'weekly';
   dateRangeOptions = [
@@ -55,7 +101,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
 
   shiftName = '';
   entryShiftPlanId: any = null;
-  machinesList: any[] = [];
+  machinesList: MachineShiftItem[] = [];
   editingFuelId: any = null;
   isBindingData = false;
 
@@ -75,10 +121,8 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
   // Import
   isImportModalOpen = false;
   isImporting = false;
-  importResult: any = null;
+  importResult: ImportResult | null = null;
   @ViewChild('fileInput') fileInput!: ElementRef;
-
-
 
   toggleFilter() {
     this.isFilterOpen = !this.isFilterOpen;
@@ -100,9 +144,9 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
     active_machines_refueled: 0
   };
 
-  filterShifts: any[] = [];
-  machineCategories: any[] = [];
-  fuelEntries: any[] = [];
+  filterShifts: FuelShiftOption[] = [];
+  machineCategories: MachineCategoryOption[] = [];
+  fuelEntries: FuelEntryTableItem[] = [];
 
   fuelConsumptionTrendData: any[] = [];
   consumptionByTypeData: any[] = [];
@@ -132,13 +176,21 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
     this.fetchFuelData();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.trendChartInstance) this.trendChartInstance.destroy();
+    if (this.machineChartInstance) this.machineChartInstance.destroy();
+    if (this.chartInstance) this.chartInstance.destroy();
+  }
+
   fetchFilters() {
-    this.fuelService.getShifts().subscribe((res: any) => {
+    this.fuelService.getShifts().pipe(takeUntil(this.destroy$)).subscribe((res: any) => {
       if (res && res.status === 200) {
         this.filterShifts = res.data?.data || res.data || [];
       }
     });
-    this.fuelService.getMachineCategories().subscribe((res: any) => {
+    this.fuelService.getMachineCategories().pipe(takeUntil(this.destroy$)).subscribe((res: any) => {
       if (res && res.status === 200) {
         this.machineCategories = res.data || [];
       }
@@ -165,7 +217,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
       filters.limit = this.tableSize;
     }
 
-    this.fuelService.getFuelEntries(filters).subscribe((res: any) => {
+    this.fuelService.getFuelEntries(filters).pipe(takeUntil(this.destroy$)).subscribe((res: any) => {
       if (res && res.status === 200) {
         if (res.summary) {
           this.summaryStats = res.summary;
@@ -393,7 +445,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
 
   openViewModal(item: any) {
     const fuelId = item.id || item.originalData?.id;
-    this.fuelService.getFuelEntryById(fuelId).subscribe({
+    this.fuelService.getFuelEntryById(fuelId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200 && res.data) {
           this.viewItemData = res.data;
@@ -417,7 +469,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
     if (this.isBindingData) return;
 
     if (this.formData.date) {
-      this.shiftPlanningService.shiftPlanFilterByDate(this.formData.date).subscribe({
+      this.shiftPlanningService.shiftPlanFilterByDate(this.formData.date).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res && res.status === 200 && res.data) {
             this.formData.shift = res.data.id || res.data.shift_id || res.data;
@@ -454,7 +506,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
     this.editingFuelId = item.id || item.originalData?.id;
     this.isModalOpen = true;
 
-    this.fuelService.getFuelEntryById(this.editingFuelId).subscribe({
+    this.fuelService.getFuelEntryById(this.editingFuelId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200 && res.data) {
           const data = res.data;
@@ -477,7 +529,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
 
           // Try to fetch machines for this date, but preserve the shift info
           if (this.formData.date) {
-            this.shiftPlanningService.shiftPlanFilterByDate(this.formData.date).subscribe({
+            this.shiftPlanningService.shiftPlanFilterByDate(this.formData.date).pipe(takeUntil(this.destroy$)).subscribe({
               next: (shiftRes: any) => {
                 if (shiftRes && shiftRes.status === 200 && shiftRes.data) {
                   this.machinesList = shiftRes.data.machines || [];
@@ -572,7 +624,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
 
     if (this.isEditMode) {
       payload._method = 'PUT';
-      this.fuelService.updateFuelEntry(this.editingFuelId, payload).subscribe({
+      this.fuelService.updateFuelEntry(this.editingFuelId, payload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.notificationService.show(res.message || 'Fuel entry updated successfully!', 'success');
           this.closeModal();
@@ -580,7 +632,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
         }
       });
     } else {
-      this.fuelService.createFuelEntry(payload).subscribe({
+      this.fuelService.createFuelEntry(payload).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.notificationService.show(res.message || 'Fuel entry logged successfully!', 'success');
           this.closeModal();
@@ -602,12 +654,13 @@ export class FuelMgtComponent implements OnInit, AfterViewInit {
     this.fetchFuelData();
   }
 
-  onFileSelected(event: any) {
-    const file = event.target.files[0];
+  onFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files ? input.files[0] : null;
     if (file) {
       this.isImporting = true;
       this.importResult = null;
-      this.fuelService.importFuelEntries(file).subscribe({
+      this.fuelService.importFuelEntries(file).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           this.isImporting = false;
           if (res && (res.status === 200 || res.status === 201 || res.status === 'success') && (!res.errors || res.errors.length === 0)) {

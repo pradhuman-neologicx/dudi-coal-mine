@@ -212,97 +212,167 @@
 
     <form [formGroup]="employeeForm" class="d-flex flex-column flex-grow-1 overflow-hidden">
 
+      <!-- Tab Headers -->
+      <div class="px-4 pt-3 border-bottom bg-light">
+        <ul class="nav nav-tabs border-0">
+          <li class="nav-item">
+            <a class="nav-link cursor-pointer fw-semibold" 
+               [class.active]="activeTab === 'personal'" 
+               [class.text-primary]="activeTab === 'personal'"
+               [class.text-muted]="activeTab !== 'personal'"
+               (click)="setTab('personal')">
+               <i class="fa-regular fa-user me-2"></i>Personal Details
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link cursor-pointer fw-semibold" 
+               [class.active]="activeTab === 'employment'" 
+               [class.text-primary]="activeTab === 'employment'"
+               [class.text-muted]="activeTab !== 'employment'"
+               (click)="setTab('employment')">
+               <i class="fa-solid fa-briefcase me-2"></i>Employment Details
+            </a>
+          </li>
+        </ul>
+      </div>
+
       <!-- Scrollable Content Area -->
       <div class="modal-body-custom px-4 py-4 overflow-auto flex-grow-1">
 
-        <h5 class="mb-3 text-primary border-bottom pb-2"><i class="fa-regular fa-user me-2"></i>Personal Details</h5>
-        <div class="row g-3 mb-4">
-          <div class="col-md-6">
-            <label class="form-label form-lable-custom">Employee ID *</label>
+        <div *ngIf="activeTab === 'personal'">
+          <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label class="form-label form-lable-custom">Employee Code *</label>
             <input type="text" class="form-control form-input-custom" formControlName="empId"
-              placeholder="Enter Employee ID" [readonly]="isEditMode"
+              placeholder="Enter Employee Code" [readonly]="isEditMode"
               [ngClass]="{'is-invalid': employeeForm.get('empId')?.invalid && employeeForm.get('empId')?.touched}" />
-            <div class="invalid-feedback">Employee ID is required.</div>
+            <div class="invalid-feedback">Employee Code is required.</div>
           </div>
-          <div class="col-md-6">
-            <label class="form-label form-lable-custom">Employee Name *</label>
-            <input type="text" class="form-control form-input-custom" formControlName="name"
+          <div class="col-md-3">
+            <label class="form-label form-lable-custom">First Name *</label>
+            <input type="text" class="form-control form-input-custom" formControlName="name" placeholder="First Name"
               [ngClass]="{'is-invalid': employeeForm.get('name')?.invalid && employeeForm.get('name')?.touched}" />
-            <div class="invalid-feedback">Employee Name is required.</div>
+            <div class="invalid-feedback">First Name is required.</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-lable-custom">Surname</label>
+            <input type="text" class="form-control form-input-custom" formControlName="surname" placeholder="Surname" />
           </div>
           <div class="col-md-6">
-            <label class="form-label form-lable-custom">Father Name *</label>
-            <input type="text" class="form-control form-input-custom" formControlName="fatherName"
+            <label class="form-label form-lable-custom">Father/Husband Name *</label>
+            <input type="text" class="form-control form-input-custom" formControlName="fatherName" placeholder="Father/Husband Name"
               [ngClass]="{'is-invalid': employeeForm.get('fatherName')?.invalid && employeeForm.get('fatherName')?.touched}" />
-            <div class="invalid-feedback">Father Name is required.</div>
+            <div class="invalid-feedback">Father/Husband Name is required.</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-3">
             <label class="form-label form-lable-custom">Date of Birth *</label>
             <input type="date" class="form-control form-input-custom" formControlName="dob"
               [ngClass]="{'is-invalid': employeeForm.get('dob')?.invalid && employeeForm.get('dob')?.touched}" />
             <div class="invalid-feedback">Date of Birth is required.</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-3">
             <label class="form-label form-lable-custom">Gender *</label>
             <ng-select class="custom-ng-select w-100" formControlName="gender" placeholder="Select Gender"
               [searchable]="false" [clearable]="true"
               [ngClass]="{'is-invalid': employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched}">
-              <ng-option value="Male">Male</ng-option>
-              <ng-option value="Female">Female</ng-option>
-              <ng-option value="Other">Other</ng-option>
+              <ng-option value="male">Male</ng-option>
+              <ng-option value="female">Female</ng-option>
+              <ng-option value="other">Other</ng-option>
             </ng-select>
             <div class="invalid-feedback"
-              [class.d-block]="employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched">Gender is
-              required.</div>
+              [class.d-block]="employeeForm.get('gender')?.invalid && employeeForm.get('gender')?.touched">Gender is required.</div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-lable-custom">Nationality</label>
+            <ng-select class="custom-ng-select w-100" formControlName="nationality" placeholder="Nationality" [searchable]="true" [clearable]="true">
+              <ng-option value="Indian">Indian</ng-option>
+              <ng-option value="Other">Other</ng-option>
+            </ng-select>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label form-lable-custom">Education Level</label>
+            <input type="text" class="form-control form-input-custom" formControlName="educationLevel" placeholder="e.g. 10th, 12th, Graduate" />
           </div>
           <div class="col-md-6">
+            <label class="form-label form-lable-custom">Mark of Identification</label>
+            <input type="text" class="form-control form-input-custom" formControlName="markOfIdentification" placeholder="Visible mark" />
+          </div>
+          <div class="col-md-3">
             <label class="form-label form-lable-custom">Mobile Number *</label>
             <input type="text" maxlength="10" class="form-control form-input-custom" formControlName="mobile"
               placeholder="10-digit number"
               [ngClass]="{'is-invalid': employeeForm.get('mobile')?.invalid && employeeForm.get('mobile')?.touched}" />
-            <div class="invalid-feedback" *ngIf="employeeForm.get('mobile')?.errors?.['required']">Mobile Number is
-              required.</div>
-            <div class="invalid-feedback" *ngIf="employeeForm.get('mobile')?.errors?.['pattern']">Mobile Number must be
-              exactly 10 digits.</div>
+            <div class="invalid-feedback" *ngIf="employeeForm.get('mobile')?.errors?.['required']">Mobile Number is required.</div>
+            <div class="invalid-feedback" *ngIf="employeeForm.get('mobile')?.errors?.['pattern']">Must be 10 digits.</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-3">
             <label class="form-label form-lable-custom">Emergency Contact</label>
             <input type="text" maxlength="10" class="form-control form-input-custom" formControlName="emergencyContact"
               placeholder="10-digit number"
               [ngClass]="{'is-invalid': employeeForm.get('emergencyContact')?.invalid && employeeForm.get('emergencyContact')?.touched}" />
-            <div class="invalid-feedback">Emergency Contact must be a valid 10-digit number.</div>
+            <div class="invalid-feedback">Must be a valid 10-digit number.</div>
           </div>
-          <div class="col-md-12">
-            <label class="form-label form-lable-custom">Address *</label>
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom">Present Address *</label>
             <textarea class="form-control form-input-custom" formControlName="address" rows="2"
               [ngClass]="{'is-invalid': employeeForm.get('address')?.invalid && employeeForm.get('address')?.touched}"></textarea>
-            <div class="invalid-feedback">Address is required.</div>
+            <div class="invalid-feedback">Present Address is required.</div>
+          </div>
+          <div class="col-md-6">
+            <div class="d-flex justify-content-between align-items-center">
+              <label class="form-label form-lable-custom mb-0">Permanent Address</label>
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" formControlName="sameAsPresent" id="sameAddressCheck" (change)="onSameAsPresentChange($event)">
+                <label class="form-check-label text-muted small" for="sameAddressCheck">Same as Present</label>
+              </div>
+            </div>
+            <textarea class="form-control form-input-custom mt-2" formControlName="permanentAddress" rows="2"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom">Photo Upload</label>
+            <input type="file" class="form-control file-input-visible" accept="image/*" (change)="onFileSelected($event, 'photo')" />
+            <small class="text-muted">Max size: 2MB (JPG, PNG)</small>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom">Signature / Thumb Impression</label>
+            <input type="file" class="form-control file-input-visible" accept="image/*" (change)="onFileSelected($event, 'signature')" />
+            <small class="text-muted">Max size: 2MB (JPG, PNG)</small>
           </div>
         </div>
+        </div>
 
-        <h5 class="mb-3 text-primary border-bottom pb-2"><i class="fa-solid fa-briefcase me-2"></i>Employment Details
-        </h5>
+        <div *ngIf="activeTab === 'employment'">
         <div class="row g-3">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label class="form-label form-lable-custom">Joining Date *</label>
             <input type="date" class="form-control form-input-custom cursor-pointer" formControlName="joiningDate"
               (click)="onDateClick($event)" [max]="todayDate"
               [ngClass]="{'is-invalid': employeeForm.get('joiningDate')?.invalid && employeeForm.get('joiningDate')?.touched}" />
             <div class="invalid-feedback">Joining Date is required.</div>
           </div>
-          <!--
-          <div class="col-md-6">
-            <label class="form-label form-lable-custom">Employee Type *</label>
-            <select class="form-select form-input-custom" formControlName="empType"
-              [ngClass]="{'is-invalid': employeeForm.get('empType')?.invalid && employeeForm.get('empType')?.touched}">
-              <option value="">Select Type</option>
-              <option value="Permanent">Permanent</option>
-              <option value="Daily Wage">Daily Wage</option>
-            </select>
-            <div class="invalid-feedback">Employee Type is required.</div>
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Employee Type</label>
+            <ng-select class="custom-ng-select w-100" formControlName="empType" placeholder="Select Type" [searchable]="false" [clearable]="false">
+              <ng-option value="permanent">Permanent</ng-option>
+            </ng-select>
           </div>
-          -->
-          <div class="col-md-6">
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Category (Skill Level) *</label>
+            <ng-select class="custom-ng-select w-100" formControlName="category" placeholder="Select Category" [searchable]="false" [clearable]="true"
+              [ngClass]="{'is-invalid': employeeForm.get('category')?.invalid && employeeForm.get('category')?.touched}">
+              <ng-option value="highly_skilled">Highly Skilled</ng-option>
+              <ng-option value="skilled">Skilled</ng-option>
+              <ng-option value="semi_skilled">Semi Skilled</ng-option>
+              <ng-option value="unskilled">Unskilled</ng-option>
+            </ng-select>
+            <div class="invalid-feedback" [class.d-block]="employeeForm.get('category')?.invalid && employeeForm.get('category')?.touched">
+              Category is required.</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Service Book No.</label>
+            <input type="text" class="form-control form-input-custom" formControlName="serviceBookNo" placeholder="Book Number" />
+          </div>
+          <div class="col-md-4">
             <label class="form-label form-lable-custom">Department *</label>
             <ng-select class="custom-ng-select w-100" formControlName="department" placeholder="Select Department"
               [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="departmentsList"
@@ -312,7 +382,7 @@
               [class.d-block]="employeeForm.get('department')?.invalid && employeeForm.get('department')?.touched">
               Department is required.</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label class="form-label form-lable-custom">Designation *</label>
             <ng-select class="custom-ng-select w-100" formControlName="designation" placeholder="Select Designation"
               [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="designationsList"
@@ -322,7 +392,7 @@
               [class.d-block]="employeeForm.get('designation')?.invalid && employeeForm.get('designation')?.touched">
               Designation is required.</div>
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label class="form-label form-lable-custom">Workforce Group (Relay) *</label>
             <ng-select class="custom-ng-select w-100" formControlName="relay" placeholder="Select Relay"
               [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="relaysList"
@@ -332,15 +402,54 @@
               [class.d-block]="employeeForm.get('relay')?.invalid && employeeForm.get('relay')?.touched">
               Relay is required.</div>
           </div>
-        </div>
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Site *</label>
+            <ng-select class="custom-ng-select w-100" formControlName="site" placeholder="Select Site"
+              [searchable]="true" [clearable]="true" bindLabel="name" bindValue="id" [items]="sitesList"
+              [ngClass]="{'is-invalid': employeeForm.get('site')?.invalid && employeeForm.get('site')?.touched}">
+            </ng-select>
+            <div class="invalid-feedback"
+              [class.d-block]="employeeForm.get('site')?.invalid && employeeForm.get('site')?.touched">
+              Site is required.</div>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label form-lable-custom">Place of Work</label>
+            <ng-select class="custom-ng-select w-100" formControlName="placeOfWork" placeholder="Select Place of Work" [searchable]="false" [clearable]="true">
+              <ng-option value="Underground">Underground</ng-option>
+              <ng-option value="Opencast">Opencast</ng-option>
+              <ng-option value="Surface">Surface</ng-option>
+            </ng-select>
+          </div>
 
+          <!-- Exit Details (Shown conditionally if needed, but keeping it visible for edit mode or standard form) -->
+          <div class="col-md-12 mt-4" *ngIf="isEditMode">
+            <h6 class="text-secondary border-bottom pb-2">Exit Details</h6>
+          </div>
+          <div class="col-md-6" *ngIf="isEditMode">
+            <label class="form-label form-lable-custom">Date of Exit</label>
+            <input type="date" class="form-control form-input-custom cursor-pointer" formControlName="dateOfExit" />
+          </div>
+          <div class="col-md-6" *ngIf="isEditMode">
+            <label class="form-label form-lable-custom">Reason for Exit</label>
+            <input type="text" class="form-control form-input-custom" formControlName="reasonForExit" placeholder="Reason for leaving" />
+          </div>
+
+          <!-- Remarks -->
+          <div class="col-md-12 mt-2">
+            <label class="form-label form-lable-custom">Remarks (if any)</label>
+            <textarea class="form-control form-input-custom" formControlName="remarks" rows="2" placeholder="Any additional remarks..."></textarea>
+          </div>
+        </div>
+        </div>
       </div>
 
       <!-- Footer Buttons -->
       <div class="px-4 py-3 border-top bg-light d-flex justify-content-end align-items-center gap-2">
-        <button class="btn btn-secondary px-4 py-2" type="button" (click)="closeModal()">Cancel</button>
-        <button class="btn btn-success px-4 py-2" type="button" (click)="saveEmployee()">
-          <i class="fa-solid fa-circle-check me-2"></i>{{ isEditMode ? 'Update Employee' : 'Save Employee' }}
+        <button type="button" class="btn btn-secondary px-4 py-2" (click)="closeModal()">Cancel</button>
+        <button type="button" class="btn btn-primary px-4 py-2" (click)="prevTab()" *ngIf="activeTab === 'employment'">Previous</button>
+        <button type="button" class="btn btn-custom-primary px-4 py-2" (click)="nextTab()" *ngIf="activeTab === 'personal'">Next Step</button>
+        <button type="button" class="btn btn-success px-4 py-2" (click)="saveEmployee()" *ngIf="activeTab === 'employment'">
+          <i class="fa-solid fa-check me-2"></i>{{ isEditMode ? 'Update Employee' : 'Save Employee' }}
         </button>
       </div>
 
@@ -386,9 +495,9 @@
           <div class="row g-3 mb-4">
             <div class="col-md-6 col-lg-4">
               <div class="glass-info-card">
-                <div class="card-icon-wrapper code"><i class="fa-solid fa-id-card"></i></div>
+                <div class="card-icon-wrapper code"><i class="fa-solid fa-hashtag"></i></div>
                 <div class="card-info-content">
-                  <span class="info-label">Employee ID</span>
+                  <span class="info-label">Employee Code</span>
                   <span class="info-value text-dark fs-7">{{ selectedEmployee?.empId }}</span>
                 </div>
               </div>
@@ -438,12 +547,48 @@
                 </div>
               </div>
             </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper contact"><i class="fa-solid fa-flag"></i></div>
+                <div class="card-info-content">
+                  <span class="info-label">Nationality</span>
+                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.nationality || '--' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper contact"><i class="fa-solid fa-graduation-cap"></i></div>
+                <div class="card-info-content">
+                  <span class="info-label">Education Level</span>
+                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.educationLevel || '--' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper contact"><i class="fa-solid fa-fingerprint"></i></div>
+                <div class="card-info-content">
+                  <span class="info-label">Mark Of Identification</span>
+                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.identificationMark || '--' }}</span>
+                </div>
+              </div>
+            </div>
             <div class="col-12">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper contact"><i class="fa-solid fa-location-dot"></i></div>
                 <div class="card-info-content">
-                  <span class="info-label">Address</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.address }}</span>
+                  <span class="info-label">Present Address</span>
+                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.address || '--' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-12">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper contact"><i class="fa-solid fa-map-location-dot"></i></div>
+                <div class="card-info-content">
+                  <span class="info-label">Permanent Address</span>
+                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.permanentAddress || '--' }}</span>
                 </div>
               </div>
             </div>
@@ -462,17 +607,15 @@
                 </div>
               </div>
             </div>
-            <!--
             <div class="col-md-6">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper site"><i class="fa-solid fa-briefcase"></i></div>
                 <div class="card-info-content">
                   <span class="info-label">Employee Type</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.empType }}</span>
+                  <span class="info-value text-dark fs-7 text-capitalize">{{ selectedEmployee?.empType || '--' }}</span>
                 </div>
               </div>
             </div>
-            -->
             <div class="col-md-6">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper site"><i class="fa-solid fa-sitemap"></i></div>
@@ -496,7 +639,52 @@
                 <div class="card-icon-wrapper site"><i class="fa-solid fa-clock"></i></div>
                 <div class="card-info-content">
                   <span class="info-label">Relay / Shift</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.relay || '--' }}</span>
+                  <span class="info-value text-dark fs-7 text-capitalize">{{ selectedEmployee?.relay || '--' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper site"><i class="fa-solid fa-star"></i></div>
+                <div class="card-info-content">
+                  <span class="info-label">Category (Skill Level)</span>
+                  <span class="info-value text-dark fs-7 text-capitalize">{{ selectedEmployee?.skillCategory || '--' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper site"><i class="fa-solid fa-book-open"></i></div>
+                <div class="card-info-content">
+                  <span class="info-label">Service Book No.</span>
+                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.serviceBookNo || '--' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper site"><i class="fa-solid fa-building"></i></div>
+                <div class="card-info-content">
+                  <span class="info-label">Site</span>
+                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.site || '--' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6" *ngIf="selectedEmployee?.placeOfWork && selectedEmployee?.placeOfWork !== '--'">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper site"><i class="fa-solid fa-location-crosshairs"></i></div>
+                <div class="card-info-content">
+                  <span class="info-label">Place of Work</span>
+                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.placeOfWork }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="col-12" *ngIf="selectedEmployee?.remarks">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper site"><i class="fa-solid fa-comment-dots"></i></div>
+                <div class="card-info-content">
+                  <span class="info-label">Remarks</span>
+                  <span class="info-value text-dark fs-7">{{ selectedEmployee?.remarks }}</span>
                 </div>
               </div>
             </div>
@@ -529,7 +717,7 @@
       <div class="w-100">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h6 class="fw-bold mb-0">Upload File</h6>
-          <a href="assets/Bulk_New_Employees.xlsx" download="Bulk_New_Employees.xlsx" target="_blank"
+          <a href="assets/Bulk_New_Employees (1).xlsx" download="Bulk_New_Employees (1).xlsx" target="_blank"
             class="btn btn-link btn-sm text-primary p-0 text-decoration-none fw-semibold">
             <i class="fa-solid fa-download me-1"></i>Download Sample
           </a>

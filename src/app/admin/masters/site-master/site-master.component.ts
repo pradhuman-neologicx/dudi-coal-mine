@@ -18,6 +18,18 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { SiteService } from 'src/app/core/services/site.service';
 
+export interface SiteItem {
+  id: number | string;
+  name?: string;
+  siteName?: string;
+  address?: string;
+  status?: boolean | number | string;
+  created_at?: string;
+  updated_at?: string;
+  is_active?: number | boolean;
+  [key: string]: any;
+}
+
 @Component({
   selector: 'app-site-master',
   standalone: true,
@@ -63,18 +75,18 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
   updateSiteForm!: FormGroup;
   viewSiteForm!: FormGroup;
   
-  tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
-  totalRecords: any;
+  tableSize: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
+  totalRecords: number = 0;
   page: number = 1;
   
   createSiteOpen: boolean = false;
   updateSiteOpen: boolean = false;
   viewSiteOpen: boolean = false;
-  currentSiteId: any;
-  selectedSite: any = null;
+  currentSiteId: number | string | null = null;
+  selectedSite: SiteItem | null = null;
   
-  siteList: any[] = [];
+  siteList: SiteItem[] = [];
   
   table_heading = [
     {
@@ -120,13 +132,17 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  onTableSizeChange(event: any): void {
-    this.tableSize = event && event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number): void {
+    if (typeof event === 'number') {
+      this.tableSize = event;
+    } else if (event && event.target) {
+      this.tableSize = Number((event.target as HTMLInputElement).value);
+    }
     this.page = 1;
     this.GetSiteFun();
   }
 
-  onTableDataChange(event: any) {
+  onTableDataChange(event: number) {
     this.page = event;
     this.GetSiteFun();
   }
@@ -156,13 +172,13 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
     this.createSiteForm.reset();
   }
 
-  OpenEditModal(site: any): void {
+  OpenEditModal(site: SiteItem): void {
     this.currentSiteId = site.id;
     this.updateSiteOpen = true;
     this.GetupdateSitebyid(this.currentSiteId);
   }
 
-  openviewModal(site: any): void {
+  openviewModal(site: SiteItem): void {
     this.viewSiteOpen = true;
     this.currentSiteId = site.id;
     this.selectedSite = null;
@@ -172,7 +188,7 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
         if (response.status === 200) {
           this.selectedSite = response.data;
           this.viewSiteForm.patchValue({ 
-            siteName: response.data.siteName,
+            siteName: response.data.siteName || response.data.name,
             address: response.data.address
           });
         }
@@ -183,7 +199,7 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
     });
   }
 
-  GetupdateSitebyid(siteId: any) {
+  GetupdateSitebyid(siteId: number | string) {
     this.siteService.getSiteById(siteId).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         if (response.status === 200) {
@@ -302,7 +318,7 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
       });
   }
 
-  async Status(id: string, status: any) {
+  async Status(id: number | string, status: boolean | number | string) {
     const formData = new FormData();
     formData.append('_method', 'PATCH');
     formData.append('status', status.toString());

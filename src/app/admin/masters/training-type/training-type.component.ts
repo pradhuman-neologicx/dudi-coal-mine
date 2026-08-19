@@ -41,8 +41,8 @@ export class TrainingTypeComponent implements OnInit, OnDestroy {
 
   page: number = 1;
   totalRecords: number = 0;
-  tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSize: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
 
   searchbarform!: FormGroup;
   filterStatus: string = '';
@@ -124,14 +124,18 @@ export class TrainingTypeComponent implements OnInit, OnDestroy {
     this.GetTrainingTypesFun();
   }
 
-  onTableDataChange(event: any): void {
+  onTableDataChange(event: number): void {
     this.page = event;
     this.GetTrainingTypesFun();
   }
 
-  onTableSizeChange(event: any): void {
-    const value = event && event.target ? event.target.value : event;
-    this.tableSize = value === 'all' ? 'all' : Number(value);
+  onTableSizeChange(event: Event | number): void {
+    if (typeof event === 'number') {
+      this.tableSize = event;
+    } else if (event && event.target) {
+      const value = (event.target as HTMLInputElement).value;
+      this.tableSize = value === 'all' ? 1000 : Number(value); // Default to a large number for 'all' or fix pagination
+    }
     this.page = 1;
     this.GetTrainingTypesFun();
   }

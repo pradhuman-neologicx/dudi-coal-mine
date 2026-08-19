@@ -4,6 +4,7 @@ import { ApiService } from './api.service';
 import { JwtService } from './jwt.service';
 import { BehaviorSubject, catchError, Observable, tap, throwError } from 'rxjs';
 import { Router } from '@angular/router';
+import { environment } from 'src/environments/environment';
 @Injectable({
   providedIn: 'root',
 })
@@ -402,5 +403,284 @@ export class EmployeeService {
     }
   }
 
+  checkSalaryGenerated(month: number, year: number) {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+    let httpParams = new HttpParams()
+      .set('month', month.toString())
+      .set('year', year.toString());
 
+    var url = 'v1/admin/wage-register/check';
+
+    return this.http.get(`${environment.api_url}${url}`, {
+      headers: headers,
+      params: httpParams,
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
+
+  importSalaryFile(month: number, year: number, file: File) {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    const formData = new FormData();
+    formData.append('month', month.toString());
+    formData.append('year', year.toString());
+    formData.append('file', file);
+    return this.apiservice.post(`v1/admin/wage-register/import`, formData, headers).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
+
+  getUpdatedPreviewData() {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+
+    const url = `v1/admin/wage-register/import`;
+    return this.apiservice.get(url, headers).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
+
+  getWageRegisterReports(year?: number): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+
+    let httpParams = new HttpParams();
+    if (year) {
+      httpParams = httpParams.set('year', year.toString());
+    }
+
+    const url = `v1/admin/wage-register/reports`;
+    return this.apiservice.get(url, headers, httpParams).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
+
+  exportWageRegisterReports(year?: number): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    let httpParams = new HttpParams();
+    if (year) {
+      httpParams = httpParams.set('year', year.toString());
+    }
+
+    const url = `v1/admin/wage-register/reports/export`;
+    return this.http.get(`${environment.api_url}${url}`, {
+      headers: headers,
+      params: httpParams,
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
+
+  exportAttendanceRegister(month?: number, year?: number): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    let httpParams = new HttpParams();
+    if (month) {
+      httpParams = httpParams.set('month', month.toString());
+    }
+    if (year) {
+      httpParams = httpParams.set('year', year.toString());
+    }
+
+    const url = `v1/admin/attendance/register/export`;
+    return this.http.get(`${environment.api_url}${url}`, {
+      headers: headers,
+      params: httpParams,
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
+
+  exportWageRegisterReportDetail(reportId: number | string): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+    });
+
+    const url = `v1/admin/wage-register/reports/${reportId}/export`;
+    return this.http.get(`${environment.api_url}${url}`, {
+      headers: headers,
+      observe: 'response',
+      responseType: 'blob'
+    });
+  }
+
+  getWageRegisterPreviewDetails(uploadId: number | string, page: number = 1, limit: number = 25): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+
+    let httpParams = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    const url = `v1/admin/wage-register/import/${uploadId}`;
+    return this.apiservice.get(url, headers, httpParams).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
+
+  updateWageRegisterRowField(uploadId: number | string, excelRow: number | string, updatedData: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+
+    const url = `v1/admin/wage-register/import/${uploadId}/rows/${excelRow}`;
+    return this.apiservice.patch(url, updatedData, headers).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
+
+  submitWageRegister(uploadId: number | string): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+
+    const url = `v1/admin/wage-register/import/${uploadId}/submit`;
+    return this.apiservice.post(url, {}, headers).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
+
+  getWageRegisterReportDetails(reportId: number | string, page: number = 1, limit: number = 25, search?: string): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+
+    let httpParams = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    if (search && search.trim().length > 0) {
+      httpParams = httpParams.set('search', search.trim());
+    }
+
+    const url = `v1/admin/wage-register/reports/${reportId}`;
+    return this.apiservice.get(url, headers, httpParams).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
+
+  // Salary Wages master APIs start
+  getWagesMasterData(tableSize: any, page: any) {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+
+    let url = `v1/admin/employee-wages`;
+    if (tableSize !== 'all') {
+      url = `v1/admin/employee-wages?per_page=${tableSize}&page=${page}`;
+    }
+
+    return this.apiservice.get(url, headers).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
+
+  getEmployeeWageByEmployeeId(employeeId: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+
+    const url = `v1/admin/employee-wages/employee/${employeeId}`;
+    return this.apiservice.get(url, headers).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
+
+  getWagesMatrixData(effectiveDate: string): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    });
+    const url = `v1/admin/employee-wages/matrix?effective_on=${effectiveDate}`;
+    return this.apiservice.get(url, headers).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
+
+  createSalaryWagesMaster(requestbody: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    let headers = new HttpHeaders({
+      Authorization: `Bearer ${token}`,
+      // 'Content-Type': 'application/json',
+    });
+    if (!(requestbody instanceof FormData)) {
+      headers = headers.set('Content-Type', 'application/json');
+    }
+    // Make the POST request to the server
+    return this.apiservice.post(`v1/admin/employee-wages/bulk`, requestbody, headers).pipe(
+      tap((error: any) => {
+        console.log('Response received:', error);
+        this.erromessagefunction(error);
+      }),
+    );
+  }
 }
+
+
+

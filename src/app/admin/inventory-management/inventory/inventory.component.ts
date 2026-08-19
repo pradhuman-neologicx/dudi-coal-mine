@@ -21,6 +21,60 @@ interface InventoryItem {
   employeeName: string;
 }
 
+export interface InventoryProductOption {
+  id: number | string;
+  name: string;
+  category_name?: string;
+  sub_category_name?: string;
+  [key: string]: any;
+}
+
+export interface InventoryDepartmentOption {
+  id: number | string;
+  name: string;
+  [key: string]: any;
+}
+
+export interface InventoryEmployeeOption {
+  id: number | string;
+  name?: string;
+  first_name?: string;
+  last_name?: string;
+  [key: string]: any;
+}
+
+export interface InventoryAssignmentLog {
+  id: number;
+  productName: string;
+  category: string;
+  subCategory: string;
+  quantity: number;
+  employeeName: string;
+  employeeId: string | number;
+  site: string;
+  department: string;
+  issueDate: string;
+}
+
+export interface InventoryHistoryLog {
+  productName: string;
+  category?: string;
+  subCategory?: string;
+  quantity: number;
+  remarks: string;
+  type?: string;
+  done_by?: string;
+  created_at?: string;
+  action?: string;
+  date?: string;
+}
+
+export interface UploadResult {
+  status: number | string;
+  message: string;
+  errors: string[];
+}
+
 @Component({
   selector: 'app-inventory',
   standalone: true,
@@ -47,13 +101,13 @@ export class InventoryComponent implements OnInit, OnDestroy {
   // Pagination parameters
   page = 1;
   tableSize: any = 10;
-  tableSizes: any = [10, 20, 50, 100];
+  tableSizes: any[] = [10, 20, 50, 100];
   totalRecords = 0;
 
   // Products list for selector dropdown populated via API
-  productList: any[] = [];
+  productList: InventoryProductOption[] = [];
 
-  // Empty Inventory items list initialized via API
+  // Inventory items list initialized via API
   inventoryItems: InventoryItem[] = [];
   filteredInventoryItems: InventoryItem[] = [];
 
@@ -65,7 +119,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   isEditMode = false;
   
   isUploading = false;
-  uploadResult: any = null;
+  uploadResult: UploadResult | null = null;
 
   // Forms mapping
   createInventoryForm!: FormGroup;
@@ -77,22 +131,22 @@ export class InventoryComponent implements OnInit, OnDestroy {
   uploadedFileName = '';
 
   // Assignments & Employee Databases for Cascading Allocations
-  departmentList: any[] = [];
-  employeeList: any[] = [];
+  departmentList: InventoryDepartmentOption[] = [];
+  employeeList: InventoryEmployeeOption[] = [];
 
-  assignments: any[] = [
+  assignments: InventoryAssignmentLog[] = [
     { id: 1, productName: 'SAND', category: 'PUMP HOUSE+IRP', subCategory: 'TRANCHER MATERIALS', quantity: 500, employeeName: 'Ramesh Kumar', employeeId: 'EMP001', site: 'East Mine', department: 'Excavation', issueDate: '2026-05-27' },
     { id: 2, productName: 'WIRE BRUSH', category: 'MISC', subCategory: 'TRANCHER MATERIALS', quantity: 1, employeeName: 'Sanjay Sharma', employeeId: 'EMP002', site: 'East Mine', department: 'Safety', issueDate: '2026-05-26' }
   ];
 
-  historyLogs: any[] = [
-    { productName: 'SAND', action: 'Added Stock', quantity: 1000, date: '2026-05-15', doneBy: 'Admin', remarks: 'Vendor Delivery' },
-    { productName: 'SAND', action: 'Assigned', quantity: 500, date: '2026-05-27', doneBy: 'Ramesh Kumar', remarks: 'Site Work' },
-    { productName: 'WIRE BRUSH', action: 'Added Stock', quantity: 10, date: '2026-05-10', doneBy: 'Admin', remarks: 'Initial setup' },
-    { productName: 'WIRE BRUSH', action: 'Assigned', quantity: 1, date: '2026-05-26', doneBy: 'Sanjay Sharma', remarks: 'Maintenance' }
+  historyLogs: InventoryHistoryLog[] = [
+    { productName: 'SAND', action: 'Added Stock', quantity: 1000, date: '2026-05-15', done_by: 'Admin', remarks: 'Vendor Delivery' },
+    { productName: 'SAND', action: 'Assigned', quantity: 500, date: '2026-05-27', done_by: 'Ramesh Kumar', remarks: 'Site Work' },
+    { productName: 'WIRE BRUSH', action: 'Added Stock', quantity: 10, date: '2026-05-10', done_by: 'Admin', remarks: 'Initial setup' },
+    { productName: 'WIRE BRUSH', action: 'Assigned', quantity: 1, date: '2026-05-26', done_by: 'Sanjay Sharma', remarks: 'Maintenance' }
   ];
 
-  selectedProductLogs: any[] = [];
+  selectedProductLogs: InventoryHistoryLog[] = [];
 
   assignProductOpen = false;
   assignForm!: FormGroup;
@@ -247,8 +301,9 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.fetchInventoryList();
   }
 
-  onTableSizeChange(event: any) {
-    this.tableSize = event.target ? event.target.value : event;
+  onTableSizeChange(event: Event | number) {
+    const target = (event as Event).target as HTMLSelectElement | null;
+    this.tableSize = target ? Number(target.value) : Number(event);
     this.page = 1;
     this.fetchInventoryList();
   }
@@ -259,7 +314,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   onProductChange(event: any) {
-    const productName = event.target.value;
+    const productName = event.target ? event.target.value : event;
     const selected = this.productList.find(p => p.name === productName);
     
     if (selected) {
@@ -384,7 +439,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
                   action: diff > 0 ? 'Added Stock' : 'Stock Adjusted',
                   quantity: Math.abs(diff),
                   date: new Date().toISOString().substring(0, 10),
-                  doneBy: 'Current User',
+                  done_by: 'Current User',
                   remarks: 'Updated via API'
                 });
               }
@@ -451,7 +506,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
               action: 'Added Stock',
               quantity: quantity,
               date: new Date().toISOString().substring(0, 10),
-              doneBy: 'Current User',
+              done_by: 'Current User',
               remarks: 'Added via API'
             });
 
@@ -470,8 +525,9 @@ export class InventoryComponent implements OnInit, OnDestroy {
     }
   }
 
-  onFileChange(event: any) {
-    const file = event.target.files?.[0];
+  onFileChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files ? input.files[0] : null;
     if (file) {
       this.uploadedFileName = file.name;
       this.bulkUploadForm.patchValue({ file: file });
@@ -667,7 +723,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
             action: 'Assigned',
             quantity: quantity,
             date: issueDate,
-            doneBy: employeeName,
+            done_by: employeeName,
             remarks: `Assigned to ${employeeName}`
           });
 

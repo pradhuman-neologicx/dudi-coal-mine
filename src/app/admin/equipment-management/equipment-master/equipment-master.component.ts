@@ -29,12 +29,12 @@ export class EquipmentMasterComponent implements OnInit, OnDestroy {
   categoryForm!: FormGroup;
   selectedCategoryId: number | null = null;
 
-  tableSize: any = 10;
+  tableSize: number = 10;
   page: number = 1;
   totalRecords: number = 0;
   totalPages: number = 1;
   paginationNumbers: number[] = [];
-  tableSizes: any[] = [10, 20, 50, 100];
+  tableSizes: number[] = [10, 20, 50, 100];
 
   constructor(
     private fb: FormBuilder,
@@ -97,9 +97,9 @@ export class EquipmentMasterComponent implements OnInit, OnDestroy {
     }
   }
 
-  onTableSizeChange(event: any) {
-    const val = event.target ? event.target.value : event;
-    this.tableSize = val;
+  onTableSizeChange(event: Event | number) {
+    const target = (event as Event).target as HTMLSelectElement | null;
+    this.tableSize = target ? Number(target.value) : Number(event);
     this.page = 1;
     this.loadData();
   }

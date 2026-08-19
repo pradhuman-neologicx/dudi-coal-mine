@@ -558,3 +558,43 @@
         </div>
     </div>
 </div>
+
+<!-- Publish Validation Modal -->
+<div *ngIf="showValidationModal"
+    class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-lg rounded-xl shadow-2xl my-auto border border-gray-200 mt-10">
+        <div class="bg-gray-50/80 px-6 py-4 border-b border-gray-100 flex justify-between items-center rounded-t-xl">
+            <h2 class="text-lg font-bold text-gray-800 tracking-tight">Publish Readiness Check</h2>
+            <button class="text-gray-400 hover:text-red-500 text-xl leading-none transition-colors"
+                (click)="closeValidationModal()">&times;</button>
+        </div>
+        <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
+            <p class="text-sm text-gray-600 mb-2">Please resolve the following issues before publishing the shift plan:</p>
+            
+            <div class="flex flex-col gap-3">
+                <div *ngFor="let validation of validationErrors | keyvalue" 
+                     class="flex items-start gap-3 p-3 rounded-lg border transition-all"
+                     [ngClass]="validation.value.status ? 'bg-green-50/30 border-green-100' : 'bg-red-50 border-red-200 shadow-sm'">
+                    
+                    <div class="mt-0.5">
+                        <i *ngIf="validation.value.status" class="fas fa-check-circle text-green-500 text-lg"></i>
+                        <i *ngIf="!validation.value.status" class="fas fa-times-circle text-red-500 text-lg"></i>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center min-h-[24px]">
+                        <p class="text-sm font-bold" [ngClass]="validation.value.status ? 'text-gray-600' : 'text-red-700'">
+                            {{ validation.value.message }}
+                        </p>
+                        <!-- Actionable suggestions for common failures -->
+                        <p *ngIf="!validation.value.status && validation.key === 'equipment_allocated'" class="text-xs text-red-600/80 mt-1">
+                            Go to 'Equipment Allocation' section to add machinery.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50/80 px-6 py-4 border-t border-gray-100 flex justify-end gap-3 rounded-b-xl">
+            <button class="bg-[#468faf] hover:bg-[#2c7da0] text-white font-bold text-sm px-6 py-2 rounded-md transition-colors shadow-sm"
+                (click)="closeValidationModal()">Got it</button>
+        </div>
+    </div>
+</div>

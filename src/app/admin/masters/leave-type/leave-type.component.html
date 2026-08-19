@@ -71,6 +71,7 @@
               <th><p class="table-heading">{{ detail.heading3 }}</p></th>
               <th><p class="table-heading">{{ detail.heading4 }}</p></th>
               <th><p class="table-heading">{{ detail.heading5 }}</p></th>
+              <th><p class="table-heading">{{ detail.heading6 }}</p></th>
             </tr>
           </thead>
           <tbody>
@@ -93,13 +94,18 @@
                     : i + 1
                 }}
               </td>
-              <td><p>{{ leaveType.leaveName }}</p></td>
+              <td><p class="fw-bold">{{ leaveType.leaveName }}</p></td>
               <td>
                 <span class="badge" [ngClass]="leaveType.isPaid ? 'bg-success' : 'bg-warning text-dark'">
                   {{ leaveType.isPaid ? 'Paid' : 'Unpaid' }}
                 </span>
               </td>
               <td><p>{{ leaveType.annualLimit }}</p></td>
+              <td>
+                <span class="badge bg-light text-secondary border">
+                  {{ leaveType.formEMapping === 'COMP_REST' ? 'Compensatory Rest' : leaveType.formEMapping === 'EARNED' ? 'Earned Leave' : leaveType.formEMapping === 'MEDICAL' ? 'Medical Leave' : leaveType.formEMapping === 'OTHER' ? 'Other Leave' : 'Excluded' }}
+                </span>
+              </td>
               <td>
                 <p
                   [ngClass]="{
@@ -227,6 +233,7 @@
         </div>
         <div class="modal-content-widthtop card-body mb-0">
           <div class="row">
+            <h6 class="text-muted fw-bold mb-3 fs-7 text-uppercase border-bottom pb-2">General Settings</h6>
             <div class="col-md-12 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Leave Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="leaveName"
@@ -259,6 +266,48 @@
                 </p>
               </div>
             </div>
+
+            <ng-container *ngIf="false">
+            <h6 class="text-muted fw-bold mb-3 mt-2 fs-7 text-uppercase border-bottom pb-2">Compliance & Rules</h6>
+
+            <div class="col-md-6 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Carry Forward Allowed?</label>
+              <div class="form-check form-switch mt-2 ps-0 d-flex align-items-center gap-3">
+                <input class="form-check-input form-input-custom ms-0 mt-0" type="checkbox" formControlName="isCarryForward" style="width: 40px; height: 20px; cursor: pointer;">
+                <label class="form-check-label mb-0 fw-bold text-dark">{{ createLeaveTypeForm.get('isCarryForward')?.value ? 'Yes' : 'No' }}</label>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3" *ngIf="createLeaveTypeForm.get('isCarryForward')?.value">
+              <label class="d-block text-capitalize form-label form-lable-custom">Max Accumulation Limit</label>
+              <input type="number" class="d-block form-control form-input-custom" formControlName="maxAccumulation"
+                [ngClass]="{'is-invalid': createLeaveTypeForm.controls['maxAccumulation'].errors && (createLeaveTypeForm.controls['maxAccumulation'].touched || createLeaveTypeForm.controls['maxAccumulation'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="createLeaveTypeForm.controls['maxAccumulation'].errors && (createLeaveTypeForm.controls['maxAccumulation'].touched || createLeaveTypeForm.controls['maxAccumulation'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="createLeaveTypeForm.controls['maxAccumulation'].hasError('required')">
+                  Required when carry forward is allowed
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createLeaveTypeForm.controls['maxAccumulation'].hasError('min')">
+                  Must be at least 1
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-12 mb-3 mt-1">
+              <div class="p-3 border rounded-3" style="background-color: rgba(74, 143, 169, 0.05); border-color: rgba(74, 143, 169, 0.2) !important;">
+                <label class="d-block text-capitalize form-label form-lable-custom fw-bold mb-2" style="color: #4A8FA9;">
+                  <i class="fa-solid fa-file-contract me-2"></i>Statutory Form E Mapping
+                </label>
+                <select class="d-block form-control form-select form-input-custom" formControlName="formEMapping">
+                  <option value="EXCLUDED">Exclude from Form E (Non-Statutory)</option>
+                  <option value="COMP_REST">Details of Compensatory Rest</option>
+                  <option value="EARNED">Details of Earned Leave</option>
+                  <option value="MEDICAL">Details of Medical Leave</option>
+                  <option value="OTHER">Details of Other Leave</option>
+                </select>
+                <small class="text-muted mt-2 d-block"><i class="fa-solid fa-circle-info me-1"></i>Select which column this leave should appear in the Mines Act Form E Register.</small>
+              </div>
+            </div>
+            </ng-container>
           </div>
         </div>
         <div class="modal-footer text-end">
@@ -289,6 +338,7 @@
         </div>
         <div class="modal-content-widthtop card-body mb-0">
           <div class="row">
+            <h6 class="text-muted fw-bold mb-3 fs-7 text-uppercase border-bottom pb-2">General Settings</h6>
             <div class="col-md-12 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Leave Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="leaveName"
@@ -321,6 +371,48 @@
                 </p>
               </div>
             </div>
+
+            <ng-container *ngIf="false">
+            <h6 class="text-muted fw-bold mb-3 mt-2 fs-7 text-uppercase border-bottom pb-2">Compliance & Rules</h6>
+
+            <div class="col-md-6 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Carry Forward Allowed?</label>
+              <div class="form-check form-switch mt-2 ps-0 d-flex align-items-center gap-3">
+                <input class="form-check-input form-input-custom ms-0 mt-0" type="checkbox" formControlName="isCarryForward" style="width: 40px; height: 20px; cursor: pointer;">
+                <label class="form-check-label mb-0 fw-bold text-dark">{{ updateLeaveTypeForm.get('isCarryForward')?.value ? 'Yes' : 'No' }}</label>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3" *ngIf="updateLeaveTypeForm.get('isCarryForward')?.value">
+              <label class="d-block text-capitalize form-label form-lable-custom">Max Accumulation Limit</label>
+              <input type="number" class="d-block form-control form-input-custom" formControlName="maxAccumulation"
+                [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['maxAccumulation'].errors && (updateLeaveTypeForm.controls['maxAccumulation'].touched || updateLeaveTypeForm.controls['maxAccumulation'].dirty)}" />
+              <div class="text-danger error-message d-block mt-1" *ngIf="updateLeaveTypeForm.controls['maxAccumulation'].errors && (updateLeaveTypeForm.controls['maxAccumulation'].touched || updateLeaveTypeForm.controls['maxAccumulation'].dirty)">
+                <p class="fw-light text-danger mb-0" *ngIf="updateLeaveTypeForm.controls['maxAccumulation'].hasError('required')">
+                  Required when carry forward is allowed
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateLeaveTypeForm.controls['maxAccumulation'].hasError('min')">
+                  Must be at least 1
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-12 mb-3 mt-1">
+              <div class="p-3 border rounded-3" style="background-color: rgba(74, 143, 169, 0.05); border-color: rgba(74, 143, 169, 0.2) !important;">
+                <label class="d-block text-capitalize form-label form-lable-custom fw-bold mb-2" style="color: #4A8FA9;">
+                  <i class="fa-solid fa-file-contract me-2"></i>Statutory Form E Mapping
+                </label>
+                <select class="d-block form-control form-select form-input-custom" formControlName="formEMapping">
+                  <option value="EXCLUDED">Exclude from Form E (Non-Statutory)</option>
+                  <option value="COMP_REST">Details of Compensatory Rest</option>
+                  <option value="EARNED">Details of Earned Leave</option>
+                  <option value="MEDICAL">Details of Medical Leave</option>
+                  <option value="OTHER">Details of Other Leave</option>
+                </select>
+                <small class="text-muted mt-2 d-block"><i class="fa-solid fa-circle-info me-1"></i>Select which column this leave should appear in the Mines Act Form E Register.</small>
+              </div>
+            </div>
+            </ng-container>
           </div>
         </div>
         <div class="modal-footer text-end">
@@ -387,6 +479,35 @@
               <div class="card-info-content">
                 <span class="info-label">Annual Allowance</span>
                 <span class="info-value text-dark fs-7">{{ selectedLeaveType?.annualLimit }} days</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-section-title mt-4">Compliance Details</div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper type" style="background-color: rgba(74, 143, 169, 0.1); color: #4A8FA9;">
+                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Carry Forward Allowed</span>
+                <span class="info-value text-dark fs-7">
+                  {{ selectedLeaveType?.isCarryForward ? 'Yes' : 'No' }} 
+                  <span *ngIf="selectedLeaveType?.isCarryForward" class="text-muted ms-1 fs-8">(Max: {{ selectedLeaveType?.maxAccumulation || 'N/A' }})</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper limit" style="background-color: rgba(74, 143, 169, 0.1); color: #4A8FA9;">
+                <i class="fa-solid fa-file-contract"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Form E Category</span>
+                <span class="info-value text-dark fs-7">{{ selectedLeaveType?.formEMapping === 'COMP_REST' ? 'Compensatory Rest' : selectedLeaveType?.formEMapping === 'EARNED' ? 'Earned Leave' : selectedLeaveType?.formEMapping === 'MEDICAL' ? 'Medical Leave' : selectedLeaveType?.formEMapping === 'OTHER' ? 'Other Leave' : 'Excluded' }}</span>
               </div>
             </div>
           </div>

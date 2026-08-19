@@ -12,6 +12,37 @@ import { takeUntil } from 'rxjs/operators';
 import { MatDatepickerModule, MatDatepicker } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 
+export interface EmployeeOption {
+  id: number | string;
+  name: string;
+  employee_code?: string;
+  displayName?: string;
+  user_id?: number | string;
+  first_name?: string;
+  last_name?: string;
+  [key: string]: any;
+}
+
+export interface LeaveTypeOption {
+  id: number | string;
+  name: string;
+  code?: string;
+  [key: string]: any;
+}
+
+export interface UploadResult {
+  status: number;
+  message: string;
+  errors: string[];
+}
+
+export interface LeaveRegisterMetadata {
+  generated_at: string;
+  generated_by: any;
+  employee_count: number;
+  year: string;
+}
+
 interface LeaveRequest {
   id: string;
   empId: string;
@@ -45,6 +76,8 @@ interface LeaveBalance {
 export class LeaveManagementComponent implements OnInit, OnDestroy {
   simulatedRole: 'Supervisor' | 'Project Manager' | 'HR' = 'Supervisor';
 
+  activeTab: 'requests' | 'register' = 'requests';
+
   applyLeaveModalOpen: boolean = false;
 
   openApplyLeaveModal() {
@@ -55,22 +88,25 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   closeApplyLeaveModal() {
     this.applyLeaveModalOpen = false;
     this.leaveApplyForm.reset();
+    this.submitLeaveError = null;
   }
 
-  employees: any[] = [];
+  submitLeaveError: string[] | null = null;
+
+  employees: EmployeeOption[] = [];
   leaveRequests: LeaveRequest[] = [];
   leaveBalances: LeaveBalance[] = [];
-  leaveTypes: any[] = [];
+  leaveTypes: LeaveTypeOption[] = [];
   private destroy$ = new Subject<void>();
 
   leaveApplyForm: FormGroup;
   bulkUploadModalOpen: boolean = false;
   bulkUploadForm!: FormGroup;
-  selectedBulkUploadFile: any = null;
+  selectedBulkUploadFile: File | null = null;
   selectedBulkUploadFileName: string = '';
   isDragging = false;
   isUploading: boolean = false;
-  uploadResult: any = null;
+  uploadResult: UploadResult | null = null;
 
   pInbox: number = 1;
   pHistory: number = 1;
@@ -86,22 +122,137 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   filterEmployee: string | null = null;
   dateValue: string = '';
 
+  registerYearsList: string[] = ['2024', '2025', '2026', '2027'];
+  registerMonthsList: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  registerFilterYear: string = new Date().getFullYear().toString();
+  registerFilterMonth: string = this.registerMonthsList[new Date().getMonth()];
+
   setMonthAndYear(normalizedMonthAndYear: Date, datepicker: MatDatepicker<Date>) {
     this.filterYear = normalizedMonthAndYear.getFullYear().toString();
     this.filterMonth = (normalizedMonthAndYear.getMonth() + 1).toString().padStart(2, '0');
     this.dateValue = `${this.filterMonth}/${this.filterYear}`;
-    
-    // Yahan hum payload bana rahe hain jo backend ko bheja ja sakta hai
-    const payload = {
-      month: this.filterMonth,
-      year: this.filterYear
-    };
-    console.log("Calendar Payload ->", payload);
-    
+
     datepicker.close();
-    
-    // Backend API trigger karein
+
+    // Backend API trigger
     this.loadLeaveRequests();
+  }
+
+  registerDateValue: string = `${this.registerMonthsList[new Date().getMonth()]} ${new Date().getFullYear()}`;
+
+  pRegister: number = 1;
+
+  leaveRegisterRows: any[] = [];
+  leaveTypeSnapshots: any[] = [];
+  registerMetadata: LeaveRegisterMetadata | null = null;
+  isGeneratingRegister: boolean = false;
+  totalRegisterItems: number = 0;
+  registerErrorMessage: string = '';
+
+  setRegisterYear(normalizedYear: Date, datepicker: MatDatepicker<Date>) {
+    this.registerFilterYear = normalizedYear.getFullYear().toString();
+    datepicker.close();
+    this.pRegister = 1;
+    this.loadLeaveRegister();
+  }
+
+  loadLeaveRegister() {
+    this.leaveManagementService.getLeaveRegisterReports(this.registerFilterYear, this.pRegister, this.showEntries)
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: (res: any) => {
+          if (res.status === 200 && res.data) {
+            this.registerErrorMessage = '';
+            this.leaveRegisterRows = res.data.rows || [];
+            this.leaveTypeSnapshots = (res.data.leave_type_snapshot || []).map((snapshot: any) => ({
+              ...snapshot,
+              prefix: snapshot.register_group === 'compensatory_rest' ? 'comp_rest' : snapshot.register_group
+            }));
+            this.registerMetadata = {
+              generated_at: res.data.generated_at,
+              generated_by: res.data.generated_by,
+              employee_count: res.data.employee_count,
+              year: res.data.year
+            };
+            if (res.pagination) {
+              this.totalRegisterItems = res.pagination.total;
+            } else {
+              this.totalRegisterItems = this.leaveRegisterRows.length;
+            }
+          } else {
+            this.leaveRegisterRows = [];
+            this.leaveTypeSnapshots = [];
+            this.registerMetadata = null;
+            this.totalRegisterItems = 0;
+            this.registerErrorMessage = `No Register Found for ${this.registerFilterYear}`;
+          }
+        },
+        error: (err) => {
+          this.leaveRegisterRows = [];
+          this.leaveTypeSnapshots = [];
+          this.registerMetadata = null;
+          this.totalRegisterItems = 0;
+
+          if (typeof err === 'string') {
+            this.registerErrorMessage = err;
+          } else {
+            this.registerErrorMessage = err?.originalError?.message || err?.message || `No Register Found for ${this.registerFilterYear}`;
+          }
+
+          if (err !== 'Unauthorized' && err?.status !== 404) {
+            console.error('Failed to load leave register', err);
+          }
+        }
+      });
+  }
+
+  downloadExcel(): void {
+    if (!this.registerFilterYear) {
+      this.notificationService.show('Please select a year to download', 'error', 3000);
+      return;
+    }
+
+    this.leaveManagementService.exportLeaveRegister(this.registerFilterYear).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Leave_Register_Form_F_${this.registerFilterYear}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error: any) => {
+        this.notificationService.show('Failed to download Excel file', 'error', 3000);
+      }
+    });
+  }
+
+  generateRegister() {
+    this.isGeneratingRegister = true;
+    this.leaveManagementService.generateLeaveRegister(this.registerFilterYear, '1')
+      .pipe(takeUntil(this.destroy$)).subscribe({
+        next: (res: any) => {
+          this.isGeneratingRegister = false;
+          if (res.status === 200) {
+            this.notificationService.show('Leave Register generated successfully', 'success', 3000);
+            this.loadLeaveRegister();
+          } else {
+            this.notificationService.show(res.message || 'Failed to generate register', 'error', 3000);
+          }
+        },
+        error: (err) => {
+          this.isGeneratingRegister = false;
+          this.notificationService.show('Error generating register', 'error', 3000);
+        }
+      });
+  }
+
+  onRegisterPageChange(page: number) {
+    if (this.pRegister !== page) {
+      this.pRegister = page;
+      this.loadLeaveRegister();
+    }
   }
 
   viewLeaveOpen: boolean = false;
@@ -132,6 +283,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
     this.loadEmployees();
     this.loadLeaveTypes();
     this.loadLeaveRequests();
+    this.loadLeaveRegister();
   }
 
   onSearch() {
@@ -153,7 +305,9 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   onShowEntriesChange(entries: number) {
     this.showEntries = entries;
     this.pInbox = 1;
+    this.pRegister = 1;
     this.loadLeaveRequests();
+    this.loadLeaveRegister();
   }
 
   ngOnDestroy(): void {
@@ -170,7 +324,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
         } else if (Array.isArray(res)) {
           rawData = res;
         }
-        
+
         if (Array.isArray(rawData)) {
           this.employees = rawData.map((emp: any) => {
             const id = emp.id || emp.user_id;
@@ -187,7 +341,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
         } else {
           this.employees = [];
         }
-        
+
         this.initializeLeaveBalances();
       },
       error: () => {
@@ -198,7 +352,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
   }
 
   loadLeaveTypes() {
-    this.leaveTypeService.getLeaveTypes('all', 1, '').pipe(takeUntil(this.destroy$)).subscribe({
+    this.leaveTypeService.getActiveLeaveTypes().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res.status === 200 || res.status === 'success') {
           this.leaveTypes = res.data;
@@ -320,8 +474,36 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
           this.notificationService.show(res.message || 'Failed to submit leave request.', 'error', 3000);
         }
       },
-      error: (err) => {
-        this.notificationService.show('Failed to submit leave request.', 'error', 3000);
+      error: (err: any) => {
+        let formattedErrors: string[] = [];
+        if (typeof err === 'string') {
+          formattedErrors.push(err);
+        } else if (err && err.error) {
+          const errObj = err.error;
+          if (errObj.message) {
+            formattedErrors.push(errObj.message);
+          }
+          if (errObj.errors) {
+            if (Array.isArray(errObj.errors)) {
+              formattedErrors.push(...errObj.errors);
+            } else if (typeof errObj.errors === 'object' && errObj.errors !== null) {
+              Object.values(errObj.errors).forEach((errArray: any) => {
+                if (Array.isArray(errArray)) {
+                  formattedErrors.push(...errArray);
+                } else if (typeof errArray === 'string') {
+                  formattedErrors.push(errArray);
+                }
+              });
+            }
+          }
+        } else if (err && err.message) {
+          formattedErrors.push(err.message);
+        }
+        
+        if (formattedErrors.length === 0) {
+          formattedErrors.push('Failed to submit leave request.');
+        }
+        this.submitLeaveError = formattedErrors;
       }
     });
   }
@@ -452,8 +634,9 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
     this.removeBulkUploadFile(null);
   }
 
-  onBulkUploadFileSelected(event: any) {
-    const file = event.target.files[0];
+  onBulkUploadFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files ? input.files[0] : null;
     if (file) {
       this.selectedBulkUploadFile = file;
       this.selectedBulkUploadFileName = file.name;
@@ -463,7 +646,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
     }
   }
 
-  removeBulkUploadFile(fileInput: any) {
+  removeBulkUploadFile(fileInput: HTMLInputElement | null) {
     this.selectedBulkUploadFile = null;
     this.selectedBulkUploadFileName = '';
     this.uploadResult = null;
@@ -489,7 +672,7 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
     (this.leaveManagementService as any).uploadBulkLeaves(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         this.isUploading = false;
-        
+
         if (res && (res.status === 200 || res.status === 201) && (!res.errors || res.errors.length === 0)) {
           this.notificationService.show(res.message || 'Leaves uploaded successfully', 'success', 3000);
           this.closeBulkUploadModal();
@@ -506,18 +689,18 @@ export class LeaveManagementComponent implements OnInit, OnDestroy {
         this.isUploading = false;
         console.error('Bulk upload failed:', err);
         const originalError = err.originalError || err.error || err;
-        
+
         // Ensure errors array contains strings for the UI
         let formattedErrors: string[] = [];
         if (originalError.errors && Array.isArray(originalError.errors)) {
           formattedErrors = originalError.errors.map((e: any) => {
             if (typeof e === 'object') {
-               return `Row ${e.row || 'N/A'}: ${e.message || 'Unknown error'}`;
+              return `Row ${e.row || 'N/A'}: ${e.message || 'Unknown error'}`;
             }
             return String(e);
           });
         }
-        
+
         this.uploadResult = {
           status: err.status || originalError.status || 422,
           message: originalError.message || err.message || 'An error occurred during upload',
