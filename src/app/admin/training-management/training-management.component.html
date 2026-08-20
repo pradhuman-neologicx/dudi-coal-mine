@@ -9,32 +9,54 @@
   </div>
 
   <div class="card border-0 my-4 px-4 py-4">
-    <!-- Top Controls -->
-    <div class="row align-items-center mb-3 g-2">
-      <div class="col-md-2 d-flex align-items-center gap-2">
+    <!-- Top Controls: Row 1 -->
+    <div class="row align-items-center mb-3 g-3">
+      <div class="col-md-4 col-sm-12 d-flex align-items-center gap-2">
         <span class="show-entery-text">Show</span>
-        <ng-select [items]="tableSizes" 
-                   [(ngModel)]="tableSize" 
-                   (change)="onTableSizeChange($event)" 
-                   [clearable]="false" 
-                   [searchable]="false" 
-                   class="custom-ng-select min-w-[80px]">
+        <ng-select [items]="tableSizes" [(ngModel)]="tableSize" (change)="onTableSizeChange($event)" [clearable]="false"
+          [searchable]="false" class="custom-ng-select min-w-[80px]">
         </ng-select>
         <span class="show-entery-text">entries</span>
       </div>
 
-      <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">
-        <div class="d-flex align-items-center ms-2">
-          <div class="position-relative">
-            <input type="text" class="form-control search-user" placeholder="Search Training..." [(ngModel)]="filterSearch" autocomplete="off" />
-          </div>
-          <button class="btn btn-primary search-btn ms-2" (click)="onFilterChange()">
-            <span><i class="fa-solid fa-magnifying-glass text-white"></i></span>
+      <div class="col-md-8 col-sm-12">
+        <div class="d-flex gap-2 w-100 justify-content-md-end">
+          <input type="text" class="form-control" style="max-width: 250px; width: 100%;"
+            placeholder="Search Training..." [(ngModel)]="filterSearch" autocomplete="off"
+            (keyup.enter)="onFilterChange()" />
+          <button class="btn btn-primary" (click)="onFilterChange()">
+            <i class="fa-solid fa-magnifying-glass text-white"></i>
           </button>
-          <button class="btn btn-secondary ms-2" (click)="resetFilter()" type="button" *ngIf="showreset">
-            <span><i class="fa-solid fa-rotate-right text-white"></i></span>
+          <button class="btn btn-secondary" (click)="resetFilter()" type="button" *ngIf="showreset">
+            <i class="fa-solid fa-rotate-right text-white"></i>
           </button>
         </div>
+      </div>
+    </div>
+
+    <!-- Top Controls: Row 2 (Advanced Filters) -->
+    <div class="row mb-4 g-3 p-3 bg-gray-50 rounded-3 border border-gray-200 mt-2">
+      <div class="col-lg-3 col-md-6 col-sm-12">
+        <label class="form-label fs-8 fw-semibold text-muted mb-1 text-uppercase">Training Type</label>
+        <select class="form-select" [(ngModel)]="filterTypeId" (change)="onFilterChange()">
+          <option value="">All Types</option>
+          <option *ngFor="let t of mockTypes" [value]="t.id">{{ t.name }}</option>
+        </select>
+      </div>
+      <div class="col-lg-3 col-md-6 col-sm-12">
+        <label class="form-label fs-8 fw-semibold text-muted mb-1 text-uppercase">Supervisor</label>
+        <select class="form-select" [(ngModel)]="filterSupervisorId" (change)="onFilterChange()">
+          <option value="">All Supervisors</option>
+          <option *ngFor="let s of mockSupervisors" [value]="s.id">{{ s.name }}</option>
+        </select>
+      </div>
+      <div class="col-lg-3 col-md-6 col-sm-12">
+        <label class="form-label fs-8 fw-semibold text-muted mb-1 text-uppercase">Date From</label>
+        <input type="date" class="form-control" [(ngModel)]="filterDateFrom" (change)="onFilterChange()" />
+      </div>
+      <div class="col-lg-3 col-md-6 col-sm-12">
+        <label class="form-label fs-8 fw-semibold text-muted mb-1 text-uppercase">Date To</label>
+        <input type="date" class="form-control" [(ngModel)]="filterDateTo" (change)="onFilterChange()" />
       </div>
     </div>
 
@@ -45,27 +67,59 @@
         <table class="table table-bordered table-hover table-striped mb-0">
           <thead class="table-header">
             <tr>
-              <th><p class="table-heading">Sr. No.</p></th>
-              <th><p class="table-heading">Training Name</p></th>
-              <th><p class="table-heading">Type</p></th>
-              <th><p class="table-heading">Supervisor</p></th>
-              <th><p class="table-heading">Employees Enrolled</p></th>
-              <th><p class="table-heading">Start Date</p></th>
-              <th><p class="table-heading">End Date</p></th>
-              <th><p class="table-heading">Action</p></th>
+              <th>
+                <p class="table-heading">Sr. No.</p>
+              </th>
+              <th>
+                <p class="table-heading">Training Name</p>
+              </th>
+              <th>
+                <p class="table-heading">Type</p>
+              </th>
+              <th>
+                <p class="table-heading">Supervisor</p>
+              </th>
+              <th>
+                <p class="table-heading">Employees Enrolled</p>
+              </th>
+              <th>
+                <p class="table-heading">Start Date</p>
+              </th>
+              <th>
+                <p class="table-heading">End Date</p>
+              </th>
+              <th>
+                <p class="table-heading text-center">Status</p>
+              </th>
+              <th>
+                <p class="table-heading text-center">Action</p>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let s of displaySessions | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
+            <tr
+              *ngFor="let s of displaySessions | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
               <td>{{ (page - 1) * (tableSize === 'all' ? 0 : tableSize) + i + 1 }}</td>
-              <td><p class="fw-bold mb-0">{{ s.name }}</p></td>
+              <td>
+                <p class="fw-bold mb-0">{{ s.name }}</p>
+              </td>
               <td><span class="badge bg-secondary">{{ s.typeName }}</span></td>
               <td>{{ s.supervisor }}</td>
-              <td>{{ getEmployeeNames(s.employeeIds) }}</td>
+              <td>{{ getEmployeeNames(s) }}</td>
               <td>{{ s.startDate }}</td>
               <td>{{ s.endDate }}</td>
               <td>
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex justify-content-center align-items-center h-100">
+                  <div class="form-check form-switch custom-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" [checked]="s.status === 1"
+                      (change)="toggleStatus(s)" [id]="'flexSwitchCheckChecked' + s.id">
+                    <label class="form-check-label visually-hidden" [for]="'flexSwitchCheckChecked' + s.id">Toggle
+                      Status</label>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="d-flex align-items-center justify-content-center gap-2">
                   <button class="btn-action edit-btn" (click)="openEditModal(s)" data-tooltip="Edit">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
@@ -84,7 +138,9 @@
 
       <!-- Card View for below lg -->
       <div class="lg:hidden space-y-4">
-        <div *ngFor="let s of displaySessions | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div
+          *ngFor="let s of displaySessions | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i"
+          class="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
             <div>
               <strong>Sr No:</strong>
@@ -104,22 +160,33 @@
           <div class="mb-2"><strong>Training Name:</strong> {{ s.name }}</div>
           <div class="mb-2"><strong>Type:</strong> <span class="badge bg-secondary">{{ s.typeName }}</span></div>
           <div class="mb-2"><strong>Supervisor:</strong> {{ s.supervisor }}</div>
-          <div class="mb-2"><strong>Employees:</strong> {{ getEmployeeNames(s.employeeIds) }}</div>
+          <div class="mb-2"><strong>Employees:</strong> {{ getEmployeeNames(s) }}</div>
           <div class="mb-2"><strong>Start Date:</strong> {{ s.startDate }}</div>
-          <div><strong>End Date:</strong> {{ s.endDate }}</div>
+          <div class="mb-2"><strong>End Date:</strong> {{ s.endDate }}</div>
+          <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-gray-200">
+            <div class="d-flex align-items-center gap-2">
+              <strong>Status:</strong>
+              <div class="form-check form-switch custom-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" [checked]="s.status === 1"
+                  (change)="toggleStatus(s)" [id]="'mobileSwitch' + s.id">
+              </div>
+            </div>
+          </div>
         </div>
-        <div *ngIf="displaySessions.length === 0" class="text-center py-4 text-muted bg-gray-50 border border-gray-200 rounded-lg">
+        <div *ngIf="displaySessions.length === 0"
+          class="text-center py-4 text-muted bg-gray-50 border border-gray-200 rounded-lg">
           No training sessions found.
         </div>
       </div>
 
       <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center mt-3">
         <span class="showalltext">
-          Showing {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : (totalRecords > 0 ? 1 : 0) }} 
-          to {{ tableSize * page <= totalRecords ? tableSize * page : totalRecords }} 
+          Showing {{ totalRecords > 0 ? ((page - 1) * (tableSize === 'all' ? totalRecords : tableSize) + 1) : 0 }} 
+          to {{ totalRecords > 0 ? ((page - 1) * (tableSize === 'all' ? totalRecords : tableSize) + displaySessions.length) : 0 }} 
           of {{ totalRecords }} entries
         </span>
-        <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true" (pageChange)="onTableDataChange($event)"></pagination-controls>
+            <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true"
+              (pageChange)="onTableDataChange($event)"></pagination-controls>
       </div>
     </div>
   </div>
@@ -127,8 +194,8 @@
 
 <!-- Modal -->
 <div *ngIf="modalOpen" class="modal-overlay" [@fadeIn]>
-  <div class="modal-dialog-large bg-white rounded-3 shadow-lg d-flex flex-column" style="max-width: 650px;">
-    
+  <div class="modal-dialog-large bg-white rounded-3 shadow-lg d-flex flex-column">
+
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
       <h4 class="mb-0 text-primary fw-bold">{{ isEditMode ? 'Edit' : 'Schedule' }} Training</h4>
       <button class="btn bg-transparent border-0 p-0" (click)="closeModal()">
@@ -139,16 +206,18 @@
     <form [formGroup]="trainingForm" class="d-flex flex-column flex-grow-1 overflow-hidden">
       <div class="modal-body-custom px-4 py-4 overflow-auto flex-grow-1">
         <div class="row g-3">
-          
+
           <div class="col-md-12">
             <label class="form-label form-lable-custom">Training Name *</label>
-            <input type="text" class="form-control form-input-custom" formControlName="name" [ngClass]="{'is-invalid': trainingForm.get('name')?.invalid && trainingForm.get('name')?.touched}" />
+            <input type="text" class="form-control form-input-custom" formControlName="name"
+              [ngClass]="{'is-invalid': trainingForm.get('name')?.invalid && trainingForm.get('name')?.touched}" />
             <div class="invalid-feedback">Name is required.</div>
           </div>
 
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Training Type *</label>
-            <select class="form-select form-input-custom" formControlName="typeId" [ngClass]="{'is-invalid': trainingForm.get('typeId')?.invalid && trainingForm.get('typeId')?.touched}">
+            <select class="form-select form-input-custom" formControlName="typeId"
+              [ngClass]="{'is-invalid': trainingForm.get('typeId')?.invalid && trainingForm.get('typeId')?.touched}">
               <option [ngValue]="null">Select Type</option>
               <option *ngFor="let t of mockTypes" [value]="t.id">{{ t.name }}</option>
             </select>
@@ -157,38 +226,43 @@
 
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Supervisor Name *</label>
-            <select class="form-select form-input-custom" formControlName="supervisor" [ngClass]="{'is-invalid': trainingForm.get('supervisor')?.invalid && trainingForm.get('supervisor')?.touched}">
+            <select class="form-select form-input-custom" formControlName="supervisor"
+              [ngClass]="{'is-invalid': trainingForm.get('supervisor')?.invalid && trainingForm.get('supervisor')?.touched}">
               <option [ngValue]="null">Select Supervisor</option>
-              <option *ngFor="let sup of mockSupervisors" [value]="sup">{{ sup }}</option>
+              <option *ngFor="let sup of mockSupervisors" [value]="sup.id">{{ sup.name }}</option>
             </select>
             <div class="invalid-feedback">Supervisor is required.</div>
           </div>
 
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Start Date *</label>
-            <input type="date" class="form-control form-input-custom" formControlName="startDate" [ngClass]="{'is-invalid': trainingForm.get('startDate')?.invalid && trainingForm.get('startDate')?.touched}" />
+            <input type="date" class="form-control form-input-custom" formControlName="startDate" [min]="todayDate"
+              (change)="onStartDateChange()"
+              [ngClass]="{'is-invalid': trainingForm.get('startDate')?.invalid && trainingForm.get('startDate')?.touched}" />
             <div class="invalid-feedback">Start Date is required.</div>
           </div>
 
           <div class="col-md-6">
             <label class="form-label form-lable-custom">End Date *</label>
-            <input type="date" class="form-control form-input-custom" formControlName="endDate" [ngClass]="{'is-invalid': trainingForm.get('endDate')?.invalid && trainingForm.get('endDate')?.touched}" />
+            <input type="date" class="form-control form-input-custom" formControlName="endDate" [min]="minEndDate"
+              [ngClass]="{'is-invalid': trainingForm.get('endDate')?.invalid && trainingForm.get('endDate')?.touched}" />
             <div class="invalid-feedback">End Date is required.</div>
           </div>
 
           <div class="col-md-12">
             <label class="form-label form-lable-custom">Enroll Employees (Batch) *</label>
-            <ng-select
-              [items]="mockEmployees"
-              bindLabel="name"
-              bindValue="id"
-              [multiple]="true"
-              placeholder="Select Employees"
-              formControlName="employeeIds"
+            <ng-select [items]="mockEmployees" bindLabel="name" bindValue="id" [multiple]="true" [closeOnSelect]="false"
+              placeholder="Select Employees" formControlName="employeeIds"
               [ngClass]="{'is-invalid': trainingForm.get('employeeIds')?.invalid && trainingForm.get('employeeIds')?.touched}"
               class="custom-ng-select">
+              <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
+                <input id="item-{{index}}" type="checkbox" [checked]="item$.selected" class="form-check-input me-2" />
+                <span class="fw-medium">{{item.name}}</span>
+                <span class="text-muted fs-8 ms-1" *ngIf="item.employee_code">({{item.employee_code}})</span>
+              </ng-template>
             </ng-select>
-            <div class="invalid-feedback d-block" *ngIf="trainingForm.get('employeeIds')?.invalid && trainingForm.get('employeeIds')?.touched">
+            <div class="invalid-feedback d-block"
+              *ngIf="trainingForm.get('employeeIds')?.invalid && trainingForm.get('employeeIds')?.touched">
               At least one employee must be selected.
             </div>
           </div>
@@ -205,8 +279,9 @@
 </div>
 
 <!-- View Modal -->
-<div *ngIf="viewTrainingOpen" class="your-animation-class modal-container premium-detail-modal" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-  <div class="modal-contenttop" [@fadeIn] style="max-width: 800px; width: 94%;">
+<div *ngIf="viewTrainingOpen" class="modal-overlay premium-detail-modal" aria-labelledby="modal-title" role="dialog"
+  aria-modal="true">
+  <div class="modal-contenttop" [@fadeIn] style="max-width: 800px; width: 100%; margin: auto;">
     <div class="card border-0 shadow-lg">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <div>
@@ -217,7 +292,7 @@
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
-      
+
       <div class="card-body p-4 mb-0" *ngIf="selectedViewSession">
         <!-- Premium Summary Banner -->
         <div class="training-summary-banner">
@@ -226,26 +301,31 @@
             <div class="banner-value mb-2">{{ selectedViewSession.name }}</div>
             <div class="row g-3 text-white-50 mt-1" style="font-size: 13.5px;">
               <div class="col-sm-4 text-white">
-                <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8;">Training Type</span>
+                <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8;">Training
+                  Type</span>
                 <span class="fw-bold">{{ selectedViewSession.typeName }}</span>
               </div>
               <div class="col-sm-4 text-white">
-                <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8;">Supervisor</span>
+                <span class="d-block text-uppercase fw-semibold"
+                  style="font-size: 10px; opacity: 0.8;">Supervisor</span>
                 <span class="fw-bold">{{ selectedViewSession.supervisor }}</span>
               </div>
               <div class="col-sm-4 text-white">
-                <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8;">Schedule Period</span>
-                <span class="fw-bold">{{ selectedViewSession.startDate | date:'dd MMM yyyy' }} - {{ selectedViewSession.endDate | date:'dd MMM yyyy' }}</span>
+                <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8;">Schedule
+                  Period</span>
+                <span class="fw-bold">{{ selectedViewSession.startDate | date:'dd MMM yyyy' }} - {{
+                  selectedViewSession.endDate | date:'dd MMM yyyy' }}</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Live Enrolled Employees Table -->
-        <h5 class="fw-bold text-dark mb-3 mt-4" style="font-family: 'Montserrat', sans-serif; font-size: 16px; letter-spacing: -0.3px;">
+        <h5 class="fw-bold text-dark mb-3 mt-4"
+          style="font-family: 'Montserrat', sans-serif; font-size: 16px; letter-spacing: -0.3px;">
           <i class="fa-solid fa-users text-primary me-2"></i>Enrolled Employees
         </h5>
-        
+
         <div class="table-responsive border rounded-3 bg-white" style="max-height: 250px; overflow-y: auto;">
           <table class="table table-bordered align-middle mb-0 custom-table">
             <thead class="table-light">
@@ -253,17 +333,17 @@
                 <th class="ps-3 text-center" style="width: 60px;">Sr No.</th>
                 <th>Employee Name</th>
                 <th>Employee ID</th>
-                <th>Department</th>
+                <th>Designation</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let empId of selectedViewSession.employeeIds; index as idx" class="hover-bg-light transition">
+              <tr *ngFor="let emp of selectedViewSession.employees; index as idx" class="hover-bg-light transition">
                 <td class="text-center fw-medium text-muted fs-7">{{ idx + 1 }}</td>
-                <td class="fw-bold text-dark fs-7">{{ getEmployeeNameById(empId) }}</td>
-                <td class="text-muted fs-8 fw-semibold">{{ empId }}</td>
-                <td class="fw-medium text-muted fs-7">{{ getEmployeeDeptById(empId) }}</td>
+                <td class="fw-bold text-dark fs-7">{{ emp.name }}</td>
+                <td class="text-muted fs-8 fw-semibold">{{ emp.employee_code || emp.id }}</td>
+                <td class="fw-medium text-muted fs-7">{{ emp.designation || '—' }}</td>
               </tr>
-              <tr *ngIf="selectedViewSession.employeeIds.length === 0">
+              <tr *ngIf="!selectedViewSession.employees || selectedViewSession.employees.length === 0">
                 <td colspan="4" class="text-center py-4 text-muted fs-7">
                   <i class="fa-solid fa-user-slash d-block fs-3 mb-2 text-light"></i>
                   No employees are enrolled in this training session.
@@ -273,7 +353,7 @@
           </table>
         </div>
       </div>
-      
+
       <div class="modal-footer text-end bg-light border-top">
         <button class="btn btn-premium-close px-4 py-2" type="button" (click)="closeModal()">Close</button>
       </div>

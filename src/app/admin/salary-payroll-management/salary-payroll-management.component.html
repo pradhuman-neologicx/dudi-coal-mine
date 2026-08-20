@@ -105,7 +105,8 @@
                   <span class="text-dark fs-8 fw-semibold">{{ m.totalEmployees }}</span>
                 </td>
                 <td class="text-end">
-                  <span class="text-dark fs-8 fw-semibold">{{ m.grossSalary === '-' ? '-' : '₹' + (m.grossSalary | number)
+                  <span class="text-dark fs-8 fw-semibold">{{ m.grossSalary === '-' ? '-' : '₹' + (m.grossSalary |
+                    number)
                     }}</span>
                 </td>
                 <td class="text-end">
@@ -160,11 +161,15 @@
           <i class="fa-solid fa-arrow-left fs-4"></i>
         </button>
         <div>
-          <h1 class="text-primary table-heading-detail mb-1">{{ selectedReportSummary?.monthLabel || (selectedMonthDetails?.month + ' ' + selectedMonthDetails?.year) }} Salary</h1>
+          <h1 class="text-primary table-heading-detail mb-1">{{ selectedReportSummary?.monthLabel ||
+            (selectedMonthDetails?.month + ' ' + selectedMonthDetails?.year) }} Salary</h1>
           <div class="text-muted fs-8 fw-semibold d-flex gap-3 flex-wrap">
-            <span>Generated: {{ selectedReportSummary?.generatedAt || selectedMonthDetails?.generatedAt || 'N/A' }}</span>
-            <span>Total Employees: {{ selectedReportSummary?.employeeCount ?? selectedMonthDetails?.totalEmployees }}</span>
-            <span>Gross: ₹{{ (selectedReportSummary?.totalEarnings ?? selectedMonthDetails?.grossSalary) | number }}</span>
+            <span>Generated: {{ selectedReportSummary?.generatedAt || selectedMonthDetails?.generatedAt || 'N/A'
+              }}</span>
+            <span>Total Employees: {{ selectedReportSummary?.employeeCount ?? selectedMonthDetails?.totalEmployees
+              }}</span>
+            <span>Gross: ₹{{ (selectedReportSummary?.totalEarnings ?? selectedMonthDetails?.grossSalary) | number
+              }}</span>
             <span>Net: ₹{{ (selectedReportSummary?.totalNet ?? selectedMonthDetails?.netSalary) | number }}</span>
           </div>
         </div>
@@ -176,7 +181,8 @@
       <div class="col-md-3">
         <div class="card border-0 shadow-sm p-4 h-100 position-relative">
           <div class="text-muted fs-9 fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Total Employees</div>
-          <div class="fs-4 fw-bold text-dark">{{ (selectedReportSummary?.employeeCount ?? selectedMonthDetails?.totalEmployees) }}</div>
+          <div class="fs-4 fw-bold text-dark">{{ (selectedReportSummary?.employeeCount ??
+            selectedMonthDetails?.totalEmployees) }}</div>
           <i class="fa-solid fa-users-cog position-absolute text-muted fs-4"
             style="top: 24px; right: 24px; opacity: 0.5;"></i>
         </div>
@@ -184,7 +190,8 @@
       <div class="col-md-3">
         <div class="card border-0 shadow-sm p-4 h-100 position-relative">
           <div class="text-muted fs-9 fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Gross Salary</div>
-          <div class="fs-4 fw-bold text-dark">₹{{ (selectedReportSummary?.totalEarnings ?? selectedMonthDetails?.grossSalary) | number }}</div>
+          <div class="fs-4 fw-bold text-dark">₹{{ (selectedReportSummary?.totalEarnings ??
+            selectedMonthDetails?.grossSalary) | number }}</div>
           <i class="fa-solid fa-money-bill-wave position-absolute text-muted fs-4"
             style="top: 24px; right: 24px; opacity: 0.5;"></i>
         </div>
@@ -192,7 +199,8 @@
       <div class="col-md-3">
         <div class="card border-0 shadow-sm p-4 h-100 position-relative border-bottom border-danger border-3">
           <div class="text-muted fs-9 fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Total Deductions</div>
-          <div class="fs-4 fw-bold text-danger">₹{{ (selectedReportSummary?.totalDeductions ?? selectedMonthDetails?.totalDeductions) | number }}</div>
+          <div class="fs-4 fw-bold text-danger">₹{{ (selectedReportSummary?.totalDeductions ??
+            selectedMonthDetails?.totalDeductions) | number }}</div>
           <i class="fa-solid fa-level-down-alt position-absolute text-danger fs-4"
             style="top: 24px; right: 24px; opacity: 0.5;"></i>
         </div>
@@ -200,7 +208,8 @@
       <div class="col-md-3">
         <div class="card border-0 shadow-sm p-4 h-100 position-relative border-bottom border-primary border-3">
           <div class="text-muted fs-9 fw-bold text-uppercase mb-2" style="letter-spacing: 0.5px;">Net Salary</div>
-          <div class="fs-4 fw-bold text-primary">₹{{ (selectedReportSummary?.totalNet ?? selectedMonthDetails?.netSalary) | number }}</div>
+          <div class="fs-4 fw-bold text-primary">₹{{ (selectedReportSummary?.totalNet ??
+            selectedMonthDetails?.netSalary) | number }}</div>
           <i class="fa-solid fa-wallet position-absolute text-primary fs-4"
             style="top: 24px; right: 24px; opacity: 0.5;"></i>
         </div>
@@ -225,7 +234,8 @@
           <div class="position-relative w-100">
             <i class="fa-solid fa-magnifying-glass position-absolute text-muted"
               style="top: 50%; left: 14px; transform: translateY(-50%); font-size: 0.85rem; z-index: 4;"></i>
-            <input type="text" class="form-control shadow-sm" placeholder="Search employees..." [(ngModel)]="detailSearchQuery" (keyup.enter)="onDetailSearch()" (input)="onDetailSearch()"
+            <input type="text" class="form-control shadow-sm" placeholder="Search employees..."
+              [(ngModel)]="detailSearchQuery" (keyup.enter)="onDetailSearch()" (input)="onDetailSearch()"
               style="height: 42px; padding-left: 38px; border-radius: 6px; border-color: #dee2e6; font-size: 0.9rem;">
           </div>
         </div>
@@ -299,7 +309,7 @@
                   <div>{{ emp.name }}</div>
                   <div class="text-muted fs-9 font-monospace" *ngIf="emp.id">{{ emp.id }}</div>
                 </td>
-                <td>{{ emp.rateOfWage ? ('₹' + (emp.rateOfWage | number)) : '-' }}</td>
+                <td>{{ emp.rateOfWage ? emp.rateOfWage : '-' }}</td>
                 <td>{{ emp.daysWorked }}</td>
                 <td>{{ emp.overtimeHours }}</td>
                 <td>₹{{ emp.basic | number }}</td>
@@ -372,8 +382,10 @@
               <div *ngIf="!selectedFile && !isValidating && !uploadedFileSummary"
                 class="border border-2 border-dashed rounded-3 p-5 text-center bg-light cursor-pointer hover-bg-gray transition"
                 (click)="fileInput.click()">
-                <input type="file" #fileInput style="display: none;" (change)="onFileSelected($event)" accept=".xlsx, .xls">
-                <div class="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm"
+                <input type="file" #fileInput style="display: none;" (change)="onFileSelected($event)"
+                  accept=".xlsx, .xls">
+                <div
+                  class="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow-sm"
                   style="width: 60px; height: 60px;">
                   <i class="fa-solid fa-cloud-arrow-up fs-3"></i>
                 </div>
@@ -401,7 +413,8 @@
               </div>
 
               <!-- Validating -->
-              <div *ngIf="isValidating" class="border-start border-primary border-4 rounded-2 bg-primary-subtle p-4 d-flex align-items-center gap-4">
+              <div *ngIf="isValidating"
+                class="border-start border-primary border-4 rounded-2 bg-primary-subtle p-4 d-flex align-items-center gap-4">
                 <div class="text-primary spinner-border" role="status">
                   <span class="visually-hidden">Loading...</span>
                 </div>
@@ -416,7 +429,8 @@
           <!-- RIGHT: Select Salary Period -->
           <div class="col-md-4">
             <div class="p-4 d-flex flex-column h-100">
-              <h6 class="fw-bold text-muted text-uppercase fs-8 mb-3" style="letter-spacing: 0.5px;">Select Salary Period</h6>
+              <h6 class="fw-bold text-muted text-uppercase fs-8 mb-3" style="letter-spacing: 0.5px;">Select Salary
+                Period</h6>
 
               <!-- Month + Year Picker -->
               <div class="position-relative mb-3">
@@ -425,7 +439,8 @@
                 <mat-datepicker #monthPicker startView="year"
                   (monthSelected)="chosenMonthHandler($event, monthPicker)"></mat-datepicker>
 
-                <button class="btn bg-white border w-100 py-2 hover-up d-flex align-items-center justify-content-between shadow-sm"
+                <button
+                  class="btn bg-white border w-100 py-2 hover-up d-flex align-items-center justify-content-between shadow-sm"
                   style="height: 48px; border-color: #dee2e6 !important;" (click)="monthPicker.open()">
                   <div class="d-flex align-items-center gap-2">
                     <i class="fa-solid fa-calendar-days text-primary fs-6"></i>
@@ -463,7 +478,8 @@
                   <i class="fa-solid fa-circle-info text-warning mt-1"></i>
                   <div>
                     <p class="fw-bold text-dark mb-0 fs-7">Already Available</p>
-                    <p class="text-muted fs-8 mb-0">Salary data for {{ addMonth }} {{ addYear }} is already in the system.</p>
+                    <p class="text-muted fs-8 mb-0">Salary data for {{ addMonth }} {{ addYear }} is already in the
+                      system.</p>
                   </div>
                 </div>
               </div>
@@ -620,8 +636,10 @@
               </td>
             </tr>
             <ng-container *ngIf="!isLoadingPreviewDetails">
-              <tr *ngFor="let row of previewData | paginate: { itemsPerPage: previewShowEntries, currentPage: previewP, totalItems: totalPreviewRecords, id: 'preview-pagination' }; let i = index" class="text-center align-middle"
-                style="font-size: 0.8rem;" [ngStyle]="{'background-color': row.hasError ? '#fcf0f0' : '#ffffff'}">
+              <tr
+                *ngFor="let row of previewData | paginate: { itemsPerPage: previewShowEntries, currentPage: previewP, totalItems: totalPreviewRecords, id: 'preview-pagination' }; let i = index"
+                class="text-center align-middle" style="font-size: 0.8rem;"
+                [ngStyle]="{'background-color': row.hasError ? '#fcf0f0' : '#ffffff'}">
                 <td class="text-muted fw-bold">{{ (previewP - 1) * previewShowEntries + i + 1 }}</td>
 
                 <!-- EMP ID -->
@@ -630,10 +648,11 @@
                     class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 fw-semibold shadow-sm cursor-pointer">
                     {{ row.id }} <i class="fa-regular fa-circle-exclamation"></i>
                   </div>
-                  <input *ngIf="row.isEditingid" type="text" class="form-control form-control-sm"
-                    [(ngModel)]="row.id" (blur)="saveField(row, 'id')" (keyup.enter)="saveField(row, 'id')"
+                  <input *ngIf="row.isEditingid" type="text" class="form-control form-control-sm" [(ngModel)]="row.id"
+                    (blur)="saveField(row, 'id')" (keyup.enter)="saveField(row, 'id')"
                     (click)="$event.stopPropagation()">
-                  <div *ngIf="!row.idError && !row.isEditingid" class="text-dark fw-semibold cursor-pointer">{{ row.id }}</div>
+                  <div *ngIf="!row.idError && !row.isEditingid" class="text-dark fw-semibold cursor-pointer">{{ row.id
+                    }}</div>
                 </td>
 
                 <!-- NAME -->
@@ -645,11 +664,22 @@
                   <input *ngIf="row.isEditingname" type="text" class="form-control form-control-sm"
                     [(ngModel)]="row.name" (blur)="saveField(row, 'name')" (keyup.enter)="saveField(row, 'name')"
                     (click)="$event.stopPropagation()">
-                  <div *ngIf="!row.nameError && !row.isEditingname" class="text-dark fw-semibold cursor-pointer">{{ row.name }}</div>
+                  <div *ngIf="!row.nameError && !row.isEditingname" class="text-dark fw-semibold cursor-pointer">{{
+                    row.name }}</div>
                 </td>
 
                 <!-- Other Columns -->
-                <td>₹{{ row.rateOfWage | number }}</td>
+                <td [ngClass]="{'cursor-pointer': row.rateOfWageError && !row.isEditingrateOfWage}"
+                  (click)="row.rateOfWageError && !row.isEditingrateOfWage ? editField(row, 'rateOfWage') : null">
+                  <div *ngIf="row.rateOfWageError && !row.isEditingrateOfWage"
+                    class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm">
+                    {{ row.rateOfWage }} <i class="fa-regular fa-circle-exclamation"></i>
+                  </div>
+                  <input *ngIf="row.rateOfWageError && row.isEditingrateOfWage" type="text"
+                    class="form-control form-control-sm" [(ngModel)]="row.rateOfWage" (blur)="saveField(row, 'rateOfWage')"
+                    (keyup.enter)="saveField(row, 'rateOfWage')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.rateOfWageError">{{ row.rateOfWage ? row.rateOfWage : '-' }}</div>
+                </td>
                 <td>{{ row.daysWorked }}</td>
                 <td>{{ row.overtimeHours }}</td>
                 <td>₹{{ row.basic | number }}</td>
@@ -679,15 +709,17 @@
                     ₹{{ row.netSalary | number }} <i class="fa-regular fa-circle-exclamation"></i>
                   </div>
                   <input *ngIf="row.netSalaryError && row.isEditingnetSalary" type="number"
-                    class="form-control form-control-sm" [(ngModel)]="row.netSalary" (blur)="saveField(row, 'netSalary')"
-                    (keyup.enter)="saveField(row, 'netSalary')" (click)="$event.stopPropagation()">
+                    class="form-control form-control-sm" [(ngModel)]="row.netSalary"
+                    (blur)="saveField(row, 'netSalary')" (keyup.enter)="saveField(row, 'netSalary')"
+                    (click)="$event.stopPropagation()">
                   <div *ngIf="!row.netSalaryError">₹{{ row.netSalary | number }}</div>
                 </td>
 
                 <td>₹{{ row.employerPfWelfare | number }}</td>
                 <td>{{ row.bankTxnId || 'N/A' }}</td>
                 <td>{{ row.paymentDate || 'N/A' }}</td>
-                <td class="text-start" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;">{{ row.remarks
+                <td class="text-start" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;">{{
+                  row.remarks
                   }}</td>
 
                 <!-- STATUS -->
@@ -706,9 +738,10 @@
         *ngIf="totalPreviewRecords > 0">
         <span class="showalltext text-muted fs-8">Showing
           {{ previewShowEntries * (previewP - 1) > 0 ? previewShowEntries * (previewP - 1) + 1 : 1 }} to
-          {{ previewShowEntries * previewP <= totalPreviewRecords ? previewShowEntries * previewP : totalPreviewRecords }} of {{ totalPreviewRecords }} entries</span>
-        <pagination-controls (pageChange)="onPreviewPageChange($event)" id="preview-pagination"
-          class="my-pagination"></pagination-controls>
+          {{ previewShowEntries * previewP <= totalPreviewRecords ? previewShowEntries * previewP : totalPreviewRecords
+            }} of {{ totalPreviewRecords }} entries</span>
+            <pagination-controls (pageChange)="onPreviewPageChange($event)" id="preview-pagination"
+              class="my-pagination"></pagination-controls>
       </div>
     </div>
 

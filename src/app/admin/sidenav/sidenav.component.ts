@@ -291,12 +291,7 @@ export class SidenavComponent {
               label: 'Equipments',
               route: '/admin/equipment-management/equipments',
             },
-            {
-              index: 3,
-              icon: 'miscellaneous_services',
-              label: 'Service Mgt.',
-              route: '/admin/service-management',
-            },
+
           ],
         },
         {
@@ -310,6 +305,12 @@ export class SidenavComponent {
               icon: 'build',
               label: 'Breakdown',
               route: '/admin/breakdown-and-maintenance',
+            },
+            {
+              index: 13,
+              icon: 'miscellaneous_services',
+              label: 'Service Mgt.',
+              route: '/admin/service-management',
             },
             {
               index: 2,
@@ -341,6 +342,7 @@ export class SidenavComponent {
               label: 'Dumping ',
               route: '/admin/dumping',
             },
+
           ],
         },
 

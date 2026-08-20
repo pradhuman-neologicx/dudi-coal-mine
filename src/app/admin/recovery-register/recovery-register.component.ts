@@ -81,6 +81,30 @@ export interface RecoveryRowItem {
   isEditingempCode?: boolean;
   sNo?: number | string;
   errorMessages?: string[];
+  errors?: any;
+
+  // Explicitly defined error flags for strict templates
+  empCodeError?: boolean;
+  nameError?: boolean;
+  particularsError?: boolean;
+  dateOfDamageLossError?: boolean;
+  showCauseIssuedError?: boolean;
+  witnessNameError?: boolean;
+  installmentsError?: boolean;
+  firstMonthError?: boolean;
+  lastMonthError?: boolean;
+  dateOfCompleteRecoveryError?: boolean;
+  remarksError?: boolean;
+
+  // Explicitly defined editing flags for strict templates
+  isEditingdateOfDamageLoss?: boolean;
+  isEditingshowCauseIssued?: boolean;
+  isEditingwitnessName?: boolean;
+  isEditinginstallments?: boolean;
+  isEditingfirstMonth?: boolean;
+  isEditinglastMonth?: boolean;
+  isEditingdateOfCompleteRecovery?: boolean;
+
   [key: string]: any;
 }
 
@@ -118,12 +142,12 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
   selectedYear: number = new Date().getFullYear();
   years: number[] = [2026, 2025, 2024, 2023];
   tableSizes: number[] = [10, 20, 50, 100];
-  
+
   overviewP: number = 1;
   overviewShowEntries: number = 10;
   totalOverviewRecords: number = 0;
   isLoadingUploads: boolean = false;
-  
+
   p: number = 1;
   showEntries: number = 10;
   totalDetailRecords: number = 0;
@@ -140,7 +164,7 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
 
   viewDetailsOpen: boolean = false;
   viewingRecord: any = null;
-  
+
   selectedRecord: RecoveryUploadFile | null = null;
   selectedUploadSummary: RecoveryUploadSummary | null = null;
   singleRecoveryDetail: SingleRecoveryDetail | null = null;
@@ -168,7 +192,7 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
   currentUploadId: number | string | null = null;
   isLoadingPreview: boolean = false;
   isSubmitting: boolean = false;
-  
+
   isFileUploaded: boolean = false;
   fileName: string = '';
   fileSizeStr: string = '';
@@ -198,37 +222,37 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
     this.isLoadingUploads = true;
     this.employeeManagementService.getRecoveryUploads(this.selectedYear, this.overviewP, this.overviewShowEntries, this.overviewSearchTerm)
       .pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res: any) => {
-        this.isLoadingUploads = false;
-        if (res && (res.status === 200 || res.status === 201) && res.data) {
-          const paginatedData = res.data;
-          const apiData = Array.isArray(paginatedData) ? paginatedData : (paginatedData.data || paginatedData.items || []);
+        next: (res: any) => {
+          this.isLoadingUploads = false;
+          if (res && (res.status === 200 || res.status === 201) && res.data) {
+            const paginatedData = res.data;
+            const apiData = Array.isArray(paginatedData) ? paginatedData : (paginatedData.data || paginatedData.items || []);
 
-          this.uploadedFilesList = apiData.map((item: any) => ({
-            id: item.id || item.document_id,
-            month: item.month || item.month_name || 'N/A',
-            year: item.year || this.selectedYear,
-            fileName: item.file_name || item.filename || 'recovery_file.xlsx',
-            userName: typeof item.uploaded_by === 'string' ? item.uploaded_by : (item.uploaded_by?.name || 'Admin User'),
-            totalEmployees: item.total_rows !== undefined ? item.total_rows : (item.total_employees || 0),
-            errorRows: item.error_rows || 0,
-            canSubmit: item.can_submit !== false,
-            isSubmitted: true,
-            status: item.status || 'Success',
-            documentId: item.document_id || (`DOC-000` + item.id),
-            uploadedAt: item.uploaded_at || item.created_at || ''
-          }));
-          this.totalOverviewRecords = paginatedData.total !== undefined ? paginatedData.total : (res.pagination?.total || this.uploadedFilesList.length);
-        } else {
-          this.uploadedFilesList = [];
-          this.totalOverviewRecords = 0;
+            this.uploadedFilesList = apiData.map((item: any) => ({
+              id: item.id || item.document_id,
+              month: item.month || item.month_name || 'N/A',
+              year: item.year || this.selectedYear,
+              fileName: item.file_name || item.filename || 'recovery_file.xlsx',
+              userName: typeof item.uploaded_by === 'string' ? item.uploaded_by : (item.uploaded_by?.name || 'Admin User'),
+              totalEmployees: item.total_rows !== undefined ? item.total_rows : (item.total_employees || 0),
+              errorRows: item.error_rows || 0,
+              canSubmit: item.can_submit !== false,
+              isSubmitted: true,
+              status: item.status || 'Success',
+              documentId: item.document_id || (`DOC-000` + item.id),
+              uploadedAt: item.uploaded_at || item.created_at || ''
+            }));
+            this.totalOverviewRecords = paginatedData.total !== undefined ? paginatedData.total : (res.pagination?.total || this.uploadedFilesList.length);
+          } else {
+            this.uploadedFilesList = [];
+            this.totalOverviewRecords = 0;
+          }
+        },
+        error: (err: any) => {
+          this.isLoadingUploads = false;
+          console.error('Failed to load recovery uploads:', err);
         }
-      },
-      error: (err: any) => {
-        this.isLoadingUploads = false;
-        console.error('Failed to load recovery uploads:', err);
-      }
-    });
+      });
   }
 
   onOverviewPageChange(event: any): void {
@@ -277,11 +301,11 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
         if (res && res.data) {
           const apiData = Array.isArray(res.data) ? res.data : (res.data.data || res.data.items || []);
           const unsubmittedItem = apiData.find((item: any) => item.is_submitted === false || item.submitted === false);
-          
+
           if (unsubmittedItem) {
             this.currentUploadId = unsubmittedItem.id;
             this.hasValidationErrors = unsubmittedItem.status === 'failed' || (unsubmittedItem.error_rows && unsubmittedItem.error_rows > 0) || unsubmittedItem.can_submit === false;
-            
+
             this.uploadedFileSummary = {
               id: unsubmittedItem.id,
               documentId: unsubmittedItem.document_id || ('DOC-000' + unsubmittedItem.id),
@@ -340,80 +364,80 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
 
     this.employeeManagementService.getRecoveryUploadRows(targetId, this.uploadRowsP, this.uploadRowsShowEntries, this.uploadRowsSearchTerm)
       .pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res: any) => {
-        this.isLoadingUploadRows = false;
-        if (res && (res.status === 200 || res.status === 201) && res.data) {
-          const data = res.data;
-          
-          if (data.upload) {
-            this.selectedUploadSummary = {
-              id: data.upload.id,
-              document_id: data.upload.document_id || ('DOC-000' + data.upload.id),
-              file_name: data.upload.file_name || 'Loan_Recovery.xlsx',
-              month: data.upload.month || 'N/A',
-              year: data.upload.year || this.selectedYear,
-              uploaded_by: typeof data.upload.uploaded_by === 'string' 
-                ? data.upload.uploaded_by 
-                : (data.upload.uploaded_by?.name || 'Admin'),
-              status: data.upload.status || 'success',
-              total_employees: data.upload.total_employees || 0
-            };
-          } else {
-            this.selectedUploadSummary = {
-              id: targetId,
-              document_id: this.selectedRecord?.documentId || ('DOC-000' + targetId),
-              file_name: this.selectedRecord?.fileName || 'Loan_Recovery.xlsx',
-              month: this.selectedRecord?.month || 'N/A',
-              year: this.selectedRecord?.year || this.selectedYear,
-              uploaded_by: this.selectedRecord?.userName || 'Admin',
-              status: this.selectedRecord?.status || 'success',
-              total_employees: this.selectedRecord?.totalEmployees || 0
-            };
-          }
+        next: (res: any) => {
+          this.isLoadingUploadRows = false;
+          if (res && (res.status === 200 || res.status === 201) && res.data) {
+            const data = res.data;
 
-          const rowsObj = data.rows;
-          let rawRows: any[] = [];
-          if (Array.isArray(rowsObj)) {
-            rawRows = rowsObj;
-            this.totalUploadRowsRecords = rawRows.length;
-          } else if (rowsObj && Array.isArray(rowsObj.data)) {
-            rawRows = rowsObj.data;
-            this.totalUploadRowsRecords = rowsObj.total !== undefined ? rowsObj.total : rawRows.length;
+            if (data.upload) {
+              this.selectedUploadSummary = {
+                id: data.upload.id,
+                document_id: data.upload.document_id || ('DOC-000' + data.upload.id),
+                file_name: data.upload.file_name || 'Loan_Recovery.xlsx',
+                month: data.upload.month || 'N/A',
+                year: data.upload.year || this.selectedYear,
+                uploaded_by: typeof data.upload.uploaded_by === 'string'
+                  ? data.upload.uploaded_by
+                  : (data.upload.uploaded_by?.name || 'Admin'),
+                status: data.upload.status || 'success',
+                total_employees: data.upload.total_employees || 0
+              };
+            } else {
+              this.selectedUploadSummary = {
+                id: targetId,
+                document_id: this.selectedRecord?.documentId || ('DOC-000' + targetId),
+                file_name: this.selectedRecord?.fileName || 'Loan_Recovery.xlsx',
+                month: this.selectedRecord?.month || 'N/A',
+                year: this.selectedRecord?.year || this.selectedYear,
+                uploaded_by: this.selectedRecord?.userName || 'Admin',
+                status: this.selectedRecord?.status || 'success',
+                total_employees: this.selectedRecord?.totalEmployees || 0
+              };
+            }
+
+            const rowsObj = data.rows;
+            let rawRows: any[] = [];
+            if (Array.isArray(rowsObj)) {
+              rawRows = rowsObj;
+              this.totalUploadRowsRecords = rawRows.length;
+            } else if (rowsObj && Array.isArray(rowsObj.data)) {
+              rawRows = rowsObj.data;
+              this.totalUploadRowsRecords = rowsObj.total !== undefined ? rowsObj.total : rawRows.length;
+            } else {
+              rawRows = [];
+              this.totalUploadRowsRecords = 0;
+            }
+
+            this.uploadRowsList = rawRows.map((r: any, idx: number) => ({
+              id: r.id || idx + 1,
+              recoveryUploadId: r.recovery_upload_id,
+              employeeId: r.employee_id,
+              employeeCode: r.employee_code || r.emp_code || 'N/A',
+              employeeName: r.employee_name || r.name || 'N/A',
+              recoveryType: r.recovery_type || 'Damage',
+              particulars: r.particulars || '-',
+              amount: parseFloat(r.amount || 0),
+              damageLossDate: r.damage_loss_date || '-',
+              showCauseIssued: r.show_cause_issued === true || r.show_cause_issued === 1 || r.show_cause_issued === '1' || String(r.show_cause_issued).toLowerCase() === 'true' || String(r.show_cause_issued).toLowerCase() === 'yes',
+              explanationWitness: r.explanation_witness || r.witness_name || '-',
+              numberOfInstallments: r.number_of_installments || 1,
+              firstMonthYear: r.first_month_year || '-',
+              lastMonthYear: r.last_month_year || '-',
+              completeRecoveryDate: r.complete_recovery_date || '-',
+              remarks: r.remarks || '-',
+              createdAt: r.created_at || '-'
+            }));
+
           } else {
-            rawRows = [];
+            this.uploadRowsList = [];
             this.totalUploadRowsRecords = 0;
           }
-
-          this.uploadRowsList = rawRows.map((r: any, idx: number) => ({
-            id: r.id || idx + 1,
-            recoveryUploadId: r.recovery_upload_id,
-            employeeId: r.employee_id,
-            employeeCode: r.employee_code || r.emp_code || 'N/A',
-            employeeName: r.employee_name || r.name || 'N/A',
-            recoveryType: r.recovery_type || 'Damage',
-            particulars: r.particulars || '-',
-            amount: parseFloat(r.amount || 0),
-            damageLossDate: r.damage_loss_date || '-',
-            showCauseIssued: r.show_cause_issued === true || r.show_cause_issued === 1 || r.show_cause_issued === '1' || String(r.show_cause_issued).toLowerCase() === 'true' || String(r.show_cause_issued).toLowerCase() === 'yes',
-            explanationWitness: r.explanation_witness || r.witness_name || '-',
-            numberOfInstallments: r.number_of_installments || 1,
-            firstMonthYear: r.first_month_year || '-',
-            lastMonthYear: r.last_month_year || '-',
-            completeRecoveryDate: r.complete_recovery_date || '-',
-            remarks: r.remarks || '-',
-            createdAt: r.created_at || '-'
-          }));
-
-        } else {
-          this.uploadRowsList = [];
-          this.totalUploadRowsRecords = 0;
+        },
+        error: (err: any) => {
+          this.isLoadingUploadRows = false;
+          console.error('Failed to load recovery upload rows:', err);
         }
-      },
-      error: (err: any) => {
-        this.isLoadingUploadRows = false;
-        console.error('Failed to load recovery upload rows:', err);
-      }
-    });
+      });
   }
 
   onUploadRowsPageChange(event: any): void {
@@ -499,30 +523,30 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
     this.isLoadingDetails = true;
     this.employeeManagementService.getRecoveryReportDetails(reportId, this.p, this.showEntries, this.searchTerm)
       .pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res: any) => {
-        this.isLoadingDetails = false;
-        if (res && (res.status === 200 || res.status === 201) && res.data) {
-          const data = res.data;
-          this.selectedMonthDetails = {
-            month: data.month || this.selectedRecord?.month || 'N/A',
-            year: data.year || this.selectedRecord?.year || this.selectedYear,
-            totalAmount: data.total_amount || data.total_recovered_amount || 0,
-            totalPenalties: data.total_penalties || data.total_rows || 0,
-            status: data.status || 'Active'
-          };
-          const rows = Array.isArray(data) ? data : (data.records || data.rows || data.items || []);
-          this.recoveryRecords = this.mapPreviewRows(rows);
-          this.totalDetailRecords = res.pagination?.total || this.recoveryRecords.length;
-        } else {
-          this.recoveryRecords = [];
-          this.totalDetailRecords = 0;
+        next: (res: any) => {
+          this.isLoadingDetails = false;
+          if (res && (res.status === 200 || res.status === 201) && res.data) {
+            const data = res.data;
+            this.selectedMonthDetails = {
+              month: data.month || this.selectedRecord?.month || 'N/A',
+              year: data.year || this.selectedRecord?.year || this.selectedYear,
+              totalAmount: data.total_amount || data.total_recovered_amount || 0,
+              totalPenalties: data.total_penalties || data.total_rows || 0,
+              status: data.status || 'Active'
+            };
+            const rows = Array.isArray(data) ? data : (data.records || data.rows || data.items || []);
+            this.recoveryRecords = this.mapPreviewRows(rows);
+            this.totalDetailRecords = res.pagination?.total || this.recoveryRecords.length;
+          } else {
+            this.recoveryRecords = [];
+            this.totalDetailRecords = 0;
+          }
+        },
+        error: (err: any) => {
+          this.isLoadingDetails = false;
+          console.error('Failed to fetch recovery report details:', err);
         }
-      },
-      error: (err: any) => {
-        this.isLoadingDetails = false;
-        console.error('Failed to fetch recovery report details:', err);
-      }
-    });
+      });
   }
 
   downloadTemplate(): void {
@@ -570,7 +594,7 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
     this.fileName = file.name;
     this.fileSizeStr = (file.size / 1024).toFixed(2) + ' KB';
     this.fileDate = new Date().toLocaleDateString();
-    
+
     this.isValidating = true;
     this.showPreviewTable = false;
 
@@ -583,10 +607,10 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
         if (response && (response.status === 200 || response.status === 201) && response.data) {
           const data = response.data;
           this.notificationService.show(response.message || 'File uploaded and validated successfully.', 'success', 3000);
-          
+
           this.currentUploadId = data.id;
           this.hasValidationErrors = data.status === 'failed' || (data.error_rows && data.error_rows > 0) || data.can_submit === false;
-          
+
           this.uploadedFileSummary = {
             id: data.id,
             documentId: data.document_id || ('DOC-000' + data.id),
@@ -597,7 +621,7 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
             errorRows: data.error_rows || 0,
             canSubmit: data.can_submit !== false
           };
-          
+
           this.showPreviewTable = true;
           if (data.preview || data.rows) {
             this.previewRecords = this.mapPreviewRows(data.preview || data.rows);
@@ -639,7 +663,7 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
         this.isLoadingPreview = false;
         if (res && (res.status === 200 || res.status === 201) && res.data) {
           const uploadData = res.data;
-          
+
           this.uploadedFileSummary = {
             id: uploadData.id || uploadId,
             documentId: uploadData.document_id || ('DOC-000' + (uploadData.id || uploadId)),
@@ -670,6 +694,8 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
       const errorMessages = typeof errorsObj === 'object' && errorsObj !== null ? Object.values(errorsObj).flat().filter(Boolean) : [];
       const isInvalid = r.is_valid === false || r.has_error || errorMessages.length > 0;
 
+      const isExtraRow = !!r.is_extra || !!r.isExtra || errorMessages.some(msg => typeof msg === 'string' && msg.includes('Employee does not exist.'));
+
       return {
         id: r.id || r.row_id || idx + 1,
         sNo: r.s_no || r.row_no || idx + 1,
@@ -691,7 +717,18 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
         hasError: isInvalid,
         typeError: !!(errorsObj && errorsObj.recovery_type) || !!r.type_error || !!r.typeError,
         amountError: !!(errorsObj && errorsObj.amount) || !!r.amount_error || !!r.amountError,
-        isExtra: !!r.is_extra || !!r.isExtra
+        empCodeError: !!(errorsObj && errorsObj.employee_code),
+        nameError: !!(errorsObj && errorsObj.name),
+        particularsError: !!(errorsObj && errorsObj.particulars),
+        dateOfDamageLossError: !!(errorsObj && errorsObj.damage_loss_date),
+        showCauseIssuedError: !!(errorsObj && errorsObj.show_cause_issued),
+        witnessNameError: !!(errorsObj && errorsObj.explanation_witness),
+        installmentsError: !!(errorsObj && errorsObj.number_of_installments),
+        firstMonthError: !!(errorsObj && errorsObj.first_month_year),
+        lastMonthError: !!(errorsObj && errorsObj.last_month_year),
+        dateOfCompleteRecoveryError: !!(errorsObj && errorsObj.complete_recovery_date),
+        remarksError: !!(errorsObj && errorsObj.remarks),
+        isExtra: isExtraRow
       };
     });
   }
@@ -771,7 +808,7 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
           this.notificationService.show('Row deleted successfully', 'success', 2000);
         },
         error: (err: any) => {
-          this.notificationService.show('Failed to delete row', 'error', 3000);
+          // this.notificationService.show('Failed to delete row', 'error', 3000);
         }
       });
     } else {
@@ -820,7 +857,7 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
         next: (res: any) => {
           if (res && (res.status === 200 || res.status === 201 || res.status === 'success')) {
             this.notificationService.show(res.message || 'Row updated successfully.', 'success', 2000);
-            
+
             if (res.data) {
               const updated = res.data;
               row.empCode = updated.employee_code || row.empCode;
@@ -832,9 +869,24 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
               row.amount = updated.amount || row.amount;
               row.hasError = updated.is_valid === false;
               row.errors = updated.errors || {};
-              row.errorMessages = typeof updated.errors === 'object' && updated.errors !== null 
-                ? Object.values(updated.errors).flat().filter(Boolean) 
+              row.errorMessages = typeof updated.errors === 'object' && updated.errors !== null
+                ? Object.values(updated.errors).flat().filter(Boolean)
                 : [];
+
+              row.empCodeError = !!row.errors.employee_code;
+              row.nameError = !!row.errors.name;
+              row.typeError = !!row.errors.recovery_type;
+              row.particularsError = !!row.errors.particulars;
+              row.dateOfDamageLossError = !!row.errors.damage_loss_date;
+              row.amountError = !!row.errors.amount;
+              row.showCauseIssuedError = !!row.errors.show_cause_issued;
+              row.witnessNameError = !!row.errors.explanation_witness;
+              row.installmentsError = !!row.errors.number_of_installments;
+              row.firstMonthError = !!row.errors.first_month_year;
+              row.lastMonthError = !!row.errors.last_month_year;
+              row.dateOfCompleteRecoveryError = !!row.errors.complete_recovery_date;
+              row.remarksError = !!row.errors.remarks;
+              row.isExtra = !!updated.is_extra || !!updated.isExtra || row.errorMessages.some((msg: any) => typeof msg === 'string' && msg.includes('Employee does not exist.'));
             }
 
             const uploadInfo = res.upload || res.data?.upload;

@@ -53,7 +53,7 @@ interface EmployeeSalaryDetail {
   department: string;
   designation: string;
   // Earnings
-  rateOfWage: number;
+  rateOfWage: string;
   daysWorked: number;
   overtimeHours: number;
   basic: number;
@@ -87,9 +87,11 @@ interface PreviewRow extends EmployeeSalaryDetail {
   idError?: boolean;
   nameError?: boolean;
   netSalaryError?: boolean;
+  rateOfWageError?: boolean;
   isEditingid?: boolean;
   isEditingname?: boolean;
   isEditingnetSalary?: boolean;
+  isEditingrateOfWage?: boolean;
   isSaving?: boolean;
   [key: string]: any; // Allow dynamic editing flags
 }
@@ -104,7 +106,7 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
   currentView: 'overview' | 'detail' | 'add' | 'preview' | 'file-preview-details' = 'overview';
 
   // Overview Data
-  selectedYear: number = 2026;
+  selectedYear: number = new Date().getFullYear();
   selectedDate: Date = new Date();
   years: number[] = [];
 
@@ -130,9 +132,9 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
   totalRecordsDetail: number = 0;
 
   // Add / Generate Data
-  addYear: number = 2026;
-  addMonth: string = 'January';
-  addSelectedDate: Date = new Date(2026, 0, 1);
+  addYear: number = new Date().getFullYear();
+  addMonth: string = new Date().toLocaleString('en-US', { month: 'long' });
+  addSelectedDate: Date = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   months: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   selectedFile: File | null = null;
@@ -279,79 +281,79 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
     this.p = page;
     this.employeeService.getWageRegisterReportDetails(reportId, page, this.showEntries, this.detailSearchQuery)
       .pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res: any) => {
-        this.isLoadingDetail = false;
-        if (res && res.data) {
-          const reportData = res.data;
-          this.selectedReportSummary = {
-            id: reportData.id,
-            monthLabel: reportData.month_label,
-            generatedAt: reportData.generated_at,
-            generatedBy: reportData.generated_by?.name || 'System-Administrator',
-            employeeCount: reportData.employee_count ?? 0,
-            totalEarnings: reportData.total_earnings ?? 0,
-            totalDeductions: reportData.total_deductions ?? 0,
-            totalNet: reportData.total_net ?? 0,
-            unrecoveredDeduction: reportData.unrecovered_deduction ?? 0
-          };
+        next: (res: any) => {
+          this.isLoadingDetail = false;
+          if (res && res.data) {
+            const reportData = res.data;
+            this.selectedReportSummary = {
+              id: reportData.id,
+              monthLabel: reportData.month_label,
+              generatedAt: reportData.generated_at,
+              generatedBy: reportData.generated_by?.name || 'System-Administrator',
+              employeeCount: reportData.employee_count ?? 0,
+              totalEarnings: reportData.total_earnings ?? 0,
+              totalDeductions: reportData.total_deductions ?? 0,
+              totalNet: reportData.total_net ?? 0,
+              unrecoveredDeduction: reportData.unrecovered_deduction ?? 0
+            };
 
-          if (Array.isArray(reportData.rows)) {
-            this.employeeSalaries = reportData.rows.map((row: any) => {
-              const name = row.name || 'N/A';
-              const initials = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'E';
-              return {
-                id: row.employee_code || `EMP-${row.employee_id || row.serial_no}`,
-                serialNo: row.serial_no,
-                employeeId: row.employee_id,
-                name: name,
-                initials: initials,
-                bgColor: 'bg-blue-600',
-                department: 'N/A',
-                designation: row.skill_category || 'N/A',
-                rateOfWage: row.rate_of_wage ?? 0,
-                daysWorked: row.days_worked ?? 0,
-                overtimeHours: row.overtime_hours ?? 0,
-                basic: row.basic ?? 0,
-                specialBasic: row.special_basic ?? 0,
-                da: row.dearness_allowance ?? 0,
-                overtimePayments: row.overtime_payment ?? 0,
-                hra: row.hra ?? 0,
-                othersEarn: row.other_earnings ?? 0,
-                totalEarn: row.total_earnings ?? 0,
-                pf: row.pf_deduction ?? 0,
-                esic: row.esic_deduction ?? 0,
-                society: row.society_deduction ?? 0,
-                incomeTax: row.income_tax ?? 0,
-                insurance: row.insurance ?? 0,
-                othersDed: row.other_deductions ?? 0,
-                recoveries: row.recoveries ?? 0,
-                totalDed: row.total_deductions ?? 0,
-                netSalary: row.net_payment ?? 0,
-                employerPfWelfare: row.employer_pf_share ?? 0,
-                bankTxnId: row.payment_reference || 'N/A',
-                paymentDate: row.payment_date || 'N/A',
-                remarks: row.remarks || '-',
-                status: 'PAID'
-              };
-            });
-          } else {
-            this.employeeSalaries = [];
-          }
+            if (Array.isArray(reportData.rows)) {
+              this.employeeSalaries = reportData.rows.map((row: any) => {
+                const name = row.name || 'N/A';
+                const initials = name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'E';
+                return {
+                  id: row.employee_code || `EMP-${row.employee_id || row.serial_no}`,
+                  serialNo: row.serial_no,
+                  employeeId: row.employee_id,
+                  name: name,
+                  initials: initials,
+                  bgColor: 'bg-blue-600',
+                  department: 'N/A',
+                  designation: row.skill_category || 'N/A',
+                  rateOfWage: row.rate_of_wage !== null && row.rate_of_wage !== undefined ? String(row.rate_of_wage) : '0',
+                  daysWorked: row.days_worked ?? 0,
+                  overtimeHours: row.overtime_hours ?? 0,
+                  basic: row.basic ?? 0,
+                  specialBasic: row.special_basic ?? 0,
+                  da: row.dearness_allowance ?? 0,
+                  overtimePayments: row.overtime_payment ?? 0,
+                  hra: row.hra ?? 0,
+                  othersEarn: row.other_earnings ?? 0,
+                  totalEarn: row.total_earnings ?? 0,
+                  pf: row.pf_deduction ?? 0,
+                  esic: row.esic_deduction ?? 0,
+                  society: row.society_deduction ?? 0,
+                  incomeTax: row.income_tax ?? 0,
+                  insurance: row.insurance ?? 0,
+                  othersDed: row.other_deductions ?? 0,
+                  recoveries: row.recoveries ?? 0,
+                  totalDed: row.total_deductions ?? 0,
+                  netSalary: row.net_payment ?? 0,
+                  employerPfWelfare: row.employer_pf_share ?? 0,
+                  bankTxnId: row.payment_reference || 'N/A',
+                  paymentDate: row.payment_date || 'N/A',
+                  remarks: row.remarks || '-',
+                  status: 'PAID'
+                };
+              });
+            } else {
+              this.employeeSalaries = [];
+            }
 
-          if (res.pagination) {
-            this.p = res.pagination.current_page;
-            this.showEntries = res.pagination.per_page;
-            this.totalRecordsDetail = res.pagination.total;
-          } else {
-            this.totalRecordsDetail = this.employeeSalaries.length;
+            if (res.pagination) {
+              this.p = res.pagination.current_page;
+              this.showEntries = res.pagination.per_page;
+              this.totalRecordsDetail = res.pagination.total;
+            } else {
+              this.totalRecordsDetail = this.employeeSalaries.length;
+            }
           }
+        },
+        error: (err: any) => {
+          this.isLoadingDetail = false;
+          console.error('Error fetching report details:', err);
         }
-      },
-      error: (err: any) => {
-        this.isLoadingDetail = false;
-        console.error('Error fetching report details:', err);
-      }
-    });
+      });
   }
 
   onDetailSearch(): void {
@@ -586,7 +588,7 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
                 excelRow: r.excel_row || r.excelRow || r.id,
                 id: v.employee_code || r.employee_code || `EMP-${r.employee_id || r.id}`,
                 name: v.employee_name || r.employee_name || 'N/A',
-                rateOfWage: v.rate_of_wage ?? 0,
+                rateOfWage: v.rate_of_wage !== null && v.rate_of_wage !== undefined ? String(v.rate_of_wage) : '0',
                 daysWorked: v.days_worked ?? 0,
                 overtimeHours: v.overtime_hours ?? 0,
                 basic: v.basic ?? 0,
@@ -614,6 +616,7 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
                 idError: ef.employee_code === 1 || errCols.includes('employee_code'),
                 nameError: ef.employee_name === 1 || errCols.includes('employee_name'),
                 netSalaryError: ef.net_payment === 1 || errCols.includes('net_payment'),
+                rateOfWageError: ef.rate_of_wage === 1 || errCols.includes('rate_of_wage'),
                 initials: (v.employee_name || 'E').split(' ').map((n: string) => n[0]).join('').toUpperCase(),
                 bgColor: isRowValid ? 'bg-blue-600' : 'bg-red-300',
                 department: 'N/A',
@@ -697,6 +700,7 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
             row.idError = remErrors.includes('employee_code');
             row.nameError = remErrors.includes('employee_name');
             row.netSalaryError = remErrors.includes('net_payment');
+            row.rateOfWageError = remErrors.includes('rate_of_wage');
 
             if (dataObj.can_submit !== undefined) {
               this.hasValidationErrors = !dataObj.can_submit;

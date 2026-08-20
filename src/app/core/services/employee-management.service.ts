@@ -226,7 +226,7 @@ export class EmployeeManagementService {
   }
 
   deleteRecoveryPreviewRow(uploadId: number | string, rowId: number | string): Observable<any> {
-    return this.apiservice.deleteFun(`v1/admin/recoveries/preview/${uploadId}/rows/${rowId}`, { headers: this.getHeaders() });
+    return this.apiservice.deleteFun(`v1/admin/recoveries/uploads/rows/${rowId}`, { headers: this.getHeaders() });
   }
 
   submitRecoveryUpload(uploadId: number | string): Observable<any> {

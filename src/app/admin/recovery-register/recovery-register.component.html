@@ -480,7 +480,9 @@
               <th>
                 <p class="table-heading text-center mb-0">Remarks</p>
               </th>
-              <th></th>
+              <th>
+                <p class="table-heading text-center mb-0">Action</p>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -488,36 +490,51 @@
               [ngClass]="row.isExtra ? 'table-warning' : (row.hasError ? 'table-danger' : '')">
 
               <!-- Emp Code -->
-              <td class="text-muted fw-bold fs-7 position-relative" style="cursor: pointer;"
-                (click)="!row.isEditingempCode ? editField(row, 'empCode') : null">
-                <span *ngIf="!row.isEditingempCode">
+              <td class="text-muted fw-bold fs-7 position-relative"
+                [ngClass]="{'cursor-pointer': row.empCodeError && !row.isEditingempCode}"
+                (click)="row.empCodeError && !row.isEditingempCode ? editField(row, 'empCode') : null">
+                <div *ngIf="row.empCodeError && !row.isEditingempCode"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.employee_code?.join('') || 'Error'">
+                  {{ row.empCode || row.sNo }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.empCodeError && row.isEditingempCode" type="text" class="form-control form-control-sm"
+                  [(ngModel)]="row.empCode" (blur)="saveField(row, 'empCode')" (keyup.enter)="saveField(row, 'empCode')"
+                  (click)="$event.stopPropagation()">
+                <span *ngIf="!row.empCodeError">
                   <div class="d-flex align-items-center justify-content-center">
-                    <i *ngIf="row.errorMessages && row.errorMessages.length > 0"
-                      class="fa-solid fa-triangle-exclamation text-warning me-2"
-                      [title]="row.errorMessages.join('\n')"></i>
                     {{ row.empCode || row.sNo }}
                   </div>
                 </span>
-                <input *ngIf="row.isEditingempCode" type="text" class="form-control form-control-sm"
-                  [(ngModel)]="row.empCode" (blur)="saveField(row, 'empCode')" (keyup.enter)="saveField(row, 'empCode')"
-                  (click)="$event.stopPropagation()">
               </td>
 
               <!-- Name -->
-              <td class="fw-bold text-dark text-start fs-7 position-relative" style="cursor: pointer;"
-                (click)="!row.isEditingname ? editField(row, 'name') : null">
-                <span *ngIf="!row.isEditingname">{{ row.name }}</span>
-                <input *ngIf="row.isEditingname" type="text" class="form-control form-control-sm" [(ngModel)]="row.name"
-                  (blur)="saveField(row, 'name')" (keyup.enter)="saveField(row, 'name')"
+              <td class="fw-bold text-dark text-start fs-7 position-relative"
+                [ngClass]="{'cursor-pointer': row.nameError && !row.isEditingname}"
+                (click)="row.nameError && !row.isEditingname ? editField(row, 'name') : null">
+                <div *ngIf="row.nameError && !row.isEditingname"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.name?.join('
+') || 'Error'">
+                  {{ row.name || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.nameError && row.isEditingname" type="text" class="form-control form-control-sm"
+                  [(ngModel)]="row.name" (blur)="saveField(row, 'name')" (keyup.enter)="saveField(row, 'name')"
                   (click)="$event.stopPropagation()">
+                <span *ngIf="!row.nameError">{{ row.name }}</span>
               </td>
 
               <!-- Recovery Type -->
-              <td class="fs-8 position-relative" style="cursor: pointer;"
-                (click)="!row.isEditingrecoveryType ? editField(row, 'recoveryType') : null">
-                <span *ngIf="!row.isEditingrecoveryType" [ngClass]="{'text-danger fw-bold': row.typeError}">{{
-                  row.recoveryType }}</span>
-                <select *ngIf="row.isEditingrecoveryType" class="form-select form-select-sm"
+              <td class="fs-8 position-relative"
+                [ngClass]="{'cursor-pointer': row.typeError && !row.isEditingrecoveryType}"
+                (click)="row.typeError && !row.isEditingrecoveryType ? editField(row, 'recoveryType') : null">
+                <div *ngIf="row.typeError && !row.isEditingrecoveryType"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.recovery_type?.join('
+') || 'Error'">
+                  {{ row.recoveryType || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <select *ngIf="row.typeError && row.isEditingrecoveryType" class="form-select form-select-sm"
                   [(ngModel)]="row.recoveryType" (change)="saveField(row, 'recoveryType')"
                   (blur)="saveField(row, 'recoveryType')" (click)="$event.stopPropagation()">
                   <option value="DAMAGE">DAMAGE</option>
@@ -526,60 +543,181 @@
                   <option value="ADVANCE">ADVANCE</option>
                   <option value="LOANS">LOANS</option>
                 </select>
+                <span *ngIf="!row.typeError">{{ row.recoveryType }}</span>
               </td>
 
               <!-- Particulars -->
-              <td class="text-start fs-8 position-relative" style="cursor: pointer;"
-                (click)="!row.isEditingparticulars ? editField(row, 'particulars') : null">
-                <span *ngIf="!row.isEditingparticulars">{{ row.particulars || '-' }}</span>
-                <input *ngIf="row.isEditingparticulars" type="text" class="form-control form-control-sm"
-                  [(ngModel)]="row.particulars" (blur)="saveField(row, 'particulars')"
-                  (keyup.enter)="saveField(row, 'particulars')" (click)="$event.stopPropagation()">
+              <td class="text-start fs-8 position-relative"
+                [ngClass]="{'cursor-pointer': row.particularsError && !row.isEditingparticulars}"
+                (click)="row.particularsError && !row.isEditingparticulars ? editField(row, 'particulars') : null">
+                <div *ngIf="row.particularsError && !row.isEditingparticulars"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.particulars?.join('
+') || 'Error'">
+                  {{ row.particulars || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.particularsError && row.isEditingparticulars" type="text"
+                  class="form-control form-control-sm" [(ngModel)]="row.particulars"
+                  (blur)="saveField(row, 'particulars')" (keyup.enter)="saveField(row, 'particulars')"
+                  (click)="$event.stopPropagation()">
+                <span *ngIf="!row.particularsError">{{ row.particulars || '-' }}</span>
               </td>
 
               <!-- Date of Damage / Loss -->
-              <td class="fs-8">{{ row.dateOfDamageLoss || '-' }}</td>
+              <td class="fs-8 position-relative"
+                [ngClass]="{'cursor-pointer': row.dateOfDamageLossError && !row.isEditingdateOfDamageLoss}"
+                (click)="row.dateOfDamageLossError && !row.isEditingdateOfDamageLoss ? editField(row, 'dateOfDamageLoss') : null">
+                <div *ngIf="row.dateOfDamageLossError && !row.isEditingdateOfDamageLoss"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.damage_loss_date?.join('
+') || 'Error'">
+                  {{ row.dateOfDamageLoss || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.dateOfDamageLossError && row.isEditingdateOfDamageLoss" type="date"
+                  class="form-control form-control-sm" [(ngModel)]="row.dateOfDamageLoss"
+                  (blur)="saveField(row, 'dateOfDamageLoss')" (keyup.enter)="saveField(row, 'dateOfDamageLoss')"
+                  (click)="$event.stopPropagation()">
+                <span *ngIf="!row.dateOfDamageLossError">{{ row.dateOfDamageLoss || '-' }}</span>
+              </td>
 
               <!-- Amount -->
-              <td class="fw-bold fs-7 position-relative" style="cursor: pointer;"
-                (click)="!row.isEditingamount ? editField(row, 'amount') : null">
-                <span *ngIf="!row.isEditingamount" [ngClass]="{'text-danger': row.amountError}">₹{{ row.amount | number
-                  }}</span>
-                <input *ngIf="row.isEditingamount" type="number" class="form-control form-control-sm"
+              <td class="fw-bold fs-7 position-relative"
+                [ngClass]="{'cursor-pointer': row.amountError && !row.isEditingamount}"
+                (click)="row.amountError && !row.isEditingamount ? editField(row, 'amount') : null">
+                <div *ngIf="row.amountError && !row.isEditingamount"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.amount?.join('
+') || 'Error'">
+                  ₹{{ row.amount | number }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.amountError && row.isEditingamount" type="number" class="form-control form-control-sm"
                   [(ngModel)]="row.amount" (blur)="saveField(row, 'amount')" (keyup.enter)="saveField(row, 'amount')"
                   (click)="$event.stopPropagation()">
+                <span *ngIf="!row.amountError">₹{{ row.amount | number }}</span>
               </td>
 
               <!-- Show Cause Issued -->
-              <td>
-                <span class="badge fs-8 px-2 py-1"
+              <td class="fs-8 position-relative"
+                [ngClass]="{'cursor-pointer': row.showCauseIssuedError && !row.isEditingshowCauseIssued}"
+                (click)="row.showCauseIssuedError && !row.isEditingshowCauseIssued ? editField(row, 'showCauseIssued') : null">
+                <div *ngIf="row.showCauseIssuedError && !row.isEditingshowCauseIssued"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.show_cause_issued?.join('
+') || 'Error'">
+                  {{ row.showCauseIssued || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <select *ngIf="row.showCauseIssuedError && row.isEditingshowCauseIssued"
+                  class="form-select form-select-sm" [(ngModel)]="row.showCauseIssued"
+                  (change)="saveField(row, 'showCauseIssued')" (blur)="saveField(row, 'showCauseIssued')"
+                  (click)="$event.stopPropagation()">
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+                <span *ngIf="!row.showCauseIssuedError" class="badge px-2 py-1"
                   [ngClass]="row.showCauseIssued === 'Yes' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle'">
                   {{ row.showCauseIssued }}
                 </span>
               </td>
 
               <!-- Witness -->
-              <td class="fs-8">{{ row.witnessName || '-' }}</td>
+              <td class="fs-8 position-relative"
+                [ngClass]="{'cursor-pointer': row.witnessNameError && !row.isEditingwitnessName}"
+                (click)="row.witnessNameError && !row.isEditingwitnessName ? editField(row, 'witnessName') : null">
+                <div *ngIf="row.witnessNameError && !row.isEditingwitnessName"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.explanation_witness?.join('
+') || 'Error'">
+                  {{ row.witnessName || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.witnessNameError && row.isEditingwitnessName" type="text"
+                  class="form-control form-control-sm" [(ngModel)]="row.witnessName"
+                  (blur)="saveField(row, 'witnessName')" (keyup.enter)="saveField(row, 'witnessName')"
+                  (click)="$event.stopPropagation()">
+                <span *ngIf="!row.witnessNameError">{{ row.witnessName || '-' }}</span>
+              </td>
 
               <!-- Installments -->
-              <td class="fs-7 fw-semibold">{{ row.installments }}</td>
+              <td class="fs-7 fw-semibold position-relative"
+                [ngClass]="{'cursor-pointer': row.installmentsError && !row.isEditinginstallments}"
+                (click)="row.installmentsError && !row.isEditinginstallments ? editField(row, 'installments') : null">
+                <div *ngIf="row.installmentsError && !row.isEditinginstallments"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.number_of_installments?.join('
+') || 'Error'">
+                  {{ row.installments || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.installmentsError && row.isEditinginstallments" type="number"
+                  class="form-control form-control-sm" [(ngModel)]="row.installments"
+                  (blur)="saveField(row, 'installments')" (keyup.enter)="saveField(row, 'installments')"
+                  (click)="$event.stopPropagation()">
+                <span *ngIf="!row.installmentsError">{{ row.installments }}</span>
+              </td>
 
               <!-- First Month -->
-              <td class="fs-8 text-muted fw-bold">{{ row.firstMonth }}</td>
+              <td class="fs-8 text-muted fw-bold position-relative"
+                [ngClass]="{'cursor-pointer': row.firstMonthError && !row.isEditingfirstMonth}"
+                (click)="row.firstMonthError && !row.isEditingfirstMonth ? editField(row, 'firstMonth') : null">
+                <div *ngIf="row.firstMonthError && !row.isEditingfirstMonth"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.first_month_year?.join('
+') || 'Error'">
+                  {{ row.firstMonth || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.firstMonthError && row.isEditingfirstMonth" type="text"
+                  class="form-control form-control-sm" placeholder="YYYY-MM" [(ngModel)]="row.firstMonth"
+                  (blur)="saveField(row, 'firstMonth')" (keyup.enter)="saveField(row, 'firstMonth')"
+                  (click)="$event.stopPropagation()">
+                <span *ngIf="!row.firstMonthError">{{ row.firstMonth }}</span>
+              </td>
 
               <!-- Last Month -->
-              <td class="fs-8 text-muted fw-bold">{{ row.lastMonth }}</td>
+              <td class="fs-8 text-muted fw-bold position-relative"
+                [ngClass]="{'cursor-pointer': row.lastMonthError && !row.isEditinglastMonth}"
+                (click)="row.lastMonthError && !row.isEditinglastMonth ? editField(row, 'lastMonth') : null">
+                <div *ngIf="row.lastMonthError && !row.isEditinglastMonth"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.last_month_year?.join('
+') || 'Error'">
+                  {{ row.lastMonth || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.lastMonthError && row.isEditinglastMonth" type="text"
+                  class="form-control form-control-sm" placeholder="YYYY-MM" [(ngModel)]="row.lastMonth"
+                  (blur)="saveField(row, 'lastMonth')" (keyup.enter)="saveField(row, 'lastMonth')"
+                  (click)="$event.stopPropagation()">
+                <span *ngIf="!row.lastMonthError">{{ row.lastMonth }}</span>
+              </td>
 
               <!-- Date of Complete Recovery -->
-              <td class="fs-8">{{ row.dateOfCompleteRecovery || '-' }}</td>
+              <td class="fs-8 position-relative"
+                [ngClass]="{'cursor-pointer': row.dateOfCompleteRecoveryError && !row.isEditingdateOfCompleteRecovery}"
+                (click)="row.dateOfCompleteRecoveryError && !row.isEditingdateOfCompleteRecovery ? editField(row, 'dateOfCompleteRecovery') : null">
+                <div *ngIf="row.dateOfCompleteRecoveryError && !row.isEditingdateOfCompleteRecovery"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.complete_recovery_date?.join('
+') || 'Error'">
+                  {{ row.dateOfCompleteRecovery || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.dateOfCompleteRecoveryError && row.isEditingdateOfCompleteRecovery" type="date"
+                  class="form-control form-control-sm" [(ngModel)]="row.dateOfCompleteRecovery"
+                  (blur)="saveField(row, 'dateOfCompleteRecovery')"
+                  (keyup.enter)="saveField(row, 'dateOfCompleteRecovery')" (click)="$event.stopPropagation()">
+                <span *ngIf="!row.dateOfCompleteRecoveryError">{{ row.dateOfCompleteRecovery || '-' }}</span>
+              </td>
 
               <!-- Remarks -->
-              <td class="text-start fs-8 position-relative" style="cursor: pointer;"
-                (click)="!row.isEditingremarks ? editField(row, 'remarks') : null">
-                <span *ngIf="!row.isEditingremarks">{{ row.remarks || '-' }}</span>
-                <input *ngIf="row.isEditingremarks" type="text" class="form-control form-control-sm"
+              <td class="text-start fs-8 position-relative"
+                [ngClass]="{'cursor-pointer': row.remarksError && !row.isEditingremarks}"
+                (click)="row.remarksError && !row.isEditingremarks ? editField(row, 'remarks') : null">
+                <div *ngIf="row.remarksError && !row.isEditingremarks"
+                  class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm"
+                  [title]="row.errors?.remarks?.join('
+') || 'Error'">
+                  {{ row.remarks || '-' }} <i class="fa-regular fa-circle-exclamation"></i>
+                </div>
+                <input *ngIf="row.remarksError && row.isEditingremarks" type="text" class="form-control form-control-sm"
                   [(ngModel)]="row.remarks" (blur)="saveField(row, 'remarks')" (keyup.enter)="saveField(row, 'remarks')"
                   (click)="$event.stopPropagation()">
+                <span *ngIf="!row.remarksError">{{ row.remarks || '-' }}</span>
               </td>
 
               <!-- Actions -->
@@ -596,11 +734,11 @@
 
       <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
         <button class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold shadow-sm" (click)="goBackToUpload()">
-          <i class="fa-solid fa-arrow-left me-2"></i> Back
-        </button>
-        <button class="btn btn-secondary px-4 py-2 rounded-pill fw-bold shadow-sm" (click)="closeRowPreview()">
           <i class="fa-solid fa-xmark me-2"></i> Close
         </button>
+        <!-- <button class="btn btn-secondary px-4 py-2 rounded-pill fw-bold shadow-sm" (click)="closeRowPreview()">
+          <i class="fa-solid fa-xmark me-2"></i> Close
+        </button> -->
       </div>
     </div>
   </div>
