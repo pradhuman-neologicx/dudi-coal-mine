@@ -145,6 +145,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   activeLeaveTypes: any[] = [];
   showBulkLeaveModal = false;
   selectedLeaveTypeId: string | number | null = null;
+  pendingIndividualRecord: DailyAttendance | null = null;
 
   toggleSelection(recordId: string | number | undefined): void {
     if (!recordId) return;
@@ -237,16 +238,29 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       this.notificationService.show('Please select a Leave Type', 'error', 3000);
       return;
     }
-    this.markBulkAttendance('Leave', this.selectedLeaveTypeId);
+    if (this.pendingIndividualRecord) {
+      this.markIndividualAttendance(this.pendingIndividualRecord, 'Leave', this.selectedLeaveTypeId);
+      this.pendingIndividualRecord = null;
+    } else {
+      this.markBulkAttendance('Leave', this.selectedLeaveTypeId);
+    }
     this.showBulkLeaveModal = false;
   }
 
   cancelBulkLeave() {
     this.showBulkLeaveModal = false;
     this.selectedLeaveTypeId = null;
+    this.pendingIndividualRecord = null;
   }
 
   markIndividualAttendance(record: DailyAttendance, status: 'Present' | 'Absent' | 'Leave' | 'Half Day' | 'Rest Day', leaveTypeId?: string | number): void {
+    if (status === 'Leave' && !leaveTypeId) {
+      this.pendingIndividualRecord = record;
+      this.selectedLeaveTypeId = null;
+      this.showBulkLeaveModal = true;
+      return;
+    }
+
     const formData = new FormData();
     formData.append('_method', 'patch');
     formData.append('attendance_status', status.toLowerCase().replace(' ', '_'));

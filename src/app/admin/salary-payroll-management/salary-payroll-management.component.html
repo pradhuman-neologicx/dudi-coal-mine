@@ -644,7 +644,7 @@
               <tr
                 *ngFor="let row of previewData | paginate: { itemsPerPage: previewShowEntries, currentPage: previewP, totalItems: totalPreviewRecords, id: 'preview-pagination' }; let i = index"
                 class="text-center align-middle" style="font-size: 0.8rem;"
-                [ngStyle]="{'background-color': row.hasError ? '#fcf0f0' : '#ffffff'}">
+                [ngClass]="{'table-danger': row.hasError}">
                 <td class="text-muted fw-bold">{{ (previewP - 1) * previewShowEntries + i + 1 }}</td>
 
                 <!-- EMP ID -->
@@ -674,59 +674,117 @@
                 </td>
 
                 <!-- Other Columns -->
-                <td [ngClass]="{'cursor-pointer': row.rateOfWageError && !row.isEditingrateOfWage}"
-                  (click)="row.rateOfWageError && !row.isEditingrateOfWage ? editField(row, 'rateOfWage') : null">
+                <td class="cursor-pointer" (click)="!row.isEditingrateOfWage ? editField(row, 'rateOfWage') : null">
                   <div *ngIf="row.rateOfWageError && !row.isEditingrateOfWage"
                     class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm">
                     {{ row.rateOfWage }} <i class="fa-regular fa-circle-exclamation"></i>
                   </div>
-                  <input *ngIf="row.rateOfWageError && row.isEditingrateOfWage" type="text"
+                  <input *ngIf="row.isEditingrateOfWage" type="text"
                     class="form-control form-control-sm" [(ngModel)]="row.rateOfWage"
                     (blur)="saveField(row, 'rateOfWage')" (keyup.enter)="saveField(row, 'rateOfWage')"
                     (click)="$event.stopPropagation()">
-                  <div *ngIf="!row.rateOfWageError">{{ row.rateOfWage ? row.rateOfWage : '-' }}</div>
+                  <div *ngIf="!row.rateOfWageError && !row.isEditingrateOfWage">{{ row.rateOfWage !== null && row.rateOfWage !== undefined ? row.rateOfWage : '-' }}</div>
                 </td>
-                <td>{{ row.daysWorked }}</td>
-                <td>{{ row.overtimeHours }}</td>
-                <td>₹{{ row.basic | number }}</td>
-                <td>₹{{ row.specialBasic | number }}</td>
-                <td>₹{{ row.da | number }}</td>
-                <td>₹{{ row.overtimePayments | number }}</td>
-                <td>₹{{ row.hra | number }}</td>
-                <td>₹{{ row.othersEarn | number }}</td>
-                <td class="fw-bold text-success bg-success-subtle">₹{{ row.totalEarn | number }}</td>
-
-                <!-- Deductions -->
-                <td>₹{{ row.pf | number }}</td>
-                <td>₹{{ row.esic | number }}</td>
-                <td>₹{{ row.society | number }}</td>
-                <td>₹{{ row.incomeTax | number }}</td>
-                <td>₹{{ row.insurance | number }}</td>
-                <td>₹{{ row.othersDed | number }}</td>
-                <td>₹{{ row.recoveries | number }}</td>
-                <td class="fw-bold text-danger bg-danger-subtle">₹{{ row.totalDed | number }}</td>
+                <td class="cursor-pointer" (click)="!row.isEditingdaysWorked ? editField(row, 'daysWorked') : null">
+                  <input *ngIf="row.isEditingdaysWorked" type="text" class="form-control form-control-sm text-center" [(ngModel)]="row.daysWorked" (blur)="saveField(row, 'daysWorked')" (keyup.enter)="saveField(row, 'daysWorked')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingdaysWorked">{{ row.daysWorked !== null && row.daysWorked !== undefined ? row.daysWorked : '-' }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingovertimeHours ? editField(row, 'overtimeHours') : null">
+                  <input *ngIf="row.isEditingovertimeHours" type="text" class="form-control form-control-sm text-center" [(ngModel)]="row.overtimeHours" (blur)="saveField(row, 'overtimeHours')" (keyup.enter)="saveField(row, 'overtimeHours')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingovertimeHours">{{ row.overtimeHours !== null && row.overtimeHours !== undefined ? row.overtimeHours : '-' }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingbasic ? editField(row, 'basic') : null">
+                  <input *ngIf="row.isEditingbasic" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.basic" (blur)="saveField(row, 'basic')" (keyup.enter)="saveField(row, 'basic')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingbasic">₹{{ row.basic | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingspecialBasic ? editField(row, 'specialBasic') : null">
+                  <input *ngIf="row.isEditingspecialBasic" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.specialBasic" (blur)="saveField(row, 'specialBasic')" (keyup.enter)="saveField(row, 'specialBasic')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingspecialBasic">₹{{ row.specialBasic | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingda ? editField(row, 'da') : null">
+                  <input *ngIf="row.isEditingda" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.da" (blur)="saveField(row, 'da')" (keyup.enter)="saveField(row, 'da')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingda">₹{{ row.da | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingovertimePayments ? editField(row, 'overtimePayments') : null">
+                  <input *ngIf="row.isEditingovertimePayments" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.overtimePayments" (blur)="saveField(row, 'overtimePayments')" (keyup.enter)="saveField(row, 'overtimePayments')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingovertimePayments">₹{{ row.overtimePayments | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditinghra ? editField(row, 'hra') : null">
+                  <input *ngIf="row.isEditinghra" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.hra" (blur)="saveField(row, 'hra')" (keyup.enter)="saveField(row, 'hra')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditinghra">₹{{ row.hra | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingothersEarn ? editField(row, 'othersEarn') : null">
+                  <input *ngIf="row.isEditingothersEarn" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.othersEarn" (blur)="saveField(row, 'othersEarn')" (keyup.enter)="saveField(row, 'othersEarn')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingothersEarn">₹{{ row.othersEarn | number }}</div>
+                </td>
+                <td class="cursor-pointer text-success bg-success-subtle fw-bold" (click)="!row.isEditingtotalEarn ? editField(row, 'totalEarn') : null">
+                  <input *ngIf="row.isEditingtotalEarn" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.totalEarn" (blur)="saveField(row, 'totalEarn')" (keyup.enter)="saveField(row, 'totalEarn')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingtotalEarn">₹{{ row.totalEarn | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingpf ? editField(row, 'pf') : null">
+                  <input *ngIf="row.isEditingpf" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.pf" (blur)="saveField(row, 'pf')" (keyup.enter)="saveField(row, 'pf')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingpf">₹{{ row.pf | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingesic ? editField(row, 'esic') : null">
+                  <input *ngIf="row.isEditingesic" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.esic" (blur)="saveField(row, 'esic')" (keyup.enter)="saveField(row, 'esic')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingesic">₹{{ row.esic | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingsociety ? editField(row, 'society') : null">
+                  <input *ngIf="row.isEditingsociety" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.society" (blur)="saveField(row, 'society')" (keyup.enter)="saveField(row, 'society')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingsociety">₹{{ row.society | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingincomeTax ? editField(row, 'incomeTax') : null">
+                  <input *ngIf="row.isEditingincomeTax" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.incomeTax" (blur)="saveField(row, 'incomeTax')" (keyup.enter)="saveField(row, 'incomeTax')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingincomeTax">₹{{ row.incomeTax | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditinginsurance ? editField(row, 'insurance') : null">
+                  <input *ngIf="row.isEditinginsurance" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.insurance" (blur)="saveField(row, 'insurance')" (keyup.enter)="saveField(row, 'insurance')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditinginsurance">₹{{ row.insurance | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingothersDed ? editField(row, 'othersDed') : null">
+                  <input *ngIf="row.isEditingothersDed" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.othersDed" (blur)="saveField(row, 'othersDed')" (keyup.enter)="saveField(row, 'othersDed')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingothersDed">₹{{ row.othersDed | number }}</div>
+                </td>
+                <td class="cursor-pointer" (click)="!row.isEditingrecoveries ? editField(row, 'recoveries') : null">
+                  <input *ngIf="row.isEditingrecoveries" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.recoveries" (blur)="saveField(row, 'recoveries')" (keyup.enter)="saveField(row, 'recoveries')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingrecoveries">₹{{ row.recoveries | number }}</div>
+                </td>
+                <td class="cursor-pointer text-danger bg-danger-subtle fw-bold" (click)="!row.isEditingtotalDed ? editField(row, 'totalDed') : null">
+                  <input *ngIf="row.isEditingtotalDed" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.totalDed" (blur)="saveField(row, 'totalDed')" (keyup.enter)="saveField(row, 'totalDed')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingtotalDed">₹{{ row.totalDed | number }}</div>
+                </td>
+                <!-- Deductions End -->
 
                 <!-- Net Payment with Error Check -->
-                <td class="fw-bold bg-primary-subtle text-primary"
-                  [ngClass]="{'cursor-pointer': row.netSalaryError && !row.isEditingnetSalary}"
-                  (click)="row.netSalaryError && !row.isEditingnetSalary ? editField(row, 'netSalary') : null">
+                <td class="fw-bold bg-primary-subtle text-primary cursor-pointer"
+                  (click)="!row.isEditingnetSalary ? editField(row, 'netSalary') : null">
                   <div *ngIf="row.netSalaryError && !row.isEditingnetSalary"
                     class="d-inline-flex align-items-center gap-1 border border-danger text-danger bg-white px-2 py-1 rounded fs-9 shadow-sm">
                     ₹{{ row.netSalary | number }} <i class="fa-regular fa-circle-exclamation"></i>
                   </div>
-                  <input *ngIf="row.netSalaryError && row.isEditingnetSalary" type="number"
+                  <input *ngIf="row.isEditingnetSalary" type="number"
                     class="form-control form-control-sm" [(ngModel)]="row.netSalary"
                     (blur)="saveField(row, 'netSalary')" (keyup.enter)="saveField(row, 'netSalary')"
                     (click)="$event.stopPropagation()">
-                  <div *ngIf="!row.netSalaryError">₹{{ row.netSalary | number }}</div>
+                  <div *ngIf="!row.netSalaryError && !row.isEditingnetSalary">₹{{ row.netSalary | number }}</div>
                 </td>
 
-                <td>₹{{ row.employerPfWelfare | number }}</td>
-                <td>{{ row.bankTxnId || 'N/A' }}</td>
-                <td>{{ row.paymentDate || 'N/A' }}</td>
-                <td class="text-start" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;">{{
-                  row.remarks
-                  }}</td>
+                <td class="cursor-pointer " (click)="!row.isEditingemployerPfWelfare ? editField(row, 'employerPfWelfare') : null">
+                  <input *ngIf="row.isEditingemployerPfWelfare" type="number" class="form-control form-control-sm text-center" [(ngModel)]="row.employerPfWelfare" (blur)="saveField(row, 'employerPfWelfare')" (keyup.enter)="saveField(row, 'employerPfWelfare')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingemployerPfWelfare">₹{{ row.employerPfWelfare | number }}</div>
+                </td>
+                <td class="cursor-pointer " (click)="!row.isEditingbankTxnId ? editField(row, 'bankTxnId') : null">
+                  <input *ngIf="row.isEditingbankTxnId" type="text" class="form-control form-control-sm text-center" [(ngModel)]="row.bankTxnId" (blur)="saveField(row, 'bankTxnId')" (keyup.enter)="saveField(row, 'bankTxnId')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingbankTxnId">{{ row.bankTxnId || 'N/A' }}</div>
+                </td>
+                <td class="cursor-pointer " (click)="!row.isEditingpaymentDate ? editField(row, 'paymentDate') : null">
+                  <input *ngIf="row.isEditingpaymentDate" type="text" class="form-control form-control-sm text-center" [(ngModel)]="row.paymentDate" (blur)="saveField(row, 'paymentDate')" (keyup.enter)="saveField(row, 'paymentDate')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingpaymentDate">{{ row.paymentDate || 'N/A' }}</div>
+                </td>
+                <td class="cursor-pointer text-start" style="max-width: 150px; overflow: hidden; text-overflow: ellipsis;" (click)="!row.isEditingremarks ? editField(row, 'remarks') : null">
+                  <input *ngIf="row.isEditingremarks" type="text" class="form-control form-control-sm text-center" [(ngModel)]="row.remarks" (blur)="saveField(row, 'remarks')" (keyup.enter)="saveField(row, 'remarks')" (click)="$event.stopPropagation()">
+                  <div *ngIf="!row.isEditingremarks">{{ row.remarks }}</div>
+                </td>
 
                 <!-- STATUS -->
                 <td class="text-center bg-light">

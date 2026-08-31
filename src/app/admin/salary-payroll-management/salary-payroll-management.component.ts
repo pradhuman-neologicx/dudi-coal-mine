@@ -92,6 +92,27 @@ interface PreviewRow extends EmployeeSalaryDetail {
   isEditingname?: boolean;
   isEditingnetSalary?: boolean;
   isEditingrateOfWage?: boolean;
+  isEditingdaysWorked?: boolean;
+  isEditingovertimeHours?: boolean;
+  isEditingbasic?: boolean;
+  isEditingspecialBasic?: boolean;
+  isEditingda?: boolean;
+  isEditingovertimePayments?: boolean;
+  isEditinghra?: boolean;
+  isEditingothersEarn?: boolean;
+  isEditingtotalEarn?: boolean;
+  isEditingpf?: boolean;
+  isEditingesic?: boolean;
+  isEditingsociety?: boolean;
+  isEditingincomeTax?: boolean;
+  isEditinginsurance?: boolean;
+  isEditingothersDed?: boolean;
+  isEditingrecoveries?: boolean;
+  isEditingtotalDed?: boolean;
+  isEditingemployerPfWelfare?: boolean;
+  isEditingbankTxnId?: boolean;
+  isEditingpaymentDate?: boolean;
+  isEditingremarks?: boolean;
   isSaving?: boolean;
   [key: string]: any; // Allow dynamic editing flags
 }
@@ -662,28 +683,35 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
   saveField(row: any, field: string) {
     row['isEditing' + field] = false;
 
-    let apiFieldName = field;
-    if (field === 'id') apiFieldName = 'employee_code';
-    else if (field === 'name') apiFieldName = 'employee_name';
-    else if (field === 'netSalary') apiFieldName = 'net_payment';
-    else if (field === 'rateOfWage') apiFieldName = 'rate_of_wage';
-    else if (field === 'daysWorked') apiFieldName = 'days_worked';
-    else if (field === 'overtimeHours') apiFieldName = 'overtime_hours';
-    else if (field === 'specialBasic') apiFieldName = 'special_basic';
-    else if (field === 'da') apiFieldName = 'dearness_allowance';
-    else if (field === 'overtimePayments') apiFieldName = 'overtime_payment';
-    else if (field === 'othersEarn') apiFieldName = 'other_earnings';
-    else if (field === 'totalEarn') apiFieldName = 'total_earnings';
-    else if (field === 'pf') apiFieldName = 'pf_deduction';
-    else if (field === 'esic') apiFieldName = 'esic_deduction';
-    else if (field === 'society') apiFieldName = 'society_deduction';
-    else if (field === 'incomeTax') apiFieldName = 'income_tax';
-    else if (field === 'othersDed') apiFieldName = 'other_deductions';
-    else if (field === 'totalDed') apiFieldName = 'total_deductions';
-    else if (field === 'employerPfWelfare') apiFieldName = 'employer_pf_share';
-
-    const newValue = row[field];
-    const updateBody = { values: { [apiFieldName]: newValue } };
+    const updateBody = {
+      values: {
+        employee_code: row.id,
+        employee_name: row.name,
+        net_payment: row.netSalary,
+        rate_of_wage: row.rateOfWage,
+        days_worked: row.daysWorked,
+        overtime_hours: row.overtimeHours,
+        basic: row.basic,
+        special_basic: row.specialBasic,
+        dearness_allowance: row.da,
+        overtime_payment: row.overtimePayments,
+        hra: row.hra,
+        other_earnings: row.othersEarn,
+        total_earnings: row.totalEarn,
+        pf_deduction: row.pf,
+        esic_deduction: row.esic,
+        society_deduction: row.society,
+        income_tax: row.incomeTax,
+        insurance: row.insurance,
+        other_deductions: row.othersDed,
+        recoveries: row.recoveries,
+        total_deductions: row.totalDed,
+        employer_pf_share: row.employerPfWelfare,
+        bank_txn_id: row.bankTxnId,
+        payment_date: row.paymentDate,
+        remarks: row.remarks
+      }
+    };
 
     const uploadId = this.activeUploadId || this.uploadedFileSummary?.uploadId;
     const excelRow = row.excelRow || row.excel_row || row.id;

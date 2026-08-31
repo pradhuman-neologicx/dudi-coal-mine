@@ -891,8 +891,8 @@
         <div class="alert alert-light border d-flex align-items-center gap-3 py-2 px-3 mb-4 rounded-3">
           <i class="fa-solid fa-circle-info text-info fs-5"></i>
           <p class="mb-0 fs-7 text-muted" style="line-height: 1.4;">
-            You are about to mark <span class="fw-bold text-dark fs-6">{{ selectedRecordIds.size }}</span> {{
-            selectedRecordIds.size === 1 ? 'employee' : 'employees' }} on leave.
+            You are about to mark <span class="fw-bold text-dark fs-6">{{ pendingIndividualRecord ? 1 : selectedRecordIds.size }}</span> {{
+            (pendingIndividualRecord ? 1 : selectedRecordIds.size) === 1 ? 'employee' : 'employees' }} on leave.
           </p>
         </div>
 
