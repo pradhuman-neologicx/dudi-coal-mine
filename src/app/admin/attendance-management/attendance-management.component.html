@@ -2,7 +2,7 @@
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4" style="margin-top: 15px;">
     <div>
-      <h1 class="text-primary table-heading-detail mb-1">Attendance Management</h1>
+      <h1 class="text-primary table-heading-detail mb-1">Attendance</h1>
       <p class="text-muted mb-0 fs-6">Upload and manage daily biometric attendance logs.</p>
     </div>
     <div class="d-flex align-items-center gap-3">
@@ -16,20 +16,11 @@
           [ngClass]="viewMode === 'monthly' ? 'btn-primary' : 'btn-outline-primary'" (click)="setViewMode('monthly')">
           Monthly
         </button>
-        <button type="button" class="btn fw-semibold px-4"
-          [ngClass]="viewMode === 'report' ? 'btn-primary' : 'btn-outline-primary'" (click)="setViewMode('report')">
-          Form D Register
-        </button>
+        
       </div>
 
       <div class="d-flex gap-2">
-        <button *ngIf="viewMode === 'report'"
-          class="btn btn-outline-primary px-3 py-2 hover-up d-flex align-items-center gap-2" (click)="downloadFormD()"
-          [disabled]="isDownloadingFormD">
-          <i class="fa-solid fa-file-excel" *ngIf="!isDownloadingFormD"></i>
-          <span class="spinner-border spinner-border-sm" *ngIf="isDownloadingFormD" role="status"></span>
-          <span>Download Form D</span>
-        </button>
+        
         <button class="btn btn-custom-primary px-3 py-2" (click)="openBulkUploadModal()">
           <i class="fa-solid fa-cloud-arrow-up me-2"></i>Bulk Upload
         </button>
@@ -124,7 +115,7 @@
     <!-- Filters Bar -->
     <div class="row g-3 mb-4 align-items-end">
       <!-- Search Filter -->
-      <div class="col-lg-3 col-md-4 col-sm-12" *ngIf="viewMode !== 'report'">
+      <div class="col-lg-3 col-md-4 col-sm-12" >
         <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Search Employee</label>
         <form [formGroup]="searchbarform" class="w-100">
           <div class="input-group" style="height: 42px;">
@@ -156,14 +147,14 @@
       </div>
 
       <!-- Month Filter (Monthly & Report) -->
-      <div class="col-lg-3 col-md-4 col-sm-12" *ngIf="viewMode === 'monthly' || viewMode === 'report'">
+      <div class="col-lg-3 col-md-4 col-sm-12" *ngIf="viewMode === 'monthly'">
         <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Select Month</label>
         <div class="input-group" style="height: 42px;">
           <span class="input-group-text bg-white text-muted border-end-0 py-2 d-flex align-items-center">
             <i class="fa-solid fa-calendar-days"></i>
           </span>
           <input type="month" class="form-control form-input-custom border-start-0 ps-0 py-2 h-100"
-            [(ngModel)]="filterMonth" (change)="applyFilters()">
+            [(ngModel)]="filterMonth" (ngModelChange)="applyFilters()">
         </div>
       </div>
 
@@ -178,7 +169,7 @@
       -->
 
       <!-- Status Filter -->
-      <div class="col-lg-3 col-md-4 col-sm-12" *ngIf="viewMode !== 'report'">
+      <div class="col-lg-3 col-md-4 col-sm-12" >
         <label class="form-label form-lable-custom mb-1 text-muted fs-8 fw-bold text-uppercase">Status Filter</label>
         <ng-select [items]="['Present', 'Absent', 'Half Day', 'Leave', 'Rest Day']" placeholder="All Statuses"
           [(ngModel)]="filterStatus" (change)="applyFilters()" class="custom-ng-select" appendTo="body">
@@ -635,149 +626,10 @@
       </ng-container>
 
       <!-- Statutory Register View (Form D) -->
-      <ng-container *ngIf="viewMode === 'report'">
-        <div class="report-table-wrapper w-100 mt-2 pb-3 custom-scrollbar" style="overflow-x: auto; max-height: 70vh;">
-          <table class="table table-bordered table-hover report-table mb-0" style="min-width: 1500px;">
-            <thead class="table-header sticky-top" style="z-index: 10;">
-              <tr>
-                <th rowspan="2" class="text-center align-middle" style="min-width: 60px; max-width: 60px; width: 60px;">
-                  <p class="table-heading mb-0">S. No.</p>
-                </th>
-                <th rowspan="2" class="text-center align-middle"
-                  style="min-width: 200px; max-width: 200px; width: 200px;">
-                  <p class="table-heading mb-0">Name</p>
-                </th>
-                <th rowspan="2" class="text-center align-middle"
-                  style="min-width: 100px; max-width: 100px; width: 100px;">
-                  <p class="table-heading mb-0">Relay# or<br>set work</p>
-                </th>
-                <th rowspan="2" class="text-center align-middle"
-                  style="min-width: 120px; max-width: 120px; width: 120px;">
-                  <p class="table-heading mb-0">Place of Work<br><span class="text-white-50 fw-normal"
-                      style="font-size: 10px;">(Only in cases of Mines only)</span></p>
-                </th>
-                <th rowspan="2" class="text-center align-middle" style="min-width: 60px; max-width: 60px; width: 60px;">
-                  <p class="table-heading mb-0"></p>
-                </th>
-                <th [attr.colspan]="daysInMonth.length" class="text-center align-middle border-bottom-0">
-                  <p class="table-heading mb-0 fs-6">Dates</p>
-                </th>
-                <th rowspan="2" class="text-center align-middle" style="min-width: 80px; max-width: 80px; width: 80px;">
-                  <p class="table-heading mb-0">Summary<br>No. of Days</p>
-                </th>
-                <th rowspan="2" class="text-center align-middle" style="min-width: 80px; max-width: 80px; width: 80px;">
-                  <p class="table-heading mb-0">No. of OT<br>hours</p>
-                </th>
-                <th rowspan="2" class="text-center align-middle" style="min-width: 70px; max-width: 70px; width: 70px;">
-                  <p class="table-heading mb-0">Remarks</p>
-                </th>
-                <th rowspan="2" class="text-center align-middle" style="min-width: 90px; max-width: 90px; width: 90px;">
-                  <p class="table-heading mb-0">Signature of<br>Register<br>Keeper</p>
-                </th>
-              </tr>
-              <tr>
-                <th *ngFor="let day of daysInMonth" class="text-center align-middle p-1" style="min-width: 35px;">
-                  <p class="table-heading mb-0">{{ day }}</p>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <ng-container
-                *ngFor="let record of reportAttendanceRecords | paginate: { itemsPerPage: showEntries != 'all' ? showEntries : totalRecords, currentPage: p, totalItems: totalRecords }; let i = index">
-
-                <!-- IN Row -->
-                <tr class="hover-bg-light transition">
-                  <td rowspan="2" class="text-center align-middle">
-                    <span class="fw-bold text-dark">{{ i + 1 + (showEntries != 'all' ? (p - 1) * showEntries : 0)
-                      }}</span>
-                  </td>
-                  <td rowspan="2" class="align-middle" style="white-space: normal; word-break: break-word;">
-                    <div class="d-flex flex-column">
-                      <span class="fw-bold text-dark fs-7">{{ record.empName }}</span>
-                      <span class="text-muted fs-8">{{ record.empId }}</span>
-                    </div>
-                  </td>
-                  <td rowspan="2" class="text-center align-middle">
-                    <div class="d-flex flex-column gap-1 align-items-center">
-                      <span class="fw-medium text-dark fs-8">{{ record.relay }}</span>
-                      <span class="badge bg-light text-muted border fs-9 px-2 py-1" *ngIf="record.shift !== '--'">{{
-                        record.shift }}</span>
-                    </div>
-                  </td>
-                  <td rowspan="2" class="text-center align-middle">
-                    <span class="fw-medium text-dark fs-8">{{ record.placeOfWork }}</span>
-                  </td>
-                  <td class="text-center align-middle fw-bold text-secondary fs-8 py-1"
-                    style="border-bottom: 1px dashed #dee2e6;">
-                    IN
-                  </td>
-
-                  <td *ngFor="let day of daysInMonth" class="text-center align-middle p-1 fs-8"
-                    style="border-bottom: 1px dashed #dee2e6;">
-                    <ng-container *ngIf="record.days[day]">
-                      <span *ngIf="record.days[day].in" class="fw-medium text-dark">{{ record.days[day].in }}</span>
-                      <span *ngIf="!record.days[day].in && (record.days[day].status?.toLowerCase() === 'present')"
-                        class="text-success fw-bold">P</span>
-                      <span *ngIf="!record.days[day].in && (record.days[day].status?.toLowerCase() === 'absent')"
-                        class="text-danger fw-bold">A</span>
-                      <span
-                        *ngIf="!record.days[day].in && (record.days[day].status?.toLowerCase() === 'leave' || record.days[day].status?.toLowerCase() === 'paid_leave' || record.days[day].status?.toLowerCase() === 'unpaid_leave')"
-                        class="text-info fw-bold">L</span>
-                      <span
-                        *ngIf="!record.days[day].in && (record.days[day].status?.toLowerCase() === 'rest_day' || record.days[day].status?.toLowerCase() === 'rest day')"
-                        class="text-primary fw-bold">R</span>
-                      <span
-                        *ngIf="!record.days[day].in && (record.days[day].status?.toLowerCase() === 'half_day' || record.days[day].status?.toLowerCase() === 'half day')"
-                        class="text-warning fw-bold">H</span>
-                    </ng-container>
-                  </td>
-
-                  <td rowspan="2" class="text-center align-middle fw-bold text-dark">
-                    {{ record.summary.totalDays }}
-                  </td>
-                  <td rowspan="2" class="text-center align-middle text-dark">
-                    {{ record.summary.otHours }}
-                  </td>
-                  <td rowspan="2" class="text-center align-middle text-muted fs-8">
-                    {{ record.summary.remarks }}
-                  </td>
-                  <td rowspan="2" class="text-center align-middle">
-                    <!-- Empty box for signature -->
-                  </td>
-                </tr>
-
-                <!-- OUT Row -->
-                <tr class="hover-bg-light transition">
-                  <td class="text-center align-middle fw-bold text-secondary fs-8 py-1">
-                    OUT
-                  </td>
-
-                  <td *ngFor="let day of daysInMonth" class="text-center align-middle p-1 fs-8">
-                    <ng-container *ngIf="record.days[day]">
-                      <span *ngIf="record.days[day].out" class="fw-medium text-dark">{{ record.days[day].out }}</span>
-                      <span
-                        *ngIf="!record.days[day].out && (!record.days[day].status || (record.days[day].status?.toLowerCase() !== 'present' && record.days[day].status?.toLowerCase() !== 'half_day' && record.days[day].status?.toLowerCase() !== 'half day'))"
-                        class="text-muted">-</span>
-                    </ng-container>
-                  </td>
-                </tr>
-
-              </ng-container>
-
-              <tr *ngIf="reportAttendanceRecords.length === 0">
-                <td [attr.colspan]="daysInMonth.length + 9" class="text-center py-5 text-muted bg-white">
-                  <i class="fa-solid fa-folder-open fs-1 mb-3 text-light-gray"></i>
-                  <p class="mb-0 fs-6">No attendance records found for this month.</p>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </ng-container>
 
       <div
         class="d-flex flex-column flex-md-row justify-content-between bottom-0 end-0 py-2 align-items-center text-center text-md-start gap-3"
-        *ngIf="(viewMode === 'daily' && attendanceRecords.length > 0) || (viewMode === 'monthly' && monthlyAttendanceRecords.length > 0) || (viewMode === 'report' && reportAttendanceRecords.length > 0)">
+        *ngIf="(viewMode === 'daily' && attendanceRecords.length > 0) || (viewMode === 'monthly' && monthlyAttendanceRecords.length > 0)">
         <span class="showalltext">Showing
           {{ showEntries === 'all' ? (totalRecords > 0 ? 1 : 0) : (showEntries * (p - 1) > 0 ? showEntries * (p - 1) + 1
           : (totalRecords > 0 ? 1 : 0)) }} to
@@ -829,32 +681,49 @@
       <form [formGroup]="correctionForm" (ngSubmit)="submitCorrection()">
         <div class="row g-3 mb-3">
           <div class="col-md-6">
-            <label class="form-label form-lable-custom">Check In Time</label>
+            <label class="form-label form-lable-custom">Check In Time <span class="text-danger"
+                *ngIf="correctionForm.get('checkIn')?.enabled">*</span></label>
             <div class="input-group">
               <span class="input-group-text bg-white text-muted border-end-0">
                 <i class="fa-solid fa-right-to-bracket"></i>
               </span>
               <input type="time" class="form-control form-input-custom border-start-0 ps-0" formControlName="checkIn">
             </div>
+            <div class="text-danger fs-8 mt-1"
+              *ngIf="correctionForm.get('checkIn')?.invalid && correctionForm.get('checkIn')?.touched">
+              Check In Time is required.
+            </div>
           </div>
           <div class="col-md-6">
-            <label class="form-label form-lable-custom">Check Out Time</label>
+            <label class="form-label form-lable-custom">Check Out Time <span class="text-danger"
+                *ngIf="correctionForm.get('checkOut')?.enabled">*</span></label>
             <div class="input-group">
               <span class="input-group-text bg-white text-muted border-end-0">
                 <i class="fa-solid fa-right-from-bracket"></i>
               </span>
               <input type="time" class="form-control form-input-custom border-start-0 ps-0" formControlName="checkOut">
             </div>
+            <div class="text-danger fs-8 mt-1"
+              *ngIf="correctionForm.get('checkOut')?.invalid && correctionForm.get('checkOut')?.touched">
+              Check Out Time is required.
+            </div>
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Status <span class="text-danger">*</span></label>
-            <ng-select [items]="['Present', 'Absent', 'Half Day', 'Exception']" placeholder="Select Status"
+            <ng-select [items]="['Present', 'Absent', 'Half Day', 'Rest Day', 'Leave']" placeholder="Select Status"
               formControlName="status" class="custom-ng-select" appendTo="body">
             </ng-select>
             <div class="text-danger fs-8 mt-1"
               *ngIf="correctionForm.get('status')?.invalid && correctionForm.get('status')?.touched">
               Status is required.
             </div>
+          </div>
+          <div class="col-md-6" *ngIf="correctionForm.get('status')?.value === 'Leave'">
+            <label class="form-label form-lable-custom">Leave Type <span class="text-danger">*</span></label>
+            <ng-select [items]="activeLeaveTypes" bindLabel="name" bindValue="id" placeholder="Select Leave Type"
+              formControlName="leaveTypeId" class="custom-ng-select" [clearable]="false" [searchable]="false"
+              appendTo="body">
+            </ng-select>
           </div>
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Site <span class="text-danger">*</span></label>
@@ -1000,3 +869,73 @@
     </div>
   </div>
 </div>
+
+<!-- Bulk Leave Type Selection Modal -->
+<div class="modal fade" [class.show]="showBulkLeaveModal" [style.display]="showBulkLeaveModal ? 'block' : 'none'"
+  tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+      <div class="modal-header bg-white border-bottom-0 pt-4 pb-2 px-4">
+        <h5 class="modal-title fs-5 fw-bold text-dark d-flex align-items-center gap-3">
+          <div class="icon-box bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center"
+            style="width: 42px; height: 42px;">
+            <i class="fa-solid fa-plane-departure fs-6"></i>
+          </div>
+          Select Leave Type
+        </h5>
+        <button type="button" class="btn-close" (click)="cancelBulkLeave()"></button>
+      </div>
+
+      <div class="modal-body px-4 py-3">
+        <!-- Info Banner -->
+        <div class="alert alert-light border d-flex align-items-center gap-3 py-2 px-3 mb-4 rounded-3">
+          <i class="fa-solid fa-circle-info text-info fs-5"></i>
+          <p class="mb-0 fs-7 text-muted" style="line-height: 1.4;">
+            You are about to mark <span class="fw-bold text-dark fs-6">{{ selectedRecordIds.size }}</span> {{
+            selectedRecordIds.size === 1 ? 'employee' : 'employees' }} on leave.
+          </p>
+        </div>
+
+        <!-- Form Group (Radio Cards) -->
+        <div class="form-group mb-2 text-start">
+          <label class="form-label fs-8 fw-bold text-uppercase text-muted letter-spacing-1 mb-3">Leave Category <span
+              class="text-danger">*</span></label>
+
+          <div class="d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto;">
+            <label *ngFor="let leave of activeLeaveTypes"
+              class="border rounded-3 p-3 d-flex align-items-center gap-3 mb-0"
+              style="cursor: pointer; transition: all 0.2s ease;"
+              [ngStyle]="{'background-color': selectedLeaveTypeId === leave.id ? '#f0f9ff' : '#ffffff', 'border-color': selectedLeaveTypeId === leave.id ? '#0dcaf0' : '#dee2e6'}">
+
+              <div class="form-check m-0">
+                <input class="form-check-input" type="radio" name="leaveTypeSelection" [value]="leave.id"
+                  [(ngModel)]="selectedLeaveTypeId" style="cursor: pointer; transform: scale(1.2);">
+              </div>
+
+              <div class="d-flex flex-column">
+                <span class="fw-bold"
+                  [ngClass]="{'text-info': selectedLeaveTypeId === leave.id, 'text-dark': selectedLeaveTypeId !== leave.id}">{{
+                  leave.name }}</span>
+                <span class="fs-8 text-muted" style="margin-top: -2px;">{{ leave.isPaid ? 'Paid Leave' : 'Unpaid Leave'
+                  }}</span>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-white border-top-0 px-4 pb-4 pt-2 d-flex gap-2 justify-content-end">
+        <button type="button" class="btn btn-light px-4 py-2 fs-7 fw-semibold hover-up" style="border-radius: 8px;"
+          (click)="cancelBulkLeave()">
+          Cancel
+        </button>
+        <button type="button"
+          class="btn btn-info text-white px-4 py-2 fs-7 fw-bold d-flex align-items-center gap-2 hover-up shadow-sm"
+          style="border-radius: 8px;" (click)="confirmBulkLeave()" [disabled]="!selectedLeaveTypeId">
+          <i class="fa-solid fa-check"></i> Confirm Leave
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show" *ngIf="showBulkLeaveModal"></div>

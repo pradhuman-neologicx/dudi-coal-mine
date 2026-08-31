@@ -550,14 +550,9 @@ export class RecoveryRegisterComponent implements OnInit, OnDestroy {
   }
 
   downloadTemplate(): void {
-    const csvContent = "data:text/csv;charset=utf-8,"
-      + "EMP ID,Name,Recovery Type,Particulars,Date Of Damage/Loss,Amount,Show Cause Issued,Witness Name,Installments,First Month,Last Month,Date Of Complete Recovery,Remarks\n"
-      + "EMP101,Pam Beesly,Damage,Lost ID card,2026-04-10,500,No,N/A,1,2026-05,2026-05,,Deduct from next month";
-
-    const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "recovery_bulk_upload_template.csv");
+    link.setAttribute("href", "assets/Loan_Recovery.xlsx");
+    link.setAttribute("download", "Loan_Recovery.xlsx");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

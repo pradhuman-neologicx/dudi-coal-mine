@@ -1,8 +1,8 @@
 /* Employee Register (Form A/B) Table Styles */
 tbody td.sticky-col {
   position: sticky;
-  background-color: var(--bs-table-bg, #fff);
-  z-index: 10;
+  background-color: white !important;
+  z-index: 10 !important;
 }
 
 thead th.sticky-col {

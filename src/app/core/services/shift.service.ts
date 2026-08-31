@@ -56,13 +56,25 @@ export class ShiftService {
     return this.apiservice.get(`v1/shifts`, this.getHeaders());
   }
 
-  getShiftRotation(fromDate: string, toDate: string, shiftId?: string | number): Observable<any> {
+  getShiftRotation(
+    fromDate: string,
+    toDate: string,
+    shiftId?: string | number,
+    page?: number | string,
+    limit?: number | string
+  ): Observable<any> {
     let params = new HttpParams()
       .set('from_date', fromDate)
       .set('to_date', toDate);
 
     if (shiftId) {
       params = params.set('shift_id', String(shiftId));
+    }
+    if (page !== undefined && page !== null && page !== '') {
+      params = params.set('page', String(page));
+    }
+    if (limit !== undefined && limit !== null && limit !== '') {
+      params = params.set('limit', String(limit));
     }
     return this.apiservice.get(`v1/admin/shift-rotation`, this.getHeaders(), params);
   }

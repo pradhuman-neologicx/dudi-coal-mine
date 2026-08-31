@@ -38,7 +38,26 @@ export class EmployeeDetailsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$)).subscribe({
         next: (response: any) => {
           if (response.status === 200) {
-            this.employeeList = response.data?.data || response.data || [];
+            const rawList = response.data?.data || response.data || [];
+            this.employeeList = rawList.map((emp: any) => {
+              let pUrl = emp.photo_url || emp.photo || null;
+              if (pUrl === 'null' || pUrl === '') pUrl = null;
+              else if (pUrl && !pUrl.startsWith('http')) {
+                pUrl = 'https://dudicoalmine.mobilogicx.com/' + pUrl.replace(/^\/+/, '');
+              }
+
+              let sUrl = emp.signature_url || emp.signature || null;
+              if (sUrl === 'null' || sUrl === '') sUrl = null;
+              else if (sUrl && !sUrl.startsWith('http')) {
+                sUrl = 'https://dudicoalmine.mobilogicx.com/' + sUrl.replace(/^\/+/, '');
+              }
+
+              return {
+                ...emp,
+                photo_url: pUrl,
+                signature_url: sUrl
+              };
+            });
             this.totalRecords = response.pagination?.total || response.data?.total || this.employeeList.length;
           } else {
             this.employeeList = [];

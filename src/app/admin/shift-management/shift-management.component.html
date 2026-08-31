@@ -97,18 +97,16 @@
     <!-- Employee Roster Table View -->
     <div class="card-body p-4 pt-2">
       <div class="d-md-flex justify-content-between align-items-center my-3">
-        <div class="d-flex align-items-center mb-md-0 mb-2">
-          <span class="me-1 show-entery-text">Show</span>
-          <select class="form-control form-select show-entries-select" [(ngModel)]="showEntries" style="width: auto;">
-            <option [ngValue]="5">5</option>
-            <option [ngValue]="10">10</option>
-            <option [ngValue]="15">15</option>
-            <option [ngValue]="20">20</option>
-            <option [ngValue]="25">25</option>
-            <option [ngValue]="50">50</option>
-            <option [ngValue]="100">100</option>
-          </select>
-          <span class="ms-1 show-entery-text">entries</span>
+        <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
+          <span class="show-entery-text">Show</span>
+          <ng-select [items]="tableSizes" 
+                     [(ngModel)]="tableSize" 
+                     (change)="onTableSizeChange($event)" 
+                     [clearable]="false" 
+                     [searchable]="false" 
+                     class="custom-ng-select min-w-[80px]">
+          </ng-select>
+          <span class="show-entery-text">entries</span>
         </div>
       </div>
 
@@ -126,7 +124,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let emp of getEmployeesForActiveShift(activeTab) | paginate: { id: 'shift-pagination', itemsPerPage: showEntries, currentPage: pShift }; index as i">
+            <tr *ngFor="let emp of filteredShiftEmployees | paginate: { id: 'shift-pagination', itemsPerPage: showEntries, currentPage: pShift, totalItems: totalShiftEmployees }; index as i">
               <td>
                 {{ (pShift - 1) * showEntries + i + 1 }}
               </td>
@@ -165,7 +163,7 @@
                 </p>
               </td>
             </tr>
-            <tr *ngIf="getEmployeesForActiveShift(activeTab).length === 0">
+            <tr *ngIf="filteredShiftEmployees.length === 0">
               <td colspan="7" class="text-center py-4 text-muted">
                 No employees allocated to {{ activeTab }} in this week.
               </td>
@@ -173,13 +171,13 @@
           </tbody>
         </table>
         <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center"
-          *ngIf="getEmployeesForActiveShift(activeTab).length > 0">
+          *ngIf="totalShiftEmployees > 0">
           <span class="showalltext">Showing
-            {{ showEntries * (pShift - 1) > 0 ? showEntries * (pShift - 1) + 1 : 1 }} to
-            {{ showEntries * pShift <= getEmployeesForActiveShift(activeTab).length ? showEntries * pShift : getEmployeesForActiveShift(activeTab).length }}
-              of {{ getEmployeesForActiveShift(activeTab).length }} entries</span>
+            {{ totalShiftEmployees > 0 ? (showEntries * (pShift - 1) + 1) : 0 }} to
+            {{ (showEntries * pShift) <= totalShiftEmployees ? (showEntries * pShift) : totalShiftEmployees }}
+              of {{ totalShiftEmployees }} entries</span>
               <pagination-controls id="shift-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
-                (pageChange)="pShift = $event" target="_top"></pagination-controls>
+                (pageChange)="onPageChange($event)" target="_top"></pagination-controls>
         </div>
       </div>
     </div>

@@ -186,7 +186,7 @@ export class EmployeePayrollComponent implements OnInit, OnDestroy {
       pan: ['', [Validators.pattern('^[A-Z]{5}[0-9]{4}[A-Z]{1}$')]],
       esicIp: [''],
       lwfApplicable: ['No'],
-      lwfNumber: [''],
+      lwfAmount: [''],
       isPfApplicable: ['No', [Validators.required]],
       pfAmount: [''],
       pfNumber: [''],
@@ -220,9 +220,9 @@ export class EmployeePayrollComponent implements OnInit, OnDestroy {
     });
 
     this.payrollForm.get('lwfApplicable')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(val => {
-      const numCtrl = this.payrollForm.get('lwfNumber');
+      const numCtrl = this.payrollForm.get('lwfAmount');
       if (val === 'Yes') {
-        numCtrl?.setValidators([Validators.required]);
+        numCtrl?.setValidators([Validators.required, Validators.min(0)]);
       } else {
         numCtrl?.clearValidators();
         numCtrl?.setValue('');
@@ -279,7 +279,7 @@ export class EmployeePayrollComponent implements OnInit, OnDestroy {
             if (this.employeeList.length > 0) {
               this.employeeList[0].penalty_count = 2; // Mock for design
             }
-            this.totalRecords = response.pagination?.total || response.data?.total || this.employeeList.length;
+            this.totalRecords = response.pagination?.total || response.data?.total || response.total || this.employeeList.length;
           } else {
             this.employeeList = [];
             this.totalRecords = 0;
@@ -360,7 +360,7 @@ export class EmployeePayrollComponent implements OnInit, OnDestroy {
               pan: emp.pan || '',
               esicIp: emp.esic_ip_number || emp.esic_ip || '',
               lwfApplicable: (emp.lwf_number_applicable == 1 || emp.lwf_number_applicable === 'Yes' || emp.lwf_number_applicable === true || emp.lwf_applicable == 1 || emp.lwf_applicable === 'Yes' || emp.lwf_applicable === true) ? 'Yes' : 'No',
-              lwfNumber: emp.lwf_number || '',
+              lwfAmount: emp.lwf_amount || emp.lwf_number || '',
               isPfApplicable: (emp.pf_applicable == 1 || emp.pf_applicable === 'Yes' || emp.pf_applicable === true) ? 'Yes' : 'No',
               pfAmount: emp.pf_amount || '',
               pfNumber: emp.pf_number || '',
@@ -568,7 +568,8 @@ export class EmployeePayrollComponent implements OnInit, OnDestroy {
       formData.append('pan', payrollData.pan || '');
       formData.append('esic_ip_number', payrollData.esicIp || '');
       formData.append('lwf_number_applicable', payrollData.lwfApplicable === 'Yes' ? '1' : '0');
-      formData.append('lwf_number', payrollData.lwfApplicable === 'Yes' ? (payrollData.lwfNumber || '') : '');
+      formData.append('lwf_amount', payrollData.lwfApplicable === 'Yes' ? (payrollData.lwfAmount || '0').toString() : '0');
+      formData.append('lwf_number', payrollData.lwfApplicable === 'Yes' ? (payrollData.lwfAmount || '0').toString() : '0');
       
       formData.append('pf_applicable', payrollData.isPfApplicable === 'Yes' ? '1' : '0');
       formData.append('pf_amount', payrollData.isPfApplicable === 'Yes' ? (payrollData.pfAmount || '0').toString() : '0');
@@ -586,6 +587,7 @@ export class EmployeePayrollComponent implements OnInit, OnDestroy {
         next: (response: any) => {
           if (response.status === 200 || response.status === 201) {
             this.notificationService.show(response.message || 'Payroll details added successfully!', 'success', 3000);
+            this.page = 1;
             this.closeModal();
             this.GetEmployeeFun();
           } else {
@@ -644,7 +646,8 @@ export class EmployeePayrollComponent implements OnInit, OnDestroy {
       formData.append('pan', payrollData.pan || '');
       formData.append('esic_ip_number', payrollData.esicIp || '');
       formData.append('lwf_number_applicable', payrollData.lwfApplicable === 'Yes' ? '1' : '0');
-      formData.append('lwf_number', payrollData.lwfApplicable === 'Yes' ? (payrollData.lwfNumber || '') : '');
+      formData.append('lwf_amount', payrollData.lwfApplicable === 'Yes' ? (payrollData.lwfAmount || '0').toString() : '0');
+      formData.append('lwf_number', payrollData.lwfApplicable === 'Yes' ? (payrollData.lwfAmount || '0').toString() : '0');
       
       formData.append('pf_applicable', payrollData.isPfApplicable === 'Yes' ? '1' : '0');
       formData.append('pf_amount', payrollData.isPfApplicable === 'Yes' ? (payrollData.pfAmount || '0').toString() : '0');
@@ -680,6 +683,7 @@ export class EmployeePayrollComponent implements OnInit, OnDestroy {
           next: (response: any) => {
             if (response.status === 200 || response.status === 201) {
               this.notificationService.show(response.message || 'Payroll details added successfully!', 'success', 3000);
+              this.page = 1;
               this.closeModal();
               this.GetEmployeeFun();
             } else {

@@ -3,7 +3,7 @@ import { MatDatepicker } from '@angular/material/datepicker';
 import { EmployeeService } from '../../core/services/Employee.service';
 import { NotificationService } from '../../core/services/notificationnew.service';
 import { Subject } from 'rxjs';
-import { takeUntil, switchMap } from 'rxjs/operators';
+import { takeUntil, switchMap, debounceTime, distinctUntilChanged, filter } from 'rxjs/operators';
 
 export interface ReportSummary {
   id: number | string;
@@ -127,7 +127,7 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
 
   // Pagination State
   p: number = 1;
-  showEntries: number = 25;
+  showEntries: number = 10;
   tableSizes: number[] = [10, 20, 50, 100];
   totalRecordsDetail: number = 0;
 
@@ -151,7 +151,7 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
   isLoadingPreviewDetails: boolean = false;
   isSubmitting: boolean = false;
   previewP: number = 1;
-  previewShowEntries: number = 25;
+  previewShowEntries: number = 10;
   totalPreviewRecords: number = 0;
 
   // Locked month/year at the time of "Check Salary" — used for import
@@ -358,6 +358,7 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
 
   onDetailSearch(): void {
     if (this.activeReportId) {
+      this.p = 1; // reset to page 1
       this.loadReportDetails(this.activeReportId, 1);
     }
   }

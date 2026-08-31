@@ -10,6 +10,7 @@ import { DashboardComponent } from './admin/dashboard/dashboard.component';
 import { StaffComponent } from './admin/user-management/staff/staff.component';
 import { ViewProfileComponent } from './admin/user-management/view-profile/view-profile.component';
 import { AuthGuard } from './core/auth/auth-guard';
+import { ModuleDisabledGuard } from './core/auth/module-disabled.guard';
 import { UserManagementComponent } from './admin/user-management/user-management.component';
 import { MastersComponent } from './admin/masters/masters.component';
 import { DepartmentComponent } from './admin/masters/department/department.component';
@@ -53,7 +54,8 @@ import { DumpingPointComponent } from './admin/masters/dumping-point/dumping-poi
 import { DumpingComponent } from './admin/dumping/dumping.component';
 import { RelaySettingsComponent } from './admin/relay-settings/relay-settings.component';
 import { WageMasterComponent } from './admin/masters/wage-master/wage-master.component';
-import { EmployeeDetailsComponent } from './admin/employee-details/employee-details.component';
+import { EmployeeDetailsComponent } from './admin/gov-side/employee-details/employee-details.component';
+import { GovSideComponent } from './admin/gov-side/gov-side.component';
 
 const routes: Routes = [
   {
@@ -115,11 +117,7 @@ const routes: Routes = [
         component: EmployeePayrollComponent,
         canActivate: [AuthGuard],
       },
-      {
-        path: 'employee-details',
-        component: EmployeeDetailsComponent,
-        canActivate: [AuthGuard],
-      },
+
       {
         path: 'shift-management',
         component: ShiftManagementComponent,
@@ -146,20 +144,11 @@ const routes: Routes = [
         component: PayrollManagementComponent,
         canActivate: [AuthGuard],
       },
-      {
-        path: 'salary-payroll-management',
-        component: SalaryPayrollManagementComponent,
-        canActivate: [AuthGuard],
-      },
-      {
-        path: 'recovery-register',
-        loadComponent: () => import('./admin/recovery-register/recovery-register.component').then(m => m.RecoveryRegisterComponent),
-        canActivate: [AuthGuard],
-      },
+
       {
         path: 'equipment-management',
         component: EquipmentManagementComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
         children: [
           { path: '', redirectTo: 'equipment-master', pathMatch: 'full' },
           { path: 'equipment-master', loadComponent: () => import('./admin/equipment-management/equipment-master/equipment-master.component').then(m => m.EquipmentMasterComponent) },
@@ -169,17 +158,17 @@ const routes: Routes = [
       {
         path: 'inventory-management/categories',
         component: CategoriesComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'inventory-management/product-master',
         component: ProductMasterComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'inventory-management/inventory',
         component: InventoryComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
 
       {
@@ -232,18 +221,22 @@ const routes: Routes = [
           {
             path: 'training-type',
             component: TrainingTypeComponent,
+            canActivate: [AuthGuard, ModuleDisabledGuard],
           },
           {
             path: 'incident-type',
             component: IncidentTypeComponent,
+            canActivate: [AuthGuard, ModuleDisabledGuard],
           },
           {
             path: 'breakdown-type',
             component: BreakdownTypeComponent,
+            canActivate: [AuthGuard, ModuleDisabledGuard],
           },
           {
             path: 'delay-type',
             component: DelayTypeComponent,
+            canActivate: [AuthGuard, ModuleDisabledGuard],
           },
           {
             path: 'severity-level',
@@ -252,6 +245,7 @@ const routes: Routes = [
           {
             path: 'dumping-point',
             component: DumpingPointComponent,
+            canActivate: [AuthGuard, ModuleDisabledGuard],
           },
           {
             path: 'wage-master',
@@ -262,77 +256,77 @@ const routes: Routes = [
       {
         path: 'training-management',
         component: TrainingManagementComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'breakdown-and-maintenance',
         loadComponent: () => import('./admin/breakdown-and-maintenance/breakdown-and-maintenance.component').then(m => m.BreakdownAndMaintenanceComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'breakdown-and-maintenance/report',
         loadComponent: () => import('./admin/breakdown-and-maintenance/report/report.component').then(m => m.ReportComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'fuel-mgt',
         component: FuelMgtComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'fuel-mgt/report',
         component: FuelMgtComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'delay-report',
         component: DelayReportComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'shift-mgt',
         loadComponent: () => import('./admin/shift-mgt/shift-mgt.component').then(m => m.ShiftMgtComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'shift-mgt/add',
         loadComponent: () => import('./admin/shift-mgt/shift-add/shift-add.component').then(m => m.ShiftAddComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'shift-mgt/edit/:id',
         loadComponent: () => import('./admin/shift-mgt/shift-add/shift-add.component').then(m => m.ShiftAddComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'shift-mgt/close/:id',
         loadComponent: () => import('./admin/shift-mgt/shift-close/shift-close.component').then(m => m.ShiftCloseComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'shift-mgt/summary/:id',
         loadComponent: () => import('./admin/shift-mgt/shift-summery/shift-summery.component').then(m => m.ShiftSummeryComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'safety-management',
         loadComponent: () => import('./admin/safety-management/safety-management.component').then(m => m.SafetyManagementComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'safety-management/report',
         loadComponent: () => import('./admin/safety-management/report/report.component').then(m => m.ReportComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'dumping',
         component: DumpingComponent,
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
       {
         path: 'service-management',
         loadComponent: () => import('./admin/service-management/service-management.component').then(m => m.ServiceManagementComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, ModuleDisabledGuard],
       },
 
       {
@@ -370,6 +364,42 @@ const routes: Routes = [
           //   component: VehicleMapingComponent,
           // },
         ],
+      },
+      {
+        path: 'gov_tab',
+        component: GovSideComponent,
+        canActivate: [AuthGuard],
+        children: [
+          {
+            path: '', redirectTo: 'employee-details', pathMatch: 'full'
+          },
+          {
+            path: 'employee-details',
+            component: EmployeeDetailsComponent,
+            canActivate: [AuthGuard],
+          },
+          {
+            path: 'salary-payroll-management',
+            component: SalaryPayrollManagementComponent,
+            canActivate: [AuthGuard],
+          },
+          {
+            path: 'recovery-register',
+            loadComponent: () => import('./admin/recovery-register/recovery-register.component').then(m => m.RecoveryRegisterComponent),
+            canActivate: [AuthGuard],
+          },
+          {
+            path: 'leaves-gov',
+            loadComponent: () => import('./admin/gov-side/leaves-gov/leaves-gov.component').then(m => m.LeavesGovComponent),
+            canActivate: [AuthGuard],
+          },
+          {
+            path: 'attendance-gov',
+            loadComponent: () => import('./admin/gov-side/attendance-gov/attendance-gov.component').then(m => m.AttendanceGovComponent),
+            canActivate: [AuthGuard],
+          }
+        ],
+
       },
 
 

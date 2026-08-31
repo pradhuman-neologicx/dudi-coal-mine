@@ -11,6 +11,7 @@ interface MenuItem {
   icon: string;
   label: string;
   route: string;
+  enabled?: boolean;
   subItems?: MenuItem[];
 }
 
@@ -63,7 +64,7 @@ export class SidenavComponent {
         {
           index: 2,
           icon: 'widgets',
-          label: 'Master',
+          label: 'Master Configuration',
           route: '/admin/master',
           subItems: [
             {
@@ -126,30 +127,35 @@ export class SidenavComponent {
               icon: 'school',
               label: 'Training Type',
               route: '/admin/master/training-type',
+              enabled: false,
             },
             {
               index: 9,
               icon: 'warning',
               label: 'Incident Type',
               route: '/admin/master/incident-type',
+              enabled: false,
             },
             {
               index: 10,
               icon: 'build_circle',
               label: 'Breakdown Type',
               route: '/admin/master/breakdown-type',
+              enabled: false,
             },
             {
               index: 11,
               icon: 'timer',
               label: 'Delay Type',
               route: '/admin/master/delay-type',
+              enabled: false,
             },
             {
               index: 12,
               icon: 'place',
               label: 'Dumping Point',
               route: '/admin/master/dumping-point',
+              enabled: false,
             },
             {
               index: 13,
@@ -168,27 +174,22 @@ export class SidenavComponent {
         {
           index: 3,
           icon: 'people',
-          label: 'Employee',
+          label: 'Employee Management',
           route: '/admin/employee',
           subItems: [
             {
               index: 1,
               icon: 'manage_accounts',
-              label: 'Employee Mgt.',
+              label: 'Employee Listing.',
               route: '/admin/employee-management',
             },
             {
               index: 2,
               icon: 'account_balance_wallet',
-              label: 'Employee Payroll',
+              label: 'Payroll Setup',
               route: '/admin/employee-payroll',
             },
-            {
-              index: 3,
-              icon: 'person',
-              label: 'Employee Details',
-              route: '/admin/employee-details',
-            },
+
           ],
         },
         {
@@ -200,39 +201,69 @@ export class SidenavComponent {
         {
           index: 5,
           icon: 'business_center',
-          label: 'Workforce Mgt.',
+          label: 'Salary & Attendance',
           route: '/admin/workforce',
           subItems: [
             {
               index: 1,
               icon: 'how_to_reg',
-              label: 'Attendance Mgt.',
+              label: 'Attendance',
               route: '/admin/attendance-management',
             },
             {
               index: 2,
               icon: 'event_busy',
-              label: 'Leave Mgt.',
+              label: 'Leaves',
               route: '/admin/leave-management',
             },
             {
               index: 3,
               icon: 'payments',
-              label: 'Payroll Mgt.',
+              label: 'Salary',
               route: '/admin/payroll-management',
+            },
+
+          ],
+        },
+        {
+          index: 6,
+          icon: 'business_center',
+          label: 'Gov. Tab',
+          route: '/admin/gov_tab',
+          subItems: [
+            {
+              index: 1,
+              icon: 'person',
+              label: 'Employee Details',
+              route: '/admin/gov_tab/employee-details',
+            },
+            {
+              index: 2,
+              icon: 'how_to_reg',
+              label: 'Attendance Register',
+              route: '/admin/gov_tab/attendance-gov',
+            },
+            {
+              index: 3,
+              icon: 'book',
+              label: 'Leave Record',
+              route: '/admin/gov_tab/leaves-gov',
             },
             {
               index: 4,
               icon: 'account_balance',
-              label: 'Salary Mgt.',
-              route: '/admin/salary-payroll-management',
+              label: 'Salary Management',
+              route: '/admin/gov_tab/salary-payroll-management',
             },
             {
               index: 5,
               icon: 'request_quote',
               label: 'Recovery Register',
-              route: '/admin/recovery-register',
+              route: '/admin/gov_tab/recovery-register',
             },
+
+
+
           ],
         },
         // {
@@ -246,6 +277,7 @@ export class SidenavComponent {
           icon: 'store',
           label: 'Inventory Mgt.',
           route: '/admin/inventory-management',
+          enabled: false,
           subItems: [
             {
               index: 1,
@@ -272,12 +304,14 @@ export class SidenavComponent {
           icon: 'model_training',
           label: 'Training Mgt.',
           route: '/admin/training-management',
+          enabled: false,
         },
         {
           index: 11,
           icon: 'inventory',
           label: 'Equipment Mgt.',
           route: '/admin/equipment-management',
+          enabled: false,
           subItems: [
             {
               index: 1,
@@ -299,6 +333,7 @@ export class SidenavComponent {
           icon: 'engineering',
           label: 'Operations',
           route: '/admin/operations',
+          enabled: false,
           subItems: [
             {
               index: 1,
@@ -412,6 +447,7 @@ export class SidenavComponent {
           icon: 'inventory',
           label: 'Equipment Mgt.',
           route: '/admin/equipment-management',
+          enabled: false,
           subItems: [
             {
               index: 1,
@@ -438,6 +474,7 @@ export class SidenavComponent {
           icon: 'engineering',
           label: 'Operations',
           route: '/admin/operations',
+          enabled: false,
           subItems: [
             {
               index: 1,
@@ -479,6 +516,19 @@ export class SidenavComponent {
         },
       ];
     }
+
+    // Filter out items where enabled is explicitly set to false
+    this.menuItems = this.filterMenuItems(this.menuItems);
+  }
+
+  filterMenuItems(items: MenuItem[]): MenuItem[] {
+    if (!items) return [];
+    return items
+      .filter((item) => item.enabled !== false)
+      .map((item) => ({
+        ...item,
+        subItems: item.subItems ? this.filterMenuItems(item.subItems) : undefined,
+      }));
   }
 
   removeDuplicateMenuItems(menuItems: any) {

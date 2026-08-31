@@ -1,26 +1,22 @@
 <div class="container mb-4">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
     <h1 class="text-primary table-heading-detail">Leave Type Management</h1>
-    <div>
+    <!-- <div>
       <button
         class="btn btn-custom-primary px-4 py-2 me-2"
         (click)="openAddModal()"
       >
         Add Leave Type
       </button>
-    </div>
+    </div> -->
   </div>
 
   <div class="card border-0 my-4 px-4 py-4">
     <div class="d-md-flex justify-content-between align-items-center my-3">
       <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
         <span class="show-entery-text">Show</span>
-        <ng-select [items]="tableSizes" 
-                   [(ngModel)]="tableSize" 
-                   (change)="onTableSizeChange($event)" 
-                   [clearable]="false" 
-                   [searchable]="false" 
-                   class="custom-ng-select min-w-[80px]">
+        <ng-select [items]="tableSizes" [(ngModel)]="tableSize" (change)="onTableSizeChange($event)" [clearable]="false"
+          [searchable]="false" class="custom-ng-select min-w-[80px]">
         </ng-select>
         <span class="show-entery-text">entries</span>
       </div>
@@ -29,32 +25,16 @@
         <form [formGroup]="searchbarform" class="d-flex align-items-center">
           <span class="me-1">Search:</span>
           <div>
-            <input
-              type="text"
-              class="form-control search-user position-relative"
-              autocomplete="off"
-              formControlName="searchbar"
-            />
+            <input type="text" class="form-control search-user position-relative" autocomplete="off"
+              formControlName="searchbar" />
           </div>
 
           <button class="btn btn-primary search-btn ms-2" (click)="searchfun()">
-            <span
-              ><i
-                class="fa-solid fa-magnifying-glass form-control-feedback text-white"
-              ></i
-            ></span>
+            <span><i class="fa-solid fa-magnifying-glass form-control-feedback text-white"></i></span>
           </button>
-          <button
-            class="btn btn-primary search-btn ms-2"
-            (click)="resetsearchbar()"
-            type="button"
-            *ngIf="showreset == true"
-          >
-            <span
-              ><i
-                class="fa-solid fa-rotate-right form-control-feedback text-white"
-              ></i
-            ></span>
+          <button class="btn btn-primary search-btn ms-2" (click)="resetsearchbar()" type="button"
+            *ngIf="showreset == true">
+            <span><i class="fa-solid fa-rotate-right form-control-feedback text-white"></i></span>
           </button>
         </form>
       </div>
@@ -65,18 +45,31 @@
         <table class="table table-bordered table-hover table-striped mb-0">
           <thead class="table-header">
             <tr *ngFor="let detail of table_heading">
-              <th><p class="table-heading">{{ detail.heading0 }}</p></th>
-              <th><p class="table-heading">{{ detail.heading1 }}</p></th>
-              <th><p class="table-heading">{{ detail.heading2 }}</p></th>
-              <th><p class="table-heading">{{ detail.heading3 }}</p></th>
-              <th><p class="table-heading">{{ detail.heading4 }}</p></th>
-              <th><p class="table-heading">{{ detail.heading5 }}</p></th>
-              <th><p class="table-heading">{{ detail.heading6 }}</p></th>
+              <th>
+                <p class="table-heading">{{ detail.heading0 }}</p>
+              </th>
+              <th>
+                <p class="table-heading">{{ detail.heading1 }}</p>
+              </th>
+              <th>
+                <p class="table-heading">{{ detail.heading2 }}</p>
+              </th>
+              <th>
+                <p class="table-heading">{{ detail.heading3 }}</p>
+              </th>
+              <th>
+                <p class="table-heading">{{ detail.heading4 }}</p>
+              </th>
+              <th>
+                <p class="table-heading">{{ detail.heading5 }}</p>
+              </th>
+              <th>
+                <p class="table-heading">{{ detail.heading6 }}</p>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr
-              *ngFor="
+            <tr *ngFor="
                 let leaveType of leaveTypeList
                   | paginate
                     : {
@@ -85,40 +78,44 @@
                         totalItems: totalRecords,
                       };
                 index as i
-              "
-            >
+              ">
               <td>
                 {{
-                  tableSize * (page - 1) + i + 1 > 0
-                    ? tableSize * (page - 1) + i + 1
-                    : i + 1
+                tableSize * (page - 1) + i + 1 > 0
+                ? tableSize * (page - 1) + i + 1
+                : i + 1
                 }}
               </td>
-              <td><p class="fw-bold">{{ leaveType.leaveName }}</p></td>
+              <td>
+                <p class="fw-bold">{{ leaveType.leaveName }}</p>
+              </td>
               <td>
                 <span class="badge" [ngClass]="leaveType.isPaid ? 'bg-success' : 'bg-warning text-dark'">
                   {{ leaveType.isPaid ? 'Paid' : 'Unpaid' }}
                 </span>
               </td>
-              <td><p>{{ leaveType.annualLimit }}</p></td>
+              <td>
+                <p>{{ leaveType.annualLimit }}</p>
+              </td>
               <td>
                 <span class="badge bg-light text-secondary border">
-                  {{ leaveType.formEMapping === 'COMP_REST' ? 'Compensatory Rest' : leaveType.formEMapping === 'EARNED' ? 'Earned Leave' : leaveType.formEMapping === 'MEDICAL' ? 'Medical Leave' : leaveType.formEMapping === 'OTHER' ? 'Other Leave' : 'Excluded' }}
+                  {{ leaveType.formEMapping === 'COMP_REST' ? 'Compensatory Rest' : leaveType.formEMapping === 'EARNED'
+                  ? 'Earned Leave' : leaveType.formEMapping === 'MEDICAL' ? 'Medical Leave' : leaveType.formEMapping ===
+                  'OTHER' ? 'Other Leave' : 'Excluded' }}
                 </span>
               </td>
               <td>
-                <p
-                  [ngClass]="{
+                <p [ngClass]="{
                     'active-status': leaveType.is_active == 1 ? 1 : 0,
                     'deactive-status': leaveType.is_active == 1 ? 0 : 1,
-                  }"
-                >
-              {{ leaveType.is_active == 1 ? "Active" : "Inactive" }}
+                  }">
+                  {{ leaveType.is_active == 1 ? "Active" : "Inactive" }}
                 </p>
               </td>
               <td>
                 <div class="d-flex align-items-center gap-2">
-                  <button *ngIf="leaveType.is_active == 1" class="btn-action edit-btn" (click)="OpenEditModal(leaveType)" data-tooltip="Edit">
+                  <button *ngIf="leaveType.is_active == 1" class="btn-action edit-btn"
+                    (click)="OpenEditModal(leaveType)" data-tooltip="Edit">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
                   <button class="btn-action view-btn" (click)="openviewModal(leaveType)" data-tooltip="View Details">
@@ -137,8 +134,7 @@
       </div>
       <!-- Card View for below lg -->
       <div class="lg:hidden space-y-4">
-        <div
-          *ngFor="
+        <div *ngFor="
             let leaveType of leaveTypeList
               | paginate
                 : {
@@ -147,21 +143,20 @@
                     totalItems: totalRecords,
                   };
             index as i
-          "
-          class="bg-gray-50 border border-gray-200 rounded-lg p-4"
-        >
+          " class="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
             <div>
               <strong>Sr No:</strong>
               {{
-                tableSize * (page - 1) + i + 1 > 0
-                  ? tableSize * (page - 1) + i + 1
-                  : i + 1
+              tableSize * (page - 1) + i + 1 > 0
+              ? tableSize * (page - 1) + i + 1
+              : i + 1
               }}
             </div>
             <div>
               <div class="d-flex align-items-center gap-1">
-                <button *ngIf="leaveType.is_active == 1" class="btn-action edit-btn" (click)="OpenEditModal(leaveType)" data-tooltip="Edit">
+                <button *ngIf="leaveType.is_active == 1" class="btn-action edit-btn" (click)="OpenEditModal(leaveType)"
+                  data-tooltip="Edit">
                   <i class="fa-solid fa-pen-to-square"></i>
                 </button>
                 <button class="btn-action view-btn" (click)="openviewModal(leaveType)" data-tooltip="View Details">
@@ -180,54 +175,38 @@
           <div class="mb-2"><strong>Annual Limit:</strong> {{ leaveType.annualLimit }}</div>
           <div>
             <strong>Status:</strong>
-            <span
-              [ngClass]="{
+            <span [ngClass]="{
                 'active-status': leaveType.is_active == 1 ? 1 : 0,
                 'deactive-status': leaveType.is_active == 1 ? 0 : 1,
-              }"
-            >
+              }">
               {{ leaveType.is_active == 1 ? "Active" : "Inactive" }}
             </span>
           </div>
         </div>
       </div>
-      <div
-        class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center"
-      >
-        <span class="showalltext"
-          >Showing
+      <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center">
+        <span class="showalltext">Showing
           {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : 1 }} to
           {{
-            tableSize * page <= totalRecords ? tableSize * page : totalRecords
-          }}
-          of {{ totalRecords != undefined ? totalRecords : "" }} entries</span
-        >
-        <pagination-controls
-          previousLabel="Prev"
-          nextLabel="Next"
-          [responsive]="true"
-          (pageChange)="onTableDataChange($event)"
-          target="_top"
-        ></pagination-controls>
+          tableSize * page <= totalRecords ? tableSize * page : totalRecords }} of {{ totalRecords !=undefined ?
+            totalRecords : "" }} entries</span>
+            <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true"
+              (pageChange)="onTableDataChange($event)" target="_top"></pagination-controls>
       </div>
     </div>
   </div>
 </div>
 
 <!-- Create Modal -->
-<div
-  *ngIf="createLeaveTypeOpen"
-  class="your-animation-class modal-container"
-  aria-labelledby="modal-title"
-  role="dialog"
-  aria-modal="true"
->
+<div *ngIf="createLeaveTypeOpen" class="your-animation-class modal-container" aria-labelledby="modal-title"
+  role="dialog" aria-modal="true">
   <div class="modal-contenttop modal-content-50" [@fadeIn]>
     <form [formGroup]="createLeaveTypeForm">
       <div class="card">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 class="modal-title pt-1 mb-0 tt-color">Add Leave Type</h5>
-          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button" (click)="closeModal()">
+          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button"
+            (click)="closeModal()">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -238,13 +217,15 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Leave Name</label>
               <input type="text" class="d-block form-control form-input-custom" formControlName="leaveName"
                 [ngClass]="{'is-invalid': createLeaveTypeForm.controls['leaveName'].errors && (createLeaveTypeForm.controls['leaveName'].touched || createLeaveTypeForm.controls['leaveName'].dirty)}" />
-              <div class="text-danger error-message d-block mt-1" *ngIf="createLeaveTypeForm.controls['leaveName'].errors && (createLeaveTypeForm.controls['leaveName'].touched || createLeaveTypeForm.controls['leaveName'].dirty)">
-                <p class="fw-light text-danger mb-0" *ngIf="createLeaveTypeForm.controls['leaveName'].hasError('required')">
+              <div class="text-danger error-message d-block mt-1"
+                *ngIf="createLeaveTypeForm.controls['leaveName'].errors && (createLeaveTypeForm.controls['leaveName'].touched || createLeaveTypeForm.controls['leaveName'].dirty)">
+                <p class="fw-light text-danger mb-0"
+                  *ngIf="createLeaveTypeForm.controls['leaveName'].hasError('required')">
                   Leave Name is required
                 </p>
               </div>
             </div>
-            
+
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Paid/Unpaid</label>
               <select class="d-block form-control form-select form-input-custom" formControlName="isPaid">
@@ -257,61 +238,73 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Annual Limit</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="annualLimit"
                 [ngClass]="{'is-invalid': createLeaveTypeForm.controls['annualLimit'].errors && (createLeaveTypeForm.controls['annualLimit'].touched || createLeaveTypeForm.controls['annualLimit'].dirty)}" />
-              <div class="text-danger error-message d-block mt-1" *ngIf="createLeaveTypeForm.controls['annualLimit'].errors && (createLeaveTypeForm.controls['annualLimit'].touched || createLeaveTypeForm.controls['annualLimit'].dirty)">
-                <p class="fw-light text-danger mb-0" *ngIf="createLeaveTypeForm.controls['annualLimit'].hasError('required')">
+              <div class="text-danger error-message d-block mt-1"
+                *ngIf="createLeaveTypeForm.controls['annualLimit'].errors && (createLeaveTypeForm.controls['annualLimit'].touched || createLeaveTypeForm.controls['annualLimit'].dirty)">
+                <p class="fw-light text-danger mb-0"
+                  *ngIf="createLeaveTypeForm.controls['annualLimit'].hasError('required')">
                   Annual Limit is required
                 </p>
-                <p class="fw-light text-danger mb-0" *ngIf="createLeaveTypeForm.controls['annualLimit'].hasError('min')">
+                <p class="fw-light text-danger mb-0"
+                  *ngIf="createLeaveTypeForm.controls['annualLimit'].hasError('min')">
                   Annual Limit must be at least 0
                 </p>
               </div>
             </div>
 
             <ng-container *ngIf="false">
-            <h6 class="text-muted fw-bold mb-3 mt-2 fs-7 text-uppercase border-bottom pb-2">Compliance & Rules</h6>
+              <h6 class="text-muted fw-bold mb-3 mt-2 fs-7 text-uppercase border-bottom pb-2">Compliance & Rules</h6>
 
-            <div class="col-md-6 mb-3">
-              <label class="d-block text-capitalize form-label form-lable-custom">Carry Forward Allowed?</label>
-              <div class="form-check form-switch mt-2 ps-0 d-flex align-items-center gap-3">
-                <input class="form-check-input form-input-custom ms-0 mt-0" type="checkbox" formControlName="isCarryForward" style="width: 40px; height: 20px; cursor: pointer;">
-                <label class="form-check-label mb-0 fw-bold text-dark">{{ createLeaveTypeForm.get('isCarryForward')?.value ? 'Yes' : 'No' }}</label>
+              <div class="col-md-6 mb-3">
+                <label class="d-block text-capitalize form-label form-lable-custom">Carry Forward Allowed?</label>
+                <div class="form-check form-switch mt-2 ps-0 d-flex align-items-center gap-3">
+                  <input class="form-check-input form-input-custom ms-0 mt-0" type="checkbox"
+                    formControlName="isCarryForward" style="width: 40px; height: 20px; cursor: pointer;">
+                  <label class="form-check-label mb-0 fw-bold text-dark">{{
+                    createLeaveTypeForm.get('isCarryForward')?.value ? 'Yes' : 'No' }}</label>
+                </div>
               </div>
-            </div>
 
-            <div class="col-md-6 mb-3" *ngIf="createLeaveTypeForm.get('isCarryForward')?.value">
-              <label class="d-block text-capitalize form-label form-lable-custom">Max Accumulation Limit</label>
-              <input type="number" class="d-block form-control form-input-custom" formControlName="maxAccumulation"
-                [ngClass]="{'is-invalid': createLeaveTypeForm.controls['maxAccumulation'].errors && (createLeaveTypeForm.controls['maxAccumulation'].touched || createLeaveTypeForm.controls['maxAccumulation'].dirty)}" />
-              <div class="text-danger error-message d-block mt-1" *ngIf="createLeaveTypeForm.controls['maxAccumulation'].errors && (createLeaveTypeForm.controls['maxAccumulation'].touched || createLeaveTypeForm.controls['maxAccumulation'].dirty)">
-                <p class="fw-light text-danger mb-0" *ngIf="createLeaveTypeForm.controls['maxAccumulation'].hasError('required')">
-                  Required when carry forward is allowed
-                </p>
-                <p class="fw-light text-danger mb-0" *ngIf="createLeaveTypeForm.controls['maxAccumulation'].hasError('min')">
-                  Must be at least 1
-                </p>
+              <div class="col-md-6 mb-3" *ngIf="createLeaveTypeForm.get('isCarryForward')?.value">
+                <label class="d-block text-capitalize form-label form-lable-custom">Max Accumulation Limit</label>
+                <input type="number" class="d-block form-control form-input-custom" formControlName="maxAccumulation"
+                  [ngClass]="{'is-invalid': createLeaveTypeForm.controls['maxAccumulation'].errors && (createLeaveTypeForm.controls['maxAccumulation'].touched || createLeaveTypeForm.controls['maxAccumulation'].dirty)}" />
+                <div class="text-danger error-message d-block mt-1"
+                  *ngIf="createLeaveTypeForm.controls['maxAccumulation'].errors && (createLeaveTypeForm.controls['maxAccumulation'].touched || createLeaveTypeForm.controls['maxAccumulation'].dirty)">
+                  <p class="fw-light text-danger mb-0"
+                    *ngIf="createLeaveTypeForm.controls['maxAccumulation'].hasError('required')">
+                    Required when carry forward is allowed
+                  </p>
+                  <p class="fw-light text-danger mb-0"
+                    *ngIf="createLeaveTypeForm.controls['maxAccumulation'].hasError('min')">
+                    Must be at least 1
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div class="col-md-12 mb-3 mt-1">
-              <div class="p-3 border rounded-3" style="background-color: rgba(74, 143, 169, 0.05); border-color: rgba(74, 143, 169, 0.2) !important;">
-                <label class="d-block text-capitalize form-label form-lable-custom fw-bold mb-2" style="color: #4A8FA9;">
-                  <i class="fa-solid fa-file-contract me-2"></i>Statutory Form E Mapping
-                </label>
-                <select class="d-block form-control form-select form-input-custom" formControlName="formEMapping">
-                  <option value="EXCLUDED">Exclude from Form E (Non-Statutory)</option>
-                  <option value="COMP_REST">Details of Compensatory Rest</option>
-                  <option value="EARNED">Details of Earned Leave</option>
-                  <option value="MEDICAL">Details of Medical Leave</option>
-                  <option value="OTHER">Details of Other Leave</option>
-                </select>
-                <small class="text-muted mt-2 d-block"><i class="fa-solid fa-circle-info me-1"></i>Select which column this leave should appear in the Mines Act Form E Register.</small>
+              <div class="col-md-12 mb-3 mt-1">
+                <div class="p-3 border rounded-3"
+                  style="background-color: rgba(74, 143, 169, 0.05); border-color: rgba(74, 143, 169, 0.2) !important;">
+                  <label class="d-block text-capitalize form-label form-lable-custom fw-bold mb-2"
+                    style="color: #4A8FA9;">
+                    <i class="fa-solid fa-file-contract me-2"></i>Statutory Form E Mapping
+                  </label>
+                  <select class="d-block form-control form-select form-input-custom" formControlName="formEMapping">
+                    <option value="EXCLUDED">Exclude from Form E (Non-Statutory)</option>
+                    <option value="COMP_REST">Details of Compensatory Rest</option>
+                    <option value="EARNED">Details of Earned Leave</option>
+                    <option value="MEDICAL">Details of Medical Leave</option>
+                    <option value="OTHER">Details of Other Leave</option>
+                  </select>
+                  <small class="text-muted mt-2 d-block"><i class="fa-solid fa-circle-info me-1"></i>Select which column
+                    this leave should appear in the Mines Act Form E Register.</small>
+                </div>
               </div>
-            </div>
             </ng-container>
           </div>
         </div>
         <div class="modal-footer text-end">
-          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button" (click)="closeModal()">Cancel</button>
+          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button"
+            (click)="closeModal()">Cancel</button>
           <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="createLeaveType()">Create</button>
         </div>
       </div>
@@ -320,19 +313,15 @@
 </div>
 
 <!-- Update Modal -->
-<div
-  *ngIf="updateLeaveTypeOpen"
-  class="your-animation-class modal-container"
-  aria-labelledby="modal-title"
-  role="dialog"
-  aria-modal="true"
->
+<div *ngIf="updateLeaveTypeOpen" class="your-animation-class modal-container" aria-labelledby="modal-title"
+  role="dialog" aria-modal="true">
   <div class="modal-contenttop modal-content-50" [@fadeIn]>
     <form [formGroup]="updateLeaveTypeForm">
       <div class="card">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 class="modal-title pt-1 mb-0 tt-color">Update Leave Type</h5>
-          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button" (click)="closeModal()">
+          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button"
+            (click)="closeModal()">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -341,18 +330,22 @@
             <h6 class="text-muted fw-bold mb-3 fs-7 text-uppercase border-bottom pb-2">General Settings</h6>
             <div class="col-md-12 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Leave Name</label>
-              <input type="text" class="d-block form-control form-input-custom" formControlName="leaveName"
-                [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['leaveName'].errors && (updateLeaveTypeForm.controls['leaveName'].touched || updateLeaveTypeForm.controls['leaveName'].dirty)}" />
-              <div class="text-danger error-message d-block mt-1" *ngIf="updateLeaveTypeForm.controls['leaveName'].errors && (updateLeaveTypeForm.controls['leaveName'].touched || updateLeaveTypeForm.controls['leaveName'].dirty)">
-                <p class="fw-light text-danger mb-0" *ngIf="updateLeaveTypeForm.controls['leaveName'].hasError('required')">
+              <input type="text" readonly class="d-block form-control form-input-custom" formControlName="leaveName"
+                [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['leaveName'].errors && (updateLeaveTypeForm.controls['leaveName'].touched || updateLeaveTypeForm.controls['leaveName'].dirty)}" 
+                style="background-color: #e9ecef; cursor: not-allowed;" />
+              <div class="text-danger error-message d-block mt-1"
+                *ngIf="updateLeaveTypeForm.controls['leaveName'].errors && (updateLeaveTypeForm.controls['leaveName'].touched || updateLeaveTypeForm.controls['leaveName'].dirty)">
+                <p class="fw-light text-danger mb-0"
+                  *ngIf="updateLeaveTypeForm.controls['leaveName'].hasError('required')">
                   Leave Name is required
                 </p>
               </div>
             </div>
-            
+
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Paid/Unpaid</label>
-              <select class="d-block form-control form-select form-input-custom" formControlName="isPaid">
+              <select class="d-block form-control form-select form-input-custom" formControlName="isPaid"
+                style="pointer-events: none; background-color: #e9ecef; cursor: not-allowed;" tabindex="-1">
                 <option [ngValue]="true">Paid</option>
                 <option [ngValue]="false">Unpaid</option>
               </select>
@@ -362,61 +355,73 @@
               <label class="d-block text-capitalize form-label form-lable-custom">Annual Limit</label>
               <input type="number" class="d-block form-control form-input-custom" formControlName="annualLimit"
                 [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['annualLimit'].errors && (updateLeaveTypeForm.controls['annualLimit'].touched || updateLeaveTypeForm.controls['annualLimit'].dirty)}" />
-              <div class="text-danger error-message d-block mt-1" *ngIf="updateLeaveTypeForm.controls['annualLimit'].errors && (updateLeaveTypeForm.controls['annualLimit'].touched || updateLeaveTypeForm.controls['annualLimit'].dirty)">
-                <p class="fw-light text-danger mb-0" *ngIf="updateLeaveTypeForm.controls['annualLimit'].hasError('required')">
+              <div class="text-danger error-message d-block mt-1"
+                *ngIf="updateLeaveTypeForm.controls['annualLimit'].errors && (updateLeaveTypeForm.controls['annualLimit'].touched || updateLeaveTypeForm.controls['annualLimit'].dirty)">
+                <p class="fw-light text-danger mb-0"
+                  *ngIf="updateLeaveTypeForm.controls['annualLimit'].hasError('required')">
                   Annual Limit is required
                 </p>
-                <p class="fw-light text-danger mb-0" *ngIf="updateLeaveTypeForm.controls['annualLimit'].hasError('min')">
+                <p class="fw-light text-danger mb-0"
+                  *ngIf="updateLeaveTypeForm.controls['annualLimit'].hasError('min')">
                   Annual Limit must be at least 0
                 </p>
               </div>
             </div>
 
             <ng-container *ngIf="false">
-            <h6 class="text-muted fw-bold mb-3 mt-2 fs-7 text-uppercase border-bottom pb-2">Compliance & Rules</h6>
+              <h6 class="text-muted fw-bold mb-3 mt-2 fs-7 text-uppercase border-bottom pb-2">Compliance & Rules</h6>
 
-            <div class="col-md-6 mb-3">
-              <label class="d-block text-capitalize form-label form-lable-custom">Carry Forward Allowed?</label>
-              <div class="form-check form-switch mt-2 ps-0 d-flex align-items-center gap-3">
-                <input class="form-check-input form-input-custom ms-0 mt-0" type="checkbox" formControlName="isCarryForward" style="width: 40px; height: 20px; cursor: pointer;">
-                <label class="form-check-label mb-0 fw-bold text-dark">{{ updateLeaveTypeForm.get('isCarryForward')?.value ? 'Yes' : 'No' }}</label>
+              <div class="col-md-6 mb-3">
+                <label class="d-block text-capitalize form-label form-lable-custom">Carry Forward Allowed?</label>
+                <div class="form-check form-switch mt-2 ps-0 d-flex align-items-center gap-3">
+                  <input class="form-check-input form-input-custom ms-0 mt-0" type="checkbox"
+                    formControlName="isCarryForward" style="width: 40px; height: 20px; cursor: pointer;">
+                  <label class="form-check-label mb-0 fw-bold text-dark">{{
+                    updateLeaveTypeForm.get('isCarryForward')?.value ? 'Yes' : 'No' }}</label>
+                </div>
               </div>
-            </div>
 
-            <div class="col-md-6 mb-3" *ngIf="updateLeaveTypeForm.get('isCarryForward')?.value">
-              <label class="d-block text-capitalize form-label form-lable-custom">Max Accumulation Limit</label>
-              <input type="number" class="d-block form-control form-input-custom" formControlName="maxAccumulation"
-                [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['maxAccumulation'].errors && (updateLeaveTypeForm.controls['maxAccumulation'].touched || updateLeaveTypeForm.controls['maxAccumulation'].dirty)}" />
-              <div class="text-danger error-message d-block mt-1" *ngIf="updateLeaveTypeForm.controls['maxAccumulation'].errors && (updateLeaveTypeForm.controls['maxAccumulation'].touched || updateLeaveTypeForm.controls['maxAccumulation'].dirty)">
-                <p class="fw-light text-danger mb-0" *ngIf="updateLeaveTypeForm.controls['maxAccumulation'].hasError('required')">
-                  Required when carry forward is allowed
-                </p>
-                <p class="fw-light text-danger mb-0" *ngIf="updateLeaveTypeForm.controls['maxAccumulation'].hasError('min')">
-                  Must be at least 1
-                </p>
+              <div class="col-md-6 mb-3" *ngIf="updateLeaveTypeForm.get('isCarryForward')?.value">
+                <label class="d-block text-capitalize form-label form-lable-custom">Max Accumulation Limit</label>
+                <input type="number" class="d-block form-control form-input-custom" formControlName="maxAccumulation"
+                  [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['maxAccumulation'].errors && (updateLeaveTypeForm.controls['maxAccumulation'].touched || updateLeaveTypeForm.controls['maxAccumulation'].dirty)}" />
+                <div class="text-danger error-message d-block mt-1"
+                  *ngIf="updateLeaveTypeForm.controls['maxAccumulation'].errors && (updateLeaveTypeForm.controls['maxAccumulation'].touched || updateLeaveTypeForm.controls['maxAccumulation'].dirty)">
+                  <p class="fw-light text-danger mb-0"
+                    *ngIf="updateLeaveTypeForm.controls['maxAccumulation'].hasError('required')">
+                    Required when carry forward is allowed
+                  </p>
+                  <p class="fw-light text-danger mb-0"
+                    *ngIf="updateLeaveTypeForm.controls['maxAccumulation'].hasError('min')">
+                    Must be at least 1
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div class="col-md-12 mb-3 mt-1">
-              <div class="p-3 border rounded-3" style="background-color: rgba(74, 143, 169, 0.05); border-color: rgba(74, 143, 169, 0.2) !important;">
-                <label class="d-block text-capitalize form-label form-lable-custom fw-bold mb-2" style="color: #4A8FA9;">
-                  <i class="fa-solid fa-file-contract me-2"></i>Statutory Form E Mapping
-                </label>
-                <select class="d-block form-control form-select form-input-custom" formControlName="formEMapping">
-                  <option value="EXCLUDED">Exclude from Form E (Non-Statutory)</option>
-                  <option value="COMP_REST">Details of Compensatory Rest</option>
-                  <option value="EARNED">Details of Earned Leave</option>
-                  <option value="MEDICAL">Details of Medical Leave</option>
-                  <option value="OTHER">Details of Other Leave</option>
-                </select>
-                <small class="text-muted mt-2 d-block"><i class="fa-solid fa-circle-info me-1"></i>Select which column this leave should appear in the Mines Act Form E Register.</small>
+              <div class="col-md-12 mb-3 mt-1">
+                <div class="p-3 border rounded-3"
+                  style="background-color: rgba(74, 143, 169, 0.05); border-color: rgba(74, 143, 169, 0.2) !important;">
+                  <label class="d-block text-capitalize form-label form-lable-custom fw-bold mb-2"
+                    style="color: #4A8FA9;">
+                    <i class="fa-solid fa-file-contract me-2"></i>Statutory Form E Mapping
+                  </label>
+                  <select class="d-block form-control form-select form-input-custom" formControlName="formEMapping">
+                    <option value="EXCLUDED">Exclude from Form E (Non-Statutory)</option>
+                    <option value="COMP_REST">Details of Compensatory Rest</option>
+                    <option value="EARNED">Details of Earned Leave</option>
+                    <option value="MEDICAL">Details of Medical Leave</option>
+                    <option value="OTHER">Details of Other Leave</option>
+                  </select>
+                  <small class="text-muted mt-2 d-block"><i class="fa-solid fa-circle-info me-1"></i>Select which column
+                    this leave should appear in the Mines Act Form E Register.</small>
+                </div>
               </div>
-            </div>
             </ng-container>
           </div>
         </div>
         <div class="modal-footer text-end">
-          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button" (click)="closeModal()">Cancel</button>
+          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button"
+            (click)="closeModal()">Cancel</button>
           <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="updateLeaveType()">Update</button>
         </div>
       </div>
@@ -425,8 +430,8 @@
 </div>
 
 <!-- View Modal -->
-<div *ngIf="viewLeaveTypeOpen" class="your-animation-class modal-container premium-detail-modal" aria-labelledby="modal-title" role="dialog"
-  aria-modal="true">
+<div *ngIf="viewLeaveTypeOpen" class="your-animation-class modal-container premium-detail-modal"
+  aria-labelledby="modal-title" role="dialog" aria-modal="true">
   <div class="modal-contenttop modal-content-50" [@fadeIn]>
     <div class="card">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -446,7 +451,7 @@
             <div class="banner-value">{{ selectedLeaveType?.leaveName }}</div>
             <div class="banner-subtitle">
               <span class="pulse-indicator" [ngClass]="{'deactive': selectedLeaveType?.is_active !== 1}"></span>
-              Status: 
+              Status:
               <span class="status-badge-pill" [ngClass]="selectedLeaveType?.is_active === 1 ? 'active' : 'deactive'">
                 {{ selectedLeaveType?.is_active === 1 ? 'Active' : 'Inactive' }}
               </span>
@@ -465,7 +470,8 @@
               <div class="card-info-content">
                 <span class="info-label">Payment Category</span>
                 <span class="premium-badge" [ngClass]="selectedLeaveType?.isPaid ? 'badge-success' : 'badge-warning'">
-                  <i class="fa-solid" [ngClass]="selectedLeaveType?.isPaid ? 'fa-circle-check' : 'fa-circle-exclamation'"></i>
+                  <i class="fa-solid"
+                    [ngClass]="selectedLeaveType?.isPaid ? 'fa-circle-check' : 'fa-circle-exclamation'"></i>
                   {{ selectedLeaveType?.isPaid ? 'Paid' : 'Unpaid' }}
                 </span>
               </div>
@@ -494,8 +500,9 @@
               <div class="card-info-content">
                 <span class="info-label">Carry Forward Allowed</span>
                 <span class="info-value text-dark fs-7">
-                  {{ selectedLeaveType?.isCarryForward ? 'Yes' : 'No' }} 
-                  <span *ngIf="selectedLeaveType?.isCarryForward" class="text-muted ms-1 fs-8">(Max: {{ selectedLeaveType?.maxAccumulation || 'N/A' }})</span>
+                  {{ selectedLeaveType?.isCarryForward ? 'Yes' : 'No' }}
+                  <span *ngIf="selectedLeaveType?.isCarryForward" class="text-muted ms-1 fs-8">(Max: {{
+                    selectedLeaveType?.maxAccumulation || 'N/A' }})</span>
                 </span>
               </div>
             </div>
@@ -507,7 +514,10 @@
               </div>
               <div class="card-info-content">
                 <span class="info-label">Form E Category</span>
-                <span class="info-value text-dark fs-7">{{ selectedLeaveType?.formEMapping === 'COMP_REST' ? 'Compensatory Rest' : selectedLeaveType?.formEMapping === 'EARNED' ? 'Earned Leave' : selectedLeaveType?.formEMapping === 'MEDICAL' ? 'Medical Leave' : selectedLeaveType?.formEMapping === 'OTHER' ? 'Other Leave' : 'Excluded' }}</span>
+                <span class="info-value text-dark fs-7">{{ selectedLeaveType?.formEMapping === 'COMP_REST' ?
+                  'Compensatory Rest' : selectedLeaveType?.formEMapping === 'EARNED' ? 'Earned Leave' :
+                  selectedLeaveType?.formEMapping === 'MEDICAL' ? 'Medical Leave' : selectedLeaveType?.formEMapping ===
+                  'OTHER' ? 'Other Leave' : 'Excluded' }}</span>
               </div>
             </div>
           </div>

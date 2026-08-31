@@ -1,6 +1,6 @@
 <div class="container mb-4">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <h1 class="text-primary table-heading-detail">Employee Payroll Management</h1>
+    <h1 class="text-primary table-heading-detail">Employee Payroll Setup</h1>
     <div>
       <button class="btn btn-custom-primary px-4 py-2 me-2" (click)="openAddPayrollModal()">
         Add Payroll
@@ -57,7 +57,7 @@
           </thead>
           <tbody>
             <tr
-              *ngFor="let emp of employeeList | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
+              *ngFor="let emp of employeeList | paginate : { id: 'payroll_table', itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
               <td>{{ (page - 1) * (tableSize === 'all' ? totalRecords : +tableSize) + i + 1 }}</td>
               <td>{{ emp.empId || emp.employee_code }}</td>
               <td>
@@ -82,7 +82,7 @@
       <!-- Card View for Mobile -->
       <div class="block lg:hidden mt-3">
         <div class="card mb-3 shadow-sm border border-gray-200 rounded-lg"
-          *ngFor="let emp of employeeList | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
+          *ngFor="let emp of employeeList | paginate : { id: 'payroll_table', itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
           <div class="card-body p-3">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="badge bg-secondary">#{{ (page - 1) * (tableSize === 'all' ? totalRecords : +tableSize) + i +
@@ -110,10 +110,11 @@
       </div>
 
       <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center mt-3">
-        <span class="showalltext">Showing {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : 1 }} to {{
-          tableSize * page <= totalRecords ? tableSize * page : totalRecords }} of {{ totalRecords !=undefined ?
-            totalRecords : "" }} entries</span>
-            <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true"
+        <span class="showalltext">Showing {{ tableSize === 'all' ? 1 : (tableSize * (page - 1) > 0 ? tableSize * (page -
+          1) + 1 : 1) }} to {{
+          tableSize === 'all' ? totalRecords : (tableSize * page <= totalRecords ? tableSize * page : totalRecords) }}
+            of {{ totalRecords !=undefined ? totalRecords : "" }} entries</span>
+            <pagination-controls id="payroll_table" previousLabel="Prev" nextLabel="Next" [responsive]="true"
               (pageChange)="onTableDataChange($event)"></pagination-controls>
       </div>
     </div>
@@ -297,10 +298,10 @@
           <ng-container *ngIf="payrollForm.get('lwfApplicable')?.value === 'Yes'">
             <div class="col-md-6" [@fadeIn]>
               <label class="form-label form-lable-custom text-info mb-1"><i class="fa-solid fa-scale-balanced me-1"></i>
-                LWF Number *</label>
-              <input type="text" class="form-control form-input-custom border-info border-opacity-50"
-                formControlName="lwfNumber" placeholder="Enter LWF Number"
-                [ngClass]="{'is-invalid': payrollForm.get('lwfNumber')?.invalid && payrollForm.get('lwfNumber')?.touched}" />
+                LWF Amount (₹) *</label>
+              <input type="number" class="form-control form-input-custom border-info border-opacity-50"
+                formControlName="lwfAmount" placeholder="Amount"
+                [ngClass]="{'is-invalid': payrollForm.get('lwfAmount')?.invalid && payrollForm.get('lwfAmount')?.touched}" />
             </div>
           </ng-container>
 
@@ -481,11 +482,15 @@
 
             <!-- New Fields: Aadhaar, PAN, ESIC, LWF -->
             <div class="col-md-6 col-lg-4">
-              <div class="glass-info-card">
+              <div class="glass-info-card overflow-hidden">
                 <div class="card-icon-wrapper code"><i class="fa-solid fa-id-card"></i></div>
-                <div class="card-info-content">
+                <div class="card-info-content" style="min-width: 0;">
                   <span class="info-label">Aadhaar Number</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployeeData?.['aadhaar_last4'] ? '********' + selectedEmployeeData?.['aadhaar_last4'] : (selectedEmployeeData?.aadhaar || '--') }}</span>
+                  <span class="info-value text-dark fs-7 text-truncate d-block"
+                    [title]="selectedEmployeeData?.['aadhaar_last4'] ? '********' + (selectedEmployeeData?.['aadhaar_last4'] | slice:-4) : (selectedEmployeeData?.aadhaar || '--')">
+                    {{ selectedEmployeeData?.['aadhaar_last4'] ? '********' + (selectedEmployeeData?.['aadhaar_last4'] |
+                    slice:-4) : (selectedEmployeeData?.aadhaar || '--') }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -503,7 +508,8 @@
                 <div class="card-icon-wrapper code"><i class="fa-solid fa-hospital"></i></div>
                 <div class="card-info-content">
                   <span class="info-label">ESIC IP Number</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployeeData?.['esic_ip_number'] || selectedEmployeeData?.esic_ip || '--' }}</span>
+                  <span class="info-value text-dark fs-7">{{ selectedEmployeeData?.['esic_ip_number'] ||
+                    selectedEmployeeData?.esic_ip || '--' }}</span>
                 </div>
               </div>
             </div>
@@ -512,16 +518,21 @@
                 <div class="card-icon-wrapper code"><i class="fa-solid fa-scale-balanced"></i></div>
                 <div class="card-info-content">
                   <span class="info-label">LWF Applicable</span>
-                  <span class="info-value text-dark fs-7">{{ (selectedEmployeeData?.['lwf_number_applicable'] == 1 || selectedEmployeeData?.['lwf_number_applicable'] === true || selectedEmployeeData?.lwf_applicable == 1 || selectedEmployeeData?.lwf_applicable === true) ? 'Yes' : 'No' }}</span>
+                  <span class="info-value text-dark fs-7">{{ (selectedEmployeeData?.['lwf_number_applicable'] == 1 ||
+                    selectedEmployeeData?.['lwf_number_applicable'] === true || selectedEmployeeData?.lwf_applicable ==
+                    1 || selectedEmployeeData?.lwf_applicable === true) ? 'Yes' : 'No' }}</span>
                 </div>
               </div>
             </div>
-            <div class="col-md-6 col-lg-4" *ngIf="(selectedEmployeeData?.['lwf_number_applicable'] == 1 || selectedEmployeeData?.['lwf_number_applicable'] === true || selectedEmployeeData?.lwf_applicable == 1 || selectedEmployeeData?.lwf_applicable === true)">
+            <div class="col-md-6 col-lg-4"
+              *ngIf="(selectedEmployeeData?.['lwf_number_applicable'] == 1 || selectedEmployeeData?.['lwf_number_applicable'] === true || selectedEmployeeData?.lwf_applicable == 1 || selectedEmployeeData?.lwf_applicable === true)">
               <div class="glass-info-card">
-                <div class="card-icon-wrapper code"><i class="fa-solid fa-hashtag"></i></div>
+                <div class="card-icon-wrapper code"><i class="fa-solid fa-indian-rupee-sign"></i></div>
                 <div class="card-info-content">
-                  <span class="info-label">LWF Number</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployeeData?.['lwf_number'] || '--' }}</span>
+                  <span class="info-label">LWF Amount</span>
+                  <span class="info-value text-dark fs-7">{{ (selectedEmployeeData?.['lwf_amount'] ||
+                    selectedEmployeeData?.['lwf_number']) ? '₹' + (selectedEmployeeData?.['lwf_amount'] ||
+                    selectedEmployeeData?.['lwf_number']) : '--' }}</span>
                 </div>
               </div>
             </div>
@@ -535,11 +546,14 @@
               </div>
             </div>
             <div class="col-md-6 col-lg-4">
-              <div class="glass-info-card">
+              <div class="glass-info-card overflow-hidden">
                 <div class="card-icon-wrapper code"><i class="fa-solid fa-hashtag"></i></div>
-                <div class="card-info-content">
+                <div class="card-info-content" style="min-width: 0;">
                   <span class="info-label">Account Number</span>
-                  <span class="info-value text-dark fs-7">{{ selectedEmployeeData?.bank_account_number || '--' }}</span>
+                  <span class="info-value text-dark fs-7 text-truncate d-block"
+                    [title]="selectedEmployeeData?.bank_account_number || '--'">
+                    {{ selectedEmployeeData?.bank_account_number || '--' }}
+                  </span>
                 </div>
               </div>
             </div>

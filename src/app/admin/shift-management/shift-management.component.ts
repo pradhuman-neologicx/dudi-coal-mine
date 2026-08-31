@@ -129,13 +129,30 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
 
   // Tab and Week/Month filtering state
   activeTab: string = 'Shift A';
-  activeTabId: number | string | null = null;
+  activeTabId: number | string | null = 1;
   weeksList: WeekOption[] = [];
   selectedWeekMondayStr: string = '';
   selectedMonth: string = '2026-05';
   
   pShift: number = 1;
+  tableSize: number = 10;
   showEntries: number = 10;
+  tableSizes: number[] = [10, 20, 50, 100];
+
+  onTableSizeChange(event: Event | number): void {
+    if (typeof event === 'number') {
+      this.tableSize = event;
+      this.showEntries = event;
+    } else if (event && (event as any).target) {
+      this.tableSize = Number(((event as any).target as HTMLInputElement).value);
+      this.showEntries = this.tableSize;
+    } else if (event !== undefined && event !== null) {
+      this.tableSize = Number(event);
+      this.showEntries = this.tableSize;
+    }
+    this.pShift = 1;
+    this.loadWeeklyShiftRotations();
+  }
 
   monthsList = [
     { label: 'May 2026', value: '2026-05' },
@@ -149,15 +166,17 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
 
   // Predefined shifts
   shifts: ShiftItem[] = [
-    { code: 'Shift A', name: 'Shift A (Morning)', time: '06:00 - 14:00', badgeClass: 'shift-a-badge', id: 'shift-a' },
-    { code: 'Shift B', name: 'Shift B (Afternoon)', time: '14:00 - 22:00', badgeClass: 'shift-b-badge', id: 'shift-b' },
-    { code: 'Shift C', name: 'Shift C (Night)', time: '22:00 - 06:00', badgeClass: 'shift-c-badge', id: 'shift-c' },
+    { code: 'Shift A', name: 'Shift A (Morning)', time: '06:00 - 14:00', badgeClass: 'shift-a-badge', id: 1 },
+    { code: 'Shift B', name: 'Shift B (Afternoon)', time: '14:00 - 22:00', badgeClass: 'shift-b-badge', id: 2 },
+    { code: 'Shift C', name: 'Shift C (Night)', time: '22:00 - 06:00', badgeClass: 'shift-c-badge', id: 3 },
     { code: 'Off', name: 'Weekly Off', time: 'Rest Day', badgeClass: 'shift-off-badge', id: 'shift-off' }
   ];
 
   // List of employees loaded from the live API response
   employees: ShiftEmployee[] = [];
   weeklyShiftEmployees: ShiftEmployee[] = [];
+  filteredShiftEmployees: ShiftEmployee[] = [];
+  totalShiftEmployees: number = 0;
 
   // Shift Assignments Roster: { [empId]: { [dateStr]: shiftCode } }
   shiftAssignments: { [empId: string]: { [dateStr: string]: string } } = {};
@@ -190,23 +209,14 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
             name: s.shift_name || s.name
           }));
           
-          this.tabShiftsList = [
-            { id: 'shift-a', name: 'Shift A' },
-            { id: 'shift-b', name: 'Shift B' },
-            { id: 'shift-c', name: 'Shift C' }
-          ];
-
-          // Map actual IDs from backend if they exist
-          this.tabShiftsList.forEach(tab => {
-            const match = this.allShiftsList.find((s: any) => {
-              const lowerName = (s.name || '').toLowerCase().trim();
-              return lowerName.includes(tab.name.toLowerCase());
-            });
-            if (match) {
-              tab.id = match.id;
-              tab.name = match.name;
-            }
-          });
+          // Map the tabShiftsList directly from the API response
+          this.tabShiftsList = res.data.map((s: any) => ({
+            id: s.id,
+            name: s.shift_name || s.name
+          }));
+          
+          // Sort shifts alphabetically by name to ensure consistent order
+          this.tabShiftsList.sort((a, b) => a.name.localeCompare(b.name));
 
           const defaultShift = this.tabShiftsList.find((s: any) => s.name === this.activeTab);
           if (defaultShift) {
@@ -235,23 +245,51 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     const fromDate = this.activeWeekDays[0].dateStr;
     const toDate = this.activeWeekDays[6].dateStr;
 
-    this.shiftService.getShiftRotation(fromDate, toDate, this.activeTabId || undefined).pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res: any) => {
-        if (res.status === 200 && res.data) {
-          this.weeklyShiftEmployees = res.data.map((emp: any) => ({
-            ...emp,
-            location: emp.site || emp.location || 'N/A',
-            relay: emp.relay || 'N/A'
-          }));
-        } else {
+    this.shiftService
+      .getShiftRotation(
+        fromDate,
+        toDate,
+        this.activeTabId || undefined,
+        this.pShift,
+        this.showEntries
+      )
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          if (res.status === 200 && res.data) {
+            const rawData = Array.isArray(res.data) ? res.data : (res.data.data || []);
+            this.totalShiftEmployees = res.pagination?.total !== undefined ? res.pagination.total : 
+                                      (res.data?.pagination?.total !== undefined ? res.data.pagination.total :
+                                      (res.total !== undefined ? res.total : 
+                                      (res.data?.total !== undefined ? res.data.total : 
+                                      (res.total_records !== undefined ? res.total_records : rawData.length))));
+
+            this.weeklyShiftEmployees = rawData.map((emp: any) => ({
+              ...emp,
+              location: emp.site || emp.location || 'N/A',
+              relay: emp.relay || 'N/A'
+            }));
+          } else {
+            this.weeklyShiftEmployees = [];
+            this.totalShiftEmployees = 0;
+          }
+          this.updateFilteredShiftEmployees();
+        },
+        error: (err) => {
+          console.error('Error fetching shift rotation:', err);
           this.weeklyShiftEmployees = [];
+          this.totalShiftEmployees = 0;
+          this.updateFilteredShiftEmployees();
         }
-      },
-      error: (err) => {
-        console.error('Error fetching shift rotation:', err);
-        this.weeklyShiftEmployees = [];
-      }
-    });
+      });
+  }
+
+  updateFilteredShiftEmployees() {
+    if (!this.weeklyShiftEmployees) {
+      this.filteredShiftEmployees = [];
+      return;
+    }
+    this.filteredShiftEmployees = this.weeklyShiftEmployees;
   }
 
   loadLiveEmployees() {
@@ -355,6 +393,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
 
   // Week navigation
   navigateWeek(offset: number) {
+    this.pShift = 1;
     const monday = new Date(this.currentDate);
     monday.setDate(monday.getDate() + offset * 7);
     this.currentDate = monday;
@@ -394,6 +433,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
   // Triggers when supervisor selects a week from the dropdown filter
   onWeekFilterChange(dateStr: string) {
     if (!dateStr) return;
+    this.pShift = 1;
     const parts = dateStr.split('-');
     const selectedDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
     this.currentDate = this.getMonday(selectedDate);
@@ -407,6 +447,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
 
   onDateSelected(date: Date) {
     if (!date) return;
+    this.pShift = 1;
     this.currentDate = this.getMonday(date);
     this.selectedWeekMondayStr = this.formatDateStr(this.currentDate);
     this.generateActiveWeekDays(this.currentDate);
@@ -419,12 +460,23 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
   onTabChange(shift: any) {
     this.activeTabId = shift.id;
     this.activeTab = shift.name;
+    this.pShift = 1;
+    this.loadWeeklyShiftRotations();
+  }
+
+  onShowEntriesChange() {
+    this.pShift = 1;
+    this.loadWeeklyShiftRotations();
+  }
+
+  onPageChange(page: number) {
+    this.pShift = page;
     this.loadWeeklyShiftRotations();
   }
 
   // Retrieves employees actively assigned to a specific shift for the current week
   getEmployeesForActiveShift(shiftCode: string): any[] {
-    return this.weeklyShiftEmployees.filter(emp => emp.shift === shiftCode);
+    return this.filteredShiftEmployees;
   }
 
   // Calculates the monthly breakdown of shift assignments for an employee with advanced categories
@@ -902,10 +954,10 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  openOverrideModal(type: 'change' | 'swap' | 'standby', empId?: string, dateStr?: string) {
+  openOverrideModal(type: 'change' | 'swap' | 'standby', empId?: string | number, dateStr?: string) {
     this.overrideForm.reset({
       type: type,
-      employeeId: empId || '',
+      employeeId: empId !== undefined && empId !== null ? String(empId) : '',
       newShift: this.allShiftsList.length > 0 ? this.allShiftsList[0].id : '',
       swapEmployeeId: '',
       standbyEmployeeId: ''

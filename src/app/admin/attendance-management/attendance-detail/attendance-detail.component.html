@@ -27,9 +27,9 @@
         <!-- Left Column: Calendar -->
         <div class="col-lg-5 mb-4">
             <mat-card class="calendar-card border-0 mat-elevation-z0 p-0 shadow-sm"
-                style="border-radius: 12px; overflow: hidden;">
-                <mat-calendar [selected]="selectedDate" (selectedChange)="onDateSelected($event)"
-                    (monthSelected)="onMonthSelected($event)"></mat-calendar>
+                style="border-radius: 12px; overflow: hidden;" (click)="onCalendarClick($event)">
+                <mat-calendar #calendar [selected]="selectedDate" [startAt]="currentMonth"
+                    (selectedChange)="onDateSelected($event)" (monthSelected)="onMonthSelected($event)"></mat-calendar>
             </mat-card>
         </div>
 
@@ -79,8 +79,11 @@
                                     <span class="text-muted" *ngIf="record.duration === '-'">0h 0m</span>
                                 </td>
                                 <td>
-                                    <i class="fa-solid fa-pen-to-square edit-action"
+                                    <i *ngIf="!record.isFuture" class="fa-solid fa-pen-to-square edit-action"
                                         (click)="openEditModal(record)"></i>
+                                    <i *ngIf="record.isFuture" class="fa-solid fa-pen-to-square text-muted"
+                                        style="cursor: not-allowed; opacity: 0.5;"
+                                        title="Cannot edit future attendance"></i>
                                 </td>
                             </tr>
                         </tbody>
@@ -92,56 +95,94 @@
 </div>
 
 <!-- Edit Attendance Modal -->
-<div class="modal-container" *ngIf="isEditModalOpen" [@overlayFade] (click)="closeEditModal()">
-    <div class="modal-content-card" [@modalFade] (click)="$event.stopPropagation()">
-        <div class="modal-header">
-            <h5>Edit Attendance</h5>
-            <i class="fa-solid fa-xmark close-icon" (click)="closeEditModal()"></i>
-        </div>
-        <form [formGroup]="editForm" (ngSubmit)="updateAttendance()">
-            <div class="modal-body">
-                <p class="text-muted small mb-4">
-                    Modifying record for <strong>{{ editingRecord?.date }}</strong>
-                </p>
+<div *ngIf="isEditModalOpen" class="modal-overlay p-2 p-md-0" [@overlayFade]
+  style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.4); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(4px);"
+  (click)="closeEditModal()">
+  <div class="modal-dialog-large bg-white shadow-lg d-flex flex-column mx-auto" [@modalFade]
+    style="width: 100%; max-width: 500px; max-height: 90vh; border-radius: 12px; overflow: hidden;" (click)="$event.stopPropagation()">
 
-                <div class="form-group">
-                    <label>Status</label>
-                    <select class="form-input" formControlName="status">
-                        <option value="Present">Present</option>
-                        <option value="Leave">Leave</option>
-                        <option value="Half Day">Half Day</option>
-                        <option value="Unpaid Leave">Unpaid Leave</option>
-                    </select>
-                </div>
-
-                <div class="row">
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label>Check In</label>
-                            <input type="time" class="form-input" formControlName="checkIn" />
-                        </div>
-                    </div>
-                    <div class="col-6">
-                        <div class="form-group">
-                            <label>Check Out</label>
-                            <input type="time" class="form-input" formControlName="checkOut" />
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Remarks</label>
-                    <textarea class="form-input" rows="3" formControlName="remarks"
-                        placeholder="Add any notes here..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-delete">Delete</button>
-                <button type="button" class="btn-cancel" (click)="closeEditModal()">
-                    Cancel
-                </button>
-                <button type="submit" class="btn-update">Save Changes</button>
-            </div>
-        </form>
+    <!-- Modal Header -->
+    <div class="modal-header px-4 py-3 d-flex justify-content-between align-items-center border-bottom" style="background-color: #ffffff;">
+      <h5 class="mb-0 fw-bold text-dark" style="font-size: 1.1rem; color: #1e293b !important;">Edit Attendance</h5>
+      <button type="button" class="btn bg-transparent border-0 p-0 hover-up" (click)="closeEditModal()">
+        <i class="fa-solid fa-xmark fs-5 text-muted"></i>
+      </button>
     </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body p-4 overflow-auto bg-white">
+      
+      <div class="mb-4 text-muted" style="font-size: 0.95rem;">
+         Modifying record for <strong class="text-dark">{{ editingRecord?.date }}</strong>
+      </div>
+
+      <form [formGroup]="editForm" (ngSubmit)="updateAttendance()">
+        <div class="row g-3 mb-3">
+          <div class="col-md-12">
+            <label class="form-label form-lable-custom mb-1" style="font-size: 0.85rem; font-weight: 600; color: #475569;">Status</label>
+            <ng-select [items]="['Present', 'Absent', 'Half Day', 'Rest Day', 'Leave']" 
+                placeholder="Select Status"
+                formControlName="status" 
+                class="custom-ng-select" 
+                appendTo="body"
+                [clearable]="false">
+            </ng-select>
+          </div>
+          
+          <div class="col-md-12" *ngIf="editForm.get('status')?.value === 'Leave'">
+            <label class="form-label form-lable-custom mb-1" style="font-size: 0.85rem; font-weight: 600; color: #475569;">Leave Type <span class="text-danger">*</span></label>
+            <ng-select
+              [items]="activeLeaveTypes"
+              bindLabel="name"
+              bindValue="id"
+              placeholder="Select Leave Type"
+              formControlName="leaveTypeId"
+              class="custom-ng-select"
+              [clearable]="false"
+              [searchable]="false"
+              appendTo="body">
+            </ng-select>
+          </div>
+          
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom mb-1" style="font-size: 0.85rem; font-weight: 600; color: #475569;">Check In <span class="text-danger" *ngIf="editForm.get('checkIn')?.enabled">*</span></label>
+            <input type="time" class="form-control form-input-custom" formControlName="checkIn" style="box-shadow: none;">
+            <div class="text-danger fs-8 mt-1" *ngIf="editForm.get('checkIn')?.invalid && editForm.get('checkIn')?.touched">
+              Check In is required.
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <label class="form-label form-lable-custom mb-1" style="font-size: 0.85rem; font-weight: 600; color: #475569;">Check Out <span class="text-danger" *ngIf="editForm.get('checkOut')?.enabled">*</span></label>
+            <input type="time" class="form-control form-input-custom" formControlName="checkOut" style="box-shadow: none;">
+            <div class="text-danger fs-8 mt-1" *ngIf="editForm.get('checkOut')?.invalid && editForm.get('checkOut')?.touched">
+              Check Out is required.
+            </div>
+          </div>
+        </div>
+
+        <div class="mb-4 mt-3">
+          <label class="form-label form-lable-custom mb-1" style="font-size: 0.85rem; font-weight: 600; color: #475569;">Remarks <span class="text-danger">*</span></label>
+          <textarea class="form-control form-input-custom" rows="4" formControlName="remarks"
+            style="resize: none; box-shadow: none;" placeholder="Reason for manual correction"></textarea>
+          <div class="text-danger fs-8 mt-1" *ngIf="editForm.get('remarks')?.invalid && editForm.get('remarks')?.touched">
+            Remarks are required for auditing manual corrections.
+          </div>
+        </div>
+
+        <div class="row g-2 pt-4 border-top mt-2">
+          <div class="col-6">
+            <button type="button" class="btn btn-outline-secondary py-2 w-100 fw-semibold" style="border-radius: 8px; font-size: 0.9rem;"
+              (click)="closeEditModal()">Cancel</button>
+          </div>
+          <div class="col-6">
+            <button type="submit" class="btn py-2 w-100 fw-semibold" style="border-radius: 8px; background-color: #438fba; color: white; font-size: 0.9rem;"
+              [disabled]="editForm.invalid">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>

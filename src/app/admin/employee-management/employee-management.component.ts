@@ -5,7 +5,7 @@ import {
   transition,
   animate,
 } from '@angular/animations';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
@@ -38,6 +38,7 @@ export interface Employee {
   surname?: string;
   father_name?: string;
   fatherName?: string;
+  full_name?: string;
   mobile?: string;
   dob?: string;
   joining_date?: string;
@@ -71,6 +72,10 @@ export interface Employee {
   permanentAddress?: string;
   skillCategory?: string;
   serviceBookNo?: string;
+  photo?: string | null;
+  signature?: string | null;
+  dateOfExit?: string;
+  reasonForExit?: string;
   [key: string]: any;
 }
 
@@ -146,8 +151,16 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
   currentEmployeeId: number | string | null = null;
   selectedEmployee: Employee | null = null;
 
+  @ViewChild('photoInput') photoInput!: ElementRef<HTMLInputElement>;
+  @ViewChild('signatureInput') signatureInput!: ElementRef<HTMLInputElement>;
+
   selectedPhoto: File | null = null;
   selectedSignature: File | null = null;
+  existingPhotoUrl: string | null = null;
+  existingSignatureUrl: string | null = null;
+  
+  replacePhotoMode: boolean = false;
+  replaceSignatureMode: boolean = false;
 
   activeTab: 'personal' | 'employment' = 'personal';
 
@@ -703,6 +716,83 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     this.GetEmployeeFun();
   }
 
+  resetFileInputs() {
+    this.selectedPhoto = null;
+    this.selectedSignature = null;
+    this.existingPhotoUrl = null;
+    this.existingSignatureUrl = null;
+    this.replacePhotoMode = false;
+    this.replaceSignatureMode = false;
+
+    if (this.photoInput && this.photoInput.nativeElement) {
+      this.photoInput.nativeElement.value = '';
+    }
+    if (this.signatureInput && this.signatureInput.nativeElement) {
+      this.signatureInput.nativeElement.value = '';
+    }
+  }
+
+  getShiftStyle(shiftName: string): any {
+    if (!shiftName) return {};
+    
+    const palette = [
+      { bg: 'rgba(58, 134, 200, 0.08)', color: '#3a86c8', border: 'rgba(58, 134, 200, 0.15)' },
+      { bg: 'rgba(245, 158, 11, 0.08)', color: '#b45309', border: 'rgba(245, 158, 11, 0.15)' },
+      { bg: 'rgba(99, 102, 241, 0.08)', color: '#6366f1', border: 'rgba(99, 102, 241, 0.15)' },
+      { bg: 'rgba(16, 185, 129, 0.08)', color: '#059669', border: 'rgba(16, 185, 129, 0.15)' },
+      { bg: 'rgba(236, 72, 153, 0.08)', color: '#db2777', border: 'rgba(236, 72, 153, 0.15)' },
+      { bg: 'rgba(139, 92, 246, 0.08)', color: '#7c3aed', border: 'rgba(139, 92, 246, 0.15)' },
+      { bg: 'rgba(14, 165, 233, 0.08)', color: '#0284c7', border: 'rgba(14, 165, 233, 0.15)' },
+      { bg: 'rgba(244, 63, 94, 0.08)',  color: '#e11d48', border: 'rgba(244, 63, 94, 0.15)' }
+    ];
+
+    const upperShift = shiftName.toUpperCase();
+    if (upperShift.includes('SHIFT A')) return { 'background-color': palette[0].bg, 'color': palette[0].color, 'border-color': palette[0].border };
+    if (upperShift.includes('SHIFT B')) return { 'background-color': palette[1].bg, 'color': palette[1].color, 'border-color': palette[1].border };
+    if (upperShift.includes('SHIFT C')) return { 'background-color': palette[2].bg, 'color': palette[2].color, 'border-color': palette[2].border };
+
+    let hash = 0;
+    for (let i = 0; i < shiftName.length; i++) {
+      hash = shiftName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % palette.length;
+    
+    return {
+      'background-color': palette[index].bg,
+      'color': palette[index].color,
+      'border-color': palette[index].border
+    };
+  }
+
+  triggerPhotoSelect() {
+    if (this.photoInput && this.photoInput.nativeElement) {
+      this.photoInput.nativeElement.click();
+    }
+  }
+
+  triggerSignatureSelect() {
+    if (this.signatureInput && this.signatureInput.nativeElement) {
+      this.signatureInput.nativeElement.click();
+    }
+  }
+
+  cancelPhotoChange() {
+    this.replacePhotoMode = false;
+    this.selectedPhoto = null;
+    if (this.photoInput && this.photoInput.nativeElement) {
+      this.photoInput.nativeElement.value = '';
+    }
+  }
+
+  cancelSignatureChange() {
+    this.replaceSignatureMode = false;
+    this.selectedSignature = null;
+    if (this.signatureInput && this.signatureInput.nativeElement) {
+      this.signatureInput.nativeElement.value = '';
+    }
+  }
+
+
   openAddModal() {
     this.isEditMode = false;
     this.currentEmployeeId = null;
@@ -713,8 +803,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       category: '',
       empType: 'permanent'
     });
-    this.selectedPhoto = null;
-    this.selectedSignature = null;
+    this.resetFileInputs();
     this.activeTab = 'personal';
     this.employeeModalOpen = true;
   }
@@ -723,23 +812,55 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     this.employeeModalOpen = false;
     this.viewEmployeeOpen = false;
     this.selectedEmployee = null;
-    this.selectedPhoto = null;
-    this.selectedSignature = null;
+    this.resetFileInputs();
   }
 
   onFileSelected(event: any, field: 'photo' | 'signature') {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        this.notificationService.show(`${field === 'photo' ? 'Photo' : 'Signature'} size should not exceed 2MB.`, 'error', 3000);
-        event.target.value = ''; // Reset input
-        return;
-      }
+    const file = event.target?.files ? event.target.files[0] : null;
+    const fieldLabel = field === 'photo' ? 'Photo' : 'Signature';
+
+    if (!file) {
       if (field === 'photo') {
-        this.selectedPhoto = file;
+        this.selectedPhoto = null;
       } else {
-        this.selectedSignature = file;
+        this.selectedSignature = null;
       }
+      return;
+    }
+
+    // 1. Validate File Extension and MIME Type
+    const allowedExtensions = ['jpg', 'jpeg', 'png'];
+    const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+    const fileExtension = (file.name.split('.').pop() || '').toLowerCase();
+
+    if (!allowedExtensions.includes(fileExtension) || (file.type && !allowedMimeTypes.includes(file.type.toLowerCase()))) {
+      this.notificationService.show(`The ${fieldLabel.toLowerCase()} must be a file of type: jpeg, jpg, png.`, 'error', 3000);
+      event.target.value = '';
+      if (field === 'photo') {
+        this.selectedPhoto = null;
+      } else {
+        this.selectedSignature = null;
+      }
+      return;
+    }
+
+    // 2. Validate File Size (Max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      this.notificationService.show(`${fieldLabel} size should not exceed 2MB.`, 'error', 3000);
+      event.target.value = '';
+      if (field === 'photo') {
+        this.selectedPhoto = null;
+      } else {
+        this.selectedSignature = null;
+      }
+      return;
+    }
+
+    // 3. Assign Valid File
+    if (field === 'photo') {
+      this.selectedPhoto = file;
+    } else {
+      this.selectedSignature = file;
     }
   }
 
@@ -753,11 +874,14 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
           this.selectedEmployee = {
             ...emp,
             empId: emp.employee_code || emp.empId,
+            surname: emp.surname || '',
             fatherName: emp.father_name,
             dob: emp.dob,
             gender: emp.gender ? (emp.gender.charAt(0).toUpperCase() + emp.gender.slice(1)) : '',
             emergencyContact: emp.emergency_contact,
             joiningDate: emp.joining_date,
+            dateOfExit: emp.date_of_exit,
+            reasonForExit: emp.reason_for_exit,
             restDay: emp.rest_day || '',
             relay: emp.relay_shift || emp.relay || '',
             empType: emp.employee_type === 'permanent' ? 'Permanent' : (emp.employee_type === 'daily_wage' ? 'Daily Wage' : emp.employee_type),
@@ -780,9 +904,11 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             serviceBookNo: emp.service_book_no,
             skillCategory: emp.skill_category,
             site: emp.site,
-            placeOfWork: emp.place_of_work,
+            placeOfWork: emp.place_of_employment || emp.place_of_work,
             remarks: emp.remarks,
-            is_active: emp.status !== undefined ? emp.status : emp.is_active
+            photo: emp.photo_url || emp.photo || null,
+            signature: emp.signature_url || emp.signature || null,
+            is_active: [true, 1, '1', 'true'].includes(emp.status !== undefined ? emp.status : emp.is_active) ? 1 : 0
           };
         } else {
           this.notificationService.show(response.message, 'error', 3000);
@@ -814,11 +940,15 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
   openEditModal(employee: any): void {
     this.isEditMode = true;
     this.currentEmployeeId = employee.id;
+    this.resetFileInputs();
 
     this.employeeManagementService.getEmployeeById(employee.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
         if (response.status === 200 && response.data) {
           const emp = Array.isArray(response.data) ? response.data[0] : response.data;
+
+          this.existingPhotoUrl = emp.photo_url || emp.photo || null;
+          this.existingSignatureUrl = emp.signature_url || emp.signature || null;
 
           const deptId = this.findIdByNameOrId(this.departmentsList, emp.department, emp.department_id);
           const desigId = this.findIdByNameOrId(this.designationsList, emp.designation, emp.designation_id);
@@ -835,30 +965,35 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
           let eType = (emp.employee_type || emp.empType || '').toLowerCase();
           const genderVal = emp.gender ? emp.gender.toLowerCase() : '';
 
-          const formData = {
-            empId: emp.employee_code || '',
-            name: emp.name || '',
-            surname: emp.surname || '',
-            fatherName: emp.father_name || '',
-            dob: this.formatDateToYYYYMMDD(emp.dob),
-            gender: genderVal,
-            nationality: emp.nationality || 'Indian',
-            educationLevel: emp.education_level || '',
-            markOfIdentification: emp.identification_mark || emp.mark_of_identification || '',
-            mobile: emp.mobile || '',
-            address: emp.address || '',
-            permanentAddress: emp.permanent_address || '',
-            emergencyContact: emp.emergency_contact || '',
-            joiningDate: this.formatDateToYYYYMMDD(emp.joining_date),
-            category: cat,
-            empType: eType,
-            department: deptId,
-            designation: desigId,
-            relay: relayId,
-            serviceBookNo: emp.service_book_no || '',
-            dateOfExit: this.formatDateToYYYYMMDD(emp.date_of_exit),
-            reasonForExit: emp.reason_for_exit || '',
-            placeOfWork: emp.place_of_work || '',
+            let pow = emp.place_of_employment || emp.place_of_work || '';
+            if (pow.toLowerCase() === 'underground') pow = 'Underground';
+            else if (pow.toLowerCase() === 'opencast') pow = 'Opencast';
+            else if (pow.toLowerCase() === 'surface') pow = 'Surface';
+
+            const formData = {
+              empId: emp.employee_code || '',
+              name: emp.name || '',
+              surname: emp.surname || '',
+              fatherName: emp.father_name || '',
+              dob: this.formatDateToYYYYMMDD(emp.dob),
+              gender: genderVal,
+              nationality: emp.nationality || 'Indian',
+              educationLevel: emp.education_level || '',
+              markOfIdentification: emp.identification_mark || emp.mark_of_identification || '',
+              mobile: emp.mobile || '',
+              address: emp.address || '',
+              permanentAddress: emp.permanent_address || '',
+              emergencyContact: emp.emergency_contact || '',
+              joiningDate: this.formatDateToYYYYMMDD(emp.joining_date),
+              category: cat,
+              empType: eType,
+              department: deptId,
+              designation: desigId,
+              relay: relayId,
+              serviceBookNo: emp.service_book_no || '',
+              dateOfExit: this.formatDateToYYYYMMDD(emp.date_of_exit),
+              reasonForExit: emp.reason_for_exit || '',
+              placeOfWork: pow,
             remarks: emp.remarks || '',
             site: siteId
           };
@@ -911,7 +1046,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       formData.append('service_book_no', empData.serviceBookNo || '');
       formData.append('date_of_exit', this.formatDateToDMY(empData.dateOfExit));
       formData.append('reason_for_exit', empData.reasonForExit || '');
-      formData.append('place_of_work', empData.placeOfWork || '');
+      formData.append('place_of_employment', empData.placeOfWork ? empData.placeOfWork.toLowerCase() : '');
       formData.append('remarks', empData.remarks || '');
 
       if (this.selectedPhoto) {
@@ -933,6 +1068,12 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
         next: (response: any) => {
           if (response.status === 200 || response.status === 201) {
             this.notificationService.show(response.message, 'success', 3000);
+            
+            // UX Best Practice: Go to Page 1 for new items, stay on current page for edits
+            if (!this.isEditMode) {
+              this.page = 1;
+            }
+            
             this.closeModal();
             this.GetEmployeeFun();
           } else {
@@ -967,7 +1108,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
             this.employeeList = (response.data || []).map((emp: any) => ({
               ...emp,
               empId: emp.employee_code,
-              is_active: emp.status !== undefined ? emp.status : emp.is_active
+              is_active: [true, 1, '1', 'true'].includes(emp.status !== undefined ? emp.status : emp.is_active) ? 1 : 0
             }));
             this.totalRecords = response.pagination?.total || response.data.length;
           } else {

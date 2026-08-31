@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { trigger, transition, style, animate } from '@angular/animations';
@@ -8,8 +8,10 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
 import { AttendanceManagementService } from 'src/app/core/services/attendance-management.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
+import { LeaveTypeService } from 'src/app/core/services/leave-type.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { NgSelectModule } from '@ng-select/ng-select';
 
 interface AttendanceRecord {
   id?: string;
@@ -19,6 +21,8 @@ interface AttendanceRecord {
   checkOut: string;
   duration: string;
   remarks: string;
+  isFuture?: boolean;
+  backendDate?: string;
 }
 
 @Component({
@@ -30,7 +34,8 @@ interface AttendanceRecord {
     ReactiveFormsModule,
     MatDatepickerModule,
     MatNativeDateModule,
-    MatCardModule
+    MatCardModule,
+    NgSelectModule
   ],
   templateUrl: './attendance-detail.component.html',
   styleUrls: ['./attendance-detail.component.scss'],
@@ -56,6 +61,7 @@ interface AttendanceRecord {
   ]
 })
 export class AttendanceDetailComponent implements OnInit, OnDestroy {
+  @ViewChild('calendar') calendar: any;
   private destroy$ = new Subject<void>();
   employeeId: any;
   employee: any = {
@@ -72,6 +78,7 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
   isEditModalOpen: boolean = false;
   editForm: FormGroup;
   editingRecord: any = null;
+  activeLeaveTypes: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -79,13 +86,43 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
     private router: Router,
     private location: Location,
     private attendanceService: AttendanceManagementService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private leaveTypeService: LeaveTypeService
   ) {
     this.editForm = this.fb.group({
       status: ['Present'],
       checkIn: [''],
       checkOut: [''],
-      remarks: ['']
+      remarks: ['', Validators.required]
+    });
+
+    this.editForm.get('status')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(status => {
+      const checkInCtrl = this.editForm.get('checkIn');
+      const checkOutCtrl = this.editForm.get('checkOut');
+
+      if (status === 'Leave' || status === 'Absent' || status === 'Rest Day' || status === 'Weekend') {
+        checkInCtrl?.clearValidators();
+        checkOutCtrl?.clearValidators();
+        checkInCtrl?.disable();
+        checkOutCtrl?.disable();
+      } else {
+        checkInCtrl?.setValidators([Validators.required]);
+        checkOutCtrl?.setValidators([Validators.required]);
+        checkInCtrl?.enable();
+        checkOutCtrl?.enable();
+      }
+      checkInCtrl?.updateValueAndValidity();
+      checkOutCtrl?.updateValueAndValidity();
+
+      if (status === 'Leave') {
+        if (!this.editForm.contains('leaveTypeId')) {
+          this.editForm.addControl('leaveTypeId', this.fb.control(null, Validators.required));
+        }
+      } else {
+        if (this.editForm.contains('leaveTypeId')) {
+          this.editForm.removeControl('leaveTypeId');
+        }
+      }
     });
   }
 
@@ -118,7 +155,19 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
       this.selectedDate = null;
     }
     
+    this.fetchLeaveTypes();
     this.loadMonthData();
+  }
+
+  fetchLeaveTypes() {
+    this.leaveTypeService.getLeaveTypes('all', '', '').pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        if (res.status === 200 && res.data) {
+          this.activeLeaveTypes = res.data.filter((l: any) => l.status === true || l.is_active === true);
+        }
+      },
+      error: (err: any) => console.error('Error fetching leave types:', err)
+    });
   }
 
   ngOnDestroy(): void {
@@ -156,17 +205,36 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
       this.employee.empId = data.employee.employee_code || data.employee.employee_id || this.employeeId;
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     if (data && data.history && Array.isArray(data.history)) {
-      this.attendanceRecords = data.history.map((record: any) => ({
-        id: record.attendance_processed_id,
-        date: record.formatted_date || record.date,
-        backendDate: record.date,
-        status: this.mapStatusToFrontend(record.status),
-        checkIn: record.check_in || '--:--',
-        checkOut: record.check_out || '--:--',
-        duration: record.duration_label || record.duration || '-',
-        remarks: record.remarks || ''
-      }));
+      this.attendanceRecords = data.history.map((record: any) => {
+        let isFuture = false;
+        if (record.date) {
+          let dateToCompare: Date;
+          if (record.date.includes('/')) {
+            const parts = record.date.split('/');
+            dateToCompare = new Date(+parts[2], +parts[1] - 1, +parts[0]);
+          } else {
+            dateToCompare = new Date(record.date);
+          }
+          dateToCompare.setHours(0, 0, 0, 0);
+          isFuture = dateToCompare > today;
+        }
+
+        return {
+          id: record.attendance_processed_id,
+          date: record.formatted_date || record.date,
+          backendDate: record.date,
+          status: this.mapStatusToFrontend(record.status),
+          checkIn: record.check_in || '--:--',
+          checkOut: record.check_out || '--:--',
+          duration: record.duration_label || record.duration || '-',
+          remarks: record.remarks || '',
+          isFuture: isFuture
+        };
+      });
     }
   }
 
@@ -202,17 +270,112 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
 
   onMonthSelected(date: Date) {
     this.currentMonth = date;
+    this.updateRouteParams();
     this.loadMonthData();
   }
 
+  onCalendarClick(event: Event) {
+    const target = event.target as HTMLElement;
+    const isNext = target.closest('.mat-calendar-next-button');
+    const isPrev = target.closest('.mat-calendar-previous-button');
+    
+    if (isNext || isPrev) {
+      setTimeout(() => {
+        if (this.calendar && this.calendar.activeDate) {
+          const activeDate = this.calendar.activeDate;
+          if (activeDate.getMonth() !== this.currentMonth.getMonth() || activeDate.getFullYear() !== this.currentMonth.getFullYear()) {
+            this.currentMonth = activeDate;
+            this.updateRouteParams();
+            this.loadMonthData();
+          }
+        }
+      });
+    }
+  }
+
+  private updateRouteParams() {
+    const month = this.currentMonth.getMonth() + 1;
+    const year = this.currentMonth.getFullYear();
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { month: month.toString(), year: year.toString() },
+      queryParamsHandling: 'merge'
+    });
+  }
+
   openEditModal(record: any) {
+    if (!record.id) {
+      this.fallbackOpenEditModal(record);
+      return;
+    }
+
+    this.attendanceService.getAttendanceById(record.id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        if (res.status === 200 || res.success || res.status === 'success') {
+          const data = res.data;
+          
+          let formattedDate = data.date || record.date;
+          if (data.date) {
+            const dateObj = new Date(data.date);
+            if (!isNaN(dateObj.getTime())) {
+               const d = dateObj.getDate().toString().padStart(2, '0');
+               const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+               const y = dateObj.getFullYear();
+               formattedDate = `${d}/${m}/${y}`;
+            }
+          }
+
+          this.editingRecord = { 
+            ...data,
+            date: formattedDate 
+          };
+          
+          let checkIn = data.check_in || '';
+          let checkOut = data.check_out || '';
+          if (checkIn === '--:--' || checkIn === '-') checkIn = '';
+          if (checkOut === '--:--' || checkOut === '-') checkOut = '';
+
+          let status = 'Present';
+          if (data.attendance_status) {
+            status = this.mapStatusToFrontend(data.attendance_status);
+          }
+
+          this.editForm.patchValue({
+            status: status === '-' ? 'Present' : status,
+            checkIn: checkIn,
+            checkOut: checkOut,
+            remarks: data.remarks || ''
+          });
+
+          if (status === 'Leave' && data.leave_type_id) {
+            this.editForm.patchValue({ leaveTypeId: Number(data.leave_type_id) });
+          }
+          this.isEditModalOpen = true;
+        } else {
+          this.notificationService.show('Failed to fetch attendance details', 'error', 3000);
+          this.fallbackOpenEditModal(record);
+        }
+      },
+      error: (err: any) => {
+        console.error('Error fetching attendance details', err);
+        // Error toast is already handled by ApiService interceptor
+        this.fallbackOpenEditModal(record);
+      }
+    });
+  }
+
+  fallbackOpenEditModal(record: any) {
     this.editingRecord = record;
     this.editForm.patchValue({
       status: record.status === '-' ? 'Present' : record.status,
-      checkIn: record.checkIn === '-' ? '' : record.checkIn,
-      checkOut: record.checkOut === '-' ? '' : record.checkOut,
-      remarks: record.remarks
+      checkIn: record.checkIn === '--:--' ? '' : record.checkIn,
+      checkOut: record.checkOut === '--:--' ? '' : record.checkOut,
+      remarks: record.remarks || ''
     });
+
+    if (record.status === 'Leave' && record.leave_type_id) {
+      this.editForm.patchValue({ leaveTypeId: Number(record.leave_type_id) });
+    }
     this.isEditModalOpen = true;
   }
 
@@ -224,18 +387,30 @@ export class AttendanceDetailComponent implements OnInit, OnDestroy {
   updateAttendance() {
     if (this.editingRecord) {
       const formValue = this.editForm.value;
-      const newStatus = formValue.status as 'Present' | 'Half Day' | 'Exception' | 'Absent';
+      const newStatus = formValue.status as 'Present' | 'Absent' | 'Half Day' | 'Rest Day' | 'Leave';
       const newCheckIn = formValue.checkIn && formValue.checkIn !== '-' ? formValue.checkIn : null;
       const newCheckOut = formValue.checkOut && formValue.checkOut !== '-' ? formValue.checkOut : null;
       const reason = formValue.remarks;
 
       const formData = new FormData();
-      formData.append('_method', 'PUT');
-      if (newCheckIn) formData.append('check_in', newCheckIn);
-      if (newCheckOut) formData.append('check_out', newCheckOut);
-      formData.append('attendance_status', newStatus.toLowerCase().replace(' ', '_'));
-      if (reason) formData.append('remarks', reason);
+      // formData.append('_method', 'PUT'); // Removed as API is POST
+      
       formData.append('employee_id', this.employeeId.toString());
+      
+      const statusVal = newStatus.toLowerCase().replace(' ', '_');
+      formData.append('attendance_status', statusVal);
+      
+      if (reason) formData.append('remarks', reason);
+
+      if (newStatus === 'Leave') {
+        if (formValue.leaveTypeId) {
+          formData.append('leave_type_id', formValue.leaveTypeId);
+        }
+      } else {
+        if (newCheckIn) formData.append('check_in', newCheckIn);
+        if (newCheckOut) formData.append('check_out', newCheckOut);
+        // Note: site_id is not in this specific component's form
+      }
       let formattedDate = this.editingRecord.backendDate;
       if (!formattedDate && this.editingRecord.date) {
         // Parse DD/MM/YYYY to YYYY-MM-DD

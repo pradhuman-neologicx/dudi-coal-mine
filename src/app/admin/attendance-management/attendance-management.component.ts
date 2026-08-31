@@ -4,6 +4,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { MaterialModule } from 'src/app/mat/mat.module';
 import { EmployeeService } from 'src/app/core/services/Employee.service';
 import { AttendanceManagementService } from 'src/app/core/services/attendance-management.service';
+import { LeaveTypeService } from 'src/app/core/services/leave-type.service';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { NgxPaginationModule } from 'ngx-pagination';
 import { NgSelectModule } from '@ng-select/ng-select';
@@ -41,7 +42,7 @@ interface DailyAttendance {
   checkOut: string | null;
   shift: string;
   relay: string;
-  status: 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day' | 'Weekend' | 'Not Marked';
+  status: string;
   site: string;
 }
 
@@ -60,25 +61,6 @@ interface MonthlyAttendanceSummary {
   payableDays: number;
 }
 
-interface ReportRecord {
-  empId: string;
-  empName: string;
-  relay: string;
-  shift: string;
-  placeOfWork: string;
-  days: {
-    [key: number]: {
-      in: string | null;
-      out: string | null;
-      status: string;
-    }
-  };
-  summary: {
-    totalDays: number;
-    otHours: string;
-    remarks: string;
-  }
-}
 
 interface AttendanceCorrectionLog {
   id: string;
@@ -121,12 +103,12 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   // Master list of records
   allAttendanceRecords: DailyAttendance[] = [];
   monthlyAttendanceRecords: MonthlyAttendanceSummary[] = [];
-  reportAttendanceRecords: ReportRecord[] = [];
+  
   daysInMonth: number[] = [];
   monthlyP: number = 1;
 
   // Filter properties
-  viewMode: 'daily' | 'monthly' | 'report' = 'daily';
+  viewMode: 'daily' | 'monthly' = 'daily';
   filterDate: string = '';
   filterMonth: string = '';
   filterFromDate: string = '';
@@ -146,7 +128,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   showCorrectionModal = false;
   showBulkUploadModal = false;
   isUploading = false;
-  isDownloadingFormD = false;
+  
   uploadResult: UploadResult | null = null;
   correctionForm!: FormGroup;
   searchbarform!: FormGroup;
@@ -159,6 +141,10 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   totalRecords: number = 0;
 
   selectedRecordIds = new Set<string>();
+
+  activeLeaveTypes: any[] = [];
+  showBulkLeaveModal = false;
+  selectedLeaveTypeId: string | number | null = null;
 
   toggleSelection(recordId: string | number | undefined): void {
     if (!recordId) return;
@@ -203,9 +189,15 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     this.selectedRecordIds.clear();
   }
 
-  markBulkAttendance(status: 'Present' | 'Absent' | 'Leave' | 'Half Day' | 'Rest Day'): void {
+  markBulkAttendance(status: 'Present' | 'Absent' | 'Leave' | 'Half Day' | 'Rest Day', leaveTypeId?: string | number): void {
     if (this.selectedRecordIds.size === 0) {
       this.notificationService.show('Please select at least one employee.', 'error', 3000);
+      return;
+    }
+
+    if (status === 'Leave' && !leaveTypeId) {
+      this.selectedLeaveTypeId = null;
+      this.showBulkLeaveModal = true;
       return;
     }
 
@@ -215,6 +207,9 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     if (this.filterDate) {
       const formattedDate = this.datePipe.transform(this.filterDate, 'yyyy-MM-dd');
       if (formattedDate) formData.append('date', formattedDate);
+    }
+    if (status === 'Leave' && leaveTypeId) {
+      formData.append('leave_type_id', leaveTypeId.toString());
     }
 
     this.selectedRecordIds.forEach(id => {
@@ -237,7 +232,21 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  markIndividualAttendance(record: DailyAttendance, status: 'Present' | 'Absent' | 'Leave' | 'Half Day' | 'Rest Day'): void {
+  confirmBulkLeave() {
+    if (!this.selectedLeaveTypeId) {
+      this.notificationService.show('Please select a Leave Type', 'error', 3000);
+      return;
+    }
+    this.markBulkAttendance('Leave', this.selectedLeaveTypeId);
+    this.showBulkLeaveModal = false;
+  }
+
+  cancelBulkLeave() {
+    this.showBulkLeaveModal = false;
+    this.selectedLeaveTypeId = null;
+  }
+
+  markIndividualAttendance(record: DailyAttendance, status: 'Present' | 'Absent' | 'Leave' | 'Half Day' | 'Rest Day', leaveTypeId?: string | number): void {
     const formData = new FormData();
     formData.append('_method', 'patch');
     formData.append('attendance_status', status.toLowerCase().replace(' ', '_'));
@@ -245,6 +254,9 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     if (rawDate) {
       const formattedDate = this.datePipe.transform(rawDate, 'yyyy-MM-dd');
       if (formattedDate) formData.append('date', formattedDate);
+    }
+    if (status === 'Leave' && leaveTypeId) {
+      formData.append('leave_type_id', leaveTypeId.toString());
     }
     formData.append('attendance_ids[]', record.employee_id?.toString() || '');
 
@@ -270,6 +282,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     private notificationService: NotificationService,
     private datePipe: DatePipe,
     private router: Router,
+    private leaveTypeService: LeaveTypeService
   ) { }
 
   ngOnInit(): void {
@@ -286,7 +299,19 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     this.filterToDate = '';
     this.initForms();
     this.fetchSites();
+    this.fetchLeaveTypes();
     this.loadAttendance();
+  }
+
+  fetchLeaveTypes() {
+    this.leaveTypeService.getLeaveTypes('all', '', '').pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        if (res.status === 200 && res.data) {
+          this.activeLeaveTypes = res.data.filter((l: any) => l.status === true || l.is_active === true);
+        }
+      },
+      error: (err: any) => console.error('Error fetching leave types:', err)
+    });
   }
 
   fetchSites() {
@@ -316,6 +341,35 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       reason: ['', Validators.required],
       site: ['', Validators.required]
     });
+
+    this.correctionForm.get('status')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(status => {
+      const checkInCtrl = this.correctionForm.get('checkIn');
+      const checkOutCtrl = this.correctionForm.get('checkOut');
+
+      if (status === 'Leave' || status === 'Absent' || status === 'Rest Day' || status === 'Weekend') {
+        checkInCtrl?.clearValidators();
+        checkOutCtrl?.clearValidators();
+        checkInCtrl?.disable();
+        checkOutCtrl?.disable();
+      } else {
+        checkInCtrl?.setValidators([Validators.required]);
+        checkOutCtrl?.setValidators([Validators.required]);
+        checkInCtrl?.enable();
+        checkOutCtrl?.enable();
+      }
+      checkInCtrl?.updateValueAndValidity();
+      checkOutCtrl?.updateValueAndValidity();
+
+      if (status === 'Leave') {
+        if (!this.correctionForm.contains('leaveTypeId')) {
+          this.correctionForm.addControl('leaveTypeId', this.fb.control(null, Validators.required));
+        }
+      } else {
+        if (this.correctionForm.contains('leaveTypeId')) {
+          this.correctionForm.removeControl('leaveTypeId');
+        }
+      }
+    });
   }
 
 
@@ -339,45 +393,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       month = parseInt(m, 10).toString();
     }
 
-    if (this.viewMode === 'report') {
-      let y = new Date().getFullYear().toString();
-      let m = (new Date().getMonth() + 1).toString();
-      if (this.filterMonth) {
-        const [yy, mm] = this.filterMonth.split('-');
-        y = yy;
-        m = parseInt(mm, 10).toString();
-      }
-
-      this.attendanceService.getAttendanceRegister(limit, page, m, y)
-        .pipe(takeUntil(this.destroy$)).subscribe({
-          next: (response: any) => {
-            if (response.status === 200) {
-              const data = response.data || {};
-              this.totalRecords = data.pagination?.total || data.total || data.rows?.length || 0;
-              const numDays = data.days_in_month || new Date(parseInt(y), parseInt(m), 0).getDate();
-              this.daysInMonth = Array.from({ length: numDays }, (_, i) => (i + 1));
-
-              this.reportAttendanceRecords = (data.rows || []).map((record: any) => ({
-                empId: record.employee_code,
-                empName: record.name,
-                relay: record.relay || '--',
-                shift: '--',
-                placeOfWork: record.place_of_work || record.place_of_work_label || '--',
-                days: record.days || {},
-                summary: { totalDays: record.total_days, otHours: record.total_ot_hours, remarks: record.remarks || '' }
-              }));
-              this.calculateMetrics();
-            } else {
-              this.notificationService.show(response.message, 'error', 3000);
-            }
-          },
-          error: (err: any) => {
-            console.error('Error fetching attendance register:', err);
-            // this.notificationService.show(err.message, 'error', 3000);
-          }
-        });
-      return;
-    }
+    
 
     this.attendanceService.getAttendance(limit, page, search, fromDate, toDate, status, viewType, month, year)
       .pipe(takeUntil(this.destroy$)).subscribe({
@@ -397,7 +413,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
                 checkOut: record.check_out || null,
                 shift: record.shift_name || '--',
                 relay: record.relay_name || record.relay || '--',
-                status: this.mapStatusToFrontend(record.attendance_status),
+                status: this.mapStatusToFrontend(record.attendance_status, record.attendance_status_label),
                 site: record.site_name || '--'
               }));
 
@@ -477,24 +493,14 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
   // Aggregate method removed since backend provides aggregated data
 
-  mapStatusToFrontend(backendStatus: string): 'Present' | 'Half Day' | 'Exception' | 'Absent' | 'Leave' | 'Rest Day' | 'Weekend' | 'Not Marked' {
+  mapStatusToFrontend(backendStatus: string, backendLabel?: string): string {
     if (!backendStatus) return 'Not Marked';
-    switch (backendStatus.toLowerCase()) {
-      case 'present': return 'Present';
-      case 'absent': return 'Absent';
-      case 'half_day':
-      case 'half-day':
-      case 'half day':
-        return 'Half Day';
-      case 'leave': return 'Leave';
-      case 'rest_day':
-      case 'rest-day':
-      case 'rest day':
-        return 'Rest Day';
-      case 'weekend': return 'Weekend';
-      case 'exception': return 'Exception';
-      default: return 'Present';
-    }
+    if (backendLabel) return backendLabel;
+    
+    return backendStatus
+      .split(/[-_ ]/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 
   onPageChange(page: number) {
@@ -526,7 +532,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     this.loadAttendance();
   }
 
-  setViewMode(mode: 'daily' | 'monthly' | 'report') {
+  setViewMode(mode: 'daily' | 'monthly') {
     this.viewMode = mode;
     this.p = 1;
     this.loadAttendance();
@@ -665,6 +671,11 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
   // --- Manual Correction Logic ---
 
   openCorrectionModal(record: DailyAttendance) {
+    if (!record.id) {
+      this.fallbackOpenCorrectionModal(record);
+      return;
+    }
+
     this.attendanceService.getAttendanceById(record.id).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res.status === 200 || res.success || res.status === 'success') {
@@ -679,7 +690,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
 
           let status = record.status;
           if (data.attendance_status) {
-            status = this.mapStatusToFrontend(data.attendance_status);
+            status = this.mapStatusToFrontend(data.attendance_status, data.attendance_status_label);
           }
 
           this.correctionForm.patchValue({
@@ -689,6 +700,10 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
             site: data.site_id || '',
             reason: data.remarks || ''
           });
+
+          if (status === 'Leave' && data.leave_type_id) {
+            this.correctionForm.patchValue({ leaveTypeId: Number(data.leave_type_id) });
+          }
           this.showCorrectionModal = true;
         } else {
           this.notificationService.show('Failed to fetch attendance details', 'error', 3000);
@@ -712,6 +727,10 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       site: (record as any).site_id || '',
       reason: ''
     });
+
+    if (record.status === 'Leave' && (record as any).leave_type_id) {
+      this.correctionForm.patchValue({ leaveTypeId: Number((record as any).leave_type_id) });
+    }
     this.showCorrectionModal = true;
   }
 
@@ -732,18 +751,28 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     const newCheckIn = formValues.checkIn || null;
     const newCheckOut = formValues.checkOut || null;
 
-    const newStatus = status as 'Present' | 'Half Day' | 'Exception' | 'Absent'; // Use the explicitly chosen status
+    const newStatus = status as 'Present' | 'Absent' | 'Half Day' | 'Rest Day' | 'Leave'; // Use the explicitly chosen status
 
     const formData = new FormData();
-    formData.append('_method', 'PUT');
-    if (newCheckIn) formData.append('check_in', newCheckIn);
-    if (newCheckOut) formData.append('check_out', newCheckOut);
-    formData.append('attendance_status', newStatus.toLowerCase().replace(' ', '_'));
-    if (reason) formData.append('remarks', reason);
-    if (site) formData.append('site_id', site);
+    
+    // Exact keys based on backend JSON schema
     formData.append('employee_id', this.selectedRecord.employee_id?.toString() || '');
+    
     const formattedDate = this.datePipe.transform(this.filterDate, 'yyyy-MM-dd');
     formData.append('date', formattedDate || this.filterDate);
+    
+    formData.append('attendance_status', newStatus.toLowerCase().replace(' ', '_'));
+    if (reason) formData.append('remarks', reason);
+
+    if (newStatus === 'Leave') {
+      if (formValues.leaveTypeId) {
+        formData.append('leave_type_id', formValues.leaveTypeId);
+      }
+    } else {
+      if (newCheckIn) formData.append('check_in', newCheckIn);
+      if (newCheckOut) formData.append('check_out', newCheckOut);
+      if (site) formData.append('site_id', site);
+    }
 
     this.attendanceService.updateAttendance(formData).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
@@ -758,7 +787,7 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         console.error('Error updating attendance:', err);
-        this.notificationService.show(err.error?.message || err.message, 'error', 3000);
+        // Toast is already handled globally by ApiService
       }
     });
   }
@@ -785,8 +814,9 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
       case 'Absent': return 'bg-secondary text-white';
       case 'Leave': return 'bg-info text-white';
       case 'Rest Day': return 'bg-primary text-white';
+      case 'Holiday': return 'bg-info text-white';
       case 'Not Marked': return 'bg-light text-muted border border-secondary';
-      default: return 'bg-light text-dark';
+      default: return 'bg-secondary text-white';
     }
   }
 
@@ -795,50 +825,15 @@ export class AttendanceManagementComponent implements OnInit, OnDestroy {
     const queryParams: { [key: string]: any } = {};
 
     // Check if it's from daily view (has date) or monthly view
-    if (record.date) {
+    if (this.viewMode === 'daily' && record.date) {
       queryParams['date'] = record.date;
-    } else if (record.month_year) {
-      const [year, month] = record.month_year.split('-');
-      queryParams['month'] = month;
-      queryParams['year'] = year;
+    } else if (this.filterMonth) {
+      const [y, m] = this.filterMonth.split('-');
+      queryParams['month'] = parseInt(m, 10).toString();
+      queryParams['year'] = y;
     }
 
     this.router.navigate(['/admin/attendance-management/attendance-detail', idToPass], { queryParams });
   }
 
-  downloadFormD(): void {
-    let month = '';
-    let year = '';
-
-    if (this.filterMonth) {
-      const [y, m] = this.filterMonth.split('-');
-      year = y;
-      month = parseInt(m, 10).toString();
-    } else {
-      const today = new Date();
-      year = today.getFullYear().toString();
-      month = (today.getMonth() + 1).toString();
-    }
-
-    this.isDownloadingFormD = true;
-
-    this.employeeService.exportAttendanceRegister(parseInt(month), parseInt(year))
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (response: any) => {
-          this.isDownloadingFormD = false;
-          // When observe: 'response' is used, the Blob is in response.body
-          const blob = response.body || response;
-          const fileName = `Form_D_Register_${month}_${year}.xlsx`;
-          saveAs(blob, fileName);
-          this.notificationService.show('Form D Register downloaded successfully.', 'success', 3000);
-        },
-        error: (err: any) => {
-          this.isDownloadingFormD = false;
-          console.error('Error downloading Form D Register:', err);
-          const errorMsg = err.error?.message || err.message || 'Form D Download failed.';
-          this.notificationService.show(errorMsg, 'error', 4000);
-        }
-      });
-  }
 }
