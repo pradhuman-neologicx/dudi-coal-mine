@@ -88,6 +88,27 @@ interface PreviewRow extends EmployeeSalaryDetail {
   nameError?: boolean;
   netSalaryError?: boolean;
   rateOfWageError?: boolean;
+  daysWorkedError?: boolean;
+  overtimeHoursError?: boolean;
+  basicError?: boolean;
+  specialBasicError?: boolean;
+  daError?: boolean;
+  overtimePaymentsError?: boolean;
+  hraError?: boolean;
+  othersEarnError?: boolean;
+  totalEarnError?: boolean;
+  pfError?: boolean;
+  esicError?: boolean;
+  societyError?: boolean;
+  incomeTaxError?: boolean;
+  insuranceError?: boolean;
+  othersDedError?: boolean;
+  recoveriesError?: boolean;
+  totalDedError?: boolean;
+  employerPfWelfareError?: boolean;
+  bankTxnIdError?: boolean;
+  paymentDateError?: boolean;
+  remarksError?: boolean;
   isEditingid?: boolean;
   isEditingname?: boolean;
   isEditingnetSalary?: boolean;
@@ -174,10 +195,13 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
   previewP: number = 1;
   previewShowEntries: number = 10;
   totalPreviewRecords: number = 0;
+  globalSaveMessage: string | null = null;
+  globalRemainingErrors: string[] = [];
 
   // Locked month/year at the time of "Check Salary" — used for import
   checkedMonth: number = 0;
   checkedYear: number = 0;
+  isSalaryChecked: boolean = false;
 
   previewData: PreviewRow[] = [];
 
@@ -273,6 +297,7 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
     this.activeUploadId = null;
     this.previewData = [];
     this.hasValidationErrors = false;
+    this.isSalaryChecked = false;
     datepicker.close();
     this.loadPendingUpload();
   }
@@ -395,6 +420,9 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
     this.apiFile = null;
     this.showPreviewTable = false;
     this.hasValidationErrors = false;
+    this.isSalaryChecked = false;
+    this.globalSaveMessage = null;
+    this.globalRemainingErrors = [];
     this.loadPendingUpload();
   }
 
@@ -476,6 +504,7 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
     // Lock the month/year at this point — used for import later
     this.checkedMonth = this.addSelectedDate.getMonth() + 1;
     this.checkedYear = this.addYear;
+    this.isSalaryChecked = true;
 
     this.employeeService.checkSalaryGenerated(this.checkedMonth, this.checkedYear).pipe(takeUntil(this.destroy$)).subscribe({
       next: (response: any) => {
@@ -571,6 +600,23 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
     }
   }
 
+  triggerFileInput(event: Event, fileInput: HTMLInputElement) {
+    event.stopPropagation();
+    if (this.isSalaryChecked) {
+      fileInput.click();
+    } else {
+      this.notificationService.show('Please click "Check Salary" first to proceed.', 'error', 3000);
+    }
+  }
+
+  handleDropZoneClick(fileInput: HTMLInputElement) {
+    if (this.isSalaryChecked) {
+      fileInput.click();
+    } else {
+      this.notificationService.show('Please click "Check Salary" first to proceed.', 'error', 3000);
+    }
+  }
+
   removeFile() {
     this.selectedFile = null;
     this.uploadedFileSummary = null;
@@ -580,6 +626,8 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
 
   // Row Level Preview Functions
   openFilePreview(uploadId?: number | string) {
+    this.globalSaveMessage = null;
+    this.globalRemainingErrors = [];
     const targetUploadId = uploadId || this.activeUploadId || this.uploadedFileSummary?.uploadId;
     this.currentView = 'file-preview-details';
     if (targetUploadId) {
@@ -606,44 +654,51 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
               const errCols = r.error_columns || [];
               const isRowValid = r.is_valid !== false && r.status === 'valid' && errCols.length === 0;
 
-              return {
-                excelRow: r.excel_row || r.excelRow || r.id,
-                id: v.employee_code || r.employee_code || `EMP-${r.employee_id || r.id}`,
-                name: v.employee_name || r.employee_name || 'N/A',
-                rateOfWage: v.rate_of_wage !== null && v.rate_of_wage !== undefined ? String(v.rate_of_wage) : '0',
-                daysWorked: v.days_worked ?? 0,
-                overtimeHours: v.overtime_hours ?? 0,
-                basic: v.basic ?? 0,
-                specialBasic: v.special_basic ?? 0,
-                da: v.dearness_allowance ?? 0,
-                overtimePayments: v.overtime_payment ?? 0,
-                hra: v.hra ?? 0,
-                othersEarn: v.other_earnings ?? 0,
-                totalEarn: v.total_earnings ?? 0,
-                pf: v.pf_deduction ?? 0,
-                esic: v.esic_deduction ?? 0,
-                society: v.society_deduction ?? 0,
-                incomeTax: v.income_tax ?? 0,
-                insurance: v.insurance ?? 0,
-                othersDed: v.other_deductions ?? 0,
-                recoveries: v.recoveries ?? 0,
-                totalDed: v.total_deductions ?? 0,
-                netSalary: v.net_payment ?? 0,
-                employerPfWelfare: v.employer_pf_share ?? 0,
-                bankTxnId: v.payment_reference || 'N/A',
-                paymentDate: v.payment_date || 'N/A',
-                remarks: v.remarks || (r.errors && r.errors.length ? r.errors.join(', ') : 'Valid'),
-                status: isRowValid ? 'PAID' : 'PROCESSING',
-                hasError: !isRowValid,
-                idError: ef.employee_code === 1 || errCols.includes('employee_code'),
-                nameError: ef.employee_name === 1 || errCols.includes('employee_name'),
-                netSalaryError: ef.net_payment === 1 || errCols.includes('net_payment'),
-                rateOfWageError: ef.rate_of_wage === 1 || errCols.includes('rate_of_wage'),
-                initials: (v.employee_name || 'E').split(' ').map((n: string) => n[0]).join('').toUpperCase(),
-                bgColor: isRowValid ? 'bg-blue-600' : 'bg-red-300',
-                department: 'N/A',
-                designation: 'N/A'
-              };
+                const fieldsMap: { [key: string]: string } = {
+                  'employee_code': 'idError', 'employee_name': 'nameError', 'net_payment': 'netSalaryError', 'rate_of_wage': 'rateOfWageError', 'days_worked': 'daysWorkedError', 'overtime_hours': 'overtimeHoursError', 'basic': 'basicError', 'special_basic': 'specialBasicError', 'dearness_allowance': 'daError', 'overtime_payment': 'overtimePaymentsError', 'hra': 'hraError', 'other_earnings': 'othersEarnError', 'total_earnings': 'totalEarnError', 'pf_deduction': 'pfError', 'esic_deduction': 'esicError', 'society_deduction': 'societyError', 'income_tax': 'incomeTaxError', 'insurance': 'insuranceError', 'other_deductions': 'othersDedError', 'recoveries': 'recoveriesError', 'total_deductions': 'totalDedError', 'employer_pf_share': 'employerPfWelfareError', 'bank_txn_id': 'bankTxnIdError', 'payment_date': 'paymentDateError', 'remarks': 'remarksError'
+                };
+                
+                const rowObj: any = {
+                  excelRow: r.excel_row || r.excelRow || r.id,
+                  id: v.employee_code || r.employee_code || `EMP-${r.employee_id || r.id}`,
+                  name: v.employee_name || r.employee_name || 'N/A',
+                  rateOfWage: v.rate_of_wage !== null && v.rate_of_wage !== undefined ? String(v.rate_of_wage) : '0',
+                  daysWorked: v.days_worked ?? 0,
+                  overtimeHours: v.overtime_hours ?? 0,
+                  basic: v.basic ?? 0,
+                  specialBasic: v.special_basic ?? 0,
+                  da: v.dearness_allowance ?? 0,
+                  overtimePayments: v.overtime_payment ?? 0,
+                  hra: v.hra ?? 0,
+                  othersEarn: v.other_earnings ?? 0,
+                  totalEarn: v.total_earnings ?? 0,
+                  pf: v.pf_deduction ?? 0,
+                  esic: v.esic_deduction ?? 0,
+                  society: v.society_deduction ?? 0,
+                  incomeTax: v.income_tax ?? 0,
+                  insurance: v.insurance ?? 0,
+                  othersDed: v.other_deductions ?? 0,
+                  recoveries: v.recoveries ?? 0,
+                  totalDed: v.total_deductions ?? 0,
+                  netSalary: v.net_payment ?? 0,
+                  employerPfWelfare: v.employer_pf_share ?? 0,
+                  bankTxnId: v.payment_reference || 'N/A',
+                  paymentDate: v.payment_date || 'N/A',
+                  remarks: v.remarks || (r.errors && r.errors.length ? r.errors.join(', ') : 'Valid'),
+                  status: isRowValid ? 'PAID' : 'PROCESSING',
+                  hasError: !isRowValid,
+                  initials: (v.employee_name || 'E').split(' ').map((n: string) => n[0]).join('').toUpperCase(),
+                  bgColor: isRowValid ? 'bg-blue-600' : 'bg-red-300',
+                  department: 'N/A',
+                  designation: 'N/A'
+                };
+
+                Object.values(fieldsMap).forEach(key => rowObj[key] = false);
+                for (const [apiCol, rowProp] of Object.entries(fieldsMap)) {
+                  rowObj[rowProp] = ef[apiCol] === 1 || errCols.includes(apiCol);
+                }
+
+                return rowObj;
             });
           }
         }
@@ -721,15 +776,69 @@ export class SalaryPayrollManagementComponent implements OnInit, OnDestroy {
       this.employeeService.updateWageRegisterRowField(uploadId, excelRow, updateBody).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           row.isSaving = false;
+          
+          this.globalSaveMessage = res?.message || null;
+          this.globalRemainingErrors = [];
+
           if (res && res.data) {
             const dataObj = res.data;
             row.hasError = dataObj.row_is_valid === false;
 
-            const remErrors = dataObj.remaining_errors || [];
-            row.idError = remErrors.includes('employee_code');
-            row.nameError = remErrors.includes('employee_name');
-            row.netSalaryError = remErrors.includes('net_payment');
-            row.rateOfWageError = remErrors.includes('rate_of_wage');
+            const remErrors = dataObj.remaining_errors;
+            if (remErrors && typeof remErrors === 'object') {
+              const errCols = dataObj.error_columns || [];
+              const fieldsMap: { [key: string]: string } = {
+                'employee_code': 'idError',
+                'employee_name': 'nameError',
+                'net_payment': 'netSalaryError',
+                'rate_of_wage': 'rateOfWageError',
+                'days_worked': 'daysWorkedError',
+                'overtime_hours': 'overtimeHoursError',
+                'basic': 'basicError',
+                'special_basic': 'specialBasicError',
+                'dearness_allowance': 'daError',
+                'overtime_payment': 'overtimePaymentsError',
+                'hra': 'hraError',
+                'other_earnings': 'othersEarnError',
+                'total_earnings': 'totalEarnError',
+                'pf_deduction': 'pfError',
+                'esic_deduction': 'esicError',
+                'society_deduction': 'societyError',
+                'income_tax': 'incomeTaxError',
+                'insurance': 'insuranceError',
+                'other_deductions': 'othersDedError',
+                'recoveries': 'recoveriesError',
+                'total_deductions': 'totalDedError',
+                'employer_pf_share': 'employerPfWelfareError',
+                'bank_txn_id': 'bankTxnIdError',
+                'payment_date': 'paymentDateError',
+                'remarks': 'remarksError'
+              };
+
+              // First, reset all error flags
+              Object.values(fieldsMap).forEach(key => row[key] = false);
+
+              if (Array.isArray(remErrors)) {
+                this.globalRemainingErrors = remErrors;
+                remErrors.forEach(err => {
+                  for (const [apiCol, rowProp] of Object.entries(fieldsMap)) {
+                     if (err.includes(apiCol)) {
+                        row[rowProp] = true;
+                     }
+                  }
+                });
+              } else {
+                this.globalRemainingErrors = Object.values(remErrors);
+                for (const [apiCol, rowProp] of Object.entries(fieldsMap)) {
+                  row[rowProp] = errCols.includes(apiCol) || !!remErrors[apiCol];
+                }
+              }
+            } else {
+              const fieldsMap: { [key: string]: string } = {
+                'employee_code': 'idError', 'employee_name': 'nameError', 'net_payment': 'netSalaryError', 'rate_of_wage': 'rateOfWageError', 'days_worked': 'daysWorkedError', 'overtime_hours': 'overtimeHoursError', 'basic': 'basicError', 'special_basic': 'specialBasicError', 'dearness_allowance': 'daError', 'overtime_payment': 'overtimePaymentsError', 'hra': 'hraError', 'other_earnings': 'othersEarnError', 'total_earnings': 'totalEarnError', 'pf_deduction': 'pfError', 'esic_deduction': 'esicError', 'society_deduction': 'societyError', 'income_tax': 'incomeTaxError', 'insurance': 'insuranceError', 'other_deductions': 'othersDedError', 'recoveries': 'recoveriesError', 'total_deductions': 'totalDedError', 'employer_pf_share': 'employerPfWelfareError', 'bank_txn_id': 'bankTxnIdError', 'payment_date': 'paymentDateError', 'remarks': 'remarksError'
+              };
+              Object.values(fieldsMap).forEach(key => row[key] = false);
+            }
 
             if (dataObj.can_submit !== undefined) {
               this.hasValidationErrors = !dataObj.can_submit;
