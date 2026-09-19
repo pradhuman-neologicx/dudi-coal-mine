@@ -417,11 +417,16 @@
 
             <div class="mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Select Category</label>
-              <select class="d-block form-control form-select form-input-custom" formControlName="categoryId"
-                      [ngClass]="{'is-invalid': createSubCategoryForm.controls['categoryId'].errors && (createSubCategoryForm.controls['categoryId'].touched || createSubCategoryForm.controls['categoryId'].dirty)}">
-                <option value="">Select Category</option>
-                <option *ngFor="let cat of allCategories" [value]="cat.id">{{ cat.categoryName }}</option>
-              </select>
+              <ng-select [items]="allCategories"
+                         bindLabel="categoryName"
+                         bindValue="id"
+                         placeholder="Select Category"
+                         formControlName="categoryId"
+                         [clearable]="true"
+                         [searchable]="true"
+                         class="custom-ng-select w-100"
+                         [ngClass]="{'is-invalid': createSubCategoryForm.controls['categoryId'].errors && (createSubCategoryForm.controls['categoryId'].touched || createSubCategoryForm.controls['categoryId'].dirty)}">
+              </ng-select>
               <div class="text-danger error-message" *ngIf="createSubCategoryForm.controls['categoryId'].errors && (createSubCategoryForm.controls['categoryId'].touched || createSubCategoryForm.controls['categoryId'].dirty)">
                 <p class="fw-light text-danger" *ngIf="createSubCategoryForm.controls['categoryId'].errors['required']">Category selection is required</p>
               </div>
@@ -461,10 +466,16 @@
 
             <div class="mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Select Category</label>
-              <select class="d-block form-control form-select form-input-custom" formControlName="categoryId"
-                      [ngClass]="{'is-invalid': updateSubCategoryForm.controls['categoryId'].errors && (updateSubCategoryForm.controls['categoryId'].touched || updateSubCategoryForm.controls['categoryId'].dirty)}">
-                <option *ngFor="let cat of allCategories" [value]="cat.id">{{ cat.categoryName }}</option>
-              </select>
+              <ng-select [items]="allCategories"
+                         bindLabel="categoryName"
+                         bindValue="id"
+                         placeholder="Select Category"
+                         formControlName="categoryId"
+                         [clearable]="true"
+                         [searchable]="true"
+                         class="custom-ng-select w-100"
+                         [ngClass]="{'is-invalid': updateSubCategoryForm.controls['categoryId'].errors && (updateSubCategoryForm.controls['categoryId'].touched || updateSubCategoryForm.controls['categoryId'].dirty)}">
+              </ng-select>
               <div class="text-danger error-message" *ngIf="updateSubCategoryForm.controls['categoryId'].errors && (updateSubCategoryForm.controls['categoryId'].touched || updateSubCategoryForm.controls['categoryId'].dirty)">
                 <p class="fw-light text-danger" *ngIf="updateSubCategoryForm.controls['categoryId'].errors['required']">Category selection is required</p>
               </div>

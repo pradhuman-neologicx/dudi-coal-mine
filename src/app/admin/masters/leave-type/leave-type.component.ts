@@ -100,9 +100,8 @@ export class LeaveTypeComponent implements OnInit, OnDestroy {
       heading1: 'Leave Name',
       heading2: 'Paid/Unpaid',
       heading3: 'Annual Limit',
-      heading4: 'Form E Mapping',
-      heading5: 'Status',
-      heading6: 'Action',
+      heading4: 'Status',
+      heading5: 'Action',
     },
   ];
 

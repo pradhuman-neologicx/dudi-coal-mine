@@ -56,6 +56,7 @@ import { RelaySettingsComponent } from './admin/relay-settings/relay-settings.co
 import { WageMasterComponent } from './admin/masters/wage-master/wage-master.component';
 import { EmployeeDetailsComponent } from './admin/gov-side/employee-details/employee-details.component';
 import { GovSideComponent } from './admin/gov-side/gov-side.component';
+import { StoreComponent } from './admin/masters/store/store.component';
 
 const routes: Routes = [
   {
@@ -148,7 +149,7 @@ const routes: Routes = [
       {
         path: 'equipment-management',
         component: EquipmentManagementComponent,
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
         children: [
           { path: '', redirectTo: 'equipment-master', pathMatch: 'full' },
           { path: 'equipment-master', loadComponent: () => import('./admin/equipment-management/equipment-master/equipment-master.component').then(m => m.EquipmentMasterComponent) },
@@ -158,17 +159,17 @@ const routes: Routes = [
       {
         path: 'inventory-management/categories',
         component: CategoriesComponent,
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'inventory-management/product-master',
         component: ProductMasterComponent,
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'inventory-management/inventory',
         component: InventoryComponent,
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
 
       {
@@ -221,22 +222,22 @@ const routes: Routes = [
           {
             path: 'training-type',
             component: TrainingTypeComponent,
-            canActivate: [AuthGuard, ModuleDisabledGuard],
+            canActivate: [AuthGuard],
           },
           {
             path: 'incident-type',
             component: IncidentTypeComponent,
-            canActivate: [AuthGuard, ModuleDisabledGuard],
+            canActivate: [AuthGuard],
           },
           {
             path: 'breakdown-type',
             component: BreakdownTypeComponent,
-            canActivate: [AuthGuard, ModuleDisabledGuard],
+            canActivate: [AuthGuard],
           },
           {
             path: 'delay-type',
             component: DelayTypeComponent,
-            canActivate: [AuthGuard, ModuleDisabledGuard],
+            canActivate: [AuthGuard],
           },
           {
             path: 'severity-level',
@@ -245,88 +246,102 @@ const routes: Routes = [
           {
             path: 'dumping-point',
             component: DumpingPointComponent,
-            canActivate: [AuthGuard, ModuleDisabledGuard],
+            canActivate: [AuthGuard],
           },
           {
             path: 'wage-master',
             component: WageMasterComponent,
+          },
+          {
+            path: 'store',
+            component: StoreComponent,
           },
         ],
       },
       {
         path: 'training-management',
         component: TrainingManagementComponent,
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'breakdown-and-maintenance',
         loadComponent: () => import('./admin/breakdown-and-maintenance/breakdown-and-maintenance.component').then(m => m.BreakdownAndMaintenanceComponent),
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'breakdown-and-maintenance/report',
         loadComponent: () => import('./admin/breakdown-and-maintenance/report/report.component').then(m => m.ReportComponent),
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'fuel-mgt',
         component: FuelMgtComponent,
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'fuel-analytics',
+        loadComponent: () => import('./admin/fuel-analytics/fuel-analytics.component').then(m => m.FuelAnalyticsComponent),
+        canActivate: [AuthGuard],
       },
       {
         path: 'fuel-mgt/report',
         component: FuelMgtComponent,
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'delay-report',
         component: DelayReportComponent,
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'shift-mgt',
         loadComponent: () => import('./admin/shift-mgt/shift-mgt.component').then(m => m.ShiftMgtComponent),
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'shift-mgt/add',
         loadComponent: () => import('./admin/shift-mgt/shift-add/shift-add.component').then(m => m.ShiftAddComponent),
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'shift-mgt/edit/:id',
         loadComponent: () => import('./admin/shift-mgt/shift-add/shift-add.component').then(m => m.ShiftAddComponent),
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'shift-mgt/close/:id',
         loadComponent: () => import('./admin/shift-mgt/shift-close/shift-close.component').then(m => m.ShiftCloseComponent),
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'shift-mgt/summary/:id',
         loadComponent: () => import('./admin/shift-mgt/shift-summery/shift-summery.component').then(m => m.ShiftSummeryComponent),
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'safety-management',
         loadComponent: () => import('./admin/safety-management/safety-management.component').then(m => m.SafetyManagementComponent),
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'safety-management/report',
         loadComponent: () => import('./admin/safety-management/report/report.component').then(m => m.ReportComponent),
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
+      },
+      {
+        path: 'safety-events',
+        loadComponent: () => import('./admin/safety-events/safety-events.component').then(m => m.SafetyEventsComponent),
+        canActivate: [AuthGuard], 
       },
       {
         path: 'dumping',
         component: DumpingComponent,
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
       {
         path: 'service-management',
         loadComponent: () => import('./admin/service-management/service-management.component').then(m => m.ServiceManagementComponent),
-        canActivate: [AuthGuard, ModuleDisabledGuard],
+        canActivate: [AuthGuard],
       },
 
       {

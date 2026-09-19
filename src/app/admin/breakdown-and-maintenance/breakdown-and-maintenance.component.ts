@@ -127,6 +127,9 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
   importResult: ImportResult | null = null;
   @ViewChild('fileInput') fileInput!: ElementRef;
 
+  isImportResultModalOpen = false;
+  private dateChangeSubject = new Subject<string>();
+
   constructor(
     private breakdownTypeService: BreakdownTypeService,
     private shiftPlanningService: ShiftPlanningService,
@@ -138,6 +141,14 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
     this.loadShifts();
     this.setupEmployeeSearch();
     this.fetchBreakdownData();
+
+    this.dateChangeSubject.pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(date => {
+      this.fetchShiftForDate(date);
+    });
   }
 
   ngOnDestroy(): void {
@@ -185,8 +196,12 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
   }
 
   onDateChange() {
-    if (this.entryDate) {
-      this.shiftPlanningService.shiftPlanFilterByDate(this.entryDate).pipe(takeUntil(this.destroy$)).subscribe({
+    this.dateChangeSubject.next(this.entryDate || '');
+  }
+
+  fetchShiftForDate(dateValue: string) {
+    if (dateValue) {
+      this.shiftPlanningService.shiftPlanFilterByDate(dateValue).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res && res.status === 200 && res.data) {
             this.entryShift = res.data.id || res.data.shift_id || res.data;
@@ -194,7 +209,6 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
             this.entryShiftPlanId = res.data.shift_plan_id;
             this.machinesList = res.data.machines || [];
           } else {
-            this.notificationService.show(res?.message || 'No active shift covers the given time.', 'error');
             this.entryShift = '';
             this.shiftName = 'No data found for this date';
             this.entryShiftPlanId = null;
@@ -203,7 +217,6 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error fetching shift by datetime', err);
-          this.notificationService.show(err.error?.message || err.message || 'Error fetching shift details.', 'error');
           this.entryShift = '';
           this.shiftName = 'No data found for this date';
           this.entryShiftPlanId = null;

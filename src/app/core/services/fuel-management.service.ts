@@ -52,7 +52,7 @@ export class FuelManagementService {
   createFuelEntry(data: any): Observable<any> {
     const token = this.jwtService.getToken();
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
-    return this.apiservice.post(`v1/admin/fuel-entries/`, data, headers);
+    return this.apiservice.post(`v1/admin/fuel-entries`, data, headers);
   }
 
   updateFuelEntry(id: number | string, data: any): Observable<any> {

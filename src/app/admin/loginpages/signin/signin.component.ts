@@ -147,10 +147,12 @@ export class SigninComponent implements OnInit {
             } else {
               errorMsg = err;
             }
-          } else if (err && err.message) {
-            errorMsg = err.message;
           } else if (err && err.error && err.error.message) {
             errorMsg = err.error.message;
+          } else if (err && err.error && typeof err.error === 'string') {
+            errorMsg = err.error;
+          } else if (err && err.message) {
+            errorMsg = err.message;
           } else {
             errorMsg = 'Invalid email or password';
           }

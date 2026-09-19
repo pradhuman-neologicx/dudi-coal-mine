@@ -116,7 +116,14 @@ export class CategoriesComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initSearchForm();
     this.initForms();
-    this.fetchAllCategoriesForDropdown();
+    
+    // Subscribe to reactive state from CategoryService
+    this.categoryService.allCategories$.pipe(takeUntil(this.destroy$)).subscribe(cats => {
+      this.allCategories = cats;
+    });
+    // Trigger the initial load of global category state
+    this.categoryService.loadAllCategories();
+    
     this.refreshFilteredData();
   }
 
@@ -235,20 +242,7 @@ export class CategoriesComponent implements OnInit, OnDestroy {
     });
   }
 
-  fetchAllCategoriesForDropdown() {
-    this.categoryService.getAllCategories().pipe(takeUntil(this.destroy$)).subscribe({
-      next: (res: any) => {
-        if (res && res.status === 200) {
-          this.allCategories = res.data.map((c: any) => ({
-            id: c.id,
-            categoryName: c.name,
-            is_active: c.status
-          }));
-        }
-      },
-      error: (err: any) => console.error('Error fetching all categories', err)
-    });
-  }
+  // Removed fetchAllCategoriesForDropdown as it is now handled by Reactive State in CategoryService
 
   // Filtering lists dynamically
   searchfun() {

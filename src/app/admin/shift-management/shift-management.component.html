@@ -46,18 +46,22 @@
           <div class="d-flex align-items-center gap-0 week-range-picker-wrapper">
             <!-- Hidden datepicker input, only opens via toggle -->
             <mat-form-field appearance="outline" subscriptSizing="dynamic" class="week-picker-hidden-field">
-              <input matInput [matDatepicker]="weekPicker" [ngModel]="currentDate" (dateChange)="onDateSelected($event.value)" readonly>
+              <input matInput [matDatepicker]="weekPicker" [ngModel]="currentDate"
+                (dateChange)="onDateSelected($event.value)" readonly>
               <mat-datepicker #weekPicker></mat-datepicker>
             </mat-form-field>
 
             <!-- Week Range Badge + Calendar Icon -->
             <div class="week-range-badge d-flex align-items-center gap-2 px-3 py-2 bg-white border rounded-3 shadow-sm">
-              <button type="button" class="btn p-0 border-0 text-primary" (click)="weekPicker.open()" title="Pick a week">
+              <button type="button" class="btn p-0 border-0 text-primary" (click)="weekPicker.open()"
+                title="Pick a week">
                 <i class="fa-regular fa-calendar fs-6"></i>
               </button>
               <div class="d-flex flex-column" style="line-height: 1.2;">
-                <span class="text-muted fw-medium" style="font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;">Week</span>
-                <span class="fw-bold text-dark" style="font-size: 13px; white-space: nowrap;">{{ getWeekRangeLabel() }}</span>
+                <span class="text-muted fw-medium"
+                  style="font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;">Week</span>
+                <span class="fw-bold text-dark" style="font-size: 13px; white-space: nowrap;">{{ getWeekRangeLabel()
+                  }}</span>
               </div>
             </div>
           </div>
@@ -66,23 +70,34 @@
           </button>
         </div>
 
-        <!-- Inline Capsule Shift Tabs -->
-        <div class="d-flex gap-2 p-1 bg-light rounded-pill roster-tabs-wrapper"
-          style="width: fit-content; border: 1px solid #e2e8f0;">
-          <button *ngFor="let shift of tabShiftsList" 
-                  class="btn rounded-pill px-3 py-1.5 tab-btn text-nowrap transition-all fw-semibold fs-8" 
-                  [ngClass]="{
-                    'btn-primary shadow-sm text-white': activeTabId === shift.id,
-                    'btn-light-text text-muted bg-transparent border-0': activeTabId !== shift.id
-                  }" 
-                  (click)="onTabChange(shift)">
-            <i class="fa-solid me-1.5" [ngClass]="{
-              'fa-sun text-warning animate-spin-hover': shift.name.includes('A') || shift.name.includes('a'),
-              'fa-cloud-sun text-info': shift.name.includes('B') || shift.name.includes('b'),
-              'fa-moon text-purple': shift.name.includes('C') || shift.name.includes('c'),
-              'fa-clock text-secondary': !shift.name.includes('A') && !shift.name.includes('a') && !shift.name.includes('B') && !shift.name.includes('b') && !shift.name.includes('C') && !shift.name.includes('c')
-            }"></i>{{ shift.name }}
-          </button>
+        <!-- Shift Dropdown using ng-select -->
+        <div style="width: 250px;">
+          <ng-select [items]="tabShiftsList" bindLabel="name" bindValue="id" [(ngModel)]="activeTabId"
+            (change)="onTabChange($event)" placeholder="Search & Select Shift" [searchable]="true" [clearable]="false"
+            class="custom-ng-select">
+
+            <ng-template ng-label-tmp let-item="item">
+              <i class="fa-solid me-1.5" [ngClass]="{
+                'fa-layer-group text-primary': item.id === '',
+                'fa-sun text-warning': item.id !== '' && (item.name.includes('A') || item.name.includes('a')),
+                'fa-cloud-sun text-info': item.id !== '' && (item.name.includes('B') || item.name.includes('b')),
+                'fa-moon text-purple': item.id !== '' && (item.name.includes('C') || item.name.includes('c')),
+                'fa-clock text-secondary': item.id !== '' && !item.name.includes('A') && !item.name.includes('a') && !item.name.includes('B') && !item.name.includes('b') && !item.name.includes('C') && !item.name.includes('c')
+              }"></i>
+              {{ item.name }}
+            </ng-template>
+
+            <ng-template ng-option-tmp let-item="item">
+              <i class="fa-solid me-1.5" [ngClass]="{
+                'fa-layer-group text-primary': item.id === '',
+                'fa-sun text-warning': item.id !== '' && (item.name.includes('A') || item.name.includes('a')),
+                'fa-cloud-sun text-info': item.id !== '' && (item.name.includes('B') || item.name.includes('b')),
+                'fa-moon text-purple': item.id !== '' && (item.name.includes('C') || item.name.includes('c')),
+                'fa-clock text-secondary': item.id !== '' && !item.name.includes('A') && !item.name.includes('a') && !item.name.includes('B') && !item.name.includes('b') && !item.name.includes('C') && !item.name.includes('c')
+              }"></i>
+              {{ item.name }}
+            </ng-template>
+          </ng-select>
         </div>
       </div>
 
@@ -99,12 +114,8 @@
       <div class="d-md-flex justify-content-between align-items-center my-3">
         <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
           <span class="show-entery-text">Show</span>
-          <ng-select [items]="tableSizes" 
-                     [(ngModel)]="tableSize" 
-                     (change)="onTableSizeChange($event)" 
-                     [clearable]="false" 
-                     [searchable]="false" 
-                     class="custom-ng-select min-w-[80px]">
+          <ng-select [items]="tableSizes" [(ngModel)]="tableSize" (change)="onTableSizeChange($event)"
+            [clearable]="false" [searchable]="false" class="custom-ng-select min-w-[80px]">
           </ng-select>
           <span class="show-entery-text">entries</span>
         </div>
@@ -114,17 +125,30 @@
         <table class="table table-bordered table-hover table-striped mb-0">
           <thead class="table-header">
             <tr>
-              <th style="width: 80px;"><p class="table-heading">Sr No.</p></th>
-              <th><p class="table-heading">Employee Name</p></th>
+              <th style="width: 80px;">
+                <p class="table-heading">Sr No.</p>
+              </th>
+              <th>
+                <p class="table-heading">Employee Name</p>
+              </th>
               <!-- <th><p class="table-heading">Site</p></th> -->
-              <th><p class="table-heading">Department</p></th>
-              <th><p class="table-heading">Relay</p></th>
-              <th style="width: 150px;"><p class="table-heading">Active Shift</p></th>
-              <th style="width: 180px;"><p class="table-heading">Action</p></th>
+              <th>
+                <p class="table-heading">Department</p>
+              </th>
+              <th>
+                <p class="table-heading">Relay</p>
+              </th>
+              <th style="width: 150px;">
+                <p class="table-heading">Active Shift</p>
+              </th>
+              <th style="width: 180px;">
+                <p class="table-heading">Action</p>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let emp of filteredShiftEmployees | paginate: { id: 'shift-pagination', itemsPerPage: showEntries, currentPage: pShift, totalItems: totalShiftEmployees }; index as i">
+            <tr
+              *ngFor="let emp of filteredShiftEmployees | paginate: { id: 'shift-pagination', itemsPerPage: showEntries, currentPage: pShift, totalItems: totalShiftEmployees }; index as i">
               <td>
                 {{ (pShift - 1) * showEntries + i + 1 }}
               </td>
@@ -141,23 +165,23 @@
                 <p>{{ emp.relay || 'N/A' }}</p>
               </td>
               <td>
-                <p>{{ activeTab }}</p>
+                <p>{{ emp.shift}}</p>
               </td>
               <td>
                 <p class="d-flex gap-2 mb-0">
                   <!-- Roster Details Button -->
-                  <button class="btn-action view-btn"
-                    (click)="openDetailsModal(emp)" data-tooltip="View Details" type="button">
+                  <button class="btn-action view-btn" (click)="openDetailsModal(emp)" data-tooltip="View Details"
+                    type="button">
                     <i class="fa-solid fa-eye"></i>
                   </button>
                   <!-- Manual Override Button -->
-                  <button class="btn-action edit-btn"
-                    (click)="openOverrideModal('change', emp.id)" data-tooltip="Override Shift" type="button">
+                  <button class="btn-action edit-btn" (click)="openOverrideModal('change', emp)"
+                    data-tooltip="Change Shift" type="button">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
                   <!-- Swap Shift Button -->
                   <!-- <button class="btn-action history-btn"
-                    (click)="openOverrideModal('swap', emp.id)" data-tooltip="Swap Shift" type="button">
+                    (click)="openOverrideModal('swap', emp)" data-tooltip="Swap Shift" type="button">
                     <i class="fa-solid fa-arrow-right-arrow-left"></i>
                   </button> -->
                 </p>
@@ -174,8 +198,8 @@
           *ngIf="totalShiftEmployees > 0">
           <span class="showalltext">Showing
             {{ totalShiftEmployees > 0 ? (showEntries * (pShift - 1) + 1) : 0 }} to
-            {{ (showEntries * pShift) <= totalShiftEmployees ? (showEntries * pShift) : totalShiftEmployees }}
-              of {{ totalShiftEmployees }} entries</span>
+            {{ (showEntries * pShift) <= totalShiftEmployees ? (showEntries * pShift) : totalShiftEmployees }} of {{
+              totalShiftEmployees }} entries</span>
               <pagination-controls id="shift-pagination" previousLabel="Prev" nextLabel="Next" [responsive]="true"
                 (pageChange)="onPageChange($event)" target="_top"></pagination-controls>
         </div>
@@ -220,7 +244,7 @@
 
     <!-- Modal Header -->
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
-      <h4 class="mb-0 text-primary fw-bold">Manual Shift Override</h4>
+      <h4 class="mb-0 text-primary fw-bold">Change Shift</h4>
       <button class="btn bg-transparent border-0 p-0" (click)="closeModal()">
         <i class="fa-solid fa-xmark fs-4 text-muted"></i>
       </button>
@@ -229,41 +253,27 @@
     <!-- Modal Form -->
     <form [formGroup]="overrideForm" (ngSubmit)="applyOverride()" class="d-flex flex-column overflow-hidden">
       <div class="px-4 py-4 overflow-auto">
-        <!-- Action Type Radio Toggle -->
-        <div class="mb-4">
-          <label class="form-label form-lable-custom">Override Action *</label>
-          <div class="btn-group w-100" role="group">
-            <input type="radio" class="btn-check" name="type" id="btnChange" value="change" formControlName="type">
-            <label class="btn btn-outline-primary py-2 fs-7" for="btnChange">
-              <i class="fa-solid fa-pen me-1"></i>Change Shift
-            </label>
-
-            <!-- <input type="radio" class="btn-check" name="type" id="btnSwap" value="swap" formControlName="type">
-            <label class="btn btn-outline-primary py-2 fs-7" for="btnSwap">
-              <i class="fa-solid fa-arrow-right-arrow-left me-1"></i>Swap Shifts
-            </label>
-
-            <input type="radio" class="btn-check" name="type" id="btnStandby" value="standby" formControlName="type">
-            <label class="btn btn-outline-primary py-2 fs-7" for="btnStandby">
-              <i class="fa-solid fa-user-plus me-1"></i>Assign Standby
-            </label> -->
+        <!-- Action Type Radio Toggle (Hidden) -->
+        <ng-container *ngIf="false">
+          <div class="mb-4">
+            <label class="form-label form-lable-custom">Override Action *</label>
+            <div class="btn-group w-100" role="group">
+              <input type="radio" class="btn-check" name="type" id="btnChange" value="change" formControlName="type">
+              <label class="btn btn-outline-primary py-2 fs-7" for="btnChange">
+                <i class="fa-solid fa-pen me-1"></i>Change Shift
+              </label>
+            </div>
           </div>
-        </div>
+        </ng-container>
 
         <div class="row g-3">
           <!-- Primary Employee Selection -->
           <div class="col-md-12">
             <label class="form-label form-lable-custom">
-              {{ overrideForm.get('type')?.value === 'standby' ? 'Original Employee' : 'Employee' }} *
+              Employee *
             </label>
-            <ng-select
-              [items]="employees"
-              bindLabel="name"
-              bindValue="id"
-              placeholder="Select Employee"
-              formControlName="employeeId"
-              class="custom-ng-select"
-              appendTo="body"
+            <ng-select [items]="overrideEmployees" bindLabel="name" bindValue="id" placeholder="Select Employee"
+              formControlName="employeeId" class="custom-ng-select" appendTo="body"
               [ngClass]="{'is-invalid': overrideForm.get('employeeId')?.invalid && overrideForm.get('employeeId')?.touched}">
               <ng-template ng-option-tmp let-item="item">
                 {{ item.name }} ({{ item.employee_code || item.empId }})
@@ -272,7 +282,8 @@
                 {{ item.name }} ({{ item.employee_code || item.empId }})
               </ng-template>
             </ng-select>
-            <div class="text-danger fs-8 mt-1" *ngIf="overrideForm.get('employeeId')?.invalid && overrideForm.get('employeeId')?.touched">
+            <div class="text-danger fs-8 mt-1"
+              *ngIf="overrideForm.get('employeeId')?.invalid && overrideForm.get('employeeId')?.touched">
               Employee selection is required.
             </div>
           </div>
@@ -282,17 +293,12 @@
           <!-- 1. Change Shift: Target Shift Dropdown -->
           <div class="col-md-12 animate-fade" *ngIf="overrideForm.get('type')?.value === 'change'">
             <label class="form-label form-lable-custom">New Assigned Shift <span class="text-danger">*</span></label>
-            <ng-select
-              [items]="allShiftsList"
-              bindLabel="name"
-              bindValue="id"
-              placeholder="Select Target Shift"
-              formControlName="newShift"
-              class="custom-ng-select"
-              appendTo="body"
+            <ng-select [items]="allShiftsList" bindLabel="name" bindValue="id" placeholder="Select Target Shift"
+              formControlName="newShift" class="custom-ng-select" appendTo="body"
               [ngClass]="{'is-invalid': overrideForm.get('newShift')?.invalid && overrideForm.get('newShift')?.touched}">
             </ng-select>
-            <div class="text-danger fs-8 mt-1" *ngIf="overrideForm.get('newShift')?.invalid && overrideForm.get('newShift')?.touched">
+            <div class="text-danger fs-8 mt-1"
+              *ngIf="overrideForm.get('newShift')?.invalid && overrideForm.get('newShift')?.touched">
               Target shift is required.
             </div>
           </div>
@@ -351,7 +357,7 @@
       <div class="px-4 py-3 border-top bg-light text-end">
         <button class="btn btn-secondary px-4 py-2 me-2" type="button" (click)="closeModal()">Cancel</button>
         <button class="btn btn-custom-primary px-4 py-2" type="submit">
-          Apply Override
+          Change Shift
         </button>
       </div>
     </form>
@@ -378,11 +384,17 @@
     <!-- Scrollable Body Content -->
     <div class="card-body mb-0 overflow-auto" style="background: #fafbfd; padding: 24px !important;">
       <!-- Premium Summary Banner - Consistent Steel Blue Brand Gradient -->
-      <div class="shift-summary-banner" style="background: linear-gradient(135deg, #468faf 0%, #2c7da0 100%); border-radius: 12px; padding: 20px 24px; color: #ffffff; box-shadow: 0 4px 20px rgba(70, 143, 175, 0.25); position: relative; overflow: hidden; margin-bottom: 24px;">
+      <div class="shift-summary-banner"
+        style="background: linear-gradient(135deg, #468faf 0%, #2c7da0 100%); border-radius: 12px; padding: 20px 24px; color: #ffffff; box-shadow: 0 4px 20px rgba(70, 143, 175, 0.25); position: relative; overflow: hidden; margin-bottom: 24px;">
         <div class="banner-content" style="position: relative; z-index: 2;">
-          <div class="banner-label" style="font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; margin-bottom: 4px;">Employee Roster Details</div>
-          <div class="banner-value" style="font-size: 24px; font-weight: 800; line-height: 1.2; font-family: 'Montserrat', sans-serif;">{{ selectedEmployeeForDetails?.name }}</div>
-          <div class="banner-subtitle" style="font-size: 13px; opacity: 0.95; margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+          <div class="banner-label"
+            style="font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; opacity: 0.85; margin-bottom: 4px;">
+            Employee Roster Details</div>
+          <div class="banner-value"
+            style="font-size: 24px; font-weight: 800; line-height: 1.2; font-family: 'Montserrat', sans-serif;">{{
+            selectedEmployeeForDetails?.name }}</div>
+          <div class="banner-subtitle"
+            style="font-size: 13px; opacity: 0.95; margin-top: 4px; display: flex; align-items: center; gap: 8px;">
             <i class="fa-solid fa-map-location-dot"></i> {{ selectedEmployeeForDetails?.location }}
             <span class="mx-1">|</span>
             <i class="fa-solid fa-briefcase"></i> {{ selectedEmployeeForDetails?.department }}
@@ -391,20 +403,28 @@
       </div>
 
       <!-- Month Navigation & Summary Bar -->
-      <div class="bg-white border rounded-3 p-3 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3 shadow-xs" style="border: 1px solid #e2e8f0 !important;">
+      <div
+        class="bg-white border rounded-3 p-3 mb-4 d-flex flex-wrap align-items-center justify-content-between gap-3 shadow-xs"
+        style="border: 1px solid #e2e8f0 !important;">
         <!-- Month Stepper Selector -->
         <div class="d-flex align-items-center gap-2">
-          <button class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;" (click)="navigateMonth(-1)" title="Previous Month">
+          <button class="btn btn-sm btn-outline-secondary rounded-circle"
+            style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;"
+            (click)="navigateMonth(-1)" title="Previous Month">
             <i class="fa-solid fa-chevron-left"></i>
           </button>
           <div class="input-group" style="max-width: 175px;">
-            <span class="input-group-text bg-white text-muted border-end-0 py-1.5 px-2.5 fs-8" style="border-top-left-radius: 8px; border-bottom-left-radius: 8px; border-color: #cbd5e1;">
+            <span class="input-group-text bg-white text-muted border-end-0 py-1.5 px-2.5 fs-8"
+              style="border-top-left-radius: 8px; border-bottom-left-radius: 8px; border-color: #cbd5e1;">
               <i class="fa-solid fa-calendar-minus"></i>
             </span>
             <input type="month" class="form-control form-input-custom border-start-0 ps-0 py-1.5 fs-8 fw-semibold"
-              [(ngModel)]="selectedMonth" style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-color: #cbd5e1; height: 34px;">
+              [(ngModel)]="selectedMonth" (ngModelChange)="onMonthChange($event)"
+              style="border-top-left-radius: 0; border-bottom-left-radius: 0; border-color: #cbd5e1; height: 34px;">
           </div>
-          <button class="btn btn-sm btn-outline-secondary rounded-circle" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;" (click)="navigateMonth(1)" title="Next Month">
+          <button class="btn btn-sm btn-outline-secondary rounded-circle"
+            style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;"
+            (click)="navigateMonth(1)" title="Next Month">
             <i class="fa-solid fa-chevron-right"></i>
           </button>
         </div>
@@ -413,8 +433,7 @@
         <div class="d-flex align-items-center gap-2 flex-wrap" *ngIf="monthlyDetailsData">
           <span class="fs-8 text-muted fw-semibold me-1">Monthly Summary:</span>
           <ng-container *ngFor="let summary of monthlyDetailsData.monthly_summary">
-            <span class="badge px-2.5 py-1.5 fs-8 rounded-pill fw-semibold"
-                  [ngClass]="{
+            <span class="badge px-2.5 py-1.5 fs-8 rounded-pill fw-semibold" [ngClass]="{
                     'bg-light-primary text-primary border border-primary-light': summary.label === 'Shift A',
                     'bg-light-success text-success border border-success-light': summary.label === 'Shift B',
                     'bg-light-orange text-orange border border-orange-light': summary.label === 'Shift C',
@@ -427,12 +446,17 @@
       </div>
 
       <!-- Weekly grouped cards container -->
-      <div class="grid-section-title" style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">Roster Calendar Timeline</div>
+      <div class="grid-section-title"
+        style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        Roster Calendar Timeline</div>
       <div class="d-flex flex-column gap-3" *ngIf="monthlyDetailsData">
         <!-- Loop over each week from API -->
-        <div *ngFor="let wk of monthlyDetailsData.timeline_weeks" class="card border-0 shadow-sm rounded-3 overflow-hidden" style="border: 1px solid #e2e8f0 !important;">
-          <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;">
-            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style="font-family: 'Montserrat', sans-serif; font-size: 14px;">
+        <div *ngFor="let wk of monthlyDetailsData.timeline_weeks"
+          class="card border-0 shadow-sm rounded-3 overflow-hidden" style="border: 1px solid #e2e8f0 !important;">
+          <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center"
+            style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;">
+            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2"
+              style="font-family: 'Montserrat', sans-serif; font-size: 14px;">
               <i class="fa-regular fa-calendar text-primary fs-6"></i>
               {{ wk.week_name }} <span class="text-muted font-normal fs-8">({{ wk.days_range }})</span>
             </h6>
@@ -441,13 +465,16 @@
           <div class="card-body p-0" style="background: #ffffff;">
             <!-- Weekly timeline list block -->
             <div class="list-group list-group-flush">
-              <div class="list-group-item d-flex align-items-center justify-content-between py-3 px-4 transition-all border-0 border-bottom-1"
+              <div
+                class="list-group-item d-flex align-items-center justify-content-between py-3 px-4 transition-all border-0 border-bottom-1"
                 style="border-bottom: 1px solid #f1f5f9; background: #ffffff;">
-                
+
                 <div class="d-flex align-items-center gap-4 flex-grow-1 px-3 justify-content-start">
                   <!-- Shift Code badge -->
                   <div>
-                    <span class="badge rounded-pill font-bold px-3 py-1.5 fs-8 text-white shadow-xs d-inline-block text-center" style="min-width: 85px; font-weight: 700;" [ngClass]="{
+                    <span
+                      class="badge rounded-pill font-bold px-3 py-1.5 fs-8 text-white shadow-xs d-inline-block text-center"
+                      style="min-width: 85px; font-weight: 700;" [ngClass]="{
                             'bg-primary': wk.shift_name === 'Shift A',
                             'bg-success': wk.shift_name === 'Shift B',
                             'bg-orange': wk.shift_name === 'Shift C',
@@ -457,7 +484,8 @@
                     </span>
                   </div>
                   <!-- Exact Timing Duration -->
-                  <div *ngIf="wk.label" class="d-flex align-items-center gap-2 text-muted fs-8" style="min-width: 140px;">
+                  <div *ngIf="wk.label" class="d-flex align-items-center gap-2 text-muted fs-8"
+                    style="min-width: 140px;">
                     <i class="fa-regular fa-clock fs-8"></i>
                     <span class="fw-semibold text-dark">{{ wk.label }}</span>
                   </div>
@@ -483,7 +511,7 @@
 <!-- Bulk Group Rotation Modal -->
 <div *ngIf="isBulkRotateModalOpen" class="modal-overlay" [@fadeIn]>
   <div class="modal-dialog-medium bg-white rounded-3 shadow-lg d-flex flex-column">
-    
+
     <!-- Modal Header -->
     <div class="modal-header-custom px-4 py-3 d-flex justify-content-between align-items-center border-bottom">
       <h5 class="modal-title fw-bold text-primary mb-0">
@@ -498,32 +526,28 @@
     <form [formGroup]="bulkRotateForm" (ngSubmit)="applyBulkRotation()" class="d-flex flex-column overflow-hidden">
       <div class="modal-body-custom p-4 flex-grow-1" style="overflow: visible;">
         <div class="row g-3">
-          
+
 
           <!-- Select Employees List -->
           <div class="col-md-12">
-            <label class="form-label form-lable-custom">Select Employees to Rotate <span class="text-danger">*</span></label>
-            <ng-select
-              formControlName="employeeIds"
-              [items]="filteredEmployeesForRotation"
-              bindLabel="name"
-              bindValue="id"
-              [multiple]="true"
-              [closeOnSelect]="false"
-              placeholder="Search & Select Employees"
-              class="custom-ng-select w-100"
-              [searchFn]="customSearchFn"
-              [virtualScroll]="false"
-              #rotateSelect
+            <label class="form-label form-lable-custom">Select Employees to Rotate <span
+                class="text-danger">*</span></label>
+            <ng-select formControlName="employeeIds" [items]="filteredEmployeesForRotation" bindLabel="name"
+              bindValue="id" [multiple]="true" [closeOnSelect]="false" placeholder="Search & Select Employees"
+              class="custom-ng-select w-100" [searchFn]="customSearchFn" [virtualScroll]="false" #rotateSelect
               (change)="clearRotateSearch(rotateSelect)">
               <ng-template ng-multi-label-tmp let-items="items" let-clear="clear">
-                <ng-container *ngIf="items.length === filteredEmployeesForRotation.length && filteredEmployeesForRotation.length > 0">
+                <ng-container
+                  *ngIf="items.length === filteredEmployeesForRotation.length && filteredEmployeesForRotation.length > 0">
                   <div class="ng-value">
-                    <span class="ng-value-label fw-semibold text-primary">All Employees Selected ({{ items.length }})</span>
-                    <span class="ng-value-icon right" (click)="clearAllRotateSelection($event)" aria-hidden="true">×</span>
+                    <span class="ng-value-label fw-semibold text-primary">All Employees Selected ({{ items.length
+                      }})</span>
+                    <span class="ng-value-icon right" (click)="clearAllRotateSelection($event)"
+                      aria-hidden="true">×</span>
                   </div>
                 </ng-container>
-                <ng-container *ngIf="items.length !== filteredEmployeesForRotation.length || filteredEmployeesForRotation.length === 0">
+                <ng-container
+                  *ngIf="items.length !== filteredEmployeesForRotation.length || filteredEmployeesForRotation.length === 0">
                   <div class="ng-value" *ngFor="let item of items">
                     <span class="ng-value-label">{{ item.name }}</span>
                     <span class="ng-value-icon right" (click)="clear(item)" aria-hidden="true">×</span>
@@ -531,16 +555,18 @@
                 </ng-container>
               </ng-template>
               <ng-template ng-header-tmp>
-                <div class="d-flex align-items-center gap-2 p-2 border-bottom cursor-pointer select-all-header" 
-                     (click)="toggleAllRotateEmployees()"
-                     style="user-select: none;">
-                  <input type="checkbox" class="form-check-input cursor-pointer" [checked]="areAllRotateEmployeesSelected()" style="margin-top: 0; pointer-events: none;" />
-                  <span class="fw-bold fs-7 text-dark">Select All ({{ filteredEmployeesForRotation.length }} employees)</span>
+                <div class="d-flex align-items-center gap-2 p-2 border-bottom cursor-pointer select-all-header"
+                  (click)="toggleAllRotateEmployees()" style="user-select: none;">
+                  <input type="checkbox" class="form-check-input cursor-pointer"
+                    [checked]="areAllRotateEmployeesSelected()" style="margin-top: 0; pointer-events: none;" />
+                  <span class="fw-bold fs-7 text-dark">Select All ({{ filteredEmployeesForRotation.length }}
+                    employees)</span>
                 </div>
               </ng-template>
               <ng-template ng-option-tmp let-item="item" let-item$="item$" let-index="index">
                 <div class="d-flex align-items-center gap-2 py-1" style="user-select: none;">
-                  <input type="checkbox" class="form-check-input cursor-pointer" [checked]="item$.selected" style="margin-top: 0; pointer-events: none;" />
+                  <input type="checkbox" class="form-check-input cursor-pointer" [checked]="item$.selected"
+                    style="margin-top: 0; pointer-events: none;" />
                   <div class="d-flex flex-column text-start">
                     <span class="fw-semibold fs-7">{{ item.name }}</span>
                     <span class="text-muted fs-8">{{ item.employee_code || item.empId }}</span>
@@ -548,7 +574,8 @@
                 </div>
               </ng-template>
             </ng-select>
-            <div class="text-danger fs-8 mt-1" *ngIf="bulkRotateForm.get('employeeIds')?.invalid && bulkRotateForm.get('employeeIds')?.touched">
+            <div class="text-danger fs-8 mt-1"
+              *ngIf="bulkRotateForm.get('employeeIds')?.invalid && bulkRotateForm.get('employeeIds')?.touched">
               Please select at least one employee to rotate.
             </div>
           </div>
@@ -557,36 +584,36 @@
           <!-- Target Shift Selection -->
           <div class="col-md-12">
             <label class="form-label form-lable-custom">Target Shift <span class="text-danger">*</span></label>
-            <ng-select
-              [items]="allShiftsList"
-              bindLabel="name"
-              bindValue="id"
-              placeholder="Select Target Shift"
-              formControlName="targetShift"
-              class="custom-ng-select"
-              appendTo="body"
+            <ng-select [items]="allShiftsList" bindLabel="name" bindValue="id" placeholder="Select Target Shift"
+              formControlName="targetShift" class="custom-ng-select" appendTo="body"
               [ngClass]="{'is-invalid': bulkRotateForm.get('targetShift')?.invalid && bulkRotateForm.get('targetShift')?.touched}">
             </ng-select>
-            <div class="text-danger fs-8 mt-1" *ngIf="bulkRotateForm.get('targetShift')?.invalid && bulkRotateForm.get('targetShift')?.touched">
+            <div class="text-danger fs-8 mt-1"
+              *ngIf="bulkRotateForm.get('targetShift')?.invalid && bulkRotateForm.get('targetShift')?.touched">
               Please select the target shift.
             </div>
           </div>
 
           <!-- Apply Override Checkbox -->
-          <div class="col-md-12 mt-3">
-            <div class="form-check form-switch d-flex align-items-center">
-              <input class="form-check-input mt-0" type="checkbox" id="overrideSwitch" formControlName="override" style="transform: scale(1.1); cursor: pointer;">
-              <label class="form-check-label ms-2 form-lable-custom mb-0 cursor-pointer" for="overrideSwitch">
-                Apply Override <span class="text-muted fw-normal fs-8">(Force rotate for non-relay/inactive employees)</span>
-              </label>
+          <ng-container *ngIf="false">
+            <div class="col-md-12 mt-3">
+              <div class="form-check form-switch d-flex align-items-center">
+                <input class="form-check-input mt-0" type="checkbox" id="overrideSwitch" formControlName="override"
+                  style="transform: scale(1.1); cursor: pointer;">
+                <label class="form-check-label ms-2 form-lable-custom mb-0 cursor-pointer" for="overrideSwitch">
+                  Apply Override <span class="text-muted fw-normal fs-8">(Force rotate for non-relay/inactive
+                    employees)</span>
+                </label>
+              </div>
             </div>
-          </div>
+          </ng-container>
         </div>
       </div>
 
       <!-- Footer Buttons -->
       <div class="modal-footer px-4 py-3 border-top bg-light d-flex gap-3">
-        <button class="btn btn-secondary flex-grow-1 py-2" type="button" (click)="closeBulkRotationModal()">Cancel</button>
+        <button class="btn btn-secondary flex-grow-1 py-2" type="button"
+          (click)="closeBulkRotationModal()">Cancel</button>
         <button class="btn btn-custom-primary flex-grow-1 py-2" type="submit">
           <i class="fa-solid fa-rotate me-1"></i> Rotate Shift
         </button>

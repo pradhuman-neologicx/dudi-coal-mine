@@ -9,7 +9,7 @@ import { ShiftPlanningService } from 'src/app/core/services/shift-planning.servi
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { DelayService } from 'src/app/core/services/delay.service';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 Chart.register(...registerables);
 
@@ -77,6 +77,7 @@ export interface ImportResult {
 })
 export class DelayReportComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private dateChangeSubject = new Subject<string>();
 
   constructor(
     private shiftPlanningService: ShiftPlanningService,
@@ -161,6 +162,14 @@ export class DelayReportComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.fetchDropdowns();
     this.getDelayLogs();
+
+    this.dateChangeSubject.pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(date => {
+      this.fetchShiftForDate(date);
+    });
   }
 
   ngOnDestroy(): void {
@@ -564,9 +573,12 @@ export class DelayReportComponent implements OnInit, OnDestroy {
 
   onDateChange() {
     if (this.isBindingData) return;
+    this.dateChangeSubject.next(this.formData.date || '');
+  }
 
-    if (this.formData.date) {
-      this.shiftPlanningService.shiftPlanFilterByDate(this.formData.date).pipe(takeUntil(this.destroy$)).subscribe({
+  fetchShiftForDate(dateValue: string) {
+    if (dateValue) {
+      this.shiftPlanningService.shiftPlanFilterByDate(dateValue).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res && res.status === 200 && res.data) {
             console.log('Shift Data Response (by-datetime):', res.data);
@@ -586,7 +598,6 @@ export class DelayReportComponent implements OnInit, OnDestroy {
               }
             }
           } else {
-            this.notificationService.show(res?.message || 'No shift plan found for the selected date.', 'error');
             this.formData.shiftId = null;
             this.shiftName = '';
             this.shiftStartTime = '';
@@ -598,7 +609,6 @@ export class DelayReportComponent implements OnInit, OnDestroy {
         },
         error: (err: any) => {
           console.error('Error fetching shift by datetime', err);
-          this.notificationService.show(err.error?.message || err.message || 'Error fetching shift details.', 'error');
           this.formData.shiftId = null;
           this.shiftName = '';
           this.shiftStartTime = '';

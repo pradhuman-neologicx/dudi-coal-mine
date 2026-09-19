@@ -127,41 +127,47 @@ export class SidenavComponent {
               icon: 'school',
               label: 'Training Type',
               route: '/admin/master/training-type',
-              enabled: false,
+
             },
             {
               index: 9,
               icon: 'warning',
               label: 'Incident Type',
               route: '/admin/master/incident-type',
-              enabled: false,
+
             },
             {
               index: 10,
               icon: 'build_circle',
               label: 'Breakdown Type',
               route: '/admin/master/breakdown-type',
-              enabled: false,
+
             },
             {
               index: 11,
               icon: 'timer',
               label: 'Delay Type',
               route: '/admin/master/delay-type',
-              enabled: false,
+
             },
             {
               index: 12,
               icon: 'place',
               label: 'Dumping Point',
               route: '/admin/master/dumping-point',
-              enabled: false,
+
             },
             {
               index: 13,
               icon: 'attach_money',
               label: 'Wage Master',
               route: '/admin/master/wage-master',
+            },
+            {
+              index: 14,
+              icon: 'store',
+              label: 'Store Management',
+              route: '/admin/master/store',
             },
             // {
             //   index: 10,
@@ -228,7 +234,7 @@ export class SidenavComponent {
         {
           index: 6,
           icon: 'business_center',
-          label: 'Gov. Tab',
+          label: 'Govt. Tab',
           route: '/admin/gov_tab',
           subItems: [
             {
@@ -277,7 +283,7 @@ export class SidenavComponent {
           icon: 'store',
           label: 'Inventory Mgt.',
           route: '/admin/inventory-management',
-          enabled: false,
+
           subItems: [
             {
               index: 1,
@@ -304,14 +310,14 @@ export class SidenavComponent {
           icon: 'model_training',
           label: 'Training Mgt.',
           route: '/admin/training-management',
-          enabled: false,
+
         },
         {
           index: 11,
           icon: 'inventory',
           label: 'Equipment Mgt.',
           route: '/admin/equipment-management',
-          enabled: false,
+
           subItems: [
             {
               index: 1,
@@ -333,7 +339,7 @@ export class SidenavComponent {
           icon: 'engineering',
           label: 'Operations',
           route: '/admin/operations',
-          enabled: false,
+
           subItems: [
             {
               index: 1,
@@ -447,7 +453,7 @@ export class SidenavComponent {
           icon: 'inventory',
           label: 'Equipment Mgt.',
           route: '/admin/equipment-management',
-          enabled: false,
+
           subItems: [
             {
               index: 1,
@@ -474,7 +480,7 @@ export class SidenavComponent {
           icon: 'engineering',
           label: 'Operations',
           route: '/admin/operations',
-          enabled: false,
+
           subItems: [
             {
               index: 1,

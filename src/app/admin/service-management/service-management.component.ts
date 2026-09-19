@@ -9,6 +9,7 @@ import { EquipmentService } from 'src/app/core/services/equipment.service';
 import { BreakdownTypeService } from 'src/app/core/services/breakdown-type.service';
 import { ProductService } from 'src/app/core/services/product.service';
 import { ShiftPlanningService } from 'src/app/core/services/shift-planning.service';
+import { StoreService } from 'src/app/core/services/store.service';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
@@ -86,18 +87,21 @@ export interface ServiceRecordItem {
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPaginationModule, NgSelectModule],
   templateUrl: './service-management.component.html',
-  styleUrl: './service-management.component.scss'
+  styleUrls: ['./service-management.component.scss']
 })
 export class ServiceManagementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   isLoading = false;
   isSubmitting = false;
   selectedFiles: File[] = [];
+  existingAttachments: any[] = [];
   maxDate = new Date().toISOString().split('T')[0];
   
   // Modals
   isBreakdownModalOpen = false;
   isServiceModalOpen = false;
+  isDeleteAttachmentModalOpen = false;
+  attachmentToDeleteIndex: number | null = null;
 
   // Forms
   breakdownForm!: FormGroup;
@@ -138,6 +142,9 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
   breakdownMachines: any[] = [];
   breakdownWorkforce: any[] = [];
 
+  storesList: any[] = [];
+  storeProductsMap: { [key: number]: any[] } = {};
+
   constructor(
     private fb: FormBuilder,
     private serviceRecordService: ServiceRecordService,
@@ -145,7 +152,8 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
     private equipmentService: EquipmentService,
     private breakdownService: BreakdownTypeService,
     private productService: ProductService,
-    private shiftPlanningService: ShiftPlanningService
+    private shiftPlanningService: ShiftPlanningService,
+    private storeService: StoreService
   ) {}
 
   ngOnInit() {
@@ -155,6 +163,7 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
     this.fetchActiveBreakdowns();
     this.fetchSparePartsList();
     this.fetchServiceRecords();
+    this.fetchStores();
     this.calculateKPIs();
     this.totalRecords = this.servicesList.length;
   }
@@ -177,6 +186,18 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
         }
       },
       error: (err: any) => console.error('Error fetching active machines:', err)
+    });
+  }
+
+  fetchStores() {
+    this.storeService.getAllStores().pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200 && res.data) {
+          const list = Array.isArray(res.data) ? res.data : (res.data?.data || res.data || []);
+          this.storesList = list;
+        }
+      },
+      error: (err: any) => console.error('Error fetching stores:', err)
     });
   }
 
@@ -341,6 +362,7 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
       oilFilterChangeAmount: [0, [Validators.min(0)]],
     
       sparePartsChange: ['No'],
+      jobCardNumber: [''],
       spareParts: this.fb.array([]),
       remarks: [''],
       
@@ -447,7 +469,8 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
 
   addSparePart() {
     this.spareParts.push(this.fb.group({
-      source: ['Inventory', Validators.required],
+      source: ['Store', Validators.required],
+      storeId: [null, Validators.required],
       partId: [null],
       partName: [null, Validators.required],
       vendorName: [''],
@@ -459,12 +482,73 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
   onSourceChange(index: number) {
     const control = this.spareParts.at(index);
     control.patchValue({
+      storeId: null,
       partId: null,
       partName: null,
       vendorName: '',
       amount: 0
     });
+    
+    if (control.get('source')?.value === 'Store') {
+      control.get('storeId')?.setValidators([Validators.required]);
+    } else {
+      control.get('storeId')?.clearValidators();
+    }
+    control.get('storeId')?.updateValueAndValidity();
+    
+    this.checkStoreValidation();
     this.calculateTotalAmount();
+  }
+
+  checkStoreValidation() {
+    let firstStoreId: any = null;
+
+    this.spareParts.controls.forEach((control) => {
+      if (control.get('source')?.value === 'Store') {
+        const currentStoreId = control.get('storeId')?.value;
+        if (currentStoreId) {
+          if (firstStoreId === null) {
+            firstStoreId = currentStoreId;
+            // Clear differentStore error if exists
+            if (control.get('storeId')?.hasError('differentStore')) {
+              const errors = { ...control.get('storeId')?.errors };
+              delete errors['differentStore'];
+              control.get('storeId')?.setErrors(Object.keys(errors).length ? errors : null);
+            }
+          } else if (firstStoreId !== currentStoreId) {
+            control.get('storeId')?.setErrors({ ...control.get('storeId')?.errors, differentStore: true });
+          } else {
+            if (control.get('storeId')?.hasError('differentStore')) {
+              const errors = { ...control.get('storeId')?.errors };
+              delete errors['differentStore'];
+              control.get('storeId')?.setErrors(Object.keys(errors).length ? errors : null);
+            }
+          }
+        }
+      }
+    });
+  }
+
+  onStoreChange(storeId: any, index: number, isInit = false) {
+    const control = this.spareParts.at(index);
+    if (!isInit) {
+      control.patchValue({
+        partId: null,
+        partName: null,
+        amount: 0
+      });
+    }
+    
+    if (storeId && !this.storeProductsMap[storeId]) {
+      this.storeService.getAvailableProductsByStore(storeId).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (res: any) => {
+          if (res && res.status === 200 && res.data) {
+            this.storeProductsMap[storeId] = res.data;
+          }
+        }
+      });
+    }
+    this.checkStoreValidation();
   }
 
   onInventoryPartSelect(part: any, index: number) {
@@ -488,9 +572,26 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
     this.calculateTotalAmount();
   }
 
+  onStorePartSelect(part: any, index: number) {
+    const control = this.spareParts.at(index);
+    if (part) {
+      control.patchValue({
+        partId: part.product_id || part.id,
+        partName: part.product_name || part.name,
+        amount: part.selling_price || part.price || part.unit_price || 0
+      });
+    } else {
+      control.patchValue({
+        partId: null,
+        amount: 0
+      });
+    }
+    this.calculateTotalAmount();
+  }
+
   onFileSelected(event: any) {
     const files = event.target.files;
-    if (files) {
+    if (files && files.length > 0) {
       for (let i = 0; i < files.length; i++) {
         this.selectedFiles.push(files[i]);
       }
@@ -501,8 +602,49 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
     this.selectedFiles.splice(index, 1);
   }
 
+  removeExistingAttachment(index: number) {
+    const attachment = this.existingAttachments[index];
+    if (attachment && attachment.id && this.editingServiceId) {
+      this.attachmentToDeleteIndex = index;
+      this.isDeleteAttachmentModalOpen = true;
+    } else {
+      // If it doesn't have an ID or not editing, just remove from UI
+      this.existingAttachments.splice(index, 1);
+    }
+  }
+
+  closeDeleteAttachmentModal() {
+    this.isDeleteAttachmentModalOpen = false;
+    this.attachmentToDeleteIndex = null;
+  }
+
+  confirmDeleteAttachment() {
+    if (this.attachmentToDeleteIndex !== null && this.editingServiceId) {
+      const index = this.attachmentToDeleteIndex;
+      const attachment = this.existingAttachments[index];
+      
+      if (attachment && attachment.id) {
+        this.isSubmitting = true; // Use loading state for button
+        this.serviceRecordService.deleteServiceAttachment(this.editingServiceId, attachment.id).pipe(takeUntil(this.destroy$)).subscribe({
+          next: (res) => {
+            this.isSubmitting = false;
+            this.notificationService.show('Attachment deleted successfully.', 'success', 3000);
+            this.existingAttachments.splice(index, 1);
+            this.closeDeleteAttachmentModal();
+          },
+          error: (err) => {
+            this.isSubmitting = false;
+            this.notificationService.show('Failed to delete attachment.', 'error', 3000);
+            this.closeDeleteAttachmentModal();
+          }
+        });
+      }
+    }
+  }
+
   removeSparePart(index: number) {
     this.spareParts.removeAt(index);
+    this.checkStoreValidation();
     this.calculateTotalAmount();
   }
 
@@ -606,6 +748,7 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
     this.serviceForm.get('machineId')?.enable();
     this.spareParts.clear();
     this.selectedFiles = [];
+    this.existingAttachments = [];
     this.editingServiceId = null;
     this.isServiceModalOpen = true;
   }
@@ -698,14 +841,16 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
       oilFilterChangeAmount: oilFAmt,
       sparePartsChange: sparePartsChange,
       spareParts: (spList || []).map((p: any) => ({
-        source: (p.source === 'inventory' || p.source_label === 'Inventory' || p.source === 'Inventory') ? 'Inventory' : 'Other Vendors',
-        partId: p.inventory_product_id || p.partId || p.part_id || null,
-        partName: p.part_name || p.partName || p.inventory_product?.name || '',
+        source: (p.source === 'inventory' || p.source_label === 'Inventory' || p.source === 'Inventory') ? 'Inventory' : 'Store',
+        storeId: p.store_id || p.storeId || data.store_id || null,
+        partId: p.product_id || p.inventory_product_id || p.store_product_id || p.partId || p.part_id || null,
+        partName: p.part_name || p.partName || p.inventory_product?.name || p.store_product?.product_name || p.store_product?.name || '',
         vendorName: p.vendor_name || p.vendorName || '',
         quantity: p.quantity !== undefined ? p.quantity : 1,
-        amount: p.amount !== undefined ? p.amount : 0
+        amount: p.unit_price !== undefined ? p.unit_price : (p.amount !== undefined && p.quantity ? (p.amount / p.quantity) : (p.amount || 0))
       })),
       totalCost: totalCost,
+      jobCardNumber: data.job_card_number || data.jobCardNumber || '',
       status: statusVal,
       remarks: data.remarks || fallback.remarks || '',
       attachments: data.attachments || fallback.attachments || []
@@ -756,6 +901,7 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
       oilFilterChange: parsed.oilFilterChange,
       oilFilterChangeAmount: parsed.oilFilterChangeAmount,
       sparePartsChange: parsed.sparePartsChange,
+      jobCardNumber: parsed.jobCardNumber || '',
       remarks: parsed.remarks || ''
     });
 
@@ -765,17 +911,24 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
        this.serviceForm.get('machineId')?.enable();
     }
 
+    this.existingAttachments = parsed.attachments || [];
+
     this.spareParts.clear();
     if (parsed.sparePartsChange === 'Yes' && parsed.spareParts && parsed.spareParts.length > 0) {
       parsed.spareParts.forEach((p: any) => {
         this.spareParts.push(this.fb.group({
-          source: [p.source || 'Other Vendors', Validators.required],
+          source: [p.source || 'Store', Validators.required],
+          storeId: [p.storeId || null, p.source === 'Store' ? Validators.required : null],
           partId: [p.partId || null],
           partName: [p.partName, Validators.required],
           vendorName: [p.vendorName || ''],
           quantity: [p.quantity, [Validators.required, Validators.min(1)]],
           amount: [p.amount, [Validators.required, Validators.min(0)]]
         }));
+        
+        if (p.storeId) {
+          this.onStoreChange(p.storeId, this.spareParts.length - 1, true);
+        }
       });
     }
 
@@ -866,24 +1019,24 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
       formData.append('is_breakdown_service', val.isBreakdown ? 'true' : 'false');
       if (val.isBreakdown && val.breakdownId) {
         formData.append('breakdown_id', val.breakdownId.toString());
-      } else {
-        formData.append('breakdown_id', '');
       }
       if (val.machineId) {
         formData.append('machine_id', val.machineId.toString());
-      } else {
-        formData.append('machine_id', '');
       }
       if (val.serviceDate) {
         formData.append('service_date', val.serviceDate);
       }
-      formData.append('hours_odometer_reading', val.odometerReading ? val.odometerReading.toString() : '');
-      formData.append('km_run', val.kmRun ? val.kmRun.toString() : '');
+      
+      if (val.odometerReading) {
+        formData.append('hours_odometer_reading', val.odometerReading.toString());
+      }
+      if (val.kmRun) {
+        formData.append('km_run', val.kmRun.toString());
+      }
       formData.append('time_gap_months', val.timeGap ? val.timeGap.toString() : '');
       formData.append('base_service_amount', (val.serviceTypeAmount || 0).toString());
 
       // Checklist
-      formData.append('checklist[]', '');
       formData.append('checklist[oil_change]', val.oilChange === 'Yes' ? 'true' : 'false');
       formData.append('checklist[oil_change_amount]', (val.oilChangeAmount || 0).toString());
       
@@ -897,31 +1050,59 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
       formData.append('checklist[fuel_filter_change_amount]', (val.fuelFilterChangeAmount || 0).toString());
       
       formData.append('checklist[oil_filter_change]', val.oilFilterChange === 'Yes' ? 'true' : 'false');
-      formData.append('checklist[oil_filter_change_amount]', (val.oilFilterChangeAmount || 0).toString());
+      formData.append('oil_filter_change_amount', val.oilFilterChangeAmount?.toString() || '0');
+      formData.append('spare_parts_changed', val.sparePartsChange === 'Yes' ? 'true' : 'false');
+      
+      if (val.jobCardNumber) {
+        formData.append('job_card_number', val.jobCardNumber);
+      }
 
       // Spare parts
-      formData.append('spare_parts_changed', val.sparePartsChange === 'Yes' ? 'true' : 'false');
-      formData.append('spare_parts[]', '');
+      let storeIdToSubmit: any = null;
       if (val.sparePartsChange === 'Yes' && val.spareParts && val.spareParts.length > 0) {
         val.spareParts.forEach((part: any, i: number) => {
-          const sourceVal = part.source === 'Inventory' ? 'inventory' : 'vendor';
-          formData.append(`spare_parts[${i}][source]`, sourceVal);
-          if (part.source === 'Inventory' && part.partId) {
-            formData.append(`spare_parts[${i}][inventory_product_id]`, part.partId.toString());
-          } else {
-            formData.append(`spare_parts[${i}][inventory_product_id]`, '');
+          formData.append(`spare_parts[${i}][source]`, part.source.toLowerCase());
+          
+          if (part.source === 'Inventory') {
+            if (part.partId) {
+              formData.append(`spare_parts[${i}][inventory_product_id]`, part.partId.toString());
+            }
+          } else if (part.source === 'Store') {
+            if (part.partId) {
+              formData.append(`spare_parts[${i}][store_product_id]`, part.partId.toString());
+            }
+            if (part.storeId) {
+              if (!storeIdToSubmit) {
+                storeIdToSubmit = part.storeId;
+              }
+            }
           }
-          formData.append(`spare_parts[${i}][part_name]`, part.partName || '');
-          formData.append(`spare_parts[${i}][vendor_name]`, part.vendorName || '');
+          
+          if (part.partName) {
+            formData.append(`spare_parts[${i}][part_name]`, part.partName);
+          }
+          if (part.vendorName) {
+            formData.append(`spare_parts[${i}][vendor_name]`, part.vendorName);
+          }
           formData.append(`spare_parts[${i}][quantity]`, (part.quantity || 1).toString());
           formData.append(`spare_parts[${i}][amount]`, (part.amount || 0).toString());
         });
+
+        if (storeIdToSubmit) {
+          formData.append('store_id', storeIdToSubmit.toString());
+        }
       }
 
-      formData.append('remarks', val.remarks || '');
+      if (val.remarks) {
+        formData.append('remarks', val.remarks);
+      }
 
-      formData.append('downtime_start', val.serviceStartTime ? (val.serviceStartTime.length === 5 ? `${val.serviceStartTime}:00` : val.serviceStartTime) : '');
-      formData.append('downtime_end', val.serviceEndTime ? (val.serviceEndTime.length === 5 ? `${val.serviceEndTime}:00` : val.serviceEndTime) : '');
+      if (val.serviceStartTime) {
+        formData.append('downtime_start', val.serviceStartTime.length === 5 ? `${val.serviceStartTime}:00` : val.serviceStartTime);
+      }
+      if (val.serviceEndTime) {
+        formData.append('downtime_end', val.serviceEndTime.length === 5 ? `${val.serviceEndTime}:00` : val.serviceEndTime);
+      }
 
       // Attachments
       if (this.selectedFiles && this.selectedFiles.length > 0) {
@@ -929,6 +1110,8 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
           formData.append('attachments[]', file, file.name);
         });
       }
+
+
 
       const apiCall = this.editingServiceId 
         ? this.serviceRecordService.updateServiceRecord(this.editingServiceId, formData)
@@ -944,50 +1127,25 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
         error: (err: any) => {
           this.isSubmitting = false;
           console.error('Error saving service record:', err);
-          const machine = this.machines.find(m => m.id === val.machineId)?.name || 'Unknown';
-          const fallbackData = {
-            id: this.editingServiceId || (Math.floor(Math.random() * 1000) + 10),
-            breakdownId: val.isBreakdown ? val.breakdownId : null,
-            machineName: machine,
-            serviceDate: val.serviceDate,
-            serviceStartTime: val.serviceStartTime,
-            serviceEndTime: val.serviceEndTime,
-            odometerReading: val.odometerReading,
-            kmRun: val.kmRun,
-            timeGap: val.timeGap,
-            serviceType: val.serviceType,
-            serviceTypeAmount: val.serviceTypeAmount,
-            oilChange: val.oilChange,
-            oilChangeAmount: val.oilChangeAmount,
-            hydraulicOil: val.hydraulicOil,
-            hydraulicOilAmount: val.hydraulicOilAmount,
-            gearOil: val.gearOil,
-            gearOilAmount: val.gearOilAmount,
-            fuelFilterChange: val.fuelFilterChange,
-            fuelFilterChangeAmount: val.fuelFilterChangeAmount,
-            oilFilterChange: val.oilFilterChange,
-            oilFilterChangeAmount: val.oilFilterChangeAmount,
-            sparePartsChange: val.sparePartsChange,
-            spareParts: val.spareParts || [],
-            totalCost: val.totalAmount,
-            status: 'Completed',
-            remarks: val.remarks || '',
-            attachments: this.selectedFiles
-          };
-
-          if (this.editingServiceId) {
-            const index = this.servicesList.findIndex(s => s.id === this.editingServiceId);
-            if (index !== -1) {
-              this.servicesList[index] = { ...this.servicesList[index], ...fallbackData };
-            }
-          } else {
-            this.servicesList.unshift(fallbackData);
-          }
-          this.totalRecords = this.servicesList.length;
-          this.calculateKPIs();
-          this.closeModals();
+          this.notificationService.show(err.error?.message || err.message || 'Error saving service record. Please check the network tab for details.', 'error', 3000);
         }
       });
     }
+  }
+  getInvalidControls(): string[] {
+    const invalid: string[] = [];
+    const controls = this.serviceForm.controls;
+    for (const name in controls) {
+      if (controls[name].invalid) {
+        invalid.push(name);
+      }
+    }
+    if (this.spareParts.invalid) {
+      invalid.push('sparePartsArray');
+      this.spareParts.controls.forEach((ctrl, i) => {
+        if (ctrl.invalid) invalid.push(`sparePart[${i}]`);
+      });
+    }
+    return invalid;
   }
 }

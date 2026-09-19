@@ -11,7 +11,7 @@ import { IncidentTypeService } from '../../core/services/incident-type.service';
 import { NotificationService } from '../../core/services/notificationnew.service';
 import { ShiftPlanningService } from '../../core/services/shift-planning.service';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 export interface IncidentItem {
   id: number | string;
@@ -78,6 +78,7 @@ export interface ImportResult {
 })
 export class SafetyManagementComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private dateChangeSubject = new Subject<string>();
   
   isModalOpen = false;
   isDetailsPanelOpen = false;
@@ -136,6 +137,14 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadDropdowns();
     this.loadIncidents();
+
+    this.dateChangeSubject.pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(date => {
+      this.fetchShiftForDate(date);
+    });
   }
 
   ngOnDestroy(): void {
@@ -294,8 +303,11 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
       this.newIncidentForm.shift_name = '';
       return;
     }
+    this.dateChangeSubject.next(this.newIncidentForm.incident_date);
+  }
 
-    this.shiftPlanningService.shiftPlanFilterByDate(this.newIncidentForm.incident_date).pipe(takeUntil(this.destroy$)).subscribe({
+  fetchShiftForDate(dateValue: string) {
+    this.shiftPlanningService.shiftPlanFilterByDate(dateValue).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200 && res.data) {
           this.newIncidentForm.shift_id = res.data.id || res.data.shift_id || res.data;
@@ -332,7 +344,6 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
             this.shiftMachines = res.data.machines;
           }
         } else {
-          this.notificationService.show(res?.message || 'No shift plan found for the selected date.', 'error');
           this.newIncidentForm.shift_id = null;
           this.newIncidentForm.shift_name = 'No data found for this date';
           this.activeShiftEmployees = [];
@@ -340,7 +351,6 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         console.error('Error fetching shift by datetime', err);
-        this.notificationService.show(err.error?.message || err.message || 'Error fetching shift details.', 'error');
         this.newIncidentForm.shift_id = null;
         this.newIncidentForm.shift_name = 'No data found for this date';
         this.activeShiftEmployees = [];

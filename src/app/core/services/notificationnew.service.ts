@@ -26,9 +26,29 @@ export class NotificationService {
     type: 'success' | 'error' | 'info' = 'success',
     duration: number = 3000
   ): void {
+    // Prevent duplicate exact same messages
+    const isDuplicate = this.activeNotifications.some(ref => ref.instance.message === message);
+    if (isDuplicate) return;
+
+    let wrapper = document.getElementById('global-toast-wrapper');
+    if (!wrapper) {
+      wrapper = document.createElement('div');
+      wrapper.id = 'global-toast-wrapper';
+      wrapper.style.position = 'fixed';
+      wrapper.style.top = '20px';
+      wrapper.style.right = '20px';
+      wrapper.style.zIndex = '9999';
+      wrapper.style.display = 'flex';
+      wrapper.style.flexDirection = 'column';
+      wrapper.style.gap = '10px';
+      wrapper.style.pointerEvents = 'none';
+      document.body.appendChild(wrapper);
+    }
+
     // Create a DOM element to host our component
     const notificationHost = document.createElement('div');
-    document.body.appendChild(notificationHost);
+    notificationHost.style.pointerEvents = 'auto';
+    wrapper.appendChild(notificationHost);
     this.notificationHosts.push(notificationHost);
 
     // Create the notification component
@@ -78,8 +98,9 @@ export class NotificationService {
           this.notificationHosts.splice(hostIndex, 1);
         }
 
-        if (document.body.contains(hostElement)) {
-          document.body.removeChild(hostElement);
+        const wrapper = document.getElementById('global-toast-wrapper');
+        if (wrapper && wrapper.contains(hostElement)) {
+          wrapper.removeChild(hostElement);
         }
       } catch (error) {
         console.warn('Error cleaning up notification:', error);

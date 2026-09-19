@@ -1,0 +1,66 @@
+::ng-deep .custom-ng-select-dumper {
+    .ng-select-container {
+        border: none !important;
+        background: transparent !important;
+        min-height: 24px !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        cursor: pointer;
+    }
+    
+    .ng-value-container {
+        padding: 0 !important;
+        align-items: center;
+        
+        .ng-value {
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+    }
+    
+    .ng-input {
+        padding: 0 !important;
+        padding-bottom: 2px !important; // Align caret properly with text
+        > input {
+            color: #1e293b !important;
+            font-weight: 600 !important;
+            font-size: 0.875rem !important;
+        }
+    }
+    
+    .ng-arrow-wrapper {
+        padding-right: 0 !important;
+    }
+
+    // Premium Dropdown Panel Styling
+    .ng-dropdown-panel {
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        border-radius: 0.5rem;
+        margin-top: 8px;
+        overflow: hidden;
+        background-color: #ffffff;
+        
+        .ng-dropdown-panel-items {
+            .ng-option {
+                padding: 10px 16px;
+                font-size: 0.875rem;
+                font-weight: 500;
+                color: #475569;
+                transition: all 0.2s ease;
+                
+                &:hover, &.ng-option-marked {
+                    background-color: #f8fafc;
+                    color: #0f172a;
+                }
+                
+                &.ng-option-selected {
+                    background-color: #eff6ff;
+                    color: #1d4ed8;
+                    font-weight: 600;
+                }
+            }
+        }
+    }
+}

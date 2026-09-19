@@ -1,0 +1,179 @@
+<div class="p-6">
+    <div class="flex items-center gap-4 mb-6">
+        <!-- Back Button -->
+        <button (click)="goBack()" title="Back to Dashboard" class="p-2 rounded-lg bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        </button>
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Fleet Safety Events</h1>
+            <p class="text-sm text-slate-500 mt-1">Detailed view of all telematics safety and driving behaviour events.</p>
+        </div>
+        <!-- 
+        <div class="flex gap-3">
+            <button class="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export CSV
+            </button>
+        </div>
+        -->
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center h-64 bg-white rounded-xl shadow-sm border border-slate-200">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl mb-6">
+        {{ error }}
+    </div>
+
+    <!-- Data Loaded -->
+    <ng-container *ngIf="!isLoading && !error && safetyData">
+        
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-4 gap-6 mb-6">
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm border-l-4 border-l-red-500">
+                <p class="text-sm text-slate-500 font-semibold mb-1">Harsh Braking</p>
+                <p class="text-2xl font-bold text-slate-900">{{ safetyData.truck_connect_harsh?.harsh_braking || 0 }}</p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm border-l-4 border-l-purple-500">
+                <p class="text-sm text-slate-500 font-semibold mb-1">Harsh Acceleration</p>
+                <p class="text-2xl font-bold text-slate-900">{{ safetyData.truck_connect_harsh?.harsh_acceleration || 0 }}</p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm border-l-4 border-l-amber-500">
+                <p class="text-sm text-slate-500 font-semibold mb-1">Harsh Cornering</p>
+                <p class="text-2xl font-bold text-slate-900">{{ safetyData.truck_connect_harsh?.harsh_cornering || 0 }}</p>
+            </div>
+            <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm">
+                <p class="text-sm text-slate-500 font-semibold mb-1">Total Events</p>
+                <p class="text-2xl font-bold text-slate-900">{{ safetyData.total || 0 }}</p>
+            </div>
+        </div>
+
+        <!-- Full Table -->
+        <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+            <div class="p-5 pb-2 flex justify-between items-center bg-white gap-4">
+                <h2 class="text-base font-bold text-slate-900">Events by Vehicle</h2>
+                
+                <!-- Search Input -->
+                <div class="relative w-full max-w-sm lg:w-72">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg class="w-4 h-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
+                    <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange($event)"
+                        class="bg-slate-50 border border-slate-200 text-slate-900 text-sm font-medium rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 pr-3 py-2 outline-none transition-all hover:bg-white focus:bg-white"
+                        placeholder="Search dumper or chassis...">
+                </div>
+            </div>
+
+            <!-- Pagination Controls (Top) -->
+            <div class="px-5 pb-4 pt-2 flex items-center justify-between bg-white" *ngIf="serverPagination.last_page > 0">
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold text-slate-500">Rows per page:</span>
+                        
+                        <!-- Custom Dropdown -->
+                        <div class="relative inline-block text-left">
+                            <button type="button" (click)="toggleDropdown()" class="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all">
+                                <span>{{ pageSize }}</span>
+                                <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+
+                            <!-- Backdrop -->
+                            <div *ngIf="isDropdownOpen" class="fixed inset-0 z-40" (click)="isDropdownOpen = false"></div>
+
+                            <!-- Dropdown Menu -->
+                            <div *ngIf="isDropdownOpen" class="absolute top-full left-0 mt-1.5 z-50 w-24 origin-top-left rounded-xl bg-white shadow-lg ring-1 ring-slate-900/5 focus:outline-none overflow-hidden">
+                                <div class="p-1" role="menu">
+                                    <button type="button" (click)="selectPageSize(10)" class="w-full text-left rounded-lg px-3 py-2 text-sm font-medium flex justify-between items-center transition-colors" [ngClass]="pageSize === 10 ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'">
+                                        10 
+                                        <svg *ngIf="pageSize === 10" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    </button>
+                                    <button type="button" (click)="selectPageSize(20)" class="w-full text-left rounded-lg px-3 py-2 text-sm font-medium flex justify-between items-center transition-colors" [ngClass]="pageSize === 20 ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'">
+                                        20 
+                                        <svg *ngIf="pageSize === 20" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    </button>
+                                    <button type="button" (click)="selectPageSize(50)" class="w-full text-left rounded-lg px-3 py-2 text-sm font-medium flex justify-between items-center transition-colors" [ngClass]="pageSize === 50 ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'">
+                                        50 
+                                        <svg *ngIf="pageSize === 50" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    </button>
+                                    <button type="button" (click)="selectPageSize(100)" class="w-full text-left rounded-lg px-3 py-2 text-sm font-medium flex justify-between items-center transition-colors" [ngClass]="pageSize === 100 ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'">
+                                        100 
+                                        <svg *ngIf="pageSize === 100" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <span class="text-sm font-semibold text-slate-500">
+                        Showing {{ (serverPagination.current_page - 1) * pageSize + 1 }} to 
+                        {{ (serverPagination.current_page * pageSize > serverPagination.total) ? serverPagination.total : (serverPagination.current_page * pageSize) }} of 
+                        {{ serverPagination.total }} vehicles
+                    </span>
+                </div>
+                
+                <div class="flex items-center gap-1">
+                    <button (click)="changePage(serverPagination.current_page - 1)" [disabled]="serverPagination.current_page === 1"
+                        class="px-3 py-1.5 rounded border border-slate-200 text-sm font-semibold text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors bg-white">
+                        Previous
+                    </button>
+                    
+                    <ng-container *ngFor="let p of getPagesArray()">
+                        <button (click)="changePage(p)" 
+                            [class.bg-blue-600]="p === serverPagination.current_page"
+                            [class.text-white]="p === serverPagination.current_page"
+                            [class.border-blue-600]="p === serverPagination.current_page"
+                            [class.bg-white]="p !== serverPagination.current_page"
+                            [class.text-slate-600]="p !== serverPagination.current_page"
+                            [class.border-slate-200]="p !== serverPagination.current_page"
+                            [class.hover:bg-slate-50]="p !== serverPagination.current_page"
+                            class="min-w-[32px] px-2 py-1.5 rounded border text-sm font-bold transition-colors shadow-sm">
+                            {{ p }}
+                        </button>
+                    </ng-container>
+                    
+                    <button (click)="changePage(serverPagination.current_page + 1)" [disabled]="serverPagination.current_page === serverPagination.last_page"
+                        class="px-3 py-1.5 rounded border border-slate-200 text-sm font-semibold text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-50 transition-colors bg-white">
+                        Next
+                    </button>
+                </div>
+            </div>
+            
+            <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                    <tr class="bg-slate-50 text-xs text-slate-600 font-semibold border-b border-slate-200">
+                        <th class="py-3 px-5">Dumper No. / Chassis</th>
+                        <th class="py-3 px-4 text-center">Total Events</th>
+                        <th class="py-3 px-4 text-center">Critical</th>
+                        <th class="py-3 px-4 text-center">Warnings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let dumper of safetyData.by_vehicle; let last = last" [class.border-b]="!last" class="border-slate-100 hover:bg-slate-50 transition-colors">
+                        <td class="py-3 px-5 font-bold text-slate-800">
+                            {{ dumper.dumper_no || dumper.chassis_number }}
+                        </td>
+                        <td class="py-3 px-4 text-center font-bold text-red-600">{{ dumper.count }}</td>
+                        <td class="py-3 px-4 text-center text-slate-600">{{ dumper.critical }}</td>
+                        <td class="py-3 px-4 text-center text-slate-600">{{ dumper.warning }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div *ngIf="safetyData.by_vehicle?.length === 0" class="p-8 text-center text-slate-500">
+                No safety events found for the selected period.
+            </div>
+        </div>
+
+    </ng-container>
+</div>

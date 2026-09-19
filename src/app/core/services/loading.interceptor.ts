@@ -15,7 +15,13 @@ export class LoadingInterceptor implements HttpInterceptor {
   constructor(private loadingService: LoaderService) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    // console.log('caught')
+    // Check if the request explicitly asks to skip the global loader
+    if (request.headers.has('X-Skip-Loader')) {
+      const headers = request.headers.delete('X-Skip-Loader');
+      const newRequest = request.clone({ headers });
+      return next.handle(newRequest); // Pass through silently
+    }
+
     this.totalRequests++;
     this.loadingService.setLoading(true);
     return next.handle(request).pipe(

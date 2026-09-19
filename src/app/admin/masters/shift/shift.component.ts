@@ -120,17 +120,17 @@ export class ShiftComponent implements OnInit, OnDestroy {
 
     this.createShiftForm = this.formBuilder.group({
       shiftName: ['', [Validators.required]],
-      startTime: ['', [Validators.required, this.nightShiftValidator()]],
-      endTime: ['', [Validators.required, this.nightShiftEndValidator()]],
-      minWorkingHours: ['', [Validators.required, Validators.min(1)]],
+      startTime: ['', [Validators.required, this.timeValidator()]],
+      endTime: ['', [Validators.required, this.timeValidator()]],
+      minWorkingHours: ['', [Validators.required, this.minWorkingHoursValidator()]],
       isNightShift: [false]
     });
 
     this.updateShiftForm = this.formBuilder.group({
       shiftName: ['', [Validators.required]],
-      startTime: ['', [Validators.required, this.nightShiftValidator()]],
-      endTime: ['', [Validators.required, this.nightShiftEndValidator()]],
-      minWorkingHours: ['', [Validators.required, Validators.min(1)]],
+      startTime: ['', [Validators.required, this.timeValidator()]],
+      endTime: ['', [Validators.required, this.timeValidator()]],
+      minWorkingHours: ['', [Validators.required, this.minWorkingHoursValidator()]],
       isNightShift: [false]
     });
 
@@ -190,19 +190,39 @@ export class ShiftComponent implements OnInit, OnDestroy {
     });
 
     // Subscribe to Create Form Time Changes
-    this.createShiftForm.get('startTime')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+    this.createShiftForm.get('startTime')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((val) => {
+      if (val) {
+        const isNight = this.createShiftForm.get('isNightShift')?.value;
+        if (val >= '20:00' || val <= '08:00') {
+          if (!isNight) this.createShiftForm.get('isNightShift')?.setValue(true, { emitEvent: false });
+        } else {
+          if (isNight) this.createShiftForm.get('isNightShift')?.setValue(false, { emitEvent: false });
+        }
+      }
       this.createShiftForm.get('endTime')?.updateValueAndValidity({ emitEvent: false });
+      this.createShiftForm.get('minWorkingHours')?.updateValueAndValidity();
     });
     this.createShiftForm.get('endTime')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.createShiftForm.get('startTime')?.updateValueAndValidity({ emitEvent: false });
+      this.createShiftForm.get('minWorkingHours')?.updateValueAndValidity();
     });
 
     // Subscribe to Update Form Time Changes
-    this.updateShiftForm.get('startTime')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+    this.updateShiftForm.get('startTime')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((val) => {
+      if (val) {
+        const isNight = this.updateShiftForm.get('isNightShift')?.value;
+        if (val >= '20:00' || val <= '08:00') {
+          if (!isNight) this.updateShiftForm.get('isNightShift')?.setValue(true, { emitEvent: false });
+        } else {
+          if (isNight) this.updateShiftForm.get('isNightShift')?.setValue(false, { emitEvent: false });
+        }
+      }
       this.updateShiftForm.get('endTime')?.updateValueAndValidity({ emitEvent: false });
+      this.updateShiftForm.get('minWorkingHours')?.updateValueAndValidity();
     });
     this.updateShiftForm.get('endTime')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       this.updateShiftForm.get('startTime')?.updateValueAndValidity({ emitEvent: false });
+      this.updateShiftForm.get('minWorkingHours')?.updateValueAndValidity();
     });
     
     this.GetShiftFun();
@@ -213,44 +233,76 @@ export class ShiftComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  nightShiftValidator(): ValidatorFn {
+  // Helper to calculate duration in hours
+  getShiftDuration(startTime: string, endTime: string, isNight: boolean): number {
+    if (!startTime || !endTime) return 0;
+    const [startH, startM] = startTime.split(':').map(Number);
+    const [endH, endM] = endTime.split(':').map(Number);
+    const startTotalMinutes = startH * 60 + startM;
+    let endTotalMinutes = endH * 60 + endM;
+    if (isNight && startTime > endTime) {
+      endTotalMinutes += 24 * 60;
+    }
+    return (endTotalMinutes - startTotalMinutes) / 60;
+  }
+
+  timeValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.parent) return null;
       const isNight = control.parent.get('isNightShift')?.value;
-      const startTime = control.value;
+      const startTime = control.parent.get('startTime')?.value;
       const endTime = control.parent.get('endTime')?.value;
 
       if (!startTime || !endTime) return null;
 
+      if (startTime === endTime) {
+        return { sameTime: true };
+      }
+
       if (isNight) {
-        if (startTime <= endTime) {
-          return { invalidNightRange: true };
+        let validNight = false;
+        // 1. Crosses midnight
+        if (startTime >= '20:00' && endTime <= '08:00') {
+          validNight = true;
+        } 
+        // 2. Same day, early morning (e.g. 00:00 to 08:00)
+        else if (startTime <= '08:00' && endTime <= '08:00' && startTime < endTime) {
+          validNight = true;
+        }
+        // 3. Same day, late night (e.g. 20:00 to 23:00)
+        else if (startTime >= '20:00' && endTime >= '20:00' && startTime < endTime) {
+          validNight = true;
+        }
+
+        if (!validNight) {
+          return { invalidNightHours: true };
         }
       } else {
-        if (startTime >= endTime) {
-          return { invalidDayRange: true };
+        if (startTime > endTime) {
+          return { pleaseEnableNightShift: true };
         }
       }
       return null;
     };
   }
 
-  nightShiftEndValidator(): ValidatorFn {
+  minWorkingHoursValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.parent) return null;
-      const isNight = control.parent.get('isNightShift')?.value;
-      const endTime = control.value;
+      const minHours = Number(control.value);
+      if (isNaN(minHours) || control.value === '' || control.value === null) return null;
+
+      if (minHours <= 0) return { minZero: true };
+      if (minHours > 24) return { max24: true };
+
       const startTime = control.parent.get('startTime')?.value;
+      const endTime = control.parent.get('endTime')?.value;
+      const isNight = control.parent.get('isNightShift')?.value;
 
-      if (!startTime || !endTime) return null;
-
-      if (isNight) {
-        if (startTime <= endTime) {
-          return { invalidNightRange: true };
-        }
-      } else {
-        if (startTime >= endTime) {
-          return { invalidDayRange: true };
+      if (startTime && endTime) {
+        const duration = this.getShiftDuration(startTime, endTime, isNight);
+        if (duration > 0 && minHours > duration) {
+          return { exceedsDuration: true };
         }
       }
       return null;

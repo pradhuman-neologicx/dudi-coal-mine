@@ -16,34 +16,77 @@
   </div>
 
   <div class="card border-0 my-4 px-4 py-4">
-    <!-- Show entries and Search bar row -->
-    <div class="d-md-flex justify-content-between align-items-center my-3">
-      <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
-        <span class="show-entery-text">Show</span>
-        <ng-select [items]="tableSizes" 
-                   [(ngModel)]="tableSize" 
-                   (change)="onTableSizeChange($event)" 
-                   [clearable]="false" 
-                   [searchable]="false" 
-                   class="custom-ng-select min-w-[80px]">
-        </ng-select>
-        <span class="show-entery-text">entries</span>
-      </div>
-
-      <div class="d-flex align-items-center">
-        <form [formGroup]="searchbarform" class="d-flex align-items-center">
-          <span class="me-1">Search:</span>
-          <div>
-            <input type="text" class="form-control search-user position-relative" autocomplete="off" formControlName="searchbar" />
+    <!-- Advanced Filter Panel -->
+    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 mt-2">
+      <form [formGroup]="filterForm" (ngSubmit)="applyFilters()">
+        <div class="row g-3">
+          <!-- Store Filter -->
+          <div class="col-md-3">
+            <label class="form-label text-muted small mb-1">Store</label>
+            <ng-select [items]="storeList"
+                       bindLabel="name"
+                       bindValue="id"
+                       placeholder="All Stores"
+                       formControlName="store_id"
+                       class="custom-ng-select w-100"
+                       (change)="onStoreFilterChange($event)">
+            </ng-select>
           </div>
-          <button class="btn btn-primary search-btn ms-2" (click)="searchfun()">
-            <span><i class="fa-solid fa-magnifying-glass form-control-feedback text-white"></i></span>
-          </button>
-          <button class="btn btn-primary search-btn ms-2" (click)="resetsearchbar()" type="submit" *ngIf="showreset">
-            <span><i class="fa-solid fa-rotate-right form-control-feedback text-white"></i></span>
-          </button>
-        </form>
-      </div>
+          
+          <!-- Product Filter -->
+          <div class="col-md-3">
+            <label class="form-label text-muted small mb-1">Product</label>
+            <ng-select [items]="productList"
+                       bindLabel="name"
+                       bindValue="id"
+                       placeholder="All Products"
+                       formControlName="product_id"
+                       class="custom-ng-select w-100"
+                       (change)="onProductFilterChange($event)">
+            </ng-select>
+          </div>
+
+          <!-- Category Filter -->
+          <div class="col-md-3">
+            <label class="form-label text-muted small mb-1">Category</label>
+            <ng-select [items]="categoryList"
+                       bindLabel="name"
+                       bindValue="id"
+                       placeholder="All Categories"
+                       formControlName="category_id"
+                       class="custom-ng-select w-100"
+                       (change)="onCategoryFilterChange($event)">
+            </ng-select>
+          </div>
+
+          <!-- Search Textbox -->
+          <div class="col-md-3">
+            <label class="form-label text-muted small mb-1">Search</label>
+            <div class="input-group">
+              <input type="text" class="form-control form-input-custom mb-0 py-1" style="height: 38px; border-top-right-radius: 0; border-bottom-right-radius: 0;" placeholder="Search..." formControlName="searchbar" (keyup.enter)="applyFilters()" />
+              <button class="btn btn-custom-primary text-white" style="border-top-left-radius: 0; border-bottom-left-radius: 0; z-index: 1;" type="button" (click)="applyFilters()">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </button>
+              <button class="btn btn-outline-secondary ms-2 rounded" type="button" (click)="resetsearchbar()" *ngIf="showreset" title="Clear Filters">
+                <i class="fa-solid fa-rotate-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Show entries row -->
+    <div class="d-flex align-items-center mb-3 gap-2">
+      <span class="show-entery-text">Show</span>
+      <ng-select [items]="tableSizes" 
+                 [(ngModel)]="tableSize" 
+                 (change)="onTableSizeChange($event)" 
+                 [clearable]="false" 
+                 [searchable]="false" 
+                 class="custom-ng-select min-w-[80px]">
+      </ng-select>
+      <span class="show-entery-text">entries</span>
     </div>
 
     <!-- Table content area -->
@@ -54,7 +97,8 @@
           <thead class="table-header">
             <tr>
               <th style="width: 80px;"><p class="table-heading">Sr No.</p></th>
-              <th><p class="table-heading">Name</p></th>
+              <th><p class="table-heading">Product</p></th>
+              <th><p class="table-heading">Store</p></th>
               <th style="width: 250px;"><p class="table-heading">Total Stocks</p></th>
               <th style="width: 150px;"><p class="table-heading">Action</p></th>
             </tr>
@@ -69,13 +113,20 @@
                 <p>{{ item.productName }}</p>
               </td>
               <td>
-                <p>{{ item.totalStock }}</p>
+                <p>{{ item.storeName }}</p>
+              </td>
+              <td>
+                <p class="mb-0 d-flex align-items-center">
+                  {{ item.availableQuantity }}
+                  <span *ngIf="item.stockStatus === 'low_stock'" class="badge bg-warning text-dark ms-2 border border-warning" style="font-size: 11px;">{{ item.stockStatusLabel || 'Low Stock' }}</span>
+                  <span *ngIf="item.stockStatus === 'out_of_stock'" class="badge bg-danger ms-2 border border-danger" style="font-size: 11px;">{{ item.stockStatusLabel || 'Out of Stock' }}</span>
+                </p>
               </td>
               <td>
                 <div class="d-flex align-items-center gap-2">
-                  <button class="btn-action edit-btn text-primary" (click)="openEditProductModal(item)" data-tooltip="Edit Product">
+                  <!-- <button class="btn-action edit-btn text-primary" (click)="openEditProductModal(item)" data-tooltip="Edit Product">
                     <i class="fa-solid fa-pen-to-square"></i>
-                  </button>
+                  </button> -->
                   <button class="btn-action view-btn" (click)="openViewProductModal(item)" data-tooltip="View Details">
                     <i class="fa-solid fa-eye"></i>
                   </button>
@@ -86,7 +137,7 @@
               </td>
             </tr>
             <tr *ngIf="filteredInventoryItems.length === 0">
-              <td colspan="4" class="text-center py-4 text-muted">
+              <td colspan="5" class="text-center py-4 text-muted">
                 No inventory records found.
               </td>
             </tr>
@@ -104,9 +155,9 @@
             </div>
             <div>
               <div class="d-flex align-items-center gap-2">
-                <button class="btn-action edit-btn text-primary" (click)="openEditProductModal(item)" data-tooltip="Edit Product">
+                <!-- <button class="btn-action edit-btn text-primary" (click)="openEditProductModal(item)" data-tooltip="Edit Product">
                   <i class="fa-solid fa-pen-to-square"></i>
-                </button>
+                </button> -->
                 <button class="btn-action view-btn" (click)="openViewProductModal(item)" data-tooltip="View Details">
                   <i class="fa-solid fa-eye"></i>
                 </button>
@@ -116,10 +167,13 @@
               </div>
             </div>
           </div>
-          <div class="mb-2"><strong>Name:</strong> {{ item.productName }}</div>
-          <div>
-            <strong>Total Stocks:</strong>
-            <span>{{ item.totalStock }}</span>
+          <div class="mb-2"><strong>Product:</strong> {{ item.productName }}</div>
+          <div class="mb-2"><strong>Store:</strong> {{ item.storeName }}</div>
+          <div class="d-flex align-items-center mb-0">
+            <strong class="me-2">Total Stocks:</strong>
+            <span>{{ item.availableQuantity }}</span>
+            <span *ngIf="item.stockStatus === 'low_stock'" class="badge bg-warning text-dark ms-2 border border-warning" style="font-size: 11px;">{{ item.stockStatusLabel || 'Low Stock' }}</span>
+            <span *ngIf="item.stockStatus === 'out_of_stock'" class="badge bg-danger ms-2 border border-danger" style="font-size: 11px;">{{ item.stockStatusLabel || 'Out of Stock' }}</span>
           </div>
         </div>
         <div *ngIf="filteredInventoryItems.length === 0" class="text-center py-4 text-muted bg-gray-50 border border-gray-200 rounded-lg">
@@ -163,14 +217,41 @@
         </div>
         <div class="modal-content-widthtop card-body mb-0">
           <div class="row">
-            <!-- Select Product -->
+            <!-- Select Store -->
+            <div class="col-md-12 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Select Store <span class="text-danger">*</span></label>
+              <ng-select
+                [items]="storeList"
+                bindLabel="name"
+                bindValue="id"
+                placeholder="Select a store"
+                formControlName="store_id"
+                [readonly]="isEditMode"
+                [ngClass]="{'is-invalid': createInventoryForm.controls['store_id'].errors && (createInventoryForm.controls['store_id'].touched || createInventoryForm.controls['store_id'].dirty)}"
+                class="custom-ng-select w-100"
+                appendTo="body">
+              </ng-select>
+              <div class="text-danger error-message" *ngIf="createInventoryForm.controls['store_id'].errors && (createInventoryForm.controls['store_id'].touched || createInventoryForm.controls['store_id'].dirty)">
+                <p class="fw-light text-danger" *ngIf="createInventoryForm.controls['store_id'].errors['required']">Store selection is required</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Select Product <span class="text-danger">*</span></label>
-              <select class="d-block form-control form-select form-input-custom w-100" formControlName="productName" (change)="onProductChange($event)"
-                      [ngClass]="{'is-invalid': createInventoryForm.controls['productName'].errors && (createInventoryForm.controls['productName'].touched || createInventoryForm.controls['productName'].dirty)}">
-                <option value="">Select a product</option>
-                <option *ngFor="let prod of productList" [value]="prod.name">{{ prod.name }}</option>
-              </select>
+              <ng-select
+                [items]="masterProductList"
+                bindLabel="name"
+                bindValue="name"
+                placeholder="Select a product"
+                formControlName="productName"
+                [readonly]="isEditMode"
+                (change)="onProductChange($event)"
+                [ngClass]="{'is-invalid': createInventoryForm.controls['productName'].errors && (createInventoryForm.controls['productName'].touched || createInventoryForm.controls['productName'].dirty)}"
+                class="custom-ng-select w-100"
+                appendTo="body">
+              </ng-select>
               <div class="text-danger error-message" *ngIf="createInventoryForm.controls['productName'].errors && (createInventoryForm.controls['productName'].touched || createInventoryForm.controls['productName'].dirty)">
                 <p class="fw-light text-danger" *ngIf="createInventoryForm.controls['productName'].errors['required']">Product selection is required</p>
               </div>
@@ -204,10 +285,28 @@
         </div>
         <div class="modal-footer text-end">
           <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button" (click)="closeModal()">Close</button>
-          <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="createInventoryItem()">{{ isEditMode ? 'Update' : 'Save' }}</button>
+          <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="isEditMode ? createInventoryItem() : openConfirmModal()">{{ isEditMode ? 'Update' : 'Save' }}</button>
         </div>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div *ngIf="isConfirmModalOpen" class="fixed inset-0 z-[120] flex items-center justify-center font-sans p-4 bg-black/40 backdrop-blur-sm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1060; display: flex; align-items: center; justify-content: center;">
+  <div class="bg-white w-full max-w-sm rounded-xl shadow-2xl p-6 text-center" [@fadeIn]>
+    <!-- Exclamation Icon -->
+    <div class="mx-auto mb-4 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid #fbc087; color: #fbc087; font-size: 40px;">
+      !
+    </div>
+    <h3 class="tt-color mb-3 fw-bold" style="font-size: 24px;">Are you sure?</h3>
+    <p class="text-muted mb-4 px-2" style="font-size: 14px; line-height: 1.5;">
+      Please make sure the entries of store & product quantity is correct as you will not be able to change this later on.
+    </p>
+    <div class="d-flex justify-content-center mt-4">
+      <button class="btn btn-secondary main-btnfs px-4 py-2 me-3" type="button" (click)="isConfirmModalOpen = false">Check Again</button>
+      <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="createInventoryItem()">Save</button>
+    </div>
   </div>
 </div>
 
@@ -253,7 +352,7 @@
               Support for Excel (.xlsx) and CSV files<br>
               <span class="text-primary mt-2 d-inline-block fw-semibold text-decoration-none">
                 <span *ngIf="uploadedFileName" class="text-success">{{ uploadedFileName }}</span>
-                <a *ngIf="!uploadedFileName" href="assets/inventory_products.xlsx" download="inventory_products.xlsx" class="text-primary text-decoration-none" (click)="$event.stopPropagation()">
+                <a *ngIf="!uploadedFileName" href="assets/inventory_products 1.xlsx" download="inventory_products 1.xlsx" class="text-primary text-decoration-none" (click)="$event.stopPropagation()">
                   <i class="fas fa-download me-1"></i>Download Sample File
                 </a>
               </span>
@@ -330,74 +429,98 @@
       </div>
       
       <div class="card-body p-4 mb-0" *ngIf="selectedItem">
-        <!-- Premium Product Summary Banner -->
-        <div class="dept-summary-banner">
-          <div class="banner-content">
-            <div class="banner-label">Product Details</div>
-            <div class="banner-value mb-2">{{ selectedProductDetails?.product_name || selectedItem.productName }}</div>
-            <div class="row g-3 text-white-50 mt-1" style="font-size: 13.5px;">
-              <div class="col-sm-4 text-white">
-                <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8;">Category</span>
-                <span class="fw-bold">{{ selectedProductDetails?.category_name || selectedItem.category }}</span>
-              </div>
-              <div class="col-sm-4 text-white">
-                <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8;">Sub Category</span>
-                <span class="fw-bold">{{ selectedProductDetails?.sub_category_name || selectedItem.subCategory }}</span>
-              </div>
-              <div class="col-sm-4 text-white">
-                <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8; margin-bottom: 4px;">Available Stock</span>
-                <span class="d-flex align-items-center gap-2">
-                  <span class="pulse-indicator"></span>
-                  <strong class="fs-5 text-white">{{ selectedProductDetails?.available_stock || selectedItem.totalStock }}</strong>
+        <div *ngIf="isViewLoading" class="text-center py-5">
+          <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="text-muted fs-6 mb-0">Fetching product details...</p>
+        </div>
+
+        <ng-container *ngIf="!isViewLoading">
+          <!-- Premium Product Summary Banner -->
+          <div class="dept-summary-banner">
+            <div class="banner-content">
+              <div class="banner-label">Product Details</div>
+              <div class="banner-value mb-2 d-flex align-items-center gap-3">
+                <span>{{ selectedProductDetails?.product_name || selectedItem.productName }}</span>
+                <span *ngIf="selectedProductDetails?.stock_status_label" 
+                      class="badge rounded-pill border" 
+                      [ngClass]="{
+                        'bg-danger border-danger': selectedProductDetails?.stock_status === 'out_of_stock',
+                        'bg-warning text-dark border-warning': selectedProductDetails?.stock_status === 'low_stock',
+                        'bg-success border-success': selectedProductDetails?.stock_status === 'in_stock'
+                      }" style="font-size: 14px; padding: 6px 12px; letter-spacing: 0.5px;">
+                  {{ selectedProductDetails?.stock_status_label }}
                 </span>
+              </div>
+              <div class="row g-3 text-white-50 mt-1" style="font-size: 13.5px;">
+                <div class="col-sm-3 text-white">
+                  <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8;">Category</span>
+                  <span class="fw-bold">{{ selectedProductDetails?.category_name || selectedItem.category }}</span>
+                </div>
+                <div class="col-sm-3 text-white">
+                  <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8;">Sub Category</span>
+                  <span class="fw-bold">{{ selectedProductDetails?.sub_category_name || selectedItem.subCategory }}</span>
+                </div>
+                <div class="col-sm-3 text-white">
+                  <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8;">Store</span>
+                  <span class="fw-bold">{{ selectedProductDetails?.store?.name || selectedProductDetails?.store_name || selectedItem.storeName }}</span>
+                </div>
+                <div class="col-sm-3 text-white">
+                  <span class="d-block text-uppercase fw-semibold" style="font-size: 10px; opacity: 0.8; margin-bottom: 4px;">Available Stock</span>
+                  <span class="d-flex align-items-center gap-2">
+                    <span class="pulse-indicator"></span>
+                    <strong class="fs-5 text-white">{{ selectedProductDetails?.available_stock != null ? selectedProductDetails?.available_stock : selectedItem.totalStock }}</strong>
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Live Employee Assignments Table -->
-        <h5 class="fw-bold text-dark mb-3" style="font-family: 'Montserrat', sans-serif; font-size: 16px; letter-spacing: -0.3px;">
-          <i class="fa-solid fa-people-carry-box text-primary me-2"></i>Employee Allocation History
-        </h5>
-        
-        <div class="table-responsive border rounded-3 bg-white" style="max-height: 250px; overflow-y: auto;">
-          <table class="table table-bordered align-middle mb-0 custom-table">
-            <thead class="table-light">
-              <tr>
-                <th class="ps-3 text-center" style="width: 60px;">Sr No.</th>
-                <th>Employee Details</th>
-                <th>Site & Department</th>
-                <th class="text-center" style="width: 120px;">Qty Assigned</th>
-                <th class="text-center" style="width: 140px;">Issue Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let assign of (selectedProductDetails?.allocation_history || []); index as idx" class="hover-bg-light transition">
-                <td class="text-center fw-medium text-muted fs-7">{{ assign.sr_no || idx + 1 }}</td>
-                <td>
-                  <div class="d-flex flex-column">
-                    <span class="fw-bold text-dark fs-7">{{ assign.employee_name }}</span>
-                    <span class="text-muted fs-8">{{ assign.employee_code }}</span>
-                  </div>
-                </td>
-                <td>
-                  <div class="d-flex flex-column">
-                    <span class="fw-semibold text-dark fs-7">{{ assign.site_name || 'N/A' }}</span>
-                    <span class="text-muted fs-8">{{ assign.department_name }}</span>
-                  </div>
-                </td>
-                <td class="text-center fw-bold text-primary fs-7">{{ assign.quantity_assigned }}</td>
-                <td class="text-center fw-medium text-muted fs-7">{{ assign.issued_date }}</td>
-              </tr>
-              <tr *ngIf="(selectedProductDetails?.allocation_history || []).length === 0">
-                <td colspan="5" class="text-center py-4 text-muted fs-7">
-                  <i class="fa-solid fa-box-open d-block fs-3 mb-2 text-light"></i>
-                  No active employee allocations found for this product.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          <!-- Live Employee Assignments Table -->
+          <h5 class="fw-bold text-dark mb-3" style="font-family: 'Montserrat', sans-serif; font-size: 16px; letter-spacing: -0.3px;">
+            <i class="fa-solid fa-people-carry-box text-primary me-2"></i>Employee Allocation History
+          </h5>
+          
+          <div class="table-responsive border rounded-3 bg-white" style="max-height: 250px; overflow-y: auto;">
+            <table class="table table-bordered align-middle mb-0 custom-table">
+              <thead class="table-light">
+                <tr>
+                  <th class="ps-3 text-center" style="width: 60px;">Sr No.</th>
+                  <th>Employee Details</th>
+                  <th>Site & Department</th>
+                  <th class="text-center" style="width: 120px;">Qty Assigned</th>
+                  <th class="text-center" style="width: 140px;">Issue Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let assign of (selectedProductDetails?.allocation_history || []); index as idx" class="hover-bg-light transition">
+                  <td class="text-center fw-medium text-muted fs-7">{{ assign.sr_no || idx + 1 }}</td>
+                  <td>
+                    <div class="d-flex flex-column">
+                      <span class="fw-bold text-dark fs-7">{{ assign.employee_name }}</span>
+                      <span class="text-muted fs-8">{{ assign.employee_code }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="d-flex flex-column">
+                      <span class="fw-semibold text-dark fs-7">{{ assign.site_name || 'N/A' }}</span>
+                      <span class="text-muted fs-8">{{ assign.department_name }}</span>
+                    </div>
+                  </td>
+                  <td class="text-center fw-bold text-primary fs-7">{{ assign.quantity_assigned }}</td>
+                  <td class="text-center fw-medium text-muted fs-7">{{ assign.issued_date }}</td>
+                </tr>
+                <tr *ngIf="(selectedProductDetails?.allocation_history || []).length === 0">
+                  <td colspan="5" class="text-center py-4 text-muted fs-7">
+                    <i class="fa-solid fa-box-open d-block fs-3 mb-2 text-light"></i>
+                    No active employee allocations found for this product.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </ng-container>
       </div>
       
       <div class="modal-footer text-end bg-light border-top">
@@ -421,10 +544,29 @@
       <div class="modal-body-custom p-4 overflow-auto flex-grow-1">
         <!-- Part 1: Product Selection -->
         <div class="row g-3 mb-3">
+          <div class="col-md-12">
+            <label class="form-label form-lable-custom">Select Store <span class="text-danger">*</span></label>
+            <ng-select
+              [items]="storeList"
+              bindLabel="name"
+              bindValue="id"
+              placeholder="-- Choose Store --"
+              formControlName="store_id"
+              [ngClass]="{'is-invalid': assignForm.get('store_id')?.invalid && assignForm.get('store_id')?.touched}"
+              class="custom-ng-select"
+              appendTo="body">
+            </ng-select>
+            <div class="invalid-feedback" *ngIf="assignForm.get('store_id')?.invalid && assignForm.get('store_id')?.touched">
+              Store selection is required.
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3 mb-3">
           <div class="col-md-6">
             <label class="form-label form-lable-custom">Select Product <span class="text-danger">*</span></label>
             <ng-select
-              [items]="productList"
+              [items]="assignProductList"
               bindLabel="name"
               bindValue="name"
               placeholder="-- Choose Product --"
@@ -586,27 +728,38 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let log of selectedProductLogs; index as idx" class="hover-bg-light transition">
-                <td class="text-center fw-medium text-muted fs-7">{{ idx + 1 }}</td>
-                <td>
-                  <span class="badge text-capitalize" 
-                        [ngClass]="{'bg-success': log.type === 'in', 'bg-warning text-dark': log.type === 'out'}">
-                    {{ log.action }}
-                  </span>
-                </td>
-                <td class="text-center fw-bold fs-7" [ngClass]="{'text-success': log.type === 'in', 'text-danger': log.type === 'out'}">
-                  {{ log.quantity > 0 ? '+' : '' }}{{ log.quantity }}
-                </td>
-                <td class="text-muted fs-7">{{ log.done_by }}</td>
-                <td class="text-muted fs-7">{{ log.remarks || '—' }}</td>
-                <td class="text-center fw-medium text-muted fs-7">{{ log.created_at | date:'dd MMM yyyy, hh:mm a' }}</td>
-              </tr>
-              <tr *ngIf="selectedProductLogs.length === 0">
-                <td colspan="6" class="text-center py-4 text-muted fs-7">
-                  <i class="fa-solid fa-clock-rotate-left d-block fs-3 mb-2 text-light"></i>
-                  No history logs found for this product.
+              <tr *ngIf="isHistoryLoading">
+                <td colspan="6" class="text-center py-5">
+                  <div class="spinner-border text-primary mb-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  <p class="text-muted fs-7 mb-0">Fetching latest transaction logs...</p>
                 </td>
               </tr>
+              
+              <ng-container *ngIf="!isHistoryLoading">
+                <tr *ngFor="let log of selectedProductLogs; index as idx" class="hover-bg-light transition">
+                  <td class="text-center fw-medium text-muted fs-7">{{ idx + 1 }}</td>
+                  <td>
+                    <span class="badge text-capitalize" 
+                          [ngClass]="{'bg-success': log.type === 'in', 'bg-warning text-dark': log.type === 'out'}">
+                      {{ log.action }}
+                    </span>
+                  </td>
+                  <td class="text-center fw-bold fs-7" [ngClass]="{'text-success': log.type === 'in', 'text-danger': log.type === 'out'}">
+                    {{ log.quantity > 0 ? '+' : '' }}{{ log.quantity }}
+                  </td>
+                  <td class="text-muted fs-7">{{ log.done_by }}</td>
+                  <td class="text-muted fs-7">{{ log.remarks || '—' }}</td>
+                  <td class="text-center fw-medium text-muted fs-7">{{ log.created_at | date:'dd MMM yyyy, hh:mm a' }}</td>
+                </tr>
+                <tr *ngIf="selectedProductLogs.length === 0">
+                  <td colspan="6" class="text-center py-4 text-muted fs-7">
+                    <i class="fa-solid fa-clock-rotate-left d-block fs-3 mb-2 text-light"></i>
+                    No history logs found for this product.
+                  </td>
+                </tr>
+              </ng-container>
             </tbody>
           </table>
         </div>

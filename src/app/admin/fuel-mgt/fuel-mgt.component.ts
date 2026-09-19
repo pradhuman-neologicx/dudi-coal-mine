@@ -8,7 +8,7 @@ import { ShiftPlanningService } from 'src/app/core/services/shift-planning.servi
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { Chart, registerables } from 'chart.js';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 Chart.register(...registerables);
 
@@ -124,6 +124,8 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
   importResult: ImportResult | null = null;
   @ViewChild('fileInput') fileInput!: ElementRef;
 
+  private dateChangeSubject = new Subject<string>();
+
   toggleFilter() {
     this.isFilterOpen = !this.isFilterOpen;
   }
@@ -174,6 +176,14 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
     this.maxDate = `${year}-${month}-${day}`;
     this.fetchFilters();
     this.fetchFuelData();
+
+    this.dateChangeSubject.pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(date => {
+      this.fetchShiftForDate(date);
+    });
   }
 
   ngOnDestroy(): void {
@@ -467,17 +477,20 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onDateChange() {
     if (this.isBindingData) return;
+    this.dateChangeSubject.next(this.formData.date || '');
+  }
 
-    if (this.formData.date) {
-      this.shiftPlanningService.shiftPlanFilterByDate(this.formData.date).pipe(takeUntil(this.destroy$)).subscribe({
+  fetchShiftForDate(dateValue: string) {
+    if (dateValue) {
+      this.shiftPlanningService.shiftPlanFilterByDate(dateValue).pipe(takeUntil(this.destroy$)).subscribe({
         next: (res: any) => {
           if (res && res.status === 200 && res.data) {
             this.formData.shift = res.data.id || res.data.shift_id || res.data;
             this.shiftName = res.data.name;
             this.entryShiftPlanId = res.data.shift_plan_id;
             this.machinesList = res.data.machines || [];
-          } else if (res && res.status === 404) {
-            this.notificationService.show(res.message || 'No active shift covers the given time.', 'error');
+          } else {
+            // Data null or 404/422 response
             this.formData.shift = null;
             this.shiftName = '';
             this.entryShiftPlanId = null;
@@ -486,7 +499,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
         },
         error: (err) => {
           console.error('Error fetching shift by datetime', err);
-          this.notificationService.show(err.message, 'error');
+          // Suppress notification for 404/422 as per request
           this.formData.shift = null;
           this.shiftName = '';
           this.entryShiftPlanId = null;

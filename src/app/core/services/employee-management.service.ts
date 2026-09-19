@@ -101,8 +101,12 @@ export class EmployeeManagementService {
     return this.apiservice.get(`v1/employees`, this.getHeaders(), params);
   }
 
-  getActiveEmployees(): Observable<any> {
-    return this.apiservice.get(`v1/active-employees`, this.getHeaders());
+  getActiveEmployees(departmentId?: any): Observable<any> {
+    let params = new HttpParams();
+    if (departmentId) {
+      params = params.set('department_id', String(departmentId));
+    }
+    return this.apiservice.get(`v1/active-employees`, this.getHeaders(), params);
   }
 
   getEmployeeById(id: any): Observable<any> {

@@ -1,0 +1,972 @@
+<div class="bg-slate-50 min-h-screen p-6 font-sans">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0 mb-6">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 mb-1">Dumper Fleet Dashboard</h1>
+            <p class="text-slate-500 text-sm">Real-time overview of dumper fleet based on TruckConnect DAAS data</p>
+        </div>
+        <div class="flex items-center gap-6 text-sm text-slate-600 font-medium">
+            <div class="flex items-center gap-2 max-w-md">
+                <!-- Status Prefix -->
+                <span *ngIf="refreshStatusData?.data?.complete !== false">Last Sync:</span>
+                
+                <!-- Clock Icon (When Complete) -->
+                <svg *ngIf="refreshStatusData?.data?.complete !== false" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                
+                <!-- Spinner Icon (When Syncing) -->
+                <svg *ngIf="refreshStatusData?.data?.complete === false" class="animate-spin h-4 w-4 text-blue-600 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                
+                <!-- Premium Micro Progress Bar (When Syncing) -->
+                <div *ngIf="refreshStatusData?.data?.complete === false" class="flex flex-col justify-center w-32 ml-1 mt-0.5">
+                    <div class="flex justify-between items-center text-[10px] uppercase font-bold text-blue-600 tracking-wider mb-1">
+                        <span>Updating Fleet</span>
+                        <span>{{ syncProgressPercentage | number:'1.0-0' }}%</span>
+                    </div>
+                    <div class="w-full bg-blue-100 rounded-full h-1.5 overflow-hidden">
+                        <div class="bg-blue-600 h-1.5 rounded-full transition-all duration-700 ease-out" [style.width.%]="syncProgressPercentage"></div>
+                    </div>
+                </div>
+
+                <!-- Finished Text -->
+                <span *ngIf="refreshStatusData?.data?.complete !== false" class="text-emerald-600 font-semibold truncate ml-1">
+                    {{ lastSyncTime | date:'yyyy-MM-dd HH:mm:ss' }}
+                </span>
+            </div>
+            <button (click)="manualRefresh($event)" [disabled]="isRefreshing" class="bg-white p-2 rounded-full border border-slate-200 shadow-sm transition-all duration-300" [ngClass]="isRefreshing ? 'text-slate-300 opacity-50 cursor-not-allowed pointer-events-none' : 'text-slate-500 hover:text-blue-600 hover:border-slate-300 cursor-pointer'" title="Refresh Now">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+            </button>
+            
+            <!-- <button class="bg-white p-2 rounded-full border border-slate-200 shadow-sm text-slate-500 hover:text-slate-900 transition-colors" title="Settings">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button> -->
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="flex flex-wrap items-center gap-3 mb-6 relative z-40">
+        <!-- Date -->
+        <div class="relative w-full sm:w-auto">
+            <button (click)="toggleDropdown('date', $event)" class="bg-white border border-slate-200 rounded-md px-3 py-2 flex items-center justify-between w-full sm:w-auto sm:min-w-[10rem] sm:max-w-[17rem] shadow-sm hover:border-slate-300 transition-colors text-left relative z-50 gap-2">
+                <div class="flex flex-col overflow-hidden">
+                    <span class="text-xs text-slate-500 mb-0.5">Date</span>
+                    <span class="text-sm font-semibold text-slate-800 truncate">{{ selectedDate }}</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+            </button>
+            <div *ngIf="activeDropdown === 'date'" (click)="$event.stopPropagation()" class="absolute z-50 mt-1 min-w-full whitespace-nowrap bg-white border border-slate-200 rounded-md shadow-xl py-1 left-0">
+                <a (click)="selectOption('date', 'Today')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedDate === 'Today'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Today <svg *ngIf="selectedDate === 'Today'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('date', 'Yesterday')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedDate === 'Yesterday'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Yesterday <svg *ngIf="selectedDate === 'Yesterday'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('date', 'Last 7 Days')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedDate === 'Last 7 Days'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Last 7 Days <svg *ngIf="selectedDate === 'Last 7 Days'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('date', 'Last 30 Days')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedDate === 'Last 30 Days'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Last 30 Days <svg *ngIf="selectedDate === 'Last 30 Days'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <div class="border-t border-slate-100 my-1"></div>
+                <a (click)="selectOption('date', 'Custom Range...')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': isCustomDateRangeOpen}" class="flex items-center justify-between px-4 py-2 text-sm text-blue-600 hover:bg-slate-50 cursor-pointer font-medium">Custom Range... <svg *ngIf="isCustomDateRangeOpen" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                
+                <!-- Custom Date Picker Form -->
+                <div *ngIf="isCustomDateRangeOpen" (click)="$event.stopPropagation()" class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex flex-col gap-3 rounded-b-md">
+                    <div class="flex items-center gap-3">
+                        <div class="flex flex-col w-full">
+                            <label class="text-[10px] uppercase text-slate-500 font-bold mb-1 tracking-wide">From Date</label>
+                            <input type="date" [(ngModel)]="customStartDate" class="text-xs border border-slate-200 rounded px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white shadow-sm" />
+                        </div>
+                        <div class="flex flex-col w-full">
+                            <label class="text-[10px] uppercase text-slate-500 font-bold mb-1 tracking-wide">To Date</label>
+                            <input type="date" [(ngModel)]="customEndDate" class="text-xs border border-slate-200 rounded px-2 py-1.5 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white shadow-sm" [min]="customStartDate" />
+                        </div>
+                    </div>
+                    <button (click)="applyCustomDateRange()" [disabled]="!customStartDate || !customEndDate" class="mt-1 w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 rounded shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex justify-center items-center gap-1">
+                        <span>Apply Range</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dumper -->
+        <div class="flex flex-col w-full sm:w-64 bg-white border border-slate-200 rounded-md px-3 pt-1.5 pb-1 shadow-sm hover:border-slate-300 transition-colors relative z-50">
+            <span class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">Dumper</span>
+            <ng-select 
+                [items]="allActiveMachines" 
+                bindLabel="name"
+                bindValue="id"
+                [(ngModel)]="selectedDumper"
+                (change)="refreshData()"
+                [clearable]="false"
+                [searchable]="true"
+                [virtualScroll]="true"
+                [typeahead]="dumperTypeahead"
+                [loading]="isDumperLoading"
+                placeholder="Search dumper..."
+                class="text-sm font-semibold text-slate-800 custom-ng-select-dumper">
+            </ng-select>
+        </div>
+
+        <!-- Connectivity -->
+        <div class="relative w-full sm:w-auto">
+            <button (click)="toggleDropdown('connectivity', $event)" class="bg-white border border-slate-200 rounded-md px-3 py-2 flex items-center justify-between w-full sm:w-36 lg:w-40 shadow-sm hover:border-slate-300 transition-colors text-left relative z-50">
+                <div class="flex flex-col">
+                    <span class="text-xs text-slate-500 mb-0.5">Connectivity</span>
+                    <span class="text-sm font-semibold text-slate-800 truncate">{{ selectedConnectivity }}</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div *ngIf="activeDropdown === 'connectivity'" (click)="$event.stopPropagation()" class="absolute z-50 mt-1 min-w-full whitespace-nowrap bg-white border border-slate-200 rounded-md shadow-xl py-1 left-0">
+                <a (click)="selectOption('connectivity', 'All')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedConnectivity === 'All'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 cursor-pointer">All <svg *ngIf="selectedConnectivity === 'All'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('connectivity', 'Online')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedConnectivity === 'Online'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-green-500"></div>Online</div> <svg *ngIf="selectedConnectivity === 'Online'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('connectivity', 'Offline')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedConnectivity === 'Offline'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500"></div>Offline</div> <svg *ngIf="selectedConnectivity === 'Offline'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <!-- <a (click)="selectOption('connectivity', 'Stale')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedConnectivity === 'Stale'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-amber-500"></div>Stale</div> <svg *ngIf="selectedConnectivity === 'Stale'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a> -->
+            </div>
+        </div>
+
+        <!-- Operational Status -->
+        <div class="relative w-full sm:w-auto">
+            <button (click)="toggleDropdown('opStatus', $event)" class="bg-white border border-slate-200 rounded-md px-3 py-2 flex items-center justify-between w-full sm:w-40 shadow-sm hover:border-slate-300 transition-colors text-left relative z-50">
+                <div class="flex flex-col">
+                    <span class="text-xs text-slate-500 mb-0.5">Operational Status</span>
+                    <span class="text-sm font-semibold text-slate-800 truncate">{{ selectedOpStatus }}</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div *ngIf="activeDropdown === 'opStatus'" (click)="$event.stopPropagation()" class="absolute z-50 mt-1 min-w-full whitespace-nowrap bg-white border border-slate-200 rounded-md shadow-xl py-1 left-0">
+                <a (click)="selectOption('opStatus', 'All')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedOpStatus === 'All'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 cursor-pointer">All <svg *ngIf="selectedOpStatus === 'All'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('opStatus', 'Moving')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedOpStatus === 'Moving'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Moving <svg *ngIf="selectedOpStatus === 'Moving'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('opStatus', 'Stationary')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedOpStatus === 'Stationary'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Stationary <svg *ngIf="selectedOpStatus === 'Stationary'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('opStatus', 'Engine Off')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedOpStatus === 'Engine Off'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Engine Off <svg *ngIf="selectedOpStatus === 'Engine Off'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('opStatus', 'Offline')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedOpStatus === 'Offline'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Offline <svg *ngIf="selectedOpStatus === 'Offline'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+            </div>
+        </div>
+
+        <!-- Fuel Status -->
+        <div class="relative w-full sm:w-auto">
+            <button (click)="toggleDropdown('fuelStatus', $event)" class="bg-white border border-slate-200 rounded-md px-3 py-2 flex items-center justify-between w-full sm:w-36 lg:w-40 shadow-sm hover:border-slate-300 transition-colors text-left relative z-50">
+                <div class="flex flex-col">
+                    <span class="text-xs text-slate-500 mb-0.5">Fuel Status</span>
+                    <span class="text-sm font-semibold text-slate-800 truncate">{{ selectedFuelStatus }}</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div *ngIf="activeDropdown === 'fuelStatus'" (click)="$event.stopPropagation()" class="absolute z-50 mt-1 min-w-full whitespace-nowrap bg-white border border-slate-200 rounded-md shadow-xl py-1 left-0">
+                <a (click)="selectOption('fuelStatus', 'All')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedFuelStatus === 'All'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 cursor-pointer">All <svg *ngIf="selectedFuelStatus === 'All'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('fuelStatus', 'Normal (>40%)')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedFuelStatus === 'Normal (>40%)'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-green-500"></div>Normal (>40%)</div> <svg *ngIf="selectedFuelStatus === 'Normal (>40%)'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('fuelStatus', 'Low (20-40%)')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedFuelStatus === 'Low (20-40%)'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-amber-500"></div>Low (20-40%)</div> <svg *ngIf="selectedFuelStatus === 'Low (20-40%)'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('fuelStatus', 'Critical (<20%)')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedFuelStatus === 'Critical (<20%)'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"><div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-red-500"></div>Critical (&lt;20%)</div> <svg *ngIf="selectedFuelStatus === 'Critical (<20%)'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+            </div>
+        </div>
+
+        <!-- Source -->
+        <!-- <div class="relative">
+            <button (click)="toggleDropdown('source', $event)" class="bg-white border border-slate-200 rounded-md px-3 py-2 flex items-center justify-between w-36 shadow-sm hover:border-slate-300 transition-colors text-left relative z-50">
+                <div class="flex flex-col">
+                    <span class="text-xs text-slate-500 mb-0.5">Source</span>
+                    <span class="text-sm font-semibold text-slate-800 truncate">{{ selectedSource }}</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+            <div *ngIf="activeDropdown === 'source'" (click)="$event.stopPropagation()" class="absolute z-50 mt-1 min-w-full whitespace-nowrap bg-white border border-slate-200 rounded-md shadow-xl py-1 left-0">
+                <a (click)="selectOption('source', 'All')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedSource === 'All'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-800 hover:bg-slate-50 cursor-pointer">All <svg *ngIf="selectedSource === 'All'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('source', 'VECV')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedSource === 'VECV'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">VECV <svg *ngIf="selectedSource === 'VECV'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                <a (click)="selectOption('source', 'Truck Connect')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedSource === 'Truck Connect'}" class="flex items-center justify-between px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer">Truck Connect <svg *ngIf="selectedSource === 'Truck Connect'" class="h-4 w-4 ml-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+            </div>
+        </div> -->
+
+        <!-- Clear Filters -->
+        <button (click)="clearFilters()"
+            class="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium text-sm px-4 py-2.5 rounded-md h-[54px] shadow-sm transition-colors flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            Clear Filters
+        </button>
+
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+        <!-- 1. Total Vehicles -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-start">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                    </svg>
+                </div>
+                <span class="text-sm font-semibold text-slate-700 leading-tight">Total<br />Vehicles</span>
+            </div>
+            <div class="text-3xl font-bold text-slate-900 mb-1">
+                <span *ngIf="isLoading" class="text-slate-300">...</span>
+                <span *ngIf="!isLoading">{{ summaryData?.totals?.total_vehicles || 0 }}</span>
+            </div>
+            <div class="text-xs text-slate-500 font-medium mt-auto">Subscribed Vehicles</div>
+        </div>
+
+        <!-- 2. Online Vehicles -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-start">
+            <div class="flex items-center gap-3 mb-4">
+                <div
+                    class="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center shrink-0 text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <span class="text-sm font-semibold text-slate-700 leading-tight">Online<br />Vehicles</span>
+            </div>
+            <div class="text-3xl font-bold text-slate-900 mb-1">
+                <span *ngIf="isLoading" class="text-slate-300">...</span>
+                <span *ngIf="!isLoading">{{ summaryData?.totals?.online_vehicles || 0 }}</span>
+            </div>
+            <div class="mt-auto flex flex-col gap-1.5">
+                <div *ngIf="isLoading" class="text-xs text-slate-300">...</div>
+                <ng-container *ngIf="!isLoading">
+                    <div class="h-1.5 w-full bg-slate-200 flex rounded-full overflow-hidden">
+                        <div class="bg-green-500 h-full transition-all duration-500" [style.width.%]="summaryData?.totals?.online_pct || 0"></div>
+                        <div class="bg-red-400 h-full transition-all duration-500" [style.width.%]="100 - (summaryData?.totals?.online_pct || 0)"></div>
+                    </div>
+                    <div class="text-[10px] text-slate-500 font-medium flex justify-between">
+                        <span class="text-green-600">{{ summaryData?.totals?.online_vehicles || 0 }} Online</span>
+                        <span class="text-red-500">{{ summaryData?.totals?.offline_vehicles || 0 }} Offline</span>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+
+        <!-- 3. Moving Vehicles -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-start">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0 text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                </div>
+                <span class="text-sm font-semibold text-slate-700 leading-tight">Moving<br />Vehicles</span>
+            </div>
+            <div class="text-3xl font-bold text-slate-900 mb-1">
+                <span *ngIf="isLoading" class="text-slate-300">...</span>
+                <span *ngIf="!isLoading">{{ summaryData?.totals?.moving_vehicles || 0 }}</span>
+            </div>
+            <div class="text-xs text-blue-600 font-semibold mt-auto">Speed > 0 km/h</div>
+        </div>
+
+        <!-- 4. Stationary Vehicles -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-start">
+            <div class="flex items-center gap-3 mb-4">
+                <div
+                    class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center shrink-0 text-amber-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <span class="text-sm font-semibold text-slate-700 leading-tight">Stationary<br />Vehicles</span>
+            </div>
+            <div class="text-3xl font-bold text-slate-900 mb-1">
+                <span *ngIf="isLoading" class="text-slate-300">...</span>
+                <span *ngIf="!isLoading">{{ summaryData?.totals?.stationary_vehicles || 0 }}</span>
+            </div>
+            <div class="text-xs text-amber-600 font-semibold mt-auto">IGN ON & Speed = 0</div>
+        </div>
+
+        <!-- 5. Avg Fuel Level -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-start">
+            <div class="flex items-center gap-3 mb-4">
+                <div
+                    class="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center shrink-0 text-purple-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                </div>
+                <span class="text-sm font-semibold text-slate-700 leading-tight">Avg Fuel<br />Level</span>
+            </div>
+            <div class="text-3xl font-bold text-slate-900 mb-1 flex items-baseline">
+                <span *ngIf="isLoading" class="text-slate-300">...</span>
+                <span *ngIf="!isLoading">{{ summaryData?.totals?.average_fuel_level || 0 }}</span>
+                <span *ngIf="!isLoading" class="text-xl ml-0.5">%</span>
+            </div>
+            <div class="text-xs text-purple-600 font-semibold mt-auto">Across all vehicles</div>
+        </div>
+
+        <!-- 6. Safety Events -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col justify-start">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center shrink-0 text-red-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <span class="text-sm font-semibold text-slate-700 leading-tight">Safety Events<br /><span
+                        class="text-xs text-slate-500">(Today)</span></span>
+            </div>
+            <div class="text-3xl font-bold text-slate-900 mb-1">
+                <span *ngIf="isLoading" class="text-slate-300">...</span>
+                <span *ngIf="!isLoading">{{ summaryData?.totals?.safety_events || 0 }}</span>
+            </div>
+            <div class="text-xs text-red-600 font-semibold mt-auto">Harsh driving events</div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+        <!-- Left Column (Analytical Cards - Span 8) -->
+        <div class="xl:col-span-8 flex flex-col gap-6">
+
+            <!-- Top Row of Right Col (2 cards) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Fuel Status Donut Chart -->
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 flex flex-col h-full">
+                    <h2 class="text-base font-bold text-slate-900 mb-6">Fuel Status</h2>
+                    <div class="flex-1 flex flex-col items-center justify-between gap-6">
+                        <!-- Donut -->
+                        <div class="relative w-36 h-36">
+                            <svg viewBox="0 0 36 36" class="w-full h-full transform -rotate-90">
+                                <circle cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#f1f5f9"
+                                    stroke-width="3"></circle>
+
+                                <!-- Green Segment -->
+                                <circle cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#22c55e"
+                                    stroke-width="4" [attr.stroke-dasharray]="(fuelStatusData?.percentages?.normal || 0) + ' ' + (100 - (fuelStatusData?.percentages?.normal || 0))" stroke-dashoffset="0"
+                                    class="origin-center transition-all duration-1000 ease-out"></circle>
+                                <!-- Amber Segment -->
+                                <circle cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#f59e0b"
+                                    stroke-width="4" [attr.stroke-dasharray]="(fuelStatusData?.percentages?.low || 0) + ' ' + (100 - (fuelStatusData?.percentages?.low || 0))" [attr.stroke-dashoffset]="-(fuelStatusData?.percentages?.normal || 0)"
+                                    class="origin-center transition-all duration-1000 ease-out"></circle>
+                                <!-- Red Segment -->
+                                <circle cx="18" cy="18" r="15.91549430918954" fill="transparent" stroke="#ef4444"
+                                    stroke-width="4" [attr.stroke-dasharray]="(fuelStatusData?.percentages?.critical || 0) + ' ' + (100 - (fuelStatusData?.percentages?.critical || 0))" [attr.stroke-dashoffset]="-((fuelStatusData?.percentages?.normal || 0) + (fuelStatusData?.percentages?.low || 0))"
+                                    class="origin-center transition-all duration-1000 ease-out"></circle>
+                            </svg>
+                            <div class="absolute inset-0 flex flex-col items-center justify-center text-center mt-1">
+                                <span class="text-3xl font-bold text-slate-900 leading-none mb-1">{{ fuelStatusData?.basis_count || 0 }}</span>
+                                <span class="text-xs text-slate-500 font-semibold">Total</span>
+                            </div>
+                        </div>
+
+                        <!-- Legend -->
+                        <div class="flex flex-col gap-3 text-sm w-full">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 bg-green-500 rounded-sm"></div>
+                                    <span class="font-semibold text-slate-700 text-xs">Normal (>40%)</span>
+                                </div>
+                                <div class="text-xs font-bold text-slate-800">{{ fuelStatusData?.counts?.normal || 0 }} <span
+                                        class="text-slate-400 font-medium ml-1">({{ fuelStatusData?.percentages?.normal || 0 }}%)</span></div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 bg-amber-500 rounded-sm"></div>
+                                    <span class="font-semibold text-slate-700 text-xs">Low (20% - 40%)</span>
+                                </div>
+                                <div class="text-xs font-bold text-slate-800">{{ fuelStatusData?.counts?.low || 0 }} <span
+                                        class="text-slate-400 font-medium ml-1">({{ fuelStatusData?.percentages?.low || 0 }}%)</span></div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 bg-red-500 rounded-sm"></div>
+                                    <span class="font-semibold text-slate-700 text-xs">Critical (&lt;20%)</span>
+                                </div>
+                                <div class="text-xs font-bold text-slate-800">{{ fuelStatusData?.counts?.critical || 0 }} <span
+                                        class="text-slate-400 font-medium ml-1">({{ fuelStatusData?.percentages?.critical || 0 }}%)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lowest Fuel Vehicles -->
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 flex flex-col h-full">
+                    <h2 class="text-base font-bold text-slate-900 mb-4">Lowest Fuel Vehicles</h2>
+
+                    <ng-container *ngIf="fuelStatusData?.lowest?.length > 0; else noCriticalFuel">
+                        <div class="overflow-x-auto w-full mb-auto">
+                            <table class="w-full min-w-[300px] text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="text-slate-500 border-b border-slate-100">
+                                    <th class="pb-3 font-semibold pr-2 whitespace-nowrap">Dumper No.</th>
+                                    <th class="pb-3 font-semibold text-center whitespace-nowrap px-4">Fuel Level</th>
+                                    <th class="pb-3 font-semibold text-right whitespace-nowrap">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let dumper of fuelStatusData?.lowest" class="border-b border-slate-50 last:border-0">
+                                    <td class="py-2.5 font-bold text-slate-800 pr-2 whitespace-nowrap">
+                                        <div title="{{ dumper.chassis_number || dumper.dumper_no }}">
+                                            {{ dumper.chassis_number || dumper.dumper_no }}
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5">
+                                        <div class="flex items-center gap-2 justify-center">
+                                            <span class="w-10 shrink-0 font-bold text-slate-900 text-right">{{ dumper.fuel_level_pct }}%</span>
+                                            <div class="w-12 shrink-0 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                                <div class="h-full rounded-full" [ngClass]="getFuelStatusBadge(dumper.fuel_status).color"
+                                                    [style.width]="dumper.fuel_level_pct + '%'"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-2.5 text-right">
+                                        <span
+                                            class="px-2 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wide inline-block w-[60px] text-center"
+                                            [ngClass]="[getFuelStatusBadge(dumper.fuel_status).text, getFuelStatusBadge(dumper.fuel_status).bg]">
+                                            {{ dumper.fuel_status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            </table>
+                        </div>
+                    </ng-container>
+
+                    <ng-template #noCriticalFuel>
+                        <div class="flex flex-col items-center justify-center py-8 text-center mb-auto">
+                            <div class="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <h3 class="text-sm font-semibold text-slate-800">Fuel Levels Healthy</h3>
+                            <p class="text-xs text-slate-500 mt-1 max-w-[200px]">All dumpers currently have sufficient fuel levels for operations.</p>
+                        </div>
+                    </ng-template>
+
+                    <div class="pt-4 border-t border-slate-100 mt-4 text-right">
+                        <button (click)="viewFullFuelReport()"
+                            class="text-blue-600 text-xs font-semibold flex items-center justify-end gap-1 w-full hover:underline">
+                            View full fuel report <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Row of Right Col (2 cards) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Fleet Operational Status -->
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 flex flex-col h-full">
+                    <h2 class="text-base font-bold text-slate-900 mb-6">Fleet Operational Status</h2>
+
+                    <div class="flex flex-col gap-4.5 mb-auto text-xs">
+                        <!-- Moving -->
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 text-slate-700 font-semibold leading-tight">Moving <span
+                                    class="text-slate-400 font-normal block text-[10px]">Speed > 0</span></div>
+                            <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-blue-600 rounded-full" [style.width]="(operationsData?.operational?.percentages?.moving || 0) + '%'"></div>
+                            </div>
+                            <div class="w-12 text-right font-bold text-slate-900">{{ operationsData?.operational?.counts?.moving || 0 }} <span
+                                    class="text-slate-400 font-medium text-[10px] ml-0.5">{{ operationsData?.operational?.percentages?.moving || 0 }}%</span></div>
+                        </div>
+
+                        <!-- Stationary -->
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 text-slate-700 font-semibold leading-tight">Stationary <span
+                                    class="text-slate-400 font-normal block text-[10px]">IGN ON, Spd=0</span></div>
+                            <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-amber-500 rounded-full" [style.width]="(operationsData?.operational?.percentages?.stationary || 0) + '%'"></div>
+                            </div>
+                            <div class="w-12 text-right font-bold text-slate-900">{{ operationsData?.operational?.counts?.stationary || 0 }} <span
+                                    class="text-slate-400 font-medium text-[10px] ml-0.5">{{ operationsData?.operational?.percentages?.stationary || 0 }}%</span></div>
+                        </div>
+
+                        <!-- Engine Off -->
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 text-slate-700 font-semibold leading-tight">Engine Off <span
+                                    class="text-slate-400 font-normal block text-[10px]">IGN OFF</span></div>
+                            <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-slate-400 rounded-full" [style.width]="(operationsData?.operational?.percentages?.engine_off || 0) + '%'"></div>
+                            </div>
+                            <div class="w-12 text-right font-bold text-slate-900">{{ operationsData?.operational?.counts?.engine_off || 0 }} <span
+                                    class="text-slate-400 font-medium text-[10px] ml-0.5">{{ operationsData?.operational?.percentages?.engine_off || 0 }}%</span></div>
+                        </div>
+
+                        <!-- Data Unavailable -->
+                        <div class="flex items-center gap-3">
+                            <div class="w-24 text-slate-700 font-semibold leading-tight">Data Unavail. <span
+                                    class="text-slate-400 font-normal block text-[10px]">Offline</span></div>
+                            <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div class="h-full bg-red-500 rounded-full" [style.width]="(operationsData?.operational?.percentages?.offline || 0) + '%'"></div>
+                            </div>
+                            <div class="w-12 text-right font-bold text-slate-900">{{ operationsData?.operational?.counts?.offline || 0 }} <span
+                                    class="text-slate-400 font-medium text-[10px] ml-0.5">{{ operationsData?.operational?.percentages?.offline || 0 }}%</span></div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Safety Events (Today) -->
+                <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 flex flex-col h-full">
+                    <h2 class="text-base font-bold text-slate-900 mb-5">Safety Events (Today)</h2>
+
+                    <div class="flex flex-col sm:flex-row gap-4 mb-4 flex-1">
+                        <div class="flex flex-col justify-center gap-4 w-full sm:w-1/2">
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-xl font-bold text-slate-900 leading-none mb-1">{{ operationsData?.safety_events?.truck_connect_harsh?.harsh_braking || 0 }}</div>
+                                    <div class="text-[10px] text-slate-500 font-semibold uppercase leading-tight">Harsh
+                                        Braking</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-xl font-bold text-slate-900 leading-none mb-1">{{ operationsData?.safety_events?.truck_connect_harsh?.harsh_acceleration || 0 }}</div>
+                                    <div class="text-[10px] text-slate-500 font-semibold uppercase leading-tight">Harsh
+                                        Accel.</div>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-xl font-bold text-slate-900 leading-none mb-1">{{ operationsData?.safety_events?.truck_connect_harsh?.harsh_cornering || 0 }}</div>
+                                    <div class="text-[10px] text-slate-500 font-semibold uppercase leading-tight">Harsh
+                                        Cornering</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="w-full sm:w-1/2 flex flex-col justify-center min-w-0">
+                            <div class="text-[11px] font-bold text-slate-900 mb-3 mt-2 sm:mt-0">Events by Dumper (Top 5)</div>
+                            <div class="overflow-x-auto w-full">
+                                <div class="flex flex-col gap-2.5 min-w-full w-max pb-3">
+                                    <div class="flex flex-col w-full" *ngFor="let item of eventsByDumper">
+                                        <div class="flex justify-between items-end mb-1">
+                                            <span class="whitespace-nowrap font-semibold text-slate-700 text-[11px] pr-2" [title]="item.no">{{ item.no }}</span>
+                                            <span class="text-[10px] font-bold text-slate-900 shrink-0">{{ item.count }}</span>
+                                        </div>
+                                        <div class="w-full bg-slate-100 rounded-full h-1.5">
+                                            <div class="h-1.5 bg-red-600 rounded-full" [style.width]="item.width"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 mt-1 text-right">
+                        <button (click)="viewAllSafetyEvents()"
+                            class="text-blue-600 text-xs font-semibold flex items-center justify-end gap-1 w-full hover:underline">
+                            View all events <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column (Span 4) -->
+        <div class="xl:col-span-4 flex flex-col gap-6 min-w-0">
+
+            <!-- Recent Alerts (Narrow width for right col) -->
+            <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 flex flex-col h-full">
+                <div class="flex justify-between items-center mb-5">
+                    <h2 class="text-base font-bold text-slate-900">Recent Alerts</h2>
+                    <div *ngIf="isAlertsLoading" class="w-4 h-4 rounded-full border-2 border-slate-300 border-t-blue-600 animate-spin"></div>
+                </div>
+
+                <div *ngIf="!isAlertsLoading && recentAlerts.length === 0" class="flex flex-col items-center justify-center py-8 text-slate-500 flex-grow">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span class="text-sm font-medium">No recent alerts found</span>
+                </div>
+
+                <div *ngIf="recentAlerts.length > 0" class="overflow-x-auto w-full mb-4">
+                    <table class="w-full min-w-[350px] text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="text-slate-400 border-b border-slate-100">
+                            <th class="pb-2.5 font-semibold w-8"></th>
+                            <th class="pb-2.5 font-semibold pr-4 whitespace-nowrap">Alert Details</th>
+                            <th class="pb-2.5 font-semibold text-right whitespace-nowrap">Dumper</th>
+                        </tr>
+                    </thead>
+                    <tbody [ngClass]="{'opacity-50 pointer-events-none': isAlertsLoading}">
+                        <tr *ngFor="let alert of recentAlerts"
+                            class="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
+                            <td class="py-3">
+                                <div class="w-7 h-7 rounded-full flex items-center justify-center"
+                                    [ngClass]="alert.typeClass">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            [attr.d]="alert.icon" />
+                                    </svg>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <div class="font-bold text-slate-900 mb-0.5">{{ alert.type }}</div>
+                                <div class="text-slate-500 font-medium whitespace-nowrap" [title]="alert.desc">{{ alert.desc }}</div>
+                                <div class="text-[10px] text-slate-400 mt-1">{{ alert.time }}</div>
+                            </td>
+                            <td class="py-3 text-right font-bold text-slate-800 whitespace-nowrap">
+                                        <div class="ml-auto" [title]="alert.dumper">{{ alert.dumper }}</div>
+                                    </td>
+                        </tr>
+                    </tbody>
+                </table>
+                </div>
+
+                <div *ngIf="recentAlerts.length > 0" class="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3 justify-center items-center text-xs">
+                    <span class="text-slate-500 font-medium">Showing {{ alertsPagination?.from || 0 }} to {{ alertsPagination?.to || 0 }} of {{ alertsPagination?.total || 0 }}</span>
+                    <div class="flex items-center gap-1">
+                        <!-- Previous Button -->
+                        <button (click)="changeAlertsPage(alertsPagination?.current_page - 1)" 
+                            [disabled]="alertsPagination?.current_page === 1" 
+                            class="w-7 h-7 border border-slate-200 rounded text-slate-600 hover:bg-slate-50 font-medium flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+
+                        <!-- Page Numbers -->
+                        <button *ngFor="let p of alertsPages" (click)="changeAlertsPage(p)" 
+                            [ngClass]="{'bg-blue-600 text-white shadow-sm': p === alertsPagination?.current_page, 'border border-slate-200 text-slate-600 hover:bg-slate-50': p !== alertsPagination?.current_page}" 
+                            class="w-7 h-7 rounded font-medium flex items-center justify-center transition-colors">{{ p }}</button>
+
+                        <!-- Next Button -->
+                        <button (click)="changeAlertsPage(alertsPagination?.current_page + 1)" 
+                            [disabled]="alertsPagination?.current_page === alertsPagination?.last_page" 
+                            class="w-7 h-7 border border-slate-200 rounded text-slate-600 hover:bg-slate-50 font-medium flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Dumper Status / Telemetry Table -->
+        <div id="telemetry-table-section" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden xl:col-span-12">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-white">
+                <h2 class="text-base font-bold text-slate-900">Dumper Status / Telemetry</h2>
+                <div class="relative w-64">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <svg aria-hidden="true" class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                    <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange($event)" class="bg-slate-50 border border-slate-200 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full py-2 pr-3 pl-10 transition-colors" placeholder="Search dumpers...">
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-xs text-slate-600 font-semibold border-b border-slate-200">
+                            <th (click)="sortBy('no')" class="py-3 px-5 cursor-pointer hover:bg-slate-100 transition-colors">
+                                <div class="flex items-center gap-1">Dumper No. <svg *ngIf="sortColumn === 'no'" class="w-3 h-3" [ngClass]="{'rotate-180': sortDirection === 'desc'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></div>
+                            </th>
+                            <th (click)="sortBy('conn')" class="py-3 px-4 text-center cursor-pointer hover:bg-slate-100 transition-colors">
+                                <div class="flex items-center justify-center gap-1">Connectivity <svg *ngIf="sortColumn === 'conn'" class="w-3 h-3" [ngClass]="{'rotate-180': sortDirection === 'desc'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></div>
+                            </th>
+                            <th (click)="sortBy('ign')" class="py-3 px-4 text-center cursor-pointer hover:bg-slate-100 transition-colors">
+                                <div class="flex items-center justify-center gap-1">IGN <svg *ngIf="sortColumn === 'ign'" class="w-3 h-3" [ngClass]="{'rotate-180': sortDirection === 'desc'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></div>
+                            </th>
+                            <th (click)="sortBy('speed')" class="py-3 px-4 text-right cursor-pointer hover:bg-slate-100 transition-colors">
+                                <div class="flex items-center justify-end gap-1">Speed (km/h) <svg *ngIf="sortColumn === 'speed'" class="w-3 h-3" [ngClass]="{'rotate-180': sortDirection === 'desc'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></div>
+                            </th>
+                            <th (click)="sortBy('rpm')" class="py-3 px-4 text-right cursor-pointer hover:bg-slate-100 transition-colors">
+                                <div class="flex items-center justify-end gap-1">RPM <svg *ngIf="sortColumn === 'rpm'" class="w-3 h-3" [ngClass]="{'rotate-180': sortDirection === 'desc'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></div>
+                            </th>
+                            <th (click)="sortBy('fuel')" class="py-3 px-4 min-w-[140px] cursor-pointer hover:bg-slate-100 transition-colors">
+                                <div class="flex items-center gap-1">Fuel Level (%) <svg *ngIf="sortColumn === 'fuel'" class="w-3 h-3" [ngClass]="{'rotate-180': sortDirection === 'desc'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></div>
+                            </th>
+                            <th (click)="sortBy('odo')" class="py-3 px-4 whitespace-nowrap text-right cursor-pointer hover:bg-slate-100 transition-colors">
+                                <div class="flex items-center justify-end gap-1">Odometer <svg *ngIf="sortColumn === 'odo'" class="w-3 h-3" [ngClass]="{'rotate-180': sortDirection === 'desc'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></div>
+                            </th>
+                            <th (click)="sortBy('update')" class="py-3 px-4 text-center cursor-pointer hover:bg-slate-100 transition-colors">
+                                <div class="flex items-center justify-center gap-1">Last GPS Update <svg *ngIf="sortColumn === 'update'" class="w-3 h-3" [ngClass]="{'rotate-180': sortDirection === 'desc'}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg></div>
+                            </th>
+                            <!-- <th class="py-3 px-4 text-center">Action</th> -->
+                        </tr>
+                    </thead>
+                    <tbody class="text-sm">
+                        <tr *ngFor="let row of telemetryData; let last = last" [class.border-b]="!last"
+                            class="border-slate-100 hover:bg-slate-50 transition-colors">
+                            <td class="py-3.5 px-5 font-semibold text-slate-900">{{ row.chassis_number || row.dumper_no }}</td>
+                            <td class="py-3.5 px-4 text-center">
+                                <span class="text-[11px] px-2.5 py-1 rounded-full font-bold uppercase tracking-wide"
+                                    [ngClass]="row.connectivity === 'online' ? 'text-green-700 bg-green-100' : 'text-red-600 bg-red-100'">
+                                    {{ row.connectivity }}
+                                </span>
+                            </td>
+                            <td class="py-3.5 px-4 text-center">
+                                <span *ngIf="row.ignition !== null && row.ignition !== '--'" class="font-bold text-[11px] uppercase tracking-wide"
+                                    [ngClass]="row.ignition === 'ON' || row.ignition === true ? 'text-green-500' : 'text-red-500'">
+                                    {{ row.ignition === true ? 'ON' : (row.ignition === false ? 'OFF' : row.ignition) }}
+                                </span>
+                                <span *ngIf="row.ignition === null || row.ignition === '--'" class="text-slate-400 font-medium">--</span>
+                            </td>
+                            <td class="py-3.5 px-4 text-right text-slate-700 font-medium">{{ row.vehicle_speed !== null ? row.vehicle_speed : '--' }}</td>
+                            <td class="py-3.5 px-4 text-right text-slate-700 font-medium">{{ row.engine_rpm !== null ? row.engine_rpm : '--' }}</td>
+                            <td class="py-3.5 px-4">
+                                <div class="flex items-center gap-3 justify-start" *ngIf="row.fuel_level_pct !== null">
+                                    <span class="w-12 font-semibold text-slate-900 text-right">{{ row.fuel_level_pct }}%</span>
+                                    <div class="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                        <div class="h-full rounded-full" [ngClass]="getFuelColorClass(row.fuel_level_pct)"
+                                            [style.width]="row.fuel_level_pct + '%'"></div>
+                                    </div>
+                                </div>
+                                <div *ngIf="row.fuel_level_pct === null" class="text-slate-400 font-medium text-center">--</div>
+                            </td>
+                            <td class="py-3.5 px-4 whitespace-nowrap text-right text-slate-700 font-medium">{{ row.odometer_km !== null ? (row.odometer_km | number:'1.0-0') + ' km*' : '--' }}</td>
+                            <td class="py-3.5 px-4 text-center text-slate-700 font-medium whitespace-nowrap">{{
+                                row.last_reported_at ? (row.last_reported_at | date:'hh:mm:ss a') : '--' }}</td>
+                            <!-- <td class="py-3.5 px-4 text-center">
+                                <button (click)="openVehicleDetail(row)" class="text-slate-400 hover:text-blue-600 transition-colors bg-white hover:bg-blue-50 p-1.5 rounded-md border border-transparent hover:border-blue-200"><svg
+                                        xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg></button>
+                            </td> -->
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div
+                class="p-4 border-t border-slate-100 flex flex-col md:flex-row gap-4 justify-between items-center text-xs bg-slate-50">
+                <div class="flex flex-col sm:flex-row items-center gap-4 text-center md:text-left">
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-500 font-medium">Rows per page:</span>
+                        <div class="relative">
+                            <button (click)="toggleDropdown('pageSize', $event)" class="border border-slate-200 rounded px-3 py-1.5 text-slate-700 bg-white hover:bg-slate-50 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 cursor-pointer shadow-sm transition-colors text-xs font-semibold flex items-center justify-between w-[68px]">
+                                {{ selectedPageSize }}
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div *ngIf="activeDropdown === 'pageSize'" (click)="$event.stopPropagation()" class="absolute bottom-full mb-1 z-50 min-w-full whitespace-nowrap bg-white border border-slate-200 rounded-md shadow-xl py-1 left-0 origin-bottom">
+                                <a (click)="selectOption('pageSize', '10')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedPageSize === 10}" class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer">10 <svg *ngIf="selectedPageSize === 10" class="h-3 w-3 ml-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                                <a (click)="selectOption('pageSize', '20')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedPageSize === 20}" class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer">20 <svg *ngIf="selectedPageSize === 20" class="h-3 w-3 ml-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                                <a (click)="selectOption('pageSize', '50')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedPageSize === 50}" class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer">50 <svg *ngIf="selectedPageSize === 50" class="h-3 w-3 ml-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                                <a (click)="selectOption('pageSize', '100')" [ngClass]="{'bg-blue-50 text-blue-700 font-bold': selectedPageSize === 100}" class="flex items-center justify-between px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-50 cursor-pointer">100 <svg *ngIf="selectedPageSize === 100" class="h-3 w-3 ml-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></a>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="text-slate-600 font-medium">Showing {{ pagination.from || 0 }} to {{ pagination.to || 0 }} of {{ pagination.total || 0 }} vehicles</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <button
+                        (click)="changePage(pagination.current_page - 1)"
+                        [disabled]="pagination.current_page === 1"
+                        class="px-2.5 py-1.5 border border-slate-200 rounded bg-white text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        Previous
+                    </button>
+                    
+                    <button *ngFor="let p of [].constructor(pagination.last_page); let i = index"
+                        (click)="changePage(i + 1)"
+                        [ngClass]="pagination.current_page === (i + 1) ? 'bg-blue-600 text-white hover:bg-blue-700' : 'border border-slate-200 bg-white text-slate-600 hover:bg-slate-50'"
+                        class="w-7 h-7 rounded font-medium shadow-sm flex items-center justify-center transition-colors">
+                        {{ i + 1 }}
+                    </button>
+                    
+                    <button
+                        (click)="changePage(pagination.current_page + 1)"
+                        [disabled]="pagination.current_page === pagination.last_page || pagination.last_page === 0"
+                        class="px-2.5 py-1.5 border border-slate-200 rounded bg-white text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                        Next
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Info -->
+    <div class="mt-8 mb-4 flex gap-4 text-xs font-medium text-slate-400 justify-center sm:justify-start">
+        <span>All times are in local time</span>
+        <span>•</span>
+        <span>Data refresh every 1 minute</span>
+        <span>•</span>
+        <span>GPS accuracy may vary</span>
+        <span>•</span>
+        <span>Values shown are based on TruckConnect DAAS data</span>
+    </div>
+
+    <!-- Vehicle Drill-Down Modal -->
+    <div *ngIf="isDetailModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <!-- Modal Header -->
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">{{ selectedVehicle?.no }}</h3>
+                        <p class="text-xs text-slate-500 font-medium">Vehicle Detail & Telemetry</p>
+                    </div>
+                </div>
+                <button (click)="closeVehicleDetail()" class="text-slate-400 hover:text-slate-700 bg-white hover:bg-slate-100 p-2 rounded-full transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 gap-6 bg-white">
+                
+                <!-- Telemetry Data Grid -->
+                <div class="flex flex-col gap-4">
+                    <!-- Identity Section -->
+                    <div class="flex flex-col sm:flex-row gap-4 mb-2 bg-blue-50/50 p-3 rounded-lg border border-blue-100">
+                        <div class="flex-1">
+                            <span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider block mb-0.5">VIN</span>
+                            <span class="font-semibold text-slate-900 text-xs font-mono">1M8GDM9A_KP042788</span>
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-[10px] text-blue-600 font-bold uppercase tracking-wider block mb-0.5">Device IMEI</span>
+                            <span class="font-semibold text-slate-900 text-xs font-mono">863498051239845</span>
+                        </div>
+                    </div>
+
+                    <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-2">Live Telemetry</h4>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-xs text-slate-500 block mb-1">Status</span>
+                            <span class="font-semibold text-slate-900">{{ selectedVehicle?.conn }}</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-xs text-slate-500 block mb-1">Speed</span>
+                            <span class="font-semibold text-slate-900">{{ selectedVehicle?.speed }} km/h</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-xs text-slate-500 block mb-1">Engine (IGN)</span>
+                            <span class="font-semibold text-slate-900">{{ selectedVehicle?.ign }}</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-xs text-slate-500 block mb-1">Fuel Level</span>
+                            <span class="font-semibold text-slate-900">{{ selectedVehicle?.fuel }}%</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-xs text-slate-500 block mb-1">Odometer</span>
+                            <span class="font-semibold text-slate-900">{{ selectedVehicle?.odo }}</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-xs text-slate-500 block mb-1">Engine RPM</span>
+                            <span class="font-semibold text-slate-900">{{ selectedVehicle?.rpm }}</span>
+                        </div>
+                    </div>
+
+                    <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider mt-4 mb-2">GPS Information</h4>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-xs text-slate-500 block mb-1">Coordinates</span>
+                            <span class="font-semibold text-slate-900 text-xs">23.7912° N, 86.4255° E</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-xs text-slate-500 block mb-1">GPS Quality (Fix)</span>
+                            <div class="flex items-center gap-1.5 mt-0.5">
+                                <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                                <span class="font-bold text-slate-900 text-xs">Valid (3D Fix)</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-xs text-slate-500 block mb-1">Altitude</span>
+                            <span class="font-semibold text-slate-900 text-xs">210 m</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <span class="text-xs text-slate-500 block mb-1">Heading</span>
+                            <span class="font-semibold text-slate-900 text-xs">45° (NE)</span>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 col-span-2">
+                            <span class="text-xs text-slate-500 block mb-1">Last Update</span>
+                            <span class="font-semibold text-slate-900 text-xs">{{ selectedVehicle?.update }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map Section -->
+                <div class="flex flex-col h-full min-h-[300px] border border-slate-200 rounded-xl overflow-hidden shadow-sm relative">
+                    <!-- Placeholder Map UI -->
+                    <div class="absolute inset-0 bg-slate-100 flex flex-col items-center justify-center p-6 text-center z-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                        <p class="text-slate-500 font-medium mb-1">Interactive Map Disabled</p>
+                        <p class="text-slate-400 text-xs">A real map component (e.g. Google Maps) will be rendered here to show the vehicle's exact GPS location.</p>
+                    </div>
+                    
+                    <!-- Simulated Map Pin Overlay -->
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center">
+                        <div class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-md mb-1">{{ selectedVehicle?.no }}</div>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-600 drop-shadow-md" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+
+                    <!-- Map Overlay Controls -->
+                    <div class="absolute bottom-4 right-4 z-20 flex flex-col gap-2">
+                        <button class="bg-white p-2 rounded-md shadow-md hover:bg-slate-50 text-slate-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+                        </button>
+                        <button class="bg-white p-2 rounded-md shadow-md hover:bg-slate-50 text-slate-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal Footer -->
+            <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+                <button (click)="closeVehicleDetail()" class="px-5 py-2.5 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors font-medium text-sm">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -23,9 +23,12 @@
       <ng-container
         *ngIf="item.subItems && item.subItems.length > 0; else noSubmenu"
       >
-        <mat-expansion-panel [expanded]="isSubmenuExpanded(item.route)">
+        <mat-expansion-panel 
+          [expanded]="isSubmenuExpanded(item.route)"
+          (opened)="expandedSubmenu = item.route"
+          (closed)="expandedSubmenu === item.route ? expandedSubmenu = null : null"
+        >
           <mat-expansion-panel-header
-            (click)="toggleSubmenu(item.route)"
             class="submenu-list custom-header admin-sidenav"
           >
             <a mat-list-item class="submenu-list">

@@ -63,9 +63,6 @@
               <th>
                 <p class="table-heading">{{ detail.heading5 }}</p>
               </th>
-              <th>
-                <p class="table-heading">{{ detail.heading6 }}</p>
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -97,13 +94,7 @@
               <td>
                 <p>{{ leaveType.annualLimit }}</p>
               </td>
-              <td>
-                <span class="badge bg-light text-secondary border">
-                  {{ leaveType.formEMapping === 'COMP_REST' ? 'Compensatory Rest' : leaveType.formEMapping === 'EARNED'
-                  ? 'Earned Leave' : leaveType.formEMapping === 'MEDICAL' ? 'Medical Leave' : leaveType.formEMapping ===
-                  'OTHER' ? 'Other Leave' : 'Excluded' }}
-                </span>
-              </td>
+
               <td>
                 <p [ngClass]="{
                     'active-status': leaveType.is_active == 1 ? 1 : 0,
@@ -490,38 +481,40 @@
           </div>
         </div>
 
-        <div class="grid-section-title mt-4">Compliance Details</div>
-        <div class="row g-3">
-          <div class="col-md-6">
-            <div class="glass-info-card">
-              <div class="card-icon-wrapper type" style="background-color: rgba(74, 143, 169, 0.1); color: #4A8FA9;">
-                <i class="fa-solid fa-arrow-right-arrow-left"></i>
+        <ng-container *ngIf="false">
+          <div class="grid-section-title mt-4">Compliance Details</div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper type" style="background-color: rgba(74, 143, 169, 0.1); color: #4A8FA9;">
+                  <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                </div>
+                <div class="card-info-content">
+                  <span class="info-label">Carry Forward Allowed</span>
+                  <span class="info-value text-dark fs-7">
+                    {{ selectedLeaveType?.isCarryForward ? 'Yes' : 'No' }}
+                    <span *ngIf="selectedLeaveType?.isCarryForward" class="text-muted ms-1 fs-8">(Max: {{
+                      selectedLeaveType?.maxAccumulation || 'N/A' }})</span>
+                  </span>
+                </div>
               </div>
-              <div class="card-info-content">
-                <span class="info-label">Carry Forward Allowed</span>
-                <span class="info-value text-dark fs-7">
-                  {{ selectedLeaveType?.isCarryForward ? 'Yes' : 'No' }}
-                  <span *ngIf="selectedLeaveType?.isCarryForward" class="text-muted ms-1 fs-8">(Max: {{
-                    selectedLeaveType?.maxAccumulation || 'N/A' }})</span>
-                </span>
+            </div>
+            <div class="col-md-6">
+              <div class="glass-info-card">
+                <div class="card-icon-wrapper limit" style="background-color: rgba(74, 143, 169, 0.1); color: #4A8FA9;">
+                  <i class="fa-solid fa-file-contract"></i>
+                </div>
+                <div class="card-info-content">
+                  <span class="info-label">Form E Category</span>
+                  <span class="info-value text-dark fs-7">{{ selectedLeaveType?.['formEMapping'] === 'COMP_REST' ?
+                    'Compensatory Rest' : selectedLeaveType?.['formEMapping'] === 'EARNED' ? 'Earned Leave' :
+                    selectedLeaveType?.['formEMapping'] === 'MEDICAL' ? 'Medical Leave' : selectedLeaveType?.['formEMapping'] ===
+                    'OTHER' ? 'Other Leave' : 'Excluded' }}</span>
+                </div>
               </div>
             </div>
           </div>
-          <div class="col-md-6">
-            <div class="glass-info-card">
-              <div class="card-icon-wrapper limit" style="background-color: rgba(74, 143, 169, 0.1); color: #4A8FA9;">
-                <i class="fa-solid fa-file-contract"></i>
-              </div>
-              <div class="card-info-content">
-                <span class="info-label">Form E Category</span>
-                <span class="info-value text-dark fs-7">{{ selectedLeaveType?.formEMapping === 'COMP_REST' ?
-                  'Compensatory Rest' : selectedLeaveType?.formEMapping === 'EARNED' ? 'Earned Leave' :
-                  selectedLeaveType?.formEMapping === 'MEDICAL' ? 'Medical Leave' : selectedLeaveType?.formEMapping ===
-                  'OTHER' ? 'Other Leave' : 'Excluded' }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        </ng-container>
       </div>
       <div class="modal-footer text-end">
         <button class="btn btn-premium-close px-4 py-2" type="button" (click)="closeModal()">

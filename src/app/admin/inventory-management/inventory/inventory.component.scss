@@ -117,6 +117,13 @@ td {
     box-shadow: 0 0 0 3px rgba(70, 143, 175, 0.15);
     outline: none;
   }
+
+  /* Prevent validation icon from overlapping with number input spin buttons */
+  &[type="number"].is-invalid,
+  &[type="number"].is-valid {
+    background-image: none !important;
+    padding-right: 14px !important;
+  }
 }
 
 .btn-custom-primary {

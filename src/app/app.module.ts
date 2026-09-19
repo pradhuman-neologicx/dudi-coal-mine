@@ -36,6 +36,7 @@ import { SalaryPayrollManagementComponent } from './admin/salary-payroll-managem
 
 
 
+
 @NgModule({
   declarations: [
     AppComponent,

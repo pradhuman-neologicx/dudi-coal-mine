@@ -10,6 +10,7 @@ import {
 import { NavigationEnd, Router } from '@angular/router';
 import { JwtService } from 'src/app/core/services/jwt.service';
 import { LoginService } from 'src/app/core/services/login.service';
+import { InventoryService } from 'src/app/core/services/inventory.service';
 // import { JwtService } from 'src/app/core/services/jwt.service';
 
 @Component({
@@ -26,7 +27,8 @@ export class SidenavHeaderComponent implements OnInit {
     private elementRef: ElementRef,
     private router: Router,
     private jwtService: JwtService,
-    private loginService: LoginService
+    private loginService: LoginService,
+    private inventoryService: InventoryService
   ) {}
 
   clearSearch(): void {
@@ -66,13 +68,77 @@ export class SidenavHeaderComponent implements OnInit {
     }
   }
   userId: any;
+  alerts: any[] = [];
+  alertCount: number = 0;
+
   ngOnInit() {
     this.userId = this.jwtService.getpanelUserId();
+    this.fetchAlerts();
     // this.router.events.subscribe(event => {
     //   if (event instanceof NavigationEnd) {
     //     this.closeMenu();
     //   }
     // });
+  }
+
+  fetchAlerts() {
+    this.inventoryService.getInventoryAlerts().subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200 && res.data) {
+          this.alerts = res.data;
+          this.alertCount = res.pagination?.total || this.alerts.length || 0;
+        }
+      },
+      error: (err) => console.error('Error fetching alerts', err)
+    });
+  }
+
+  markAsRead(alert: any) {
+    if (!alert.id) return;
+    this.inventoryService.markAlertAsRead(alert.id).subscribe({
+      next: (res: any) => {
+        // Remove the alert from the list instantly for snappy UX
+        this.alerts = this.alerts.filter(a => a.id !== alert.id);
+        this.alertCount = Math.max(0, this.alertCount - 1);
+
+        // Redirect to inventory management with filters
+        if (alert.store_id || alert.product_id) {
+          this.router.navigate(['/admin/inventory-management/inventory'], {
+            queryParams: { store_id: alert.store_id, product_id: alert.product_id }
+          });
+          this.closeMenu();
+        }
+      },
+      error: (err) => console.error('Error marking alert as read', err)
+    });
+  }
+
+  markAllAsRead() {
+    if (this.alerts.length === 0) return;
+    this.inventoryService.markAllAlertsAsRead().subscribe({
+      next: (res: any) => {
+        this.alerts = [];
+        this.alertCount = 0;
+      },
+      error: (err) => console.error('Error marking all alerts as read', err)
+    });
+  }
+
+  getAlertType(alert: any): 'danger' | 'success' | 'info' {
+    const text = ((alert.title || '') + ' ' + (alert.message || '')).toLowerCase();
+    if (text.includes('out of stock') || text.includes('low stock') || text.includes('error') || text.includes('fail')) {
+      return 'danger';
+    } else if (text.includes('add') || text.includes('replenish') || text.includes('success') || text.includes('restock')) {
+      return 'success';
+    }
+    return 'info';
+  }
+
+  getAlertIcon(alert: any): string {
+    const type = this.getAlertType(alert);
+    if (type === 'danger') return 'fa-triangle-exclamation';
+    if (type === 'success') return 'fa-check-circle';
+    return 'fa-bell';
   }
 
   // logout() {

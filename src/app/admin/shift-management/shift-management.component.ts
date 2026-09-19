@@ -132,7 +132,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
   activeTabId: number | string | null = 1;
   weeksList: WeekOption[] = [];
   selectedWeekMondayStr: string = '';
-  selectedMonth: string = '2026-05';
+  selectedMonth: string = '';
   
   pShift: number = 1;
   tableSize: number = 10;
@@ -174,6 +174,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
 
   // List of employees loaded from the live API response
   employees: ShiftEmployee[] = [];
+  overrideEmployees: any[] = [];
   weeklyShiftEmployees: ShiftEmployee[] = [];
   filteredShiftEmployees: ShiftEmployee[] = [];
   totalShiftEmployees: number = 0;
@@ -217,6 +218,9 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
           
           // Sort shifts alphabetically by name to ensure consistent order
           this.tabShiftsList.sort((a, b) => a.name.localeCompare(b.name));
+          
+          // Add All option
+          this.tabShiftsList.unshift({ id: '', name: 'All Shifts' });
 
           const defaultShift = this.tabShiftsList.find((s: any) => s.name === this.activeTab);
           if (defaultShift) {
@@ -400,7 +404,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     this.generateActiveWeekDays(this.currentDate);
     this.initRosterForWeek(this.currentDate);
     this.selectedWeekMondayStr = this.formatDateStr(this.currentDate);
-    if (this.activeTabId) {
+    if (this.activeTabId !== null) {
       this.loadWeeklyShiftRotations();
     }
   }
@@ -440,7 +444,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     this.selectedWeekMondayStr = this.formatDateStr(this.currentDate);
     this.generateActiveWeekDays(this.currentDate);
     this.initRosterForWeek(this.currentDate);
-    if (this.activeTabId) {
+    if (this.activeTabId !== null) {
       this.loadWeeklyShiftRotations();
     }
   }
@@ -452,7 +456,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     this.selectedWeekMondayStr = this.formatDateStr(this.currentDate);
     this.generateActiveWeekDays(this.currentDate);
     this.initRosterForWeek(this.currentDate);
-    if (this.activeTabId) {
+    if (this.activeTabId !== null) {
       this.loadWeeklyShiftRotations();
     }
   }
@@ -542,6 +546,12 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
   // Open the monthly details calendar modal
   openDetailsModal(emp: any) {
     this.selectedEmployeeForDetails = emp;
+    
+    // Dynamically calculate the month based on the currently viewed week date
+    const year = this.currentDate.getFullYear();
+    const month = String(this.currentDate.getMonth() + 1).padStart(2, '0');
+    this.selectedMonth = `${year}-${month}`;
+    
     this.fetchMonthlyDetails(emp.id, this.selectedMonth);
     this.isDetailsModalOpen = true;
   }
@@ -770,6 +780,12 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     }
   }
 
+  onMonthChange(newMonth: string) {
+    if (this.selectedEmployeeForDetails && newMonth) {
+      this.fetchMonthlyDetails(String(this.selectedEmployeeForDetails.id), newMonth);
+    }
+  }
+
   // Safely converts 'YYYY-MM' strings into 'Month YYYY' for robust template rendering without DatePipe crashes
   getSelectedMonthLabel(): string {
     if (!this.selectedMonth) return '';
@@ -954,11 +970,32 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  openOverrideModal(type: 'change' | 'swap' | 'standby', empId?: string | number, dateStr?: string) {
+  openOverrideModal(type: 'change' | 'swap' | 'standby', emp?: any, dateStr?: string) {
+    this.overrideEmployees = [];
+    let empIdStr = '';
+    let currentShiftId = this.allShiftsList.length > 0 ? this.allShiftsList[0].id : '';
+    
+    if (emp) {
+      empIdStr = String(emp.id);
+      this.overrideEmployees = [{
+        ...emp,
+        id: empIdStr,
+        empId: emp.employee_code || emp.empId || `EMP-${empIdStr.padStart(3, '0')}`
+      }];
+      
+      // Pre-select current shift
+      if (emp.shift) {
+        const foundShift = this.allShiftsList.find(s => s.name === emp.shift || s.shift_name === emp.shift);
+        if (foundShift) {
+          currentShiftId = foundShift.id;
+        }
+      }
+    }
+
     this.overrideForm.reset({
       type: type,
-      employeeId: empId !== undefined && empId !== null ? String(empId) : '',
-      newShift: this.allShiftsList.length > 0 ? this.allShiftsList[0].id : '',
+      employeeId: empIdStr,
+      newShift: currentShiftId,
       swapEmployeeId: '',
       standbyEmployeeId: ''
     });
@@ -1177,7 +1214,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     this.bulkRotateForm = this.formBuilder.group({
       employeeIds: [[], Validators.required],
       targetShift: ['', Validators.required],
-      override: [false]
+      // override: [false] // commented as per request
     });
 
     this.bulkRotateForm.get('employeeIds')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(val => {
@@ -1281,7 +1318,8 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const { currentShift, employeeIds, targetShift, override } = this.bulkRotateForm.value;
+    // override commented out from bulkRotateForm
+    const { currentShift, employeeIds, targetShift } = this.bulkRotateForm.value;
 
     if (currentShift === targetShift) {
       this.notificationService.show('Current shift and target shift cannot be the same.', 'error', 3000);
@@ -1301,7 +1339,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
     const payload = {
       employee_ids: employeeIds.map((id: any) => String(id)),
       target_shift_id: String(targetShiftObj.id),
-      override: override ? true : false
+      // override: override ? true : false // commented out
     };
 
     this.shiftService.rotateShiftBulk(payload).pipe(takeUntil(this.destroy$)).subscribe({

@@ -17,7 +17,7 @@
     <!-- Shift Dropdown -->
     <div class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-1 text-sm text-gray-700 min-w-[140px] shadow-sm focus-within:border-[#0f2a4a]">
       <ng-select [items]="allShifts"
-                 bindLabel="name"
+                 bindLabel="shift_name"
                  bindValue="id"
                  [(ngModel)]="filterShiftId" 
                  (change)="applyFilter()"

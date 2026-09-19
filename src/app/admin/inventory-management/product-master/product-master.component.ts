@@ -33,6 +33,7 @@ interface Product {
   id: number;
   name: string;
   category: string;
+  subCategory: string;
   minStock: number;
   is_active: number;
 }
@@ -198,7 +199,8 @@ export class ProductMasterComponent implements OnInit, OnDestroy {
           this.filteredProducts = res.data.map((p: any) => ({
             id: p.id,
             name: p.name,
-            category: p.sub_category_name || p.category_name || 'Uncategorized',
+            category: p.category_name || 'Uncategorized',
+            subCategory: p.sub_category_name || '-',
             minStock: p.min_stock,
             is_active: p.status
           }));

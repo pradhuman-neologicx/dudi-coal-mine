@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } 
 import { NgxPaginationModule } from 'ngx-pagination';
 import { trigger, transition, style, animate } from '@angular/animations';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { NotificationService } from 'src/app/core/services/notificationnew.service';
 import { DispatchDumpingService } from 'src/app/core/services/dispatch-dumping.service';
 import { DumpingPointService } from 'src/app/core/services/dumping-point.service';
@@ -108,6 +108,8 @@ export class DumpingComponent implements OnInit, OnDestroy {
   filterDateTo: string = '';
   selectedDateRange: string = '';
 
+  private dateChangeSubject = new Subject<string>();
+
   constructor(
     private fb: FormBuilder,
     private dispatchService: DispatchDumpingService,
@@ -145,6 +147,14 @@ export class DumpingComponent implements OnInit, OnDestroy {
     this.GetTripsFun();
     this.fetchSites();
     this.fetchDrivers();
+
+    this.dateChangeSubject.pipe(
+      debounceTime(500),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(date => {
+      this.fetchShiftForDate(date);
+    });
   }
 
   fetchSites(): void {
@@ -204,8 +214,12 @@ export class DumpingComponent implements OnInit, OnDestroy {
 
   // ─── Date → Shift auto-select (same as Breakdown module) ───────────────────
   onDateChange(): void {
-    if (this.entryDate) {
-      this.shiftPlanningService.shiftPlanFilterByDate(this.entryDate)
+    this.dateChangeSubject.next(this.entryDate || '');
+  }
+
+  fetchShiftForDate(dateValue: string): void {
+    if (dateValue) {
+      this.shiftPlanningService.shiftPlanFilterByDate(dateValue)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
         next: (res: any) => {
@@ -224,13 +238,11 @@ export class DumpingComponent implements OnInit, OnDestroy {
               this.fetchSitePoints(res.data.site.id);
             }
           } else {
-            this.notificationService.show(res?.message || 'No shift plan found for the selected date.', 'error');
             this.resetShiftFields();
             this.shiftName = 'No data found for this date';
           }
         },
         error: (err: any) => {
-          this.notificationService.show(err.error?.message || err.message || 'Error fetching shift details.', 'error');
           this.resetShiftFields();
           this.shiftName = 'No data found for this date';
         }

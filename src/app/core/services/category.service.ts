@@ -1,6 +1,7 @@
 import { HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { JwtService } from './jwt.service';
 
@@ -8,10 +9,29 @@ import { JwtService } from './jwt.service';
   providedIn: 'root'
 })
 export class CategoryService {
+  private allCategoriesSubject = new BehaviorSubject<any[]>([]);
+  public allCategories$ = this.allCategoriesSubject.asObservable();
+
   constructor(
     private apiService: ApiService,
     private jwtService: JwtService
   ) {}
+
+  loadAllCategories(): void {
+    this.apiService.get('v1/categories', this.getHeaders()).subscribe({
+      next: (res: any) => {
+        if (res && res.status === 200) {
+          const formatted = res.data.map((c: any) => ({
+            id: c.id,
+            categoryName: c.name,
+            is_active: c.status
+          }));
+          this.allCategoriesSubject.next(formatted);
+        }
+      },
+      error: (err: any) => console.error('Error loading all categories state', err)
+    });
+  }
 
   private getHeaders(): HttpHeaders {
     const token = this.jwtService.getToken();
@@ -53,7 +73,13 @@ export class CategoryService {
   }
 
   createCategory(formData: FormData): Observable<any> {
-    return this.apiService.post('v1/admin/categories', formData, this.getHeaders());
+    return this.apiService.post('v1/admin/categories', formData, this.getHeaders()).pipe(
+      tap((res: any) => {
+        if (res && (res.status === 200 || res.status === 'success' || res.status === 201)) {
+          this.loadAllCategories();
+        }
+      })
+    );
   }
 
   createSubCategory(formData: FormData): Observable<any> {
@@ -65,11 +91,23 @@ export class CategoryService {
   }
 
   updateCategory(id: string | number, formData: FormData): Observable<any> {
-    return this.apiService.post(`v1/admin/categories/${id}`, formData, this.getHeaders());
+    return this.apiService.post(`v1/admin/categories/${id}`, formData, this.getHeaders()).pipe(
+      tap((res: any) => {
+        if (res && (res.status === 200 || res.status === 'success')) {
+          this.loadAllCategories();
+        }
+      })
+    );
   }
 
   updateCategoryStatus(id: string | number, status: number): Observable<any> {
-    return this.apiService.patch(`v1/admin/categories/${id}/status`, { status }, this.getHeaders());
+    return this.apiService.patch(`v1/admin/categories/${id}/status`, { status }, this.getHeaders()).pipe(
+      tap((res: any) => {
+        if (res && (res.status === 200 || res.status === 'success')) {
+          this.loadAllCategories();
+        }
+      })
+    );
   }
 
   updateSubCategoryStatus(id: string | number, status: number): Observable<any> {

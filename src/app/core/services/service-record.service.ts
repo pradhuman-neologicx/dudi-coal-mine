@@ -50,6 +50,10 @@ export class ServiceRecordService {
   }
 
   deleteServiceRecord(id: any): Observable<any> {
-    return this.apiService.delete(`v1/admin/service-records/${id}`);
+    return this.apiService.deleteFun(`v1/admin/service-records/${id}`, { headers: this.getHeaders() });
+  }
+
+  deleteServiceAttachment(serviceId: any, attachmentId: any): Observable<any> {
+    return this.apiService.deleteFun(`v1/admin/service-records/${serviceId}/attachments/${attachmentId}`, { headers: this.getHeaders() });
   }
 }

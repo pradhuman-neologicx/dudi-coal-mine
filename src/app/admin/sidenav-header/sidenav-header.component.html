@@ -12,14 +12,58 @@
     class="hedaer-content w-100 ms-5 d-flex justify-content-end align-items-center"
   >
     <div class="header-profile d-flex justify-content-between">
-      <div class="me-4">
-        <span (click)="toggleMenu()" class="position-realtive notification">
-          <i class="fa-solid fa-bell"></i>
+      <div class="me-4 position-relative">
+        <span (click)="toggleMenu()" class="position-relative notification cursor-pointer" style="cursor: pointer;">
+          <i class="fa-solid fa-bell text-gray-600 fs-5"></i>
+          <span *ngIf="alertCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem; padding: 0.25em 0.4em;">
+            {{ alertCount }}
+          </span>
         </span>
+        <div *ngIf="isMenuOpen" class="card position-absolute end-0 mt-3 border-0 shadow-lg" style="width: 380px; z-index: 1050; border-radius: 12px; overflow: hidden;">
+          <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold text-dark fs-6">Alerts</h6>
+            <span class="badge bg-danger rounded-pill px-2 py-1">{{ alertCount }} New</span>
+          </div>
+          <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+            <ul class="list-unstyled mb-0">
+              <li *ngIf="alerts.length === 0" class="p-5 text-center text-muted">
+                <div class="bg-gray-100 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                  <i class="fa-regular fa-bell-slash fs-3 text-gray-400"></i>
+                </div>
+                <p class="mb-0 text-sm fw-medium text-dark">You're all caught up!</p>
+                <p class="text-xs text-gray-500 mt-1">No new alerts to show</p>
+              </li>
+              <li *ngFor="let alert of alerts" 
+                  class="p-3 px-4 border-bottom hover:bg-gray-50 transition-colors position-relative" 
+                  style="cursor: pointer;" 
+                  (click)="markAsRead(alert); $event.stopPropagation()">
+                <div class="d-flex align-items-start gap-3">
+                  <div [ngClass]="'bg-' + getAlertType(alert) + ' text-' + getAlertType(alert)" 
+                       class="bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-1" 
+                       style="width: 40px; height: 40px;">
+                    <i class="fa-solid fs-6" [ngClass]="getAlertIcon(alert)"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 *ngIf="alert.title && alert.title.trim() !== ''" class="mb-1 text-sm fw-bold text-gray-900" style="line-height: 1.4;">{{ alert.title }}</h6>
+                    <p [ngClass]="(!alert.title || alert.title.trim() === '') ? 'mb-2 text-sm fw-bold text-gray-900' : 'mb-2 text-xs text-gray-600'" style="line-height: 1.5;">{{ alert.message || 'System Notification' }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <small class="text-gray-400 fw-medium" style="font-size: 11px;"><i class="fa-regular fa-clock me-1"></i>{{ alert.created_at | date:'MMM d, y, h:mm a' }}</small>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="card-footer bg-white text-center py-3 border-top-0" *ngIf="alerts.length > 0" style="box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.02);">
+            <a href="javascript:void(0)" class="text-decoration-none text-primary text-sm fw-bold d-inline-flex align-items-center gap-2" (click)="markAllAsRead(); $event.stopPropagation()">
+              <i class="fa-solid fa-check-double"></i> Mark all as read
+            </a>
+          </div>
+        </div>
       </div>
-      <div>
-        <span (click)="profile()" class="position-realtive notification">
-          <i class="fa-solid fa-user"></i>
+      <div class="position-relative">
+        <span (click)="profile()" class="position-relative notification cursor-pointer" style="cursor: pointer;">
+          <i class="fa-solid fa-user text-gray-600 fs-5"></i>
         </span>
         <div
           *ngIf="isProfileOpen"
