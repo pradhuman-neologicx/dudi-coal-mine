@@ -60,6 +60,7 @@ export class RelayComponent implements OnInit, OnDestroy {
   
   // Data state
   relayList: RelayMasterItem[] = [];
+  isDataLoaded: boolean = false;
   selectedRelay: RelayMasterItem | null = null;
   currentRelayId: number | string | null = null;
   
@@ -123,8 +124,10 @@ export class RelayComponent implements OnInit, OnDestroy {
   }
 
   loadRelays() {
+    this.isDataLoaded = false;
     this.relayService.getRelays(this.page, this.tableSize, this.searchQuery).pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
+        this.isDataLoaded = true;
         if (res && res.status === 200) {
           this.relayList = res.data.map((r: any) => ({
             ...r,
@@ -145,6 +148,7 @@ export class RelayComponent implements OnInit, OnDestroy {
         }
       },
       error: (err: any) => {
+        this.isDataLoaded = true;
         this.relayList = [];
         this.totalRecords = 0;
         this.notificationService.show('Failed to fetch relays', 'error');

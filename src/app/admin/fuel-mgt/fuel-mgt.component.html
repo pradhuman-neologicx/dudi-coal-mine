@@ -395,13 +395,15 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Opening Fuel</label>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Opening Fuel <span class="text-red-500">*</span></label>
               <div class="relative">
                 <input type="number" [(ngModel)]="formData.opening"
-                  class="w-full border border-gray-300 rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold focus:border-[#0f2a4a]">
+                  class="w-full border rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold transition-colors"
+                  [ngClass]="isFormSubmitted && (formData.opening === null || formData.opening === undefined || formData.opening === '') ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300 focus:border-[#0f2a4a]'">
                 <span
                   class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
               </div>
+              <p *ngIf="isFormSubmitted && (formData.opening === null || formData.opening === undefined || formData.opening === '')" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Opening Fuel is required</p>
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Fuel Issued <span class="text-red-500">*</span></label>
@@ -415,16 +417,17 @@
               <p *ngIf="isFormSubmitted && (formData.issued === null || formData.issued === undefined || formData.issued === '')" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Fuel Issued is required</p>
             </div>
             <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Closing Fuel</label>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Closing Fuel <span class="text-red-500">*</span></label>
               <div class="relative">
                 <input type="number" [(ngModel)]="formData.closing"
                   class="w-full border rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold transition-colors"
-                  [ngClass]="isClosingFuelInvalid ? 'border-red-500 focus:border-red-500 bg-red-50 text-red-700' : 'border-gray-300 focus:border-[#0f2a4a]'">
+                  [ngClass]="isClosingFuelInvalid || (isFormSubmitted && (formData.closing === null || formData.closing === undefined || formData.closing === '')) ? 'border-red-500 focus:border-red-500 bg-red-50 text-red-700' : 'border-gray-300 focus:border-[#0f2a4a]'">
                 <span
                   class="absolute right-3 top-3 text-[10px] tracking-widest pointer-events-none"
-                  [ngClass]="isClosingFuelInvalid ? 'text-red-400' : 'text-gray-400'">LITERS</span>
+                  [ngClass]="isClosingFuelInvalid || (isFormSubmitted && (formData.closing === null || formData.closing === undefined || formData.closing === '')) ? 'text-red-400' : 'text-gray-400'">LITERS</span>
               </div>
               <p *ngIf="isClosingFuelInvalid" class="text-xs text-red-500 mt-1 font-medium">Cannot exceed Opening + Issued</p>
+              <p *ngIf="!isClosingFuelInvalid && isFormSubmitted && (formData.closing === null || formData.closing === undefined || formData.closing === '')" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Closing Fuel is required</p>
             </div>
             <div>
               <label class="block text-sm font-bold text-[#0f2a4a] mb-1">Net Consumed</label>

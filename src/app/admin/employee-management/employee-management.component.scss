@@ -359,6 +359,8 @@
       font-weight: 500;
       color: #64748b;
       margin-bottom: 2px;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .info-value {
@@ -366,6 +368,8 @@
       font-weight: 700;
       color: #0f172a;
       font-family: 'Montserrat', sans-serif;
+      word-break: break-word;
+      overflow-wrap: break-word;
     }
 
     .info-subtext {

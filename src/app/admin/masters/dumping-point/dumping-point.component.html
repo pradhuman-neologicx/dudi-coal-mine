@@ -1,6 +1,6 @@
 <div class="container mb-4">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <h1 class="text-primary table-heading-detail">Dumping/Loading Point Master</h1>
+    <h1 class="text-primary table-heading-detail">Dumping/Loading Point Management</h1>
     <div>
       <button class="btn btn-custom-primary px-4 py-2 me-2" (click)="openAddModal()">
         Add Point
@@ -13,12 +13,8 @@
     <div class="row align-items-center mb-3 g-2">
       <div class="col-md-2 d-flex align-items-center gap-2">
         <span class="show-entery-text">Show</span>
-        <ng-select [items]="tableSizes" 
-                   [(ngModel)]="tableSize" 
-                   (change)="onTableSizeChange($event)" 
-                   [clearable]="false" 
-                   [searchable]="false" 
-                   class="custom-ng-select min-w-[80px]">
+        <ng-select [items]="tableSizes" [(ngModel)]="tableSize" (change)="onTableSizeChange($event)" [clearable]="false"
+          [searchable]="false" class="custom-ng-select min-w-[80px]">
         </ng-select>
         <span class="show-entery-text">entries</span>
       </div>
@@ -26,8 +22,8 @@
       <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">
         <form [formGroup]="searchbarform" (ngSubmit)="searchfun()" class="d-flex align-items-center ms-2">
           <div class="position-relative">
-            <input type="text" class="form-control search-user" placeholder="Search..."
-              formControlName="searchbar" autocomplete="off" />
+            <input type="text" class="form-control search-user" placeholder="Search..." formControlName="searchbar"
+              autocomplete="off" />
           </div>
           <button type="submit" class="btn btn-primary search-btn ms-2">
             <span><i class="fa-solid fa-magnifying-glass text-white"></i></span>
@@ -80,7 +76,8 @@
               </td>
               <td>
                 <div class="d-flex align-items-center gap-2">
-                  <button *ngIf="t.is_active == 1" class="btn-action edit-btn" (click)="openEditModal(t)" data-tooltip="Edit">
+                  <button *ngIf="t.is_active == 1" class="btn-action edit-btn" (click)="openEditModal(t)"
+                    data-tooltip="Edit">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
                   <button class="btn-action view-btn" (click)="openviewModal(t)" data-tooltip="View Details">
@@ -103,7 +100,9 @@
 
       <!-- Card View for below lg -->
       <div class="lg:hidden space-y-4">
-        <div *ngFor="let t of displayPoints | paginate : { itemsPerPage: tableSize, currentPage: page, totalItems: totalRecords }; index as i" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div
+          *ngFor="let t of displayPoints | paginate : { itemsPerPage: tableSize, currentPage: page, totalItems: totalRecords }; index as i"
+          class="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
             <div>
               <strong>Sr No:</strong>
@@ -111,7 +110,8 @@
             </div>
             <div>
               <div class="d-flex align-items-center gap-2">
-                <button *ngIf="t.is_active == 1" class="btn-action edit-btn" (click)="openEditModal(t)" data-tooltip="Edit">
+                <button *ngIf="t.is_active == 1" class="btn-action edit-btn" (click)="openEditModal(t)"
+                  data-tooltip="Edit">
                   <i class="fa-solid fa-pen-to-square"></i>
                 </button>
                 <button class="btn-action view-btn" (click)="openviewModal(t)" data-tooltip="View Details">
@@ -135,7 +135,8 @@
             </span>
           </div>
         </div>
-        <div *ngIf="displayPoints.length === 0" class="text-center py-4 text-muted bg-gray-50 border border-gray-200 rounded-lg">
+        <div *ngIf="displayPoints.length === 0"
+          class="text-center py-4 text-muted bg-gray-50 border border-gray-200 rounded-lg">
           No points found.
         </div>
       </div>
@@ -165,7 +166,7 @@
 
     <form [formGroup]="typeForm" (ngSubmit)="saveType()" class="d-flex flex-column flex-grow-1 overflow-hidden">
       <div class="modal-body-custom px-4 py-4 overflow-auto flex-grow-1">
-        
+
         <!-- Site Selection -->
         <div class="mb-3">
           <label class="form-label form-lable-custom">Site *</label>
@@ -206,8 +207,8 @@
 </div>
 
 <!-- View Modal -->
-<div *ngIf="viewModalOpen" class="your-animation-class modal-container premium-detail-modal" aria-labelledby="modal-title" role="dialog"
-  aria-modal="true">
+<div *ngIf="viewModalOpen" class="your-animation-class modal-container premium-detail-modal"
+  aria-labelledby="modal-title" role="dialog" aria-modal="true">
   <div class="modal-contenttop modal-content-50" [@fadeIn]>
     <div class="card">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -230,10 +231,13 @@
               <strong>Type:</strong> {{ selectedViewPoint?.type }}
             </div>
             <div class="banner-subtitle mt-2">
-              <span class="pulse-indicator" [ngClass]="{'deactive': selectedViewPoint?.is_active != 1 && selectedViewPoint?.is_active !== true}"></span>
-              Status: 
-              <span class="status-badge-pill" [ngClass]="(selectedViewPoint?.is_active == 1 || selectedViewPoint?.is_active === true) ? 'active' : 'deactive'">
-                {{ (selectedViewPoint?.is_active == 1 || selectedViewPoint?.is_active === true) ? 'Active' : 'Inactive' }}
+              <span class="pulse-indicator"
+                [ngClass]="{'deactive': selectedViewPoint?.is_active != 1 && selectedViewPoint?.is_active !== true}"></span>
+              Status:
+              <span class="status-badge-pill"
+                [ngClass]="(selectedViewPoint?.is_active == 1 || selectedViewPoint?.is_active === true) ? 'active' : 'deactive'">
+                {{ (selectedViewPoint?.is_active == 1 || selectedViewPoint?.is_active === true) ? 'Active' : 'Inactive'
+                }}
               </span>
             </div>
           </div>

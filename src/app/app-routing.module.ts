@@ -152,9 +152,21 @@ const routes: Routes = [
         canActivate: [AuthGuard],
         children: [
           { path: '', redirectTo: 'equipment-master', pathMatch: 'full' },
-          { path: 'equipment-master', loadComponent: () => import('./admin/equipment-management/equipment-master/equipment-master.component').then(m => m.EquipmentMasterComponent) },
-          { path: 'equipments', loadComponent: () => import('./admin/equipment-management/equipments/equipments.component').then(m => m.EquipmentsComponent) }
-        ]
+          {
+            path: 'equipment-master',
+            loadComponent: () =>
+              import('./admin/equipment-management/equipment-master/equipment-master.component').then(
+                (m) => m.EquipmentMasterComponent,
+              ),
+          },
+          {
+            path: 'equipments',
+            loadComponent: () =>
+              import('./admin/equipment-management/equipments/equipments.component').then(
+                (m) => m.EquipmentsComponent,
+              ),
+          },
+        ],
       },
       {
         path: 'inventory-management/categories',
@@ -196,7 +208,10 @@ const routes: Routes = [
           },
           {
             path: 'relay',
-            loadComponent: () => import('./admin/masters/relay/relay.component').then(m => m.RelayComponent)
+            loadComponent: () =>
+              import('./admin/masters/relay/relay.component').then(
+                (m) => m.RelayComponent,
+              ),
           },
           {
             path: 'relay-settings',
@@ -265,12 +280,18 @@ const routes: Routes = [
       },
       {
         path: 'breakdown-and-maintenance',
-        loadComponent: () => import('./admin/breakdown-and-maintenance/breakdown-and-maintenance.component').then(m => m.BreakdownAndMaintenanceComponent),
+        loadComponent: () =>
+          import('./admin/breakdown-and-maintenance/breakdown-and-maintenance.component').then(
+            (m) => m.BreakdownAndMaintenanceComponent,
+          ),
         canActivate: [AuthGuard],
       },
       {
         path: 'breakdown-and-maintenance/report',
-        loadComponent: () => import('./admin/breakdown-and-maintenance/report/report.component').then(m => m.ReportComponent),
+        loadComponent: () =>
+          import('./admin/breakdown-and-maintenance/report/report.component').then(
+            (m) => m.ReportComponent,
+          ),
         canActivate: [AuthGuard],
       },
       {
@@ -280,7 +301,10 @@ const routes: Routes = [
       },
       {
         path: 'fuel-analytics',
-        loadComponent: () => import('./admin/fuel-analytics/fuel-analytics.component').then(m => m.FuelAnalyticsComponent),
+        loadComponent: () =>
+          import('./admin/fuel-analytics/fuel-analytics.component').then(
+            (m) => m.FuelAnalyticsComponent,
+          ),
         canActivate: [AuthGuard],
       },
       {
@@ -295,43 +319,67 @@ const routes: Routes = [
       },
       {
         path: 'shift-mgt',
-        loadComponent: () => import('./admin/shift-mgt/shift-mgt.component').then(m => m.ShiftMgtComponent),
+        loadComponent: () =>
+          import('./admin/shift-mgt/shift-mgt.component').then(
+            (m) => m.ShiftMgtComponent,
+          ),
         canActivate: [AuthGuard],
       },
       {
         path: 'shift-mgt/add',
-        loadComponent: () => import('./admin/shift-mgt/shift-add/shift-add.component').then(m => m.ShiftAddComponent),
+        loadComponent: () =>
+          import('./admin/shift-mgt/shift-add/shift-add.component').then(
+            (m) => m.ShiftAddComponent,
+          ),
         canActivate: [AuthGuard],
       },
       {
         path: 'shift-mgt/edit/:id',
-        loadComponent: () => import('./admin/shift-mgt/shift-add/shift-add.component').then(m => m.ShiftAddComponent),
+        loadComponent: () =>
+          import('./admin/shift-mgt/shift-add/shift-add.component').then(
+            (m) => m.ShiftAddComponent,
+          ),
         canActivate: [AuthGuard],
       },
       {
         path: 'shift-mgt/close/:id',
-        loadComponent: () => import('./admin/shift-mgt/shift-close/shift-close.component').then(m => m.ShiftCloseComponent),
+        loadComponent: () =>
+          import('./admin/shift-mgt/shift-close/shift-close.component').then(
+            (m) => m.ShiftCloseComponent,
+          ),
         canActivate: [AuthGuard],
       },
       {
         path: 'shift-mgt/summary/:id',
-        loadComponent: () => import('./admin/shift-mgt/shift-summery/shift-summery.component').then(m => m.ShiftSummeryComponent),
+        loadComponent: () =>
+          import('./admin/shift-mgt/shift-summery/shift-summery.component').then(
+            (m) => m.ShiftSummeryComponent,
+          ),
         canActivate: [AuthGuard],
       },
       {
         path: 'safety-management',
-        loadComponent: () => import('./admin/safety-management/safety-management.component').then(m => m.SafetyManagementComponent),
+        loadComponent: () =>
+          import('./admin/safety-management/safety-management.component').then(
+            (m) => m.SafetyManagementComponent,
+          ),
         canActivate: [AuthGuard],
       },
       {
         path: 'safety-management/report',
-        loadComponent: () => import('./admin/safety-management/report/report.component').then(m => m.ReportComponent),
+        loadComponent: () =>
+          import('./admin/safety-management/report/report.component').then(
+            (m) => m.ReportComponent,
+          ),
         canActivate: [AuthGuard],
       },
       {
         path: 'safety-events',
-        loadComponent: () => import('./admin/safety-events/safety-events.component').then(m => m.SafetyEventsComponent),
-        canActivate: [AuthGuard], 
+        loadComponent: () =>
+          import('./admin/safety-events/safety-events.component').then(
+            (m) => m.SafetyEventsComponent,
+          ),
+        canActivate: [AuthGuard],
       },
       {
         path: 'dumping',
@@ -340,7 +388,10 @@ const routes: Routes = [
       },
       {
         path: 'service-management',
-        loadComponent: () => import('./admin/service-management/service-management.component').then(m => m.ServiceManagementComponent),
+        loadComponent: () =>
+          import('./admin/service-management/service-management.component').then(
+            (m) => m.ServiceManagementComponent,
+          ),
         canActivate: [AuthGuard],
       },
 
@@ -386,7 +437,9 @@ const routes: Routes = [
         canActivate: [AuthGuard],
         children: [
           {
-            path: '', redirectTo: 'employee-details', pathMatch: 'full'
+            path: '',
+            redirectTo: 'employee-details',
+            pathMatch: 'full',
           },
           {
             path: 'employee-details',
@@ -400,24 +453,30 @@ const routes: Routes = [
           },
           {
             path: 'recovery-register',
-            loadComponent: () => import('./admin/recovery-register/recovery-register.component').then(m => m.RecoveryRegisterComponent),
+            loadComponent: () =>
+              import('./admin/recovery-register/recovery-register.component').then(
+                (m) => m.RecoveryRegisterComponent,
+              ),
             canActivate: [AuthGuard],
           },
           {
             path: 'leaves-gov',
-            loadComponent: () => import('./admin/gov-side/leaves-gov/leaves-gov.component').then(m => m.LeavesGovComponent),
+            loadComponent: () =>
+              import('./admin/gov-side/leaves-gov/leaves-gov.component').then(
+                (m) => m.LeavesGovComponent,
+              ),
             canActivate: [AuthGuard],
           },
           {
             path: 'attendance-gov',
-            loadComponent: () => import('./admin/gov-side/attendance-gov/attendance-gov.component').then(m => m.AttendanceGovComponent),
+            loadComponent: () =>
+              import('./admin/gov-side/attendance-gov/attendance-gov.component').then(
+                (m) => m.AttendanceGovComponent,
+              ),
             canActivate: [AuthGuard],
-          }
+          },
         ],
-
       },
-
-
     ],
   },
 ];
@@ -426,4 +485,4 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

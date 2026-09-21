@@ -214,11 +214,16 @@
               </ng-select>
             </div>
           </div>
-          <div class="d-flex justify-content-end mt-2"
+          <div class="d-flex justify-content-end mt-3"
             *ngIf="filterMonth || filterYear || filterStage || filterEmployee || searchText">
-            <button class="btn btn-sm btn-link text-danger text-decoration-none fs-8 fw-bold p-0"
-              (click)="filterMonth=''; filterYear=''; filterStage=null; filterEmployee=null; searchText=''; dateValue=''; pInbox=1; loadLeaveRequests()">
-              <i class="fa-solid fa-times me-1"></i> Clear All
+            <button
+              class="btn btn-outline-secondary py-2 d-flex align-items-center justify-content-center gap-2 hover-up px-4"
+              (click)="filterMonth=''; filterYear=''; filterStage=null; filterEmployee=null; searchText=''; dateValue=''; pInbox=1; loadLeaveRequests()"
+              style="height: 42px; border-color: #ced4da"
+              title="Reset Filters"
+            >
+              <i class="fa-solid fa-rotate-right text-muted"></i>
+              <span class="text-muted fw-medium">Reset</span>
             </button>
           </div>
         </div>

@@ -26,6 +26,8 @@ export interface SelectedViewRate {
 export class WageMasterComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   wageForm!: FormGroup;
+  searchbarform!: FormGroup;
+  showreset: boolean = false;
   isModalOpen = false;
 
   // Categories from backend
@@ -60,7 +62,8 @@ export class WageMasterComponent implements OnInit, OnDestroy {
   }
 
   getWagesData(): void {
-    this.employeeService.getWagesMasterData(this.tableSize, this.page)
+    const search = this.searchbarform?.get('searchbar')?.value || '';
+    this.employeeService.getWagesMasterData(this.tableSize, this.page, search)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
       next: (response: any) => {
@@ -104,7 +107,21 @@ export class WageMasterComponent implements OnInit, OnDestroy {
     this.getWagesData();
   }
 
-  onTableSizeChange(event: Event | number): void {
+  searchfun() {
+    const searchText = this.searchbarform.get('searchbar')?.value || '';
+    this.showreset = searchText.trim().length > 0;
+    this.page = 1;
+    this.getWagesData();
+  }
+
+  resetsearchbar() {
+    this.searchbarform.get('searchbar')?.reset();
+    this.showreset = false;
+    this.page = 1;
+    this.getWagesData();
+  }
+
+  onTableSizeChange(event: any): void {
     if (typeof event === 'number') {
       this.tableSize = event;
     } else if (event && event.target) {
@@ -119,6 +136,10 @@ export class WageMasterComponent implements OnInit, OnDestroy {
       effectiveDate: ['', Validators.required],
       rates: this.fb.array([])
     });
+
+    this.searchbarform = this.fb.group({
+      searchbar: ['']
+    });
   }
 
   get ratesFormArray(): FormArray {
@@ -131,9 +152,9 @@ export class WageMasterComponent implements OnInit, OnDestroy {
       this.ratesFormArray.push(this.fb.group({
         categoryId: [category.id],
         categoryName: [category.name], // For display purposes in UI
-        basic: [0, [Validators.required, Validators.min(0)]],
-        da: [0, [Validators.required, Validators.min(0)]],
-        overtime: [0, [Validators.required, Validators.min(0)]]
+        basic: [0, [Validators.required, Validators.min(0.01), Validators.max(99999999)]],
+        da: [0, [Validators.required, Validators.min(0), Validators.max(99999999)]],
+        overtime: [0, [Validators.required, Validators.min(0), Validators.max(99999999)]]
       }));
     });
   }
@@ -170,7 +191,7 @@ export class WageMasterComponent implements OnInit, OnDestroy {
               this.ratesFormArray.push(this.fb.group({
                 categoryId: [null],
                 categoryName: [catName],
-                basic: [rows.minimum_basic?.[skillCat] || 0, [Validators.required, Validators.min(0)]],
+                basic: [rows.minimum_basic?.[skillCat] || 0, [Validators.required, Validators.min(0.01)]],
                 da: [rows.dearness_allowance?.[skillCat] || 0, [Validators.required, Validators.min(0)]],
                 overtime: [rows.overtime?.[skillCat] || 0, [Validators.required, Validators.min(0)]]
               }));

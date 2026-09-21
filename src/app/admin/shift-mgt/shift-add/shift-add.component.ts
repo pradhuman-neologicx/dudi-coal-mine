@@ -605,8 +605,20 @@ export class ShiftAddComponent implements OnInit {
   }
 
   savePlan() {
-    if (!this.shiftForm.planningDate || !this.shiftForm.shiftId || !this.shiftForm.locationId || !this.shiftForm.targetBcm || !this.shiftForm.supervisorId || !this.shiftForm.siteInchargeId) {
+    if (
+      !this.shiftForm.planningDate || 
+      !this.shiftForm.shiftId || 
+      !this.shiftForm.locationId || 
+      this.shiftForm.targetBcm === null || this.shiftForm.targetBcm === undefined || (this.shiftForm.targetBcm as any) === '' ||
+      !this.shiftForm.supervisorId || 
+      !this.shiftForm.siteInchargeId
+    ) {
       this.showNotification('Please fill in all mandatory fields before saving the plan.', 'error');
+      return;
+    }
+
+    if (Number(this.shiftForm.targetBcm) <= 0) {
+      this.showNotification('Target BCM must be greater than 0.', 'error');
       return;
     }
 

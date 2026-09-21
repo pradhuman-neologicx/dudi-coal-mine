@@ -542,7 +542,7 @@ export class DumpingComponent implements OnInit, OnDestroy {
                 end_time: getShortTime(item.trip_info?.end_time),
                 quantity: parseFloat(item.trip_info?.quantity_bcm) || 0,
                 distance: parseFloat(item.trip_info?.distance_meters) || 0,
-                total_trips: 1
+                total_trips: item.trip_info?.total_cycles || trip.total_cycles || 1
               });
 
               this.modalOpen = true;

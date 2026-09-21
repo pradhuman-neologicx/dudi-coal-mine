@@ -254,7 +254,9 @@
               <label class="form-label form-lable-custom">Date of Birth *</label>
               <input type="date" class="form-control form-input-custom" formControlName="dob"
                 [ngClass]="{'is-invalid': employeeForm.get('dob')?.invalid && employeeForm.get('dob')?.touched}" />
-              <div class="invalid-feedback">Date of Birth is required.</div>
+              <div class="invalid-feedback" *ngIf="employeeForm.get('dob')?.errors?.['required']">Date of Birth is required.</div>
+              <div class="invalid-feedback" *ngIf="employeeForm.get('dob')?.errors?.['futureDate']">Date of Birth cannot be in the future.</div>
+              <div class="invalid-feedback" *ngIf="employeeForm.get('dob')?.errors?.['underage']">Employee must be at least 18 years old.</div>
             </div>
             <div class="col-md-3">
               <label class="form-label form-lable-custom">Gender *</label>
@@ -558,12 +560,12 @@
         </div>
 
         <!-- Scrollable Details Wrapper to prevent modal from growing too tall -->
-        <div class="view-details-scroll pe-1" style="max-height: 48vh; overflow-y: auto; overflow-x: hidden;">
+        <div class="view-details-scroll px-2" style="max-height: 48vh; overflow-y: auto; overflow-x: hidden;">
 
           <!-- SECTION 1: Personal Details -->
           <div class="grid-section-title">Personal Details</div>
           <div class="row g-3 mb-4">
-            <div class="col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper code"><i class="fa-solid fa-hashtag"></i></div>
                 <div class="card-info-content">
@@ -572,7 +574,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6 col-lg-4" *ngIf="selectedEmployee?.surname">
+            <div class="col-12 col-md-6" *ngIf="selectedEmployee?.surname">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper contact"><i class="fa-solid fa-signature"></i></div>
                 <div class="card-info-content">
@@ -581,7 +583,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper contact"><i class="fa-solid fa-user"></i></div>
                 <div class="card-info-content">
@@ -590,7 +592,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper contact"><i class="fa-solid fa-cake-candles"></i></div>
                 <div class="card-info-content">
@@ -599,7 +601,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper contact"><i class="fa-solid fa-venus-mars"></i></div>
                 <div class="card-info-content">
@@ -608,7 +610,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper contact"><i class="fa-solid fa-phone"></i></div>
                 <div class="card-info-content">
@@ -617,7 +619,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper contact"><i class="fa-solid fa-phone-slash"></i></div>
                 <div class="card-info-content">
@@ -626,7 +628,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper contact"><i class="fa-solid fa-flag"></i></div>
                 <div class="card-info-content">
@@ -635,7 +637,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-6 col-lg-4">
+            <div class="col-12 col-md-6">
               <div class="glass-info-card">
                 <div class="card-icon-wrapper contact"><i class="fa-solid fa-graduation-cap"></i></div>
                 <div class="card-info-content">

@@ -66,6 +66,9 @@
             </tr>
           </thead>
           <tbody>
+            <tr *ngIf="isDataLoaded && leaveTypeList.length === 0">
+              <td colspan="6" class="text-center py-4 text-muted fw-bold">No matching records found.</td>
+            </tr>
             <tr *ngFor="
                 let leaveType of leaveTypeList
                   | paginate
@@ -125,6 +128,9 @@
       </div>
       <!-- Card View for below lg -->
       <div class="lg:hidden space-y-4">
+        <div *ngIf="isDataLoaded && leaveTypeList.length === 0" class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-muted fw-bold">
+          No matching records found.
+        </div>
         <div *ngFor="
             let leaveType of leaveTypeList
               | paginate
@@ -322,7 +328,7 @@
             <div class="col-md-12 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Leave Name</label>
               <input type="text" readonly class="d-block form-control form-input-custom" formControlName="leaveName"
-                [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['leaveName'].errors && (updateLeaveTypeForm.controls['leaveName'].touched || updateLeaveTypeForm.controls['leaveName'].dirty)}" 
+                [ngClass]="{'is-invalid': updateLeaveTypeForm.controls['leaveName'].errors && (updateLeaveTypeForm.controls['leaveName'].touched || updateLeaveTypeForm.controls['leaveName'].dirty)}"
                 style="background-color: #e9ecef; cursor: not-allowed;" />
               <div class="text-danger error-message d-block mt-1"
                 *ngIf="updateLeaveTypeForm.controls['leaveName'].errors && (updateLeaveTypeForm.controls['leaveName'].touched || updateLeaveTypeForm.controls['leaveName'].dirty)">
@@ -474,7 +480,7 @@
                 <i class="fa-solid fa-shield-halved"></i>
               </div>
               <div class="card-info-content">
-                <span class="info-label">Annual Allowance</span>
+                <span class="info-label">Annual Limit</span>
                 <span class="info-value text-dark fs-7">{{ selectedLeaveType?.annualLimit }} days</span>
               </div>
             </div>
@@ -508,7 +514,8 @@
                   <span class="info-label">Form E Category</span>
                   <span class="info-value text-dark fs-7">{{ selectedLeaveType?.['formEMapping'] === 'COMP_REST' ?
                     'Compensatory Rest' : selectedLeaveType?.['formEMapping'] === 'EARNED' ? 'Earned Leave' :
-                    selectedLeaveType?.['formEMapping'] === 'MEDICAL' ? 'Medical Leave' : selectedLeaveType?.['formEMapping'] ===
+                    selectedLeaveType?.['formEMapping'] === 'MEDICAL' ? 'Medical Leave' :
+                    selectedLeaveType?.['formEMapping'] ===
                     'OTHER' ? 'Other Leave' : 'Excluded' }}</span>
                 </div>
               </div>

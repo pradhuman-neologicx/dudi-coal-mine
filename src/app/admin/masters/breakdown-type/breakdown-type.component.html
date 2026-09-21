@@ -1,6 +1,6 @@
 <div class="container mb-4">
   <div class="d-flex justify-content-between align-items-center flex-wrap">
-    <h1 class="text-primary table-heading-detail">Breakdown Type Master</h1>
+    <h1 class="text-primary table-heading-detail">Breakdown Type Management</h1>
     <div>
       <button class="btn btn-custom-primary px-4 py-2 me-2" (click)="openAddModal()">
         Add Breakdown Type
@@ -13,12 +13,8 @@
     <div class="row align-items-center mb-3 g-2">
       <div class="col-md-2 d-flex align-items-center gap-2">
         <span class="show-entery-text">Show</span>
-        <ng-select [items]="tableSizes" 
-                   [(ngModel)]="tableSize" 
-                   (change)="onTableSizeChange($event)" 
-                   [clearable]="false" 
-                   [searchable]="false" 
-                   class="custom-ng-select min-w-[80px]">
+        <ng-select [items]="tableSizes" [(ngModel)]="tableSize" (change)="onTableSizeChange($event)" [clearable]="false"
+          [searchable]="false" class="custom-ng-select min-w-[80px]">
         </ng-select>
         <span class="show-entery-text">entries</span>
       </div>
@@ -72,7 +68,8 @@
               </td>
               <td>
                 <div class="d-flex align-items-center gap-2">
-                  <button *ngIf="t.is_active == 1" class="btn-action edit-btn" (click)="openEditModal(t)" data-tooltip="Edit">
+                  <button *ngIf="t.is_active == 1" class="btn-action edit-btn" (click)="openEditModal(t)"
+                    data-tooltip="Edit">
                     <i class="fa-solid fa-pen-to-square"></i>
                   </button>
                   <button class="btn-action view-btn" (click)="openviewModal(t)" data-tooltip="View Details">
@@ -95,7 +92,9 @@
 
       <!-- Card View for below lg -->
       <div class="lg:hidden space-y-4">
-        <div *ngFor="let t of displayTypes | paginate : { itemsPerPage: tableSize, currentPage: page, totalItems: totalRecords }; index as i" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div
+          *ngFor="let t of displayTypes | paginate : { itemsPerPage: tableSize, currentPage: page, totalItems: totalRecords }; index as i"
+          class="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
             <div>
               <strong>Sr No:</strong>
@@ -103,7 +102,8 @@
             </div>
             <div>
               <div class="d-flex align-items-center gap-2">
-                <button *ngIf="t.is_active == 1" class="btn-action edit-btn" (click)="openEditModal(t)" data-tooltip="Edit">
+                <button *ngIf="t.is_active == 1" class="btn-action edit-btn" (click)="openEditModal(t)"
+                  data-tooltip="Edit">
                   <i class="fa-solid fa-pen-to-square"></i>
                 </button>
                 <button class="btn-action view-btn" (click)="openviewModal(t)" data-tooltip="View Details">
@@ -125,7 +125,8 @@
             </span>
           </div>
         </div>
-        <div *ngIf="displayTypes.length === 0" class="text-center py-4 text-muted bg-gray-50 border border-gray-200 rounded-lg">
+        <div *ngIf="displayTypes.length === 0"
+          class="text-center py-4 text-muted bg-gray-50 border border-gray-200 rounded-lg">
           No breakdown types found.
         </div>
       </div>
@@ -157,9 +158,10 @@
       <div class="modal-body-custom px-4 py-4 overflow-auto flex-grow-1">
         <div class="mb-3">
           <label class="form-label form-lable-custom">Breakdown Type Name *</label>
-          <input type="text" class="form-control form-input-custom" formControlName="name"
+          <input type="text" class="form-control form-input-custom" formControlName="name" maxlength="100"
             [ngClass]="{'is-invalid': typeForm.get('name')?.invalid && typeForm.get('name')?.touched}" />
-          <div class="invalid-feedback">Name is required.</div>
+          <div class="invalid-feedback" *ngIf="typeForm.get('name')?.hasError('required')">Name is required.</div>
+          <div class="invalid-feedback" *ngIf="typeForm.get('name')?.hasError('maxlength')">Name cannot exceed 100 characters.</div>
         </div>
       </div>
 
@@ -172,8 +174,8 @@
 </div>
 
 <!-- View Modal -->
-<div *ngIf="viewBreakdownTypeOpen" class="your-animation-class modal-container premium-detail-modal" aria-labelledby="modal-title" role="dialog"
-  aria-modal="true">
+<div *ngIf="viewBreakdownTypeOpen" class="your-animation-class modal-container premium-detail-modal"
+  aria-labelledby="modal-title" role="dialog" aria-modal="true">
   <div class="modal-contenttop modal-content-50" [@fadeIn]>
     <div class="card">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -193,8 +195,9 @@
             <div class="banner-value">{{ selectedBreakdownType?.name }}</div>
             <div class="banner-subtitle">
               <span class="pulse-indicator" [ngClass]="{'deactive': selectedBreakdownType?.is_active !== 1}"></span>
-              Status: 
-              <span class="status-badge-pill" [ngClass]="selectedBreakdownType?.is_active === 1 ? 'active' : 'deactive'">
+              Status:
+              <span class="status-badge-pill"
+                [ngClass]="selectedBreakdownType?.is_active === 1 ? 'active' : 'deactive'">
                 {{ selectedBreakdownType?.is_active === 1 ? 'Active' : 'Inactive' }}
               </span>
             </div>

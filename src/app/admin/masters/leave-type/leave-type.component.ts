@@ -93,6 +93,7 @@ export class LeaveTypeComponent implements OnInit, OnDestroy {
   selectedLeaveType: LeaveTypeItem | null = null;
   
   leaveTypeList: LeaveTypeItem[] = [];
+  isDataLoaded: boolean = false;
   
   table_heading = [
     {
@@ -367,12 +368,14 @@ export class LeaveTypeComponent implements OnInit, OnDestroy {
 
   GetLeaveTypeFun() {
     const searchText = this.searchbarform?.get('searchbar')?.value || '';
+    this.isDataLoaded = false;
 
     this.leaveTypeService
       .getLeaveTypes(this.tableSize, this.page, searchText)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
+          this.isDataLoaded = true;
           if (response.status === 200) {
             // Map backend keys to frontend expected keys
             this.leaveTypeList = (response.data || []).map((item: any) => ({
@@ -388,6 +391,7 @@ export class LeaveTypeComponent implements OnInit, OnDestroy {
           }
         },
         error: (error: any) => {
+          this.isDataLoaded = true;
           console.error('Error fetching leave types:', error);
         }
       });

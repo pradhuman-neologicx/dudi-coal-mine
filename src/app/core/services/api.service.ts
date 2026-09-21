@@ -154,16 +154,21 @@ export class ApiService {
       errorMessage = backendMessage;
     }
 
-    if (error.status == 401 || error.status == 403) {
+    if (error.status == 401) {
       if (this.router.url.includes('/admin')) {
-        console.warn('Unauthorized/Forbidden request in admin panel - clearing session and redirecting');
+        console.warn('Unauthorized request in admin panel - clearing session and redirecting');
         this.jwtService.clearStorage();
         this.router.navigate(['/sign_in']);
         return throwError(() => 'Unauthorized');
       } else {
-        console.warn('Unauthorized/Forbidden request outside admin panel - returning error silently');
+        console.warn('Unauthorized request outside admin panel - returning error silently');
         return throwError(() => error);
       }
+    }
+
+    if (error.status == 403) {
+       this.notificationService.show(errorMessage, 'error', 3000);
+       return throwError(() => error);
     }
 
     if (error.status === 422 || error.status === 409) {

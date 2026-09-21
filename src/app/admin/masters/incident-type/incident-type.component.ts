@@ -84,11 +84,11 @@ export class IncidentTypeComponent implements OnInit, OnDestroy {
     });
 
     this.createForm = this.formBuilder.group({
-      Name: ['', [Validators.required]],
+      Name: ['', [Validators.required, Validators.maxLength(100)]],
     });
 
     this.updateForm = this.formBuilder.group({
-      Name: ['', [Validators.required, Validators.minLength(2)]],
+      Name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(100)]],
     });
 
     this.viewForm = this.formBuilder.group({

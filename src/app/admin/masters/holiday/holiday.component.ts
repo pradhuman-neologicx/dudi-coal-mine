@@ -6,7 +6,7 @@ import {
   animate,
 } from '@angular/animations';
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatIconModule } from '@angular/material/icon';
@@ -37,6 +37,15 @@ export interface HolidayItem {
   status?: number | boolean | string;
   is_active?: number | boolean;
   [key: string]: any;
+}
+
+export function pastDateValidator(control: AbstractControl): { [key: string]: boolean } | null {
+  if (!control.value) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const selectedDate = new Date(control.value);
+  selectedDate.setHours(0, 0, 0, 0);
+  return selectedDate < today ? { 'pastDate': true } : null;
 }
 
 @Component({
@@ -95,6 +104,8 @@ export class HolidayComponent implements OnInit, OnDestroy {
   currentHolidayId: number | string | null = null;
   selectedHoliday: HolidayItem | null = null;
   
+  minDate!: string;
+  
   holidayList: HolidayItem[] = [];
   
   table_heading = [
@@ -119,21 +130,27 @@ export class HolidayComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    this.minDate = `${year}-${month}-${day}`;
+
     this.searchbarform = this.formBuilder.group({
       searchbar: [''],
     });
 
     this.createHolidayForm = this.formBuilder.group({
       holidayName: ['', [Validators.required]],
-      date: ['', [Validators.required]],
-      site: ['', [Validators.required]],
+      date: ['', [Validators.required, pastDateValidator]],
+      site: [[], [Validators.required]],
       holidayType: ['', [Validators.required]],
     });
 
     this.updateHolidayForm = this.formBuilder.group({
       holidayName: ['', [Validators.required]],
-      date: ['', [Validators.required]],
-      site: ['', [Validators.required]],
+      date: ['', [Validators.required, pastDateValidator]],
+      site: [[], [Validators.required]],
       holidayType: ['', [Validators.required]],
     });
 
@@ -205,7 +222,7 @@ export class HolidayComponent implements OnInit, OnDestroy {
     this.createHolidayOpen = false;
     this.viewHolidayOpen = false;
     this.selectedHoliday = null;
-    this.createHolidayForm.reset({ site: '', holidayType: 'Festival' });
+    this.createHolidayForm.reset({ site: [], holidayType: 'Festival' });
   }
 
   OpenEditModal(holiday: HolidayItem): void {
@@ -259,10 +276,17 @@ export class HolidayComponent implements OnInit, OnDestroy {
           if (response.status === 200 && response.data) {
             const holiday = response.data;
             
-            let siteIdVal = holiday.site;
-            const foundSite = this.sites.find(s => s.name === holiday.site);
-            if (foundSite) {
-              siteIdVal = foundSite.id;
+            let siteIdVal: any[] = [];
+            if (holiday.site) {
+              const siteNames = typeof holiday.site === 'string' ? holiday.site.split(',').map((s: string) => s.trim()) : (Array.isArray(holiday.site) ? holiday.site : [holiday.site]);
+              siteNames.forEach((siteName: any) => {
+                const foundSite = this.sites.find(s => s.name === siteName || s.id === siteName);
+                if (foundSite) {
+                  siteIdVal.push(foundSite.id);
+                } else {
+                  siteIdVal.push(siteName);
+                }
+              });
             }
 
             this.updateHolidayForm.patchValue({
@@ -284,7 +308,11 @@ export class HolidayComponent implements OnInit, OnDestroy {
       const holidayData = this.createHolidayForm.value;
 
       const formData = new FormData();
-      formData.append('site_id', holidayData.site);
+      if (Array.isArray(holidayData.site)) {
+        holidayData.site.forEach((s: any) => formData.append('site_id[]', s));
+      } else {
+        formData.append('site_id', holidayData.site);
+      }
       formData.append('holiday_name', holidayData.holidayName);
       formData.append('holiday_date', holidayData.date);
       formData.append('holiday_type', holidayData.holidayType);
@@ -325,7 +353,11 @@ export class HolidayComponent implements OnInit, OnDestroy {
 
       const formData = new FormData();
       formData.append('_method', 'PUT');
-      formData.append('site_id', holidayData.site);
+      if (Array.isArray(holidayData.site)) {
+        holidayData.site.forEach((s: any) => formData.append('site_id[]', s));
+      } else {
+        formData.append('site_id', holidayData.site);
+      }
       formData.append('holiday_name', holidayData.holidayName);
       formData.append('holiday_date', holidayData.date);
       formData.append('holiday_type', holidayData.holidayType);

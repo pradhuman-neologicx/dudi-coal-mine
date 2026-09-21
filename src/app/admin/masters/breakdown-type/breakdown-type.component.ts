@@ -66,7 +66,7 @@ export class BreakdownTypeComponent implements OnInit, OnDestroy {
       searchbar: ['']
     });
     this.typeForm = this.fb.group({
-      name: ['', Validators.required],
+      name: ['', [Validators.required, Validators.maxLength(100)]],
     });
     this.GetBreakdownTypesFun();
   }

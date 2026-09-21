@@ -13,35 +13,27 @@
     <div class="row align-items-center mb-3 g-2">
       <div class="col-md-2 d-flex align-items-center gap-2">
         <span class="show-entery-text">Show</span>
-        <ng-select [items]="tableSizes" 
-                   [(ngModel)]="tableSize" 
-                   (change)="onTableSizeChange($event)" 
-                   [clearable]="false" 
-                   [searchable]="false" 
-                   class="custom-ng-select min-w-[80px]">
+        <ng-select [items]="tableSizes" [(ngModel)]="tableSize" (change)="onTableSizeChange($event)" [clearable]="false"
+          [searchable]="false" class="custom-ng-select min-w-[80px]">
         </ng-select>
         <span class="show-entery-text">entries</span>
       </div>
 
       <div class="col-md-10 d-flex justify-content-end align-items-center gap-2 flex-wrap">
         <div style="width: 250px;">
-          <ng-select [items]="activeCategories"
-                     bindLabel="name"
-                     bindValue="id"
-                     placeholder="All Master Categories"
-                     [(ngModel)]="filterCategory"
-                     (change)="onFilterChange()"
-                     [clearable]="true"
-                     class="custom-ng-select">
+          <ng-select [items]="activeCategories" bindLabel="name" bindValue="id" placeholder="All Master Categories"
+            [(ngModel)]="filterCategory" (change)="onFilterChange()" [clearable]="true" class="custom-ng-select">
           </ng-select>
         </div>
 
         <div class="d-flex align-items-center ms-2">
-          <input type="text" class="form-control" placeholder="Search Equipment..." [(ngModel)]="filterSearch" autocomplete="off" />
+          <input type="text" class="form-control" placeholder="Search Equipment..." [(ngModel)]="filterSearch"
+            autocomplete="off" />
           <button class="btn btn-primary ms-2" (click)="onFilterChange()">
             <i class="fa-solid fa-magnifying-glass text-white"></i>
           </button>
-          <button class="btn btn-secondary ms-2" (click)="resetFilter()" type="button" *ngIf="filterSearch || filterCategory">
+          <button class="btn btn-secondary ms-2" (click)="resetFilter()" type="button"
+            *ngIf="filterSearch || filterCategory">
             <i class="fa-solid fa-rotate-right text-white"></i>
           </button>
         </div>
@@ -50,7 +42,8 @@
 
     <!-- Cards View -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mt-2">
-      <div class="col" *ngFor="let eq of filteredEquipments | paginate : { itemsPerPage: tableSize !== 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; trackBy: trackByEquipmentId; index as i">
+      <div class="col"
+        *ngFor="let eq of filteredEquipments | paginate : { itemsPerPage: tableSize !== 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; trackBy: trackByEquipmentId; index as i">
         <div class="card h-100 shadow-sm border-0 table-card p-3">
           <div class="card-body d-flex flex-column">
             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -62,11 +55,12 @@
                 {{ eq.isActive ? 'Active' : 'Inactive' }}
               </span>
             </div>
-            <div class="mt-auto d-flex justify-content-between align-items-center">
+            <div class="mt-auto d-flex justify-content-between align-items-center gap-2">
               <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(eq)">
                 <i class="fa-solid fa-edit me-1"></i> Edit
               </button>
-              <button class="btn btn-sm" [ngClass]="eq.isActive ? 'btn-outline-danger' : 'btn-outline-success'" (click)="toggleActiveStatus(eq)">
+              <button class="btn btn-sm" [ngClass]="eq.isActive ? 'btn-outline-danger' : 'btn-outline-success'"
+                (click)="toggleActiveStatus(eq)">
                 <i class="fa-solid" [ngClass]="eq.isActive ? 'fa-ban' : 'fa-check-circle'"></i>
                 {{ eq.isActive ? 'Deactivate' : 'Activate' }}
               </button>
@@ -74,20 +68,20 @@
           </div>
         </div>
       </div>
-      
+
       <div class="col-12 text-center py-4 text-muted" *ngIf="filteredEquipments.length === 0">
         No equipment found.
       </div>
     </div>
 
-      <div class="d-md-flex justify-content-between align-items-center mt-3">
-        <span>
-          Showing {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : (totalRecords > 0 ? 1 : 0) }} 
-          to {{ (tableSize * page) <= totalRecords ? (tableSize * page) : totalRecords }} 
-          of {{ totalRecords }} entries
-        </span>
-        <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true" (pageChange)="onTableDataChange($event)"></pagination-controls>
-      </div>
+    <div class="d-md-flex justify-content-between align-items-center mt-3">
+      <span>
+        Showing {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : (totalRecords > 0 ? 1 : 0) }}
+        to {{ (tableSize * page) <= totalRecords ? (tableSize * page) : totalRecords }} of {{ totalRecords }} entries
+          </span>
+          <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true"
+            (pageChange)="onTableDataChange($event)"></pagination-controls>
+    </div>
   </div>
 </div>
 
@@ -105,20 +99,19 @@
       <div class="modal-body-custom px-4 py-4">
         <div class="mb-3">
           <label class="form-label form-lable-custom">Equipment Name *</label>
-          <input type="text" class="form-control form-input-custom" formControlName="name" [ngClass]="{'is-invalid': equipmentForm.get('name')?.invalid && equipmentForm.get('name')?.touched}">
+          <input type="text" class="form-control form-input-custom" formControlName="name"
+            [ngClass]="{'is-invalid': equipmentForm.get('name')?.invalid && equipmentForm.get('name')?.touched}">
           <div class="invalid-feedback">Equipment Name is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label form-lable-custom">Master Category *</label>
-          <ng-select [items]="activeCategories"
-                     bindLabel="name"
-                     bindValue="id"
-                     placeholder="-- Select Master Category --"
-                     formControlName="categoryId"
-                     [ngClass]="{'is-invalid': equipmentForm.get('categoryId')?.invalid && equipmentForm.get('categoryId')?.touched}"
-                     class="custom-ng-select">
+          <ng-select [items]="activeCategories" bindLabel="name" bindValue="id"
+            placeholder="-- Select Master Category --" formControlName="categoryId"
+            [ngClass]="{'is-invalid': equipmentForm.get('categoryId')?.invalid && equipmentForm.get('categoryId')?.touched}"
+            class="custom-ng-select">
           </ng-select>
-          <div class="text-danger mt-1" style="font-size: 0.875em;" *ngIf="equipmentForm.get('categoryId')?.invalid && equipmentForm.get('categoryId')?.touched">
+          <div class="text-danger mt-1" style="font-size: 0.875em;"
+            *ngIf="equipmentForm.get('categoryId')?.invalid && equipmentForm.get('categoryId')?.touched">
             Master Category is required.
           </div>
         </div>

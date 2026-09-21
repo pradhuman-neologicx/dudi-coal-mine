@@ -471,6 +471,7 @@ export class DelayReportComponent implements OnInit, OnDestroy {
                   if (shiftRes && shiftRes.status === 200 && shiftRes.data) {
                     this.shiftStartTime = shiftRes.data.start_time || '';
                     this.shiftEndTime = shiftRes.data.end_time || '';
+                    this.calculateWorkingHours();
                     this.machinesList = shiftRes.data.machines || [];
                     this.breakdownList = [];
                     if (this.formData.machineId && this.machinesList.length > 0) {
@@ -533,7 +534,7 @@ export class DelayReportComponent implements OnInit, OnDestroy {
 
   resetModal() {
     this.editingIndex = -1;
-    this.totalWorkingHours = 8.0;
+    this.totalWorkingHours = 0;
 
     const now = new Date();
     const tzOffset = now.getTimezoneOffset() * 60000;
@@ -584,6 +585,7 @@ export class DelayReportComponent implements OnInit, OnDestroy {
             console.log('Shift Data Response (by-datetime):', res.data);
             this.shiftStartTime = res.data.start_time || '';
             this.shiftEndTime = res.data.end_time || '';
+            this.calculateWorkingHours();
             this.formData.shiftId = res.data.id || res.data.shift_id || res.data;
             this.shiftName = res.data.name;
             this.formData.shiftPlanId = res.data.shift_plan_id;
@@ -627,6 +629,21 @@ export class DelayReportComponent implements OnInit, OnDestroy {
       this.formData.shiftPlanId = null;
       this.machinesList = [];
       this.breakdownList = [];
+    }
+  }
+
+  calculateWorkingHours() {
+    if (this.shiftStartTime && this.shiftEndTime) {
+      const [startH, startM] = this.shiftStartTime.split(':').map(Number);
+      const [endH, endM] = this.shiftEndTime.split(':').map(Number);
+      let startMins = startH * 60 + (startM || 0);
+      let endMins = endH * 60 + (endM || 0);
+      if (endMins <= startMins) {
+        endMins += 24 * 60; // overnight shift
+      }
+      this.totalWorkingHours = parseFloat(((endMins - startMins) / 60).toFixed(2));
+    } else {
+      this.totalWorkingHours = 0;
     }
   }
 

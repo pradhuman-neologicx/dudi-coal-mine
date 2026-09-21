@@ -845,6 +845,11 @@
                     formControlName="amount" placeholder="0.00" (blur)="onAmountBlur()"
                     [ngClass]="{'is-invalid': penaltyForm.get('amount')?.invalid && penaltyForm.get('amount')?.touched}" />
                 </div>
+                <div class="invalid-feedback d-block"
+                  *ngIf="penaltyForm.get('amount')?.invalid && penaltyForm.get('amount')?.touched">
+                  <span *ngIf="penaltyForm.get('amount')?.errors?.['required']">Amount is required.</span>
+                  <span *ngIf="penaltyForm.get('amount')?.errors?.['min']">Amount must be greater than 0.</span>
+                </div>
               </div>
             </div>
           </div>

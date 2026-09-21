@@ -612,7 +612,7 @@ export class EmployeeService {
   }
 
   // Salary Wages master APIs start
-  getWagesMasterData(tableSize: any, page: any) {
+  getWagesMasterData(tableSize: any, page: any, search?: string) {
     const token = this.jwtService.getToken();
     const headers = new HttpHeaders({
       Authorization: `Bearer ${token}`,
@@ -622,6 +622,16 @@ export class EmployeeService {
     let url = `v1/admin/employee-wages`;
     if (tableSize !== 'all') {
       url = `v1/admin/employee-wages?per_page=${tableSize}&page=${page}`;
+    } else {
+      url = `v1/admin/employee-wages?`;
+    }
+    
+    if (search && search.trim().length > 0) {
+      if (url.includes('?')) {
+        url += `&search=${search.trim()}`;
+      } else {
+        url += `?search=${search.trim()}`;
+      }
     }
 
     return this.apiservice.get(url, headers).pipe(

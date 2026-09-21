@@ -84,6 +84,7 @@ export class DesignationComponent implements OnInit, OnDestroy {
   page: number = 1;
   viewDesignationOpen: boolean = false;
   selectedDesignation: DesignationItem | null = null;
+  isDataLoaded: boolean = false;
 
   designationList: DesignationItem[] = [];
   table_heading = ['Serial No.', 'Designation Name', 'Status', 'Action'];
@@ -157,12 +158,14 @@ export class DesignationComponent implements OnInit, OnDestroy {
 
   GetDesignationFun() {
     const searchText = this.searchbarform?.get('searchbar')?.value || '';
+    this.isDataLoaded = false;
 
     this.designationService
       .getDesignations(this.tableSize, this.page, searchText)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
+          this.isDataLoaded = true;
           if (response.status === 200) {
             this.designationList = response.data;
             this.totalRecords = response.pagination?.total || response.data.length;
@@ -171,6 +174,7 @@ export class DesignationComponent implements OnInit, OnDestroy {
           }
         },
         error: (error: any) => {
+          this.isDataLoaded = true;
           console.error('Error fetching designations:', error);
         }
       });

@@ -125,6 +125,9 @@
                 </div>
               </td>
             </tr>
+            <tr *ngIf="holidayList.length === 0">
+              <td colspan="7" class="text-center text-muted py-4">No record found</td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -179,6 +182,9 @@
             </span>
           </div>
         </div>
+        <div *ngIf="holidayList.length === 0" class="text-center text-muted py-4 bg-gray-50 border border-gray-200 rounded-lg">
+          No record found
+        </div>
       </div>
       <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center">
         <span class="showalltext">Showing
@@ -221,22 +227,24 @@
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Date</label>
-              <input type="date" class="d-block form-control form-input-custom" formControlName="date"
+              <input type="date" class="d-block form-control form-input-custom" formControlName="date" [min]="minDate"
                 [ngClass]="{'is-invalid': createHolidayForm.controls['date'].errors && (createHolidayForm.controls['date'].touched || createHolidayForm.controls['date'].dirty)}" />
               <div class="text-danger error-message d-block mt-1" *ngIf="createHolidayForm.controls['date'].errors && (createHolidayForm.controls['date'].touched || createHolidayForm.controls['date'].dirty)">
                 <p class="fw-light text-danger mb-0" *ngIf="createHolidayForm.controls['date'].hasError('required')">
                   Date is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="createHolidayForm.controls['date'].hasError('pastDate')">
+                  Date cannot be in the past
                 </p>
               </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Site</label>
-              <select class="d-block form-control form-select form-input-custom" formControlName="site"
+              <ng-select class="d-block form-input-custom" formControlName="site" [multiple]="true" placeholder="Select Site"
+                [items]="sites" bindLabel="name" bindValue="id"
                 [ngClass]="{'is-invalid': createHolidayForm.controls['site'].errors && (createHolidayForm.controls['site'].touched || createHolidayForm.controls['site'].dirty)}">
-                <option value="" disabled>Select Site</option>
-                <option *ngFor="let site of sites" [value]="site.id">{{ site.name }}</option>
-              </select>
+              </ng-select>
               <div class="text-danger error-message d-block mt-1" *ngIf="createHolidayForm.controls['site'].errors && (createHolidayForm.controls['site'].touched || createHolidayForm.controls['site'].dirty)">
                 <p class="fw-light text-danger mb-0" *ngIf="createHolidayForm.controls['site'].hasError('required')">
                   Site is required
@@ -298,22 +306,24 @@
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Date</label>
-              <input type="date" class="d-block form-control form-input-custom" formControlName="date"
+              <input type="date" class="d-block form-control form-input-custom" formControlName="date" [min]="minDate"
                 [ngClass]="{'is-invalid': updateHolidayForm.controls['date'].errors && (updateHolidayForm.controls['date'].touched || updateHolidayForm.controls['date'].dirty)}" />
               <div class="text-danger error-message d-block mt-1" *ngIf="updateHolidayForm.controls['date'].errors && (updateHolidayForm.controls['date'].touched || updateHolidayForm.controls['date'].dirty)">
                 <p class="fw-light text-danger mb-0" *ngIf="updateHolidayForm.controls['date'].hasError('required')">
                   Date is required
+                </p>
+                <p class="fw-light text-danger mb-0" *ngIf="updateHolidayForm.controls['date'].hasError('pastDate')">
+                  Date cannot be in the past
                 </p>
               </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Site</label>
-              <select class="d-block form-control form-select form-input-custom" formControlName="site"
+              <ng-select class="d-block form-input-custom" formControlName="site" [multiple]="true" placeholder="Select Site"
+                [items]="sites" bindLabel="name" bindValue="id"
                 [ngClass]="{'is-invalid': updateHolidayForm.controls['site'].errors && (updateHolidayForm.controls['site'].touched || updateHolidayForm.controls['site'].dirty)}">
-                <option value="" disabled>Select Site</option>
-                <option *ngFor="let site of sites" [value]="site.id">{{ site.name }}</option>
-              </select>
+              </ng-select>
               <div class="text-danger error-message d-block mt-1" *ngIf="updateHolidayForm.controls['site'].errors && (updateHolidayForm.controls['site'].touched || updateHolidayForm.controls['site'].dirty)">
                 <p class="fw-light text-danger mb-0" *ngIf="updateHolidayForm.controls['site'].hasError('required')">
                   Site is required

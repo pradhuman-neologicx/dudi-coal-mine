@@ -1,7 +1,7 @@
 <div class="container mb-4">
   <!-- Page Header -->
   <div class="d-flex justify-content-between align-items-center flex-wrap" style="margin-top: 15px;">
-    <h1 class="text-primary table-heading-detail">Products</h1>
+    <h1 class="text-primary table-heading-detail">Product Listing</h1>
     <div>
       <button class="btn btn-custom-primary px-4 py-2 me-2" (click)="openAddProductModal()">
         Add product
@@ -14,12 +14,8 @@
     <div class="d-md-flex justify-content-between align-items-center my-3">
       <div class="d-flex align-items-center mb-md-0 mb-2 gap-2">
         <span class="show-entery-text">Show</span>
-        <ng-select [items]="tableSizes" 
-                   [(ngModel)]="tableSize" 
-                   (change)="onTableSizeChange($event)" 
-                   [clearable]="false" 
-                   [searchable]="false" 
-                   class="custom-ng-select min-w-[80px]">
+        <ng-select [items]="tableSizes" [(ngModel)]="tableSize" (change)="onTableSizeChange($event)" [clearable]="false"
+          [searchable]="false" class="custom-ng-select min-w-[80px]">
         </ng-select>
         <span class="show-entery-text">entries</span>
       </div>
@@ -28,7 +24,8 @@
         <form [formGroup]="searchbarform" class="d-flex align-items-center">
           <span class="me-1">Search:</span>
           <div>
-            <input type="text" class="form-control search-user position-relative" autocomplete="off" formControlName="searchbar" />
+            <input type="text" class="form-control search-user position-relative" autocomplete="off"
+              formControlName="searchbar" />
           </div>
           <button class="btn btn-primary search-btn ms-2" (click)="searchfun()">
             <span><i class="fa-solid fa-magnifying-glass form-control-feedback text-white"></i></span>
@@ -47,16 +44,29 @@
         <table class="table table-bordered table-hover table-striped mb-0">
           <thead class="table-header">
             <tr>
-              <th style="width: 80px;"><p class="table-heading">Sr No.</p></th>
-              <th><p class="table-heading">Name</p></th>
-              <th><p class="table-heading">Category</p></th>
-              <th style="width: 150px;"><p class="table-heading">Min Stock</p></th>
-              <th style="width: 150px;"><p class="table-heading">Status</p></th>
-              <th style="width: 180px;"><p class="table-heading">Action</p></th>
+              <th style="width: 80px;">
+                <p class="table-heading">Sr No.</p>
+              </th>
+              <th>
+                <p class="table-heading">Name</p>
+              </th>
+              <th>
+                <p class="table-heading">Category</p>
+              </th>
+              <th style="width: 150px;">
+                <p class="table-heading">Min Stock</p>
+              </th>
+              <th style="width: 150px;">
+                <p class="table-heading">Status</p>
+              </th>
+              <th style="width: 180px;">
+                <p class="table-heading">Action</p>
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let prod of filteredProducts | paginate: { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
+            <tr
+              *ngFor="let prod of filteredProducts | paginate: { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
               <td>
                 {{ tableSize * (page - 1) + i + 1 }}
               </td>
@@ -104,8 +114,9 @@
 
       <!-- Mobile Card View -->
       <div class="lg:hidden space-y-4">
-        <div *ngFor="let prod of filteredProducts | paginate: { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i" 
-             class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div
+          *ngFor="let prod of filteredProducts | paginate: { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i"
+          class="bg-gray-50 border border-gray-200 rounded-lg p-4">
           <div class="flex justify-between items-center mb-2">
             <div>
               <strong>Sr No:</strong>
@@ -122,7 +133,7 @@
                 <button class="btn-action" [ngClass]="prod.is_active ? 'deactivate-btn' : 'activate-btn'"
                   (click)="toggleProductStatus(prod)"
                   [title]="prod.is_active ? 'Deactivate Status' : 'Activate Status'">
-                  <i class="fa-solid" [ngClass]="prod.is_active ? 'fa-user-slash' : 'fa-user-check'"></i>
+                  <i class="fa-solid" [ngClass]="prod.is_active ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
                 </button>
               </div>
             </div>
@@ -149,16 +160,9 @@
       <div class="d-md-flex justify-content-between bottom-0 end-0 py-2 align-items-center">
         <span class="showalltext">
           Showing {{ tableSize * (page - 1) > 0 ? tableSize * (page - 1) + 1 : 1 }} to
-          {{ tableSize * page <= totalRecords ? tableSize * page : totalRecords }}
-          of {{ totalRecords }} entries
-        </span>
-        <pagination-controls
-          previousLabel="Prev"
-          nextLabel="Next"
-          [responsive]="true"
-          (pageChange)="onTableDataChange($event)"
-          target="_top"
-        ></pagination-controls>
+          {{ tableSize * page <= totalRecords ? tableSize * page : totalRecords }} of {{ totalRecords }} entries </span>
+            <pagination-controls previousLabel="Prev" nextLabel="Next" [responsive]="true"
+              (pageChange)="onTableDataChange($event)" target="_top"></pagination-controls>
       </div>
     </div>
   </div>
@@ -169,74 +173,15 @@
      ========================================== -->
 
 <!-- 1. Add Product Modal -->
-<div *ngIf="createProductOpen" class="your-animation-class modal-container" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div *ngIf="createProductOpen" class="your-animation-class modal-container" aria-labelledby="modal-title" role="dialog"
+  aria-modal="true">
   <div class="modal-contenttop modal-content-50" [@fadeIn]>
     <form [formGroup]="createProductForm">
       <div class="card border-0 shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 class="modal-title pt-1 mb-0 tt-color">Add a New Product</h5>
-          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button" (click)="closeModal()">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-        <div class="modal-content-widthtop card-body mb-0">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <label class="d-block text-capitalize form-label form-lable-custom">Product Name</label>
-              <input type="text" class="d-block form-control form-input-custom w-100" formControlName="name" placeholder="E.g., SuperWidget 5000"
-                     [ngClass]="{'is-invalid': createProductForm.controls['name'].errors && (createProductForm.controls['name'].touched || createProductForm.controls['name'].dirty)}" />
-              <div class="text-danger error-message" *ngIf="createProductForm.controls['name'].errors && (createProductForm.controls['name'].touched || createProductForm.controls['name'].dirty)">
-                <p class="fw-light text-danger" *ngIf="createProductForm.controls['name'].errors['required']">Product Name is required</p>
-              </div>
-            </div>
-
-            <div class="col-md-6 mb-3">
-              <label class="d-block text-capitalize form-label form-lable-custom">Category</label>
-              <ng-select
-                [items]="categoriesGrouped"
-                bindLabel="name"
-                bindValue="name"
-                groupBy="category"
-                placeholder="Select Product Category"
-                formControlName="category"
-                [ngClass]="{'is-invalid': createProductForm.controls['category'].errors && (createProductForm.controls['category'].touched || createProductForm.controls['category'].dirty)}"
-                class="custom-ng-select w-100">
-              </ng-select>
-              <div class="text-danger error-message" *ngIf="createProductForm.controls['category'].errors && (createProductForm.controls['category'].touched || createProductForm.controls['category'].dirty)">
-                <p class="fw-light text-danger" *ngIf="createProductForm.controls['category'].errors['required']">Category selection is required</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-            <div class="col-md-12 mb-3">
-              <label class="d-block text-capitalize form-label form-lable-custom">Minimum Stock Reserve</label>
-              <input type="number" class="d-block form-control form-input-custom w-100" formControlName="minStock" placeholder="E.g., 5"
-                     [ngClass]="{'is-invalid': createProductForm.controls['minStock'].errors && (createProductForm.controls['minStock'].touched || createProductForm.controls['minStock'].dirty)}" />
-              <div class="text-danger error-message" *ngIf="createProductForm.controls['minStock'].errors && (createProductForm.controls['minStock'].touched || createProductForm.controls['minStock'].dirty)">
-                <p class="fw-light text-danger" *ngIf="createProductForm.controls['minStock'].errors['required']">Minimum Stock Reserve is required</p>
-                <p class="fw-light text-danger" *ngIf="createProductForm.controls['minStock'].errors['min']">Minimum Stock Reserve cannot be negative</p>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer text-end">
-          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button" (click)="closeModal()">Close</button>
-          <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="createProduct()">Save</button>
-        </div>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- 2. Edit Product Modal -->
-<div *ngIf="updateProductOpen" class="your-animation-class modal-container" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-  <div class="modal-contenttop modal-content-50" [@fadeIn]>
-    <form [formGroup]="updateProductForm">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white d-flex justify-content-between align-items-center">
-          <h5 class="modal-title pt-1 mb-0 tt-color">Edit Product Details</h5>
-          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button" (click)="closeModal()">
+          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button"
+            (click)="closeModal()">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -245,26 +190,26 @@
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Product Name</label>
               <input type="text" class="d-block form-control form-input-custom w-100" formControlName="name"
-                     [ngClass]="{'is-invalid': updateProductForm.controls['name'].errors && (updateProductForm.controls['name'].touched || updateProductForm.controls['name'].dirty)}" />
-              <div class="text-danger error-message" *ngIf="updateProductForm.controls['name'].errors && (updateProductForm.controls['name'].touched || updateProductForm.controls['name'].dirty)">
-                <p class="fw-light text-danger" *ngIf="updateProductForm.controls['name'].errors['required']">Product Name is required</p>
+                placeholder="E.g., SuperWidget 5000"
+                [ngClass]="{'is-invalid': createProductForm.controls['name'].errors && (createProductForm.controls['name'].touched || createProductForm.controls['name'].dirty)}" />
+              <div class="text-danger error-message"
+                *ngIf="createProductForm.controls['name'].errors && (createProductForm.controls['name'].touched || createProductForm.controls['name'].dirty)">
+                <p class="fw-light text-danger" *ngIf="createProductForm.controls['name'].errors['required']">Product
+                  Name is required</p>
               </div>
             </div>
 
             <div class="col-md-6 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Category</label>
-              <ng-select
-                [items]="categoriesGrouped"
-                bindLabel="name"
-                bindValue="name"
-                groupBy="category"
-                placeholder="Select Product Category"
-                formControlName="category"
-                [ngClass]="{'is-invalid': updateProductForm.controls['category'].errors && (updateProductForm.controls['category'].touched || updateProductForm.controls['category'].dirty)}"
+              <ng-select [items]="categoriesGrouped" bindLabel="name" bindValue="name" groupBy="category"
+                placeholder="Select Product Category" formControlName="category"
+                [ngClass]="{'is-invalid': createProductForm.controls['category'].errors && (createProductForm.controls['category'].touched || createProductForm.controls['category'].dirty)}"
                 class="custom-ng-select w-100">
               </ng-select>
-              <div class="text-danger error-message" *ngIf="updateProductForm.controls['category'].errors && (updateProductForm.controls['category'].touched || updateProductForm.controls['category'].dirty)">
-                <p class="fw-light text-danger" *ngIf="updateProductForm.controls['category'].errors['required']">Category selection is required</p>
+              <div class="text-danger error-message"
+                *ngIf="createProductForm.controls['category'].errors && (createProductForm.controls['category'].touched || createProductForm.controls['category'].dirty)">
+                <p class="fw-light text-danger" *ngIf="createProductForm.controls['category'].errors['required']">
+                  Category selection is required</p>
               </div>
             </div>
           </div>
@@ -273,16 +218,87 @@
             <div class="col-md-12 mb-3">
               <label class="d-block text-capitalize form-label form-lable-custom">Minimum Stock Reserve</label>
               <input type="number" class="d-block form-control form-input-custom w-100" formControlName="minStock"
-                     [ngClass]="{'is-invalid': updateProductForm.controls['minStock'].errors && (updateProductForm.controls['minStock'].touched || updateProductForm.controls['minStock'].dirty)}" />
-              <div class="text-danger error-message" *ngIf="updateProductForm.controls['minStock'].errors && (updateProductForm.controls['minStock'].touched || updateProductForm.controls['minStock'].dirty)">
-                <p class="fw-light text-danger" *ngIf="updateProductForm.controls['minStock'].errors['required']">Minimum Stock Reserve is required</p>
-                <p class="fw-light text-danger" *ngIf="updateProductForm.controls['minStock'].errors['min']">Minimum Stock Reserve cannot be negative</p>
+                placeholder="E.g., 5"
+                [ngClass]="{'is-invalid': createProductForm.controls['minStock'].errors && (createProductForm.controls['minStock'].touched || createProductForm.controls['minStock'].dirty)}" />
+              <div class="text-danger error-message"
+                *ngIf="createProductForm.controls['minStock'].errors && (createProductForm.controls['minStock'].touched || createProductForm.controls['minStock'].dirty)">
+                <p class="fw-light text-danger" *ngIf="createProductForm.controls['minStock'].errors['required']">
+                  Minimum Stock Reserve is required</p>
+                <p class="fw-light text-danger" *ngIf="createProductForm.controls['minStock'].errors['min']">Minimum
+                  Stock Reserve cannot be negative</p>
               </div>
             </div>
           </div>
         </div>
         <div class="modal-footer text-end">
-          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button" (click)="closeModal()">Close</button>
+          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button"
+            (click)="closeModal()">Close</button>
+          <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="createProduct()">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 2. Edit Product Modal -->
+<div *ngIf="updateProductOpen" class="your-animation-class modal-container" aria-labelledby="modal-title" role="dialog"
+  aria-modal="true">
+  <div class="modal-contenttop modal-content-50" [@fadeIn]>
+    <form [formGroup]="updateProductForm">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+          <h5 class="modal-title pt-1 mb-0 tt-color">Edit Product Details</h5>
+          <button class="cross-btn-icon main-btn bg-transparent border-0 pb-0 pt-1" type="button"
+            (click)="closeModal()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-content-widthtop card-body mb-0">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Product Name</label>
+              <input type="text" class="d-block form-control form-input-custom w-100" formControlName="name"
+                [ngClass]="{'is-invalid': updateProductForm.controls['name'].errors && (updateProductForm.controls['name'].touched || updateProductForm.controls['name'].dirty)}" />
+              <div class="text-danger error-message"
+                *ngIf="updateProductForm.controls['name'].errors && (updateProductForm.controls['name'].touched || updateProductForm.controls['name'].dirty)">
+                <p class="fw-light text-danger" *ngIf="updateProductForm.controls['name'].errors['required']">Product
+                  Name is required</p>
+              </div>
+            </div>
+
+            <div class="col-md-6 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Category</label>
+              <ng-select [items]="categoriesGrouped" bindLabel="name" bindValue="name" groupBy="category"
+                placeholder="Select Product Category" formControlName="category"
+                [ngClass]="{'is-invalid': updateProductForm.controls['category'].errors && (updateProductForm.controls['category'].touched || updateProductForm.controls['category'].dirty)}"
+                class="custom-ng-select w-100">
+              </ng-select>
+              <div class="text-danger error-message"
+                *ngIf="updateProductForm.controls['category'].errors && (updateProductForm.controls['category'].touched || updateProductForm.controls['category'].dirty)">
+                <p class="fw-light text-danger" *ngIf="updateProductForm.controls['category'].errors['required']">
+                  Category selection is required</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-12 mb-3">
+              <label class="d-block text-capitalize form-label form-lable-custom">Minimum Stock Reserve</label>
+              <input type="number" class="d-block form-control form-input-custom w-100" formControlName="minStock"
+                [ngClass]="{'is-invalid': updateProductForm.controls['minStock'].errors && (updateProductForm.controls['minStock'].touched || updateProductForm.controls['minStock'].dirty)}" />
+              <div class="text-danger error-message"
+                *ngIf="updateProductForm.controls['minStock'].errors && (updateProductForm.controls['minStock'].touched || updateProductForm.controls['minStock'].dirty)">
+                <p class="fw-light text-danger" *ngIf="updateProductForm.controls['minStock'].errors['required']">
+                  Minimum Stock Reserve is required</p>
+                <p class="fw-light text-danger" *ngIf="updateProductForm.controls['minStock'].errors['min']">Minimum
+                  Stock Reserve cannot be negative</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer text-end">
+          <button class="btn btn-secondary main-btnfs px-4 py-2 me-4 text-gray-200" type="button"
+            (click)="closeModal()">Close</button>
           <button class="btn btn-custom-primary px-4 py-2" type="button" (click)="updateProduct()">Update</button>
         </div>
       </div>
@@ -291,7 +307,8 @@
 </div>
 
 <!-- 3. View Product Modal -->
-<div *ngIf="viewProductOpen" class="your-animation-class modal-container premium-detail-modal" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+<div *ngIf="viewProductOpen" class="your-animation-class modal-container premium-detail-modal"
+  aria-labelledby="modal-title" role="dialog" aria-modal="true">
   <div class="modal-contenttop modal-content-50" [@fadeIn]>
     <div class="card">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -310,9 +327,11 @@
             <div class="banner-label">Product Name</div>
             <div class="banner-value">{{ selectedProductDetails?.name || selectedProduct?.name }}</div>
             <div class="banner-subtitle">
-              <span class="pulse-indicator" [ngClass]="{'deactive': (selectedProductDetails?.status ?? selectedProduct?.is_active) !== 1}"></span>
-              Status: 
-              <span class="status-badge-pill" [ngClass]="(selectedProductDetails?.status ?? selectedProduct?.is_active) === 1 ? 'active' : 'deactive'">
+              <span class="pulse-indicator"
+                [ngClass]="{'deactive': (selectedProductDetails?.status ?? selectedProduct?.is_active) !== 1}"></span>
+              Status:
+              <span class="status-badge-pill"
+                [ngClass]="(selectedProductDetails?.status ?? selectedProduct?.is_active) === 1 ? 'active' : 'deactive'">
                 {{ (selectedProductDetails?.status ?? selectedProduct?.is_active) === 1 ? 'Active' : 'Inactive' }}
               </span>
             </div>
@@ -323,38 +342,56 @@
         <div class="grid-section-title">Product Specifications</div>
         <div class="row g-3">
           <!-- Card 1: Category -->
-          <div class="col-md-4">
+          <div class="col-md-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper code">
                 <i class="fa-solid fa-list-ul"></i>
               </div>
               <div class="card-info-content">
                 <span class="info-label">Category</span>
-                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{ selectedProductDetails?.category_name || selectedProduct?.category }}</span>
+                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{
+                  selectedProductDetails?.category_name || selectedProduct?.category }}</span>
               </div>
             </div>
           </div>
-          <!-- Card 2: Min Stock Reserve -->
-          <div class="col-md-4">
+          <!-- Card 2: Sub-Category -->
+          <div class="col-md-6">
+            <div class="glass-info-card">
+              <div class="card-icon-wrapper type">
+                <i class="fa-solid fa-layer-group"></i>
+              </div>
+              <div class="card-info-content">
+                <span class="info-label">Sub-Category</span>
+                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{
+                  selectedProductDetails?.sub_category_name || '—' }}</span>
+              </div>
+            </div>
+          </div>
+          <!-- Card 3: Min Stock Reserve -->
+          <div class="col-md-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper type">
                 <i class="fa-solid fa-boxes-stacked"></i>
               </div>
               <div class="card-info-content">
                 <span class="info-label">Min Stock Reserve</span>
-                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{ selectedProductDetails?.min_stock || selectedProduct?.minStock }} units</span>
+                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{ selectedProductDetails?.min_stock
+                  || selectedProduct?.minStock }} units</span>
               </div>
             </div>
           </div>
-          <!-- Card 3: Active Status -->
-          <div class="col-md-4">
+          <!-- Card 4: Active Status -->
+          <div class="col-md-6">
             <div class="glass-info-card">
-              <div class="card-icon-wrapper status" [ngClass]="{'deactive': (selectedProductDetails?.status ?? selectedProduct?.is_active) !== 1}">
-                <i class="fa-solid" [ngClass]="(selectedProductDetails?.status ?? selectedProduct?.is_active) === 1 ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
+              <div class="card-icon-wrapper status"
+                [ngClass]="{'deactive': (selectedProductDetails?.status ?? selectedProduct?.is_active) !== 1}">
+                <i class="fa-solid"
+                  [ngClass]="(selectedProductDetails?.status ?? selectedProduct?.is_active) === 1 ? 'fa-circle-check' : 'fa-circle-xmark'"></i>
               </div>
               <div class="card-info-content">
                 <span class="info-label">Active Status</span>
-                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{ (selectedProductDetails?.status ?? selectedProduct?.is_active) === 1 ? 'Active' : 'Inactive' }}</span>
+                <span class="info-value text-dark fs-7" style="font-weight: 700;">{{ (selectedProductDetails?.status ??
+                  selectedProduct?.is_active) === 1 ? 'Active' : 'Inactive' }}</span>
               </div>
             </div>
           </div>

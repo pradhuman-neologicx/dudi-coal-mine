@@ -114,6 +114,7 @@ export class DepartmentComponent implements OnInit, OnDestroy {
   viewDepartmentOpen: boolean = false;
   selectedDepartment: DepartmentItem | null = null;
   departmentList: DepartmentItem[] = [];
+  isDataLoaded: boolean = false;
 
   onTableSizeChange(event: Event | number): void {
     if (typeof event === 'number') {
@@ -231,7 +232,9 @@ export class DepartmentComponent implements OnInit, OnDestroy {
   }
   updateDepartment() {
     if (this.updateDepartmentForm.valid) {
-      const name = this.updateDepartmentForm.get('Name')?.value;
+      let name = this.updateDepartmentForm.get('Name')?.value || '';
+      // Format to Title Case (e.g. "reSearCh" -> "Research", "human resources" -> "Human Resources")
+      name = name.trim().split(/\s+/).map((w: string) => w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : '').join(' ');
 
       const formData = new FormData();
       formData.append('name', name);
@@ -286,7 +289,9 @@ export class DepartmentComponent implements OnInit, OnDestroy {
   errorMessage: any;
   createDepartment() {
     if (this.createDepartmentForm.valid) {
-      const name = this.createDepartmentForm.get('Name')?.value;
+      let name = this.createDepartmentForm.get('Name')?.value || '';
+      // Format to Title Case (e.g. "reSearCh" -> "Research", "human resources" -> "Human Resources")
+      name = name.trim().split(/\s+/).map((w: string) => w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : '').join(' ');
 
       const formData = new FormData();
       formData.append('name', name);
@@ -324,12 +329,14 @@ export class DepartmentComponent implements OnInit, OnDestroy {
 
   GetDepartmentFun() {
     const searchText = this.searchbarform?.get('searchbar')?.value || '';
+    this.isDataLoaded = false;
 
     this.departmentService
       .getDepartments(this.tableSize, this.page, searchText)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
+          this.isDataLoaded = true;
           if (response.status === 200) {
             this.departmentList = response.data;
             this.totalRecords = response.pagination?.total || response.data.length;
@@ -338,6 +345,7 @@ export class DepartmentComponent implements OnInit, OnDestroy {
           }
         },
         error: (error: any) => {
+          this.isDataLoaded = true;
           console.error('Error fetching departments:', error);
         }
       });

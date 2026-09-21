@@ -22,6 +22,33 @@ import { ShiftService } from 'src/app/core/services/shift.service';
 import { RelayService } from 'src/app/core/services/relay.service';
 import { forkJoin, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+
+export function ageValidator(minAge: number): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) {
+      return null;
+    }
+    const dob = new Date(control.value);
+    const today = new Date();
+    
+    // Check if future date
+    if (dob > today) {
+      return { futureDate: true };
+    }
+    
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+    
+    if (age < minAge) {
+      return { underage: { requiredAge: minAge, actualAge: age } };
+    }
+    return null;
+  };
+}
 
 export interface DropdownItem {
   id: number | string;
@@ -293,7 +320,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
       name: ['', [Validators.required]],
       surname: [''],
       fatherName: ['', [Validators.required]],
-      dob: ['', [Validators.required]],
+      dob: ['', [Validators.required, ageValidator(18)]],
       gender: ['', [Validators.required]],
       nationality: ['Indian'],
       educationLevel: [''],

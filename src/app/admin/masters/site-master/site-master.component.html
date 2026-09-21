@@ -64,6 +64,9 @@
             </tr>
           </thead>
           <tbody>
+            <tr *ngIf="isDataLoaded && siteList.length === 0">
+              <td colspan="5" class="text-center py-4 text-muted fw-bold">No matching records found</td>
+            </tr>
             <tr *ngFor="
                 let site of siteList
                   | paginate
@@ -120,6 +123,9 @@
       </div>
       <!-- Card View for below lg -->
       <div class="lg:hidden space-y-4">
+        <div *ngIf="isDataLoaded && siteList.length === 0" class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-muted fw-bold">
+          No matching records found
+        </div>
         <div *ngFor="
             let site of siteList
               | paginate

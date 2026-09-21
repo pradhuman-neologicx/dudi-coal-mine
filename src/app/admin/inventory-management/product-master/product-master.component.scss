@@ -27,12 +27,12 @@ td {
   cursor: pointer;
   width: 2.2em;
   height: 1.15em;
-  
+
   &:checked {
     background-color: var(--primary-color, #468faf);
     border-color: var(--primary-color, #468faf);
   }
-  
+
   &:focus {
     box-shadow: 0 0 0 0.2rem rgba(70, 143, 175, 0.25);
     border-color: var(--primary-color, #468faf);
@@ -52,6 +52,7 @@ td {
     border-bottom: 1px solid #e2e8f0 !important;
     padding: 20px 24px !important;
   }
+
   .modal-title {
     font-size: 20px !important;
     font-weight: 700 !important;
@@ -59,12 +60,14 @@ td {
     font-family: 'Montserrat', sans-serif;
     letter-spacing: -0.5px;
   }
+
   .modal-subtitle {
     font-size: 13px;
     color: #64748b;
     margin-top: 2px;
     font-weight: 400;
   }
+
   .cross-btn-icon {
     width: 32px;
     height: 32px;
@@ -75,12 +78,14 @@ td {
     background: #f1f5f9 !important;
     color: #64748b !important;
     transition: all 0.2s ease;
+
     &:hover {
       background: #e2e8f0 !important;
       color: #0f172a !important;
       transform: rotate(90deg);
     }
   }
+
   .btn-premium-close {
     border-radius: 8px !important;
     font-weight: 600 !important;
@@ -89,12 +94,14 @@ td {
     background: #f1f5f9 !important;
     color: #475569 !important;
     border: 1px solid #cbd5e1 !important;
+
     &:hover {
       background: #e2e8f0 !important;
       color: #0f172a !important;
     }
   }
 }
+
 .pulse-indicator {
   width: 8px;
   height: 8px;
@@ -103,20 +110,24 @@ td {
   box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
   animation: pulse 1.6s infinite;
   display: inline-block;
+
   &.deactive {
     background: #f87171;
     box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7);
   }
 }
+
 @keyframes pulse {
   0% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
   }
+
   70% {
     transform: scale(1);
     box-shadow: 0 0 0 6px rgba(52, 211, 153, 0);
   }
+
   100% {
     transform: scale(0.95);
     box-shadow: 0 0 0 0 rgba(52, 211, 153, 0);
@@ -192,6 +203,7 @@ td {
       color: #a7f3d0;
       border-color: rgba(52, 211, 153, 0.3);
     }
+
     &.deactive {
       background: rgba(248, 113, 113, 0.2);
       color: #fca5a5;
@@ -254,13 +266,16 @@ td {
       background: rgba(70, 143, 175, 0.1);
       color: #2c7da0;
     }
+
     &.type {
       background: rgba(139, 92, 246, 0.1);
       color: #8b5cf6;
     }
+
     &.status {
       background: rgba(16, 185, 129, 0.1);
       color: #10b981;
+
       &.deactive {
         background: rgba(239, 68, 68, 0.1);
         color: #ef4444;
@@ -289,3 +304,7 @@ td {
   }
 }
 
+/* Bold category group headers in ng-select dropdown */
+::ng-deep .ng-dropdown-panel .ng-optgroup {
+  font-weight: 700 !important;
+}

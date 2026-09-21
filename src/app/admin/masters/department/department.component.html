@@ -61,6 +61,9 @@
             </tr>
           </thead>
           <tbody>
+            <tr *ngIf="isDataLoaded && departmentList.length === 0">
+              <td colspan="4" class="text-center py-4 text-muted fw-bold">No matching records found.</td>
+            </tr>
             <tr *ngFor="
                 let user of departmentList
                   | paginate
@@ -114,6 +117,9 @@
       </div>
       <!-- Card View for below lg -->
       <div class="lg:hidden space-y-4">
+        <div *ngIf="isDataLoaded && departmentList.length === 0" class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-muted fw-bold">
+          No matching records found.
+        </div>
         <div *ngFor="
             let user of departmentList
               | paginate

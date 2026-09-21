@@ -599,7 +599,13 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
   saveLog() {
     this.isFormSubmitted = true;
 
-    if (!this.formData.date || !this.formData.machineId || this.formData.issued === null || this.formData.issued === undefined || this.formData.issued === '') {
+    if (
+      !this.formData.date || 
+      !this.formData.machineId || 
+      this.formData.opening === null || this.formData.opening === undefined || this.formData.opening === '' ||
+      this.formData.issued === null || this.formData.issued === undefined || this.formData.issued === '' ||
+      this.formData.closing === null || this.formData.closing === undefined || this.formData.closing === ''
+    ) {
       this.notificationService.show('Please complete all mandatory fields correctly.', 'error');
       return;
     }

@@ -503,9 +503,9 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
             this.selectedBreakdownType = data.breakdown_type_id;
             this.entrySeverity = data.severity;
             this.entryDescription = data.description;
-            this.entryRepairStart = formatForInput(data.downtime_start);
-            this.entryRepairEnd = formatForInput(data.downtime_end);
-            this.entryActionTaken = data.resolution_notes;
+            // this.entryRepairStart = formatForInput(data.downtime_start);
+            // this.entryRepairEnd = formatForInput(data.downtime_end);
+            // this.entryActionTaken = data.resolution_notes;
             this.selectedEmployee = data.reported_by;
 
             if (this.selectedEmployee) {
@@ -572,28 +572,28 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
   submitEntry() {
     const now = new Date();
 
-    if (this.entryRepairStart) {
-      if (new Date(this.entryRepairStart) < new Date(this.entryDate)) {
-        this.notificationService.show('Repair start time cannot be before breakdown time.', 'error');
-        return;
-      }
-      if (new Date(this.entryRepairStart) > now) {
-        this.notificationService.show('Repair start time cannot be in the future.', 'error');
-        return;
-      }
-    }
+    // if (this.entryRepairStart) {
+    //   if (new Date(this.entryRepairStart) < new Date(this.entryDate)) {
+    //     this.notificationService.show('Repair start time cannot be before breakdown time.', 'error');
+    //     return;
+    //   }
+    //   if (new Date(this.entryRepairStart) > now) {
+    //     this.notificationService.show('Repair start time cannot be in the future.', 'error');
+    //     return;
+    //   }
+    // }
     
-    if (this.entryRepairEnd) {
-      const compareDate = this.entryRepairStart ? this.entryRepairStart : this.entryDate;
-      if (new Date(this.entryRepairEnd) < new Date(compareDate)) {
-        this.notificationService.show('Repair end time cannot be before repair start or breakdown time.', 'error');
-        return;
-      }
-      if (new Date(this.entryRepairEnd) > now) {
-        this.notificationService.show('Repair end time cannot be in the future.', 'error');
-        return;
-      }
-    }
+    // if (this.entryRepairEnd) {
+    //   const compareDate = this.entryRepairStart ? this.entryRepairStart : this.entryDate;
+    //   if (new Date(this.entryRepairEnd) < new Date(compareDate)) {
+    //     this.notificationService.show('Repair end time cannot be before repair start or breakdown time.', 'error');
+    //     return;
+    //   }
+    //   if (new Date(this.entryRepairEnd) > now) {
+    //     this.notificationService.show('Repair end time cannot be in the future.', 'error');
+    //     return;
+    //   }
+    // }
 
     let categoryId = null;
     if (this.entryMachine && this.machinesList.length > 0) {
@@ -680,13 +680,13 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
     if (!baseValid) return false;
 
     // Resolution Validation
-    const hasRepairEnd = !!this.entryRepairEnd;
-    const hasRepairStart = !!this.entryRepairStart;
+    // const hasRepairEnd = !!this.entryRepairEnd;
+    // const hasRepairStart = !!this.entryRepairStart;
 
-    // If repair end time is provided, repair start time must also be provided
-    if (hasRepairEnd && !hasRepairStart) {
-      return false;
-    }
+    // // If repair end time is provided, repair start time must also be provided
+    // if (hasRepairEnd && !hasRepairStart) {
+    //   return false;
+    // }
 
     return true;
   }

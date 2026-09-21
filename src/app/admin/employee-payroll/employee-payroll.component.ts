@@ -193,7 +193,7 @@ export class EmployeePayrollComponent implements OnInit, OnDestroy {
       uan: [''],
       bankName: ['', [Validators.required]],
       accountNumber: ['', [Validators.required]],
-      ifscCode: ['', [Validators.required]],
+      ifscCode: ['', [Validators.required, Validators.pattern('^[a-zA-Z]{4}0[a-zA-Z0-9]{6}$')]],
       isMessApplicable: ['No', [Validators.required]],
       messDeductionAmount: [''],
       isOthersDeductionApplicable: ['No', [Validators.required]],

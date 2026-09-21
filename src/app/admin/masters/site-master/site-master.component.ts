@@ -85,6 +85,7 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
   viewSiteOpen: boolean = false;
   currentSiteId: number | string | null = null;
   selectedSite: SiteItem | null = null;
+  isDataLoaded: boolean = false;
   
   siteList: SiteItem[] = [];
   
@@ -299,12 +300,14 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
 
   GetSiteFun() {
     const searchText = this.searchbarform?.get('searchbar')?.value || '';
+    this.isDataLoaded = false;
 
     this.siteService
       .getSites(this.tableSize, this.page, searchText)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: any) => {
+          this.isDataLoaded = true;
           if (response.status === 200) {
             this.siteList = response.data;
             this.totalRecords = response.pagination?.total || response.data.length;
@@ -313,6 +316,7 @@ export class SiteMasterComponent implements OnInit, OnDestroy {
           }
         },
         error: (error: any) => {
+          this.isDataLoaded = true;
           console.error('Error fetching sites:', error);
         }
       });
