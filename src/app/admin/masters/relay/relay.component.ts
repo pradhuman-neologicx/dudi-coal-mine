@@ -73,6 +73,7 @@ export class RelayComponent implements OnInit, OnDestroy {
   totalRecords: number = 0;
   page: number = 1;
   searchQuery: string = '';
+  showreset: boolean = false;
 
   table_heading = [
     { heading0: 'Serial No.', heading1: 'Relay Name', heading2: 'Rotation Type', heading3: 'Current Shift', heading4: 'Status', heading5: 'Action' }
@@ -96,6 +97,30 @@ export class RelayComponent implements OnInit, OnDestroy {
       name: ['', [Validators.required]],
       is_rotating: [true],
       current_shift_id: [null, [Validators.required]]
+    });
+
+    // Subscribe to is_rotating changes for create form
+    this.createRelayForm.get('is_rotating')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(isRotating => {
+      const shiftCtrl = this.createRelayForm.get('current_shift_id');
+      if (isRotating) {
+        shiftCtrl?.setValidators([Validators.required]);
+      } else {
+        shiftCtrl?.clearValidators();
+        shiftCtrl?.setValue(null);
+      }
+      shiftCtrl?.updateValueAndValidity();
+    });
+
+    // Subscribe to is_rotating changes for update form
+    this.updateRelayForm.get('is_rotating')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(isRotating => {
+      const shiftCtrl = this.updateRelayForm.get('current_shift_id');
+      if (isRotating) {
+        shiftCtrl?.setValidators([Validators.required]);
+      } else {
+        shiftCtrl?.clearValidators();
+        shiftCtrl?.setValue(null);
+      }
+      shiftCtrl?.updateValueAndValidity();
     });
 
     this.loadShifts();
@@ -172,6 +197,14 @@ export class RelayComponent implements OnInit, OnDestroy {
   }
 
   onSearch() {
+    this.page = 1;
+    this.showreset = this.searchQuery.trim().length > 0;
+    this.loadRelays();
+  }
+
+  resetsearchbar() {
+    this.searchQuery = '';
+    this.showreset = false;
     this.page = 1;
     this.loadRelays();
   }

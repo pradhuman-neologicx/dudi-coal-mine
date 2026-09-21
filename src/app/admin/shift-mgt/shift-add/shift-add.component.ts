@@ -42,10 +42,10 @@ export class ShiftAddComponent implements OnInit {
   // Employee Deployment
   employees: any[] = [];
   originalEmployees: any[] = [];
-  employeeStats = { 
-    planned: 0, 
-    present: 0, 
-    leave: 0, 
+  employeeStats = {
+    planned: 0,
+    present: 0,
+    leave: 0,
     borrowed: 0,
     absent: 0,
     rest_day: 0,
@@ -122,7 +122,7 @@ export class ShiftAddComponent implements OnInit {
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const day = String(today.getDate()).padStart(2, '0');
     const localDate = `${year}-${month}-${day}`;
-    
+
     this.minDate = localDate;
     this.originalEmployees = [...this.employees];
     const id = this.route.snapshot.paramMap.get('id');
@@ -316,7 +316,7 @@ export class ShiftAddComponent implements OnInit {
       this.showNotification('Please save the shift plan first before adding machinery.', 'error');
       return;
     }
-    
+
     // Find the category ID for Dumper
     const dumperCategory = this.machineCategories.find(c => c.name && c.name.toLowerCase().includes('dumper'));
     this.filteredMachineCategories = [...this.machineCategories];
@@ -330,7 +330,7 @@ export class ShiftAddComponent implements OnInit {
 
     // If Dumper category is found, fetch its machines automatically
     if (this.newMachine.categoryId) {
-        this.onMachineCategoryChange();
+      this.onMachineCategoryChange();
     }
   }
 
@@ -558,7 +558,7 @@ export class ShiftAddComponent implements OnInit {
       error: (err: any) => {
         console.error('Error removing employee:', err);
         const errorMsg = err?.error?.message || err?.message || 'Failed to remove employee';
-        this.notificationService.show(errorMsg, 'error', 3000);
+        // this.notificationService.show(errorMsg, 'error', 3000);
         this.closeDeleteEmployeeModal();
       }
     });
@@ -606,11 +606,11 @@ export class ShiftAddComponent implements OnInit {
 
   savePlan() {
     if (
-      !this.shiftForm.planningDate || 
-      !this.shiftForm.shiftId || 
-      !this.shiftForm.locationId || 
+      !this.shiftForm.planningDate ||
+      !this.shiftForm.shiftId ||
+      !this.shiftForm.locationId ||
       this.shiftForm.targetBcm === null || this.shiftForm.targetBcm === undefined || (this.shiftForm.targetBcm as any) === '' ||
-      !this.shiftForm.supervisorId || 
+      !this.shiftForm.supervisorId ||
       !this.shiftForm.siteInchargeId
     ) {
       this.showNotification('Please fill in all mandatory fields before saving the plan.', 'error');

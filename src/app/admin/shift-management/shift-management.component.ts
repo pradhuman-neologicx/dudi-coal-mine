@@ -1046,6 +1046,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
 
           this.notificationService.show('Shift updated successfully!', 'success', 3000);
           this.loadLiveEmployees();
+          this.loadWeeklyShiftRotations();
           this.closeModal();
         },
         error: (err: any) => {
@@ -1091,6 +1092,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
 
           this.notificationService.show('Shifts swapped successfully!', 'success', 3000);
           this.loadLiveEmployees();
+          this.loadWeeklyShiftRotations();
           this.closeModal();
         },
         error: (err: any) => this.notificationService.show(err?.error?.message || 'Failed to complete swap assignment.', 'error', 3000)
@@ -1139,6 +1141,7 @@ export class ShiftManagementComponent implements OnInit, OnDestroy {
 
           this.notificationService.show('Standby shift assigned successfully!', 'success', 3000);
           this.loadLiveEmployees();
+          this.loadWeeklyShiftRotations();
           this.closeModal();
         },
         error: (err: any) => this.notificationService.show(err?.error?.message || 'Failed to assign standby employee to shift.', 'error', 3000)
