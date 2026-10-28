@@ -167,7 +167,7 @@ export class ApiService {
     }
 
     if (error.status == 403) {
-       this.notificationService.show(errorMessage, 'error', 3000);
+       this.notificationService.show(errorMessage, 'error', 5000);
        return throwError(() => error);
     }
 
@@ -189,14 +189,14 @@ export class ApiService {
       }
       console.error('Validation Error:', errorMessage);
 
-      this.notificationService.show(errorMessage, 'error', 3000);
+      this.notificationService.show(errorMessage, 'error', 5000);
 
       const customError = new Error(errorMessage) as any;
       customError.originalError = error.error || error;
       return throwError(() => customError);
     }
     //console.log(errorMessage+"er");
-    this.notificationService.show(errorMessage, 'error', 3000);
+    this.notificationService.show(errorMessage, 'error', 5000);
     return throwError(() => {
       return errorMessage;
     });

@@ -99,7 +99,7 @@
                 <p>{{ shift.startTime }} - {{ shift.endTime }}</p>
               </td>
               <td>
-                <p>{{ shift.minWorkingHours }} hrs</p>
+                <p>{{ shift.minWorkingHours ? shift.minWorkingHours + ' hrs' : 'N/A' }}</p>
               </td>
               <td>
                 <p [ngClass]="{
@@ -180,7 +180,7 @@
             </span>
           </div> -->
           <div class="mb-2"><strong>Timing:</strong> {{ shift.startTime }} - {{ shift.endTime }}</div>
-          <div class="mb-2"><strong>Min Working Hours:</strong> {{ shift.minWorkingHours }} hrs</div>
+          <div class="mb-2"><strong>Min Working Hours:</strong> {{ shift.minWorkingHours ? shift.minWorkingHours + ' hrs' : 'N/A' }}</div>
           <div>
             <strong>Status:</strong>
             <span [ngClass]="{
@@ -525,7 +525,7 @@
               </div>
               <div class="card-info-content">
                 <span class="info-label">Min Working Hours</span>
-                <span class="info-value text-dark fs-7">{{ selectedShift?.minWorkingHours }} hrs</span>
+                <span class="info-value text-dark fs-7">{{ selectedShift?.minWorkingHours ? selectedShift?.minWorkingHours + ' hrs' : 'N/A' }}</span>
               </div>
             </div>
           </div>
