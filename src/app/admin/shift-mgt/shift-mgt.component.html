@@ -376,7 +376,7 @@
                 </div>
                 <div>
                   <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Supervisor</div>
-                  <div class="text-sm font-bold text-gray-800">{{ getSupervisorsDisplay(viewShiftPlanData.shift_plan) }}</div>
+                  <div class="text-sm font-bold text-gray-800 text-wrap">{{ getSupervisorsDisplay(viewShiftPlanData.shift_plan) }}</div>
                 </div>
                 <div>
                   <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Site Incharge</div>
@@ -391,14 +391,27 @@
               </h3>
               <div class="space-y-3">
                  <div *ngFor="let alloc of viewShiftPlanData.machinery_allocations" class="bg-white p-3 rounded border border-gray-200">
-                    <div class="font-bold text-sm text-gray-800 mb-1 flex justify-between">
-                       <span><i class="fas fa-truck-loading text-[#468faf] mr-1"></i> {{ alloc.machine_number }}</span>
+                    <div class="font-bold text-sm text-gray-800 mb-1 flex justify-between items-start">
+                       <div class="flex flex-col">
+                          <span class="flex items-center">
+                             <i class="fas fa-truck-loading text-[#468faf] mr-1.5"></i> {{ alloc.machine_number }}
+                          </span>
+                          <span *ngIf="alloc.equipment_code || alloc.code" class="text-xs text-gray-500 font-medium ml-5">
+                             {{ alloc.equipment_code || alloc.code }}
+                          </span>
+                       </div>
                        <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500 uppercase">{{ alloc.category_name }}</span>
                     </div>
-                    <div class="flex flex-wrap gap-1 mt-2">
-                       <span *ngFor="let dump of alloc.dumpers" class="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded">
-                         <i class="fas fa-truck text-[9px] mr-1"></i>{{ dump.machine_number }}
-                       </span>
+                    <div class="flex flex-wrap gap-1.5 mt-2">
+                       <div *ngFor="let dump of alloc.dumpers" class="text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded flex items-center gap-1.5">
+                         <i class="fas fa-truck text-[9px]"></i>
+                         <div class="flex flex-col text-left">
+                           <span class="leading-tight">{{ dump.machine_number }}</span>
+                           <span *ngIf="dump.equipment_code || dump.code" class="text-[9px] text-gray-500 font-normal leading-tight">
+                             {{ dump.equipment_code || dump.code }}
+                           </span>
+                         </div>
+                       </div>
                     </div>
                     <div *ngIf="!alloc.dumpers?.length" class="text-[10px] text-gray-400 italic">No dumpers allocated</div>
                  </div>
@@ -458,4 +471,4 @@
   </div>
 
 </div>
-
+
