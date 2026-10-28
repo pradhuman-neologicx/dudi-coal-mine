@@ -24,8 +24,23 @@ export class ShiftAddComponent implements OnInit {
     shiftId: null as any,
     locationId: null as any,
     targetBcm: 45000,
-    supervisorId: null as any,
+    supervisorId: [] as any[],
     siteInchargeId: null as any
+  };
+
+  compareFn = (a: any, b: any): boolean => {
+    if (a == null || b == null) return false;
+    const valA = (typeof a === 'object' && a !== null && 'id' in a) ? a.id : a;
+    const valB = (typeof b === 'object' && b !== null && 'id' in b) ? b.id : b;
+    return String(valA) === String(valB);
+  };
+
+  customMachineSearchFn = (term: string, item: any): boolean => {
+    if (!term) return true;
+    term = term.toLowerCase();
+    const nameMatch = item.name && item.name.toLowerCase().includes(term);
+    const codeMatch = item.code && item.code.toLowerCase().includes(term);
+    return Boolean(nameMatch || codeMatch);
   };
 
   shiftsList: any[] = [];
@@ -153,7 +168,31 @@ export class ShiftAddComponent implements OnInit {
           this.shiftForm.shiftId = data.shift_id;
           this.shiftForm.locationId = data.site_id;
           this.shiftForm.targetBcm = data.target_bcm;
-          this.shiftForm.supervisorId = data.supervisor_id;
+
+          // Handle multi-supervisors from data.supervisors array (as well as legacy supervisor_id)
+          if (Array.isArray(data.supervisors) && data.supervisors.length > 0) {
+            const currentList = [...this.supervisors];
+            data.supervisors.forEach((s: any) => {
+              if (!currentList.some(existing => Number(existing.id) === Number(s.id))) {
+                currentList.push({
+                  id: Number(s.id),
+                  name: s.name ? `${s.name.trim()}` : `Supervisor ${s.id}`,
+                  code: s.code || 'N/A'
+                });
+              }
+            });
+            this.supervisors = currentList;
+            this.shiftForm.supervisorId = data.supervisors.map((s: any) => Number(s.id));
+          } else if (data.supervisor_id) {
+            const raw = String(data.supervisor_id);
+            const ids = raw.includes(',')
+              ? raw.split(',').map((s: string) => s.trim()).filter(Boolean).map(Number)
+              : [Number(data.supervisor_id)];
+            this.shiftForm.supervisorId = ids;
+          } else {
+            this.shiftForm.supervisorId = [];
+          }
+
           this.shiftForm.siteInchargeId = data.site_incharge_id;
           this.checkDateVisibility();
 
@@ -224,16 +263,21 @@ export class ShiftAddComponent implements OnInit {
   }
 
   mapEquipments(allocations: any[]) {
-    this.equipments = allocations.map((alloc: any) => ({
-      id: alloc.machine_number,
-      equipment_id: alloc.machine_id,
+    this.equipments = (allocations || []).map((alloc: any) => ({
+      id: alloc.machine_number || alloc.equipment_name || alloc.name,
+      code: alloc.equipment_code || alloc.code || '',
+      chassisNumber: alloc.chassis_number || '',
+      categoryName: alloc.category_name || '',
+      equipment_id: alloc.machine_id || alloc.equipment_id,
       category_id: alloc.category_id,
-      allocation_id: alloc.allocation_id,
+      allocation_id: alloc.allocation_id || alloc.id,
       status: 'OPTIMAL', // Placeholder
       assignedDumpers: alloc.dumpers ? alloc.dumpers.map((d: any) => ({
-        id: d.machine_number,
-        equipment_id: d.machine_id,
-        allocation_id: d.allocation_id
+        id: d.machine_number || d.equipment_name || d.name,
+        code: d.equipment_code || d.code || '',
+        chassisNumber: d.chassis_number || '',
+        equipment_id: d.machine_id || d.equipment_id,
+        allocation_id: d.allocation_id || d.id
       })) : [],
       estProd: '1,000/hr',
       variance: '0%'
@@ -256,11 +300,30 @@ export class ShiftAddComponent implements OnInit {
 
     this.shiftPlanningService.getEmployees('supervisor').subscribe((res: any) => {
       const data = res.data?.data || res.data || [];
-      this.supervisors = data.map((emp: any) => ({
-        id: emp.id,
+      const fetchedSupervisors = data.map((emp: any) => ({
+        id: Number(emp.id),
         name: `${emp.name} (${emp.designation})`,
         code: emp.employee_code || emp.code || 'N/A'
       }));
+
+      // Merge: keep all fetched supervisors and preserve any existing supervisors (from shift plan)
+      const merged = [...fetchedSupervisors];
+      this.supervisors.forEach(existing => {
+        const found = merged.find(m => Number(m.id) === Number(existing.id));
+        if (!found) {
+          merged.push(existing);
+        } else {
+          if (existing.code && existing.code !== 'N/A') {
+            found.code = existing.code;
+          }
+        }
+      });
+      this.supervisors = merged;
+
+      // Ensure ng-select detects selection
+      if (Array.isArray(this.shiftForm.supervisorId) && this.shiftForm.supervisorId.length > 0) {
+        this.shiftForm.supervisorId = [...this.shiftForm.supervisorId];
+      }
     });
 
     this.shiftPlanningService.getEmployees('site-incharge').subscribe((res: any) => {
@@ -295,6 +358,8 @@ export class ShiftAddComponent implements OnInit {
         this.machineNames = data.map((item: any) => ({
           id: item.id || item.equipment_id,
           name: item.equipment_name || item.machine_name || item.name || item.equipment_id || 'Unknown',
+          code: item.equipment_code || item.code || '',
+          chassisNumber: item.chassis_number || '',
           status: item.status,
           shortReason: item.short_reason,
           disabled: item.status === 'unavailable'
@@ -605,12 +670,16 @@ export class ShiftAddComponent implements OnInit {
   }
 
   savePlan() {
+    const supervisorIdStr = Array.isArray(this.shiftForm.supervisorId)
+      ? this.shiftForm.supervisorId.join(',')
+      : (this.shiftForm.supervisorId ? String(this.shiftForm.supervisorId) : '');
+
     if (
       !this.shiftForm.planningDate ||
       !this.shiftForm.shiftId ||
       !this.shiftForm.locationId ||
       this.shiftForm.targetBcm === null || this.shiftForm.targetBcm === undefined || (this.shiftForm.targetBcm as any) === '' ||
-      !this.shiftForm.supervisorId ||
+      !supervisorIdStr ||
       !this.shiftForm.siteInchargeId
     ) {
       this.showNotification('Please fill in all mandatory fields before saving the plan.', 'error');
@@ -632,7 +701,7 @@ export class ShiftAddComponent implements OnInit {
     formData.append('shift_id', String(this.shiftForm.shiftId));
     formData.append('site_id', String(this.shiftForm.locationId));
     formData.append('target_bcm', String(this.shiftForm.targetBcm));
-    formData.append('supervisor_id', String(this.shiftForm.supervisorId));
+    formData.append('supervisor_id', supervisorIdStr);
     formData.append('site_incharge_id', String(this.shiftForm.siteInchargeId));
 
     if (this.isEditMode && this.shiftPlanId) {

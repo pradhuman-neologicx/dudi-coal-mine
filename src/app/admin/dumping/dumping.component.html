@@ -98,6 +98,9 @@
         <div class="card-info">
           <span class="info-label">Best Performing Dumper</span>
           <span class="info-value" style="font-size: 1.5rem;">{{ bestPerformingDumper.dumper }}</span>
+          <span *ngIf="bestPerformingDumper.equipment_code" class="text-xs text-muted font-medium d-block">
+            {{ bestPerformingDumper.equipment_code }}
+          </span>
           <span class="info-label" style="font-size: 0.8rem; margin-top: 4px;">{{ bestPerformingDumper.quantity | number
             }} BCM</span>
         </div>
@@ -112,6 +115,9 @@
         <div class="card-info">
           <span class="info-label">Highest Trip Count Dumper</span>
           <span class="info-value" style="font-size: 1.5rem;">{{ highestTripDumper.dumper }}</span>
+          <span *ngIf="highestTripDumper.equipment_code" class="text-xs text-muted font-medium d-block">
+            {{ highestTripDumper.equipment_code }}
+          </span>
           <span class="info-label" style="font-size: 0.8rem; margin-top: 4px;">{{ highestTripDumper.trips }}
             Trips</span>
         </div>
@@ -126,6 +132,9 @@
         <div class="card-info">
           <span class="info-label">Fastest Dumper</span>
           <span class="info-value" style="font-size: 1.5rem;">{{ fastestDumper.dumper }}</span>
+          <span *ngIf="fastestDumper.equipment_code" class="text-xs text-muted font-medium d-block">
+            {{ fastestDumper.equipment_code }}
+          </span>
           <span class="info-label" style="font-size: 0.8rem; margin-top: 4px;">{{ fastestDumper.cycleTime |
             number:'1.1-1' }} Mins</span>
         </div>
@@ -200,7 +209,10 @@
               *ngFor="let t of displayTrips | paginate : { itemsPerPage: tableSize != 'all' ? tableSize : totalRecords, currentPage: page, totalItems: totalRecords }; index as i">
               <td><span class="badge bg-light text-dark border">{{ t.trip_ref_no }}</span></td>
               <td>{{ t.shift_name }}</td>
-              <td><strong>{{ t.dumper_no }}</strong></td>
+              <td>
+                <strong>{{ t.dumper_no }}</strong>
+                <div *ngIf="t.dumper_code" class="text-muted small">{{ t.dumper_code }}</div>
+              </td>
               <td>{{ t.loading_point }}</td>
               <td>{{ t.dumping_point }}</td>
               <td>{{ t.cycle_time }}</td>
@@ -243,12 +255,14 @@
                 <div class="p-2 bg-light rounded text-center border">
                   <div class="small text-muted mb-1">Dumper</div>
                   <div class="fw-bold text-dark">{{ t.dumper_no }}</div>
+                  <div *ngIf="t.dumper_code" class="text-muted small">{{ t.dumper_code }}</div>
                 </div>
               </div>
               <div class="col-6">
                 <div class="p-2 bg-light rounded text-center border">
                   <div class="small text-muted mb-1">Excavator</div>
                   <div class="fw-bold text-dark">{{ t.excavator_no }}</div>
+                  <div *ngIf="t.excavator_code" class="text-muted small">{{ t.excavator_code }}</div>
                 </div>
               </div>
             </div>
@@ -337,8 +351,22 @@
           <div class="col-md-4">
             <label class="form-label form-lable-custom">Driver Name *</label>
             <ng-select formControlName="driver_name" [items]="drivers" bindLabel="name" bindValue="id"
+              [searchFn]="customDriverSearchFn"
               placeholder="Select Driver" [clearable]="true" class="custom-ng-select w-full shadow-sm"
               [ngClass]="{'is-invalid': tripForm.get('driver_name')?.invalid && tripForm.get('driver_name')?.touched}">
+              <ng-template ng-label-tmp let-item="item">
+                <span>{{ item.name }} <span *ngIf="item.employee_code || item.code" class="text-xs text-muted">({{ item.employee_code || item.code }})</span></span>
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                <div class="d-flex flex-column py-1">
+                  <span class="fw-bold text-dark">{{ item.name }}</span>
+                  <span *ngIf="item.employee_code || item.designation" class="text-muted small">
+                    <span *ngIf="item.employee_code || item.code">{{ item.employee_code || item.code }}</span>
+                    <span *ngIf="(item.employee_code || item.code) && item.designation"> &bull; </span>
+                    <span *ngIf="item.designation">{{ item.designation }}</span>
+                  </span>
+                </div>
+              </ng-template>
             </ng-select>
             <div *ngIf="tripForm.get('driver_name')?.invalid && tripForm.get('driver_name')?.touched"
               class="text-danger mt-1" style="font-size: 0.75rem;">
@@ -357,8 +385,20 @@
           <div class="col-md-4">
             <label class="form-label form-lable-custom">Dumper No *</label>
             <ng-select formControlName="dumper_no" [items]="dumpers" bindLabel="machine_name" bindValue="machine_id"
+              [searchFn]="customMachineSearchFn"
               placeholder="Select Dumper" [clearable]="true" class="custom-ng-select w-full shadow-sm"
               [ngClass]="{'is-invalid': tripForm.get('dumper_no')?.invalid && tripForm.get('dumper_no')?.touched}">
+              <ng-template ng-label-tmp let-item="item">
+                <span>{{ item.machine_name }} <span *ngIf="item.equipment_code || item.code" class="text-xs text-muted">({{ item.equipment_code || item.code }})</span></span>
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                <div class="d-flex flex-column py-1">
+                  <span class="fw-bold text-dark">{{ item.machine_name }}</span>
+                  <span *ngIf="item.equipment_code || item.code" class="text-muted small">
+                    {{ item.equipment_code || item.code }}
+                  </span>
+                </div>
+              </ng-template>
             </ng-select>
             <div *ngIf="tripForm.get('dumper_no')?.invalid && tripForm.get('dumper_no')?.touched"
               class="text-danger mt-1" style="font-size: 0.75rem;">
@@ -503,13 +543,13 @@
             </div>
             <div class="banner-subtitle mt-2">
               <i class="fa-solid fa-truck me-1"></i>
-              <strong>Dumper:</strong> {{ selectedTrip?.dumper_no }} &nbsp;|&nbsp;
+              <strong>Dumper:</strong> {{ selectedTrip?.dumper_no }} <span *ngIf="selectedTrip?.dumper_code">({{ selectedTrip?.dumper_code }})</span> &nbsp;|&nbsp;
               <i class="fa-solid fa-tractor me-1"></i>
-              <strong>Excavator:</strong> {{ selectedTrip?.excavator_no }}
+              <strong>Excavator:</strong> {{ selectedTrip?.excavator_no }} <span *ngIf="selectedTrip?.excavator_code">({{ selectedTrip?.excavator_code }})</span>
             </div>
             <div class="banner-subtitle mt-1">
               <i class="fa-solid fa-user-tie me-1"></i>
-              <strong>Driver:</strong> {{ selectedTrip?.driver_name }}
+              <strong>Driver:</strong> {{ selectedTrip?.driver_name }} <span *ngIf="selectedTrip?.driver_code">({{ selectedTrip?.driver_code }})</span>
             </div>
             <div class="banner-subtitle mt-1">
               <i class="fa-solid fa-location-dot me-1"></i>

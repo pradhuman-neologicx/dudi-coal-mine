@@ -49,6 +49,11 @@
             <div class="d-flex justify-content-between align-items-start mb-3">
               <div>
                 <h5 class="card-title fw-bold text-primary mb-1">{{ eq.name }}</h5>
+                <div class="small text-muted mb-2" *ngIf="eq.equipment_code || eq.chassis_number">
+                  <span *ngIf="eq.equipment_code"><span class="fw-semibold">Code:</span> {{ eq.equipment_code }}</span>
+                  <span *ngIf="eq.equipment_code && eq.chassis_number" class="mx-1">•</span>
+                  <span *ngIf="eq.chassis_number"><span class="fw-semibold">Chassis:</span> {{ eq.chassis_number }}</span>
+                </div>
                 <span class="badge bg-secondary">{{ eq.categoryName }}</span>
               </div>
               <span class="badge" [ngClass]="eq.isActive ? 'bg-success' : 'bg-danger'">
@@ -98,10 +103,22 @@
     <form [formGroup]="equipmentForm" (ngSubmit)="saveEquipment()">
       <div class="modal-body-custom px-4 py-4">
         <div class="mb-3">
+          <label class="form-label form-lable-custom">Equipment Code *</label>
+          <input type="text" class="form-control form-input-custom" placeholder="Enter Equipment Code" formControlName="equipment_code"
+            [ngClass]="{'is-invalid': equipmentForm.get('equipment_code')?.invalid && equipmentForm.get('equipment_code')?.touched}">
+          <div class="invalid-feedback">Equipment Code is required.</div>
+        </div>
+        <div class="mb-3">
           <label class="form-label form-lable-custom">Equipment Name *</label>
-          <input type="text" class="form-control form-input-custom" formControlName="name"
+          <input type="text" class="form-control form-input-custom" placeholder="Enter Equipment Name" formControlName="name"
             [ngClass]="{'is-invalid': equipmentForm.get('name')?.invalid && equipmentForm.get('name')?.touched}">
           <div class="invalid-feedback">Equipment Name is required.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label form-lable-custom">Chassis Number *</label>
+          <input type="text" class="form-control form-input-custom" placeholder="Enter Chassis Number" formControlName="chassis_number"
+            [ngClass]="{'is-invalid': equipmentForm.get('chassis_number')?.invalid && equipmentForm.get('chassis_number')?.touched}">
+          <div class="invalid-feedback">Chassis Number is required.</div>
         </div>
         <div class="mb-3">
           <label class="form-label form-lable-custom">Master Category *</label>

@@ -583,7 +583,11 @@
                 Involved</label>
               <ng-select [items]="activeShiftEmployees" bindLabel="name" bindValue="id"
                 placeholder="Search and select employee..." class="custom-ng-select w-full"
+                [searchFn]="customEmployeeSearchFn"
                 [(ngModel)]="newIncidentForm.person_involved_id">
+                <ng-template ng-label-tmp let-item="item">
+                  <span>{{ item.name }} <span *ngIf="item.employee_code" class="text-xs text-gray-500 font-normal">({{ item.employee_code }})</span></span>
+                </ng-template>
                 <ng-template ng-option-tmp let-item="item">
                   <div class="flex flex-col py-1">
                     <span class="font-bold text-gray-800 text-[13px]">{{ item.name }}</span>
@@ -608,7 +612,21 @@
                 Name</label>
               <ng-select [items]="machineNames" bindLabel="name" bindValue="id"
                 [(ngModel)]="newIncidentForm.equipment_name_id" placeholder="Select machine name..."
+                [searchFn]="customMachineSearchFn"
                 class="custom-ng-select w-full" [disabled]="!newIncidentForm.equipment_id">
+                <ng-template ng-label-tmp let-item="item">
+                  <span>{{ item.name }} <span *ngIf="item.equipment_code" class="text-xs text-gray-500 font-normal">({{ item.equipment_code }})</span></span>
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="flex flex-col py-0.5">
+                    <span class="font-bold text-[13px] text-gray-800">
+                      {{ item.name }}
+                    </span>
+                    <span *ngIf="item.equipment_code" class="text-[11px] text-gray-500 font-medium">
+                      {{ item.equipment_code }}
+                    </span>
+                  </div>
+                </ng-template>
               </ng-select>
             </div>
           </div>

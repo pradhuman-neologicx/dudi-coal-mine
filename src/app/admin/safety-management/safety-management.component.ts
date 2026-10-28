@@ -197,6 +197,23 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
     });
   }
 
+  customMachineSearchFn = (term: string, item: any): boolean => {
+    if (!term) return true;
+    term = term.toLowerCase();
+    const nameMatch = item.name && item.name.toLowerCase().includes(term);
+    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    return Boolean(nameMatch || codeMatch);
+  };
+
+  customEmployeeSearchFn = (term: string, item: any): boolean => {
+    if (!term) return true;
+    term = term.toLowerCase();
+    const nameMatch = item.name && item.name.toLowerCase().includes(term);
+    const codeMatch = item.employee_code && item.employee_code.toLowerCase().includes(term);
+    const designationMatch = item.designation && item.designation.toLowerCase().includes(term);
+    return Boolean(nameMatch || codeMatch || designationMatch);
+  };
+
   onMachineCategoryChange(categoryId: any) {
     this.newIncidentForm.equipment_name_id = null;
     this.machineNames = [];
@@ -204,14 +221,22 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
       if (this.shiftMachines && this.shiftMachines.length > 0) {
         this.machineNames = this.shiftMachines
           .filter((m: any) => m.category_id === categoryId)
-          .map((m: any) => ({ id: m.machine_id, name: m.machine_name }));
+          
+          .map((m: any) => ({
+            id: m.machine_id,
+            name: m.machine_name,
+            equipment_code: m.equipment_code || m.code || '',
+            chassis_number: m.chassis_number || ''
+          }));
       } else {
         this.safetyService.getMachineNames(categoryId).pipe(takeUntil(this.destroy$)).subscribe({
           next: (res: any) => {
             if (res && res.status === 200) {
               this.machineNames = res.data.map((m: any) => ({
                 id: m.id || m.equipment_id,
-                name: m.equipment_name || m.name
+                name: m.equipment_name || m.name,
+                equipment_code: m.equipment_code || m.code || '',
+                chassis_number: m.chassis_number || ''
               }));
             }
           }

@@ -16,6 +16,7 @@ export interface FuelEntryTableItem {
   id: number | string;
   machineId: string;
   machineDesc: string;
+  equipmentCode?: string;
   shiftName: string;
   date: string;
   opening: number;
@@ -46,6 +47,9 @@ export interface MachineShiftItem {
   machine_id: number | string;
   category_id?: number | string;
   machine_name?: string;
+  equipment_code?: string;
+  chassis_number?: string;
+  category_name?: string;
   [key: string]: any;
 }
 
@@ -104,6 +108,15 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
   machinesList: MachineShiftItem[] = [];
   editingFuelId: any = null;
   isBindingData = false;
+
+  customMachineSearchFn = (term: string, item: any): boolean => {
+    if (!term) return true;
+    term = term.toLowerCase();
+    const nameMatch = item.machine_name && item.machine_name.toLowerCase().includes(term);
+    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    const categoryMatch = item.category_name && item.category_name.toLowerCase().includes(term);
+    return Boolean(nameMatch || codeMatch || categoryMatch);
+  };
 
   currentPage = 1;
   pagination: any = {
@@ -251,6 +264,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
             id: item.id,
             machineId: item.machine_name,
             machineDesc: item.category_name,
+            equipmentCode: item.equipment_code || item.code || '',
             shiftName: item.shift_name || item.shift?.name || item.shift?.shift_name || 'N/A',
             date: item.fuel_log_date,
             opening: parseFloat(item.opening_fuel) || 0,
@@ -552,6 +566,8 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.machinesList.push({
                       machine_id: data.equipment_name_id,
                       machine_name: data.equipment_allocation?.equipment_name?.equipment_name || data.equipment?.equipment_name || 'Machine ' + data.equipment_name_id,
+                      equipment_code: data.equipment_allocation?.equipment_name?.equipment_code || data.equipment?.equipment_code || data.equipment_code || '',
+                      chassis_number: data.equipment_allocation?.equipment_name?.chassis_number || data.equipment?.chassis_number || data.chassis_number || '',
                       category_id: data.equipment_id,
                       category_name: data.equipment_allocation?.equipment_name?.equipment?.name || data.equipment_category?.category_name || ''
                     });

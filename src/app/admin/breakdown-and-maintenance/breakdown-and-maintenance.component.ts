@@ -15,6 +15,8 @@ Chart.register(...registerables);
 export interface Ticket {
   ticketNo: string;
   machineId: string;
+  equipmentCode?: string;
+  chassisNumber?: string;
   machineType: string;
   breakdownTime: string;
   category: string;
@@ -33,6 +35,10 @@ export interface ShiftOption {
 export interface MachineShiftOption {
   machine_id: number | string;
   category_id: number | string;
+  machine_name?: string;
+  equipment_code?: string;
+  chassis_number?: string;
+  category_name?: string;
   [key: string]: any;
 }
 
@@ -112,6 +118,15 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
   entryShiftPlanId: any = null;
   machinesList: MachineShiftOption[] = [];
   machinesLoading: boolean = false;
+
+  customMachineSearchFn = (term: string, item: any): boolean => {
+    if (!term) return true;
+    term = term.toLowerCase();
+    const nameMatch = item.machine_name && item.machine_name.toLowerCase().includes(term);
+    const categoryMatch = item.category_name && item.category_name.toLowerCase().includes(term);
+    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    return Boolean(nameMatch || categoryMatch || codeMatch);
+  };
 
   // Pagination
   currentPage = 1;
@@ -284,6 +299,8 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
           this.tickets = data.map((item: any) => ({
             ticketNo: item.ticket_number,
             machineId: item.equipment_name,
+            equipmentCode: item.equipment_code || item.code || '',
+            chassisNumber: item.chassis_number || '',
             machineType: item.equipment_category,
             breakdownTime: item.breakdown_date_time,
             category: item.equipment_category,

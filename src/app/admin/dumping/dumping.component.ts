@@ -16,8 +16,11 @@ export interface DumperTrip {
   shift_date?: string;
   shift_name?: string;
   dumper_no: string;
+  dumper_code?: string;
   driver_name: string;
+  driver_code?: string;
   excavator_no: string;
+  excavator_code?: string;
   loading_point: string;
   dumping_point: string;
   start_time: string;
@@ -62,9 +65,9 @@ export class DumpingComponent implements OnInit, OnDestroy {
   totalQuantity: number = 0;
   avgCycleTime: string = '00:00:00';
 
-  bestPerformingDumper = { dumper: 'N/A', quantity: 0 };
-  highestTripDumper = { dumper: 'N/A', trips: 0 };
-  fastestDumper = { dumper: 'N/A', cycleTime: 0 };
+  bestPerformingDumper: { dumper: string; equipment_code?: string; quantity: number } = { dumper: 'N/A', quantity: 0 };
+  highestTripDumper: { dumper: string; equipment_code?: string; trips: number } = { dumper: 'N/A', trips: 0 };
+  fastestDumper: { dumper: string; equipment_code?: string; cycleTime: number } = { dumper: 'N/A', cycleTime: 0 };
 
   page: number = 1;
   totalRecords: number = 0;
@@ -96,11 +99,28 @@ export class DumpingComponent implements OnInit, OnDestroy {
   // Dropdown data
   dumpers: any[] = [];
   excavators: any[] = [];
-  drivers: string[] = [];
+  drivers: any[] = [];
   sites: any[] = [];
   loadingPoints: any[] = [];
   dumpingPoints: any[] = [];
   allShifts: any[] = [];
+
+  customMachineSearchFn = (term: string, item: any): boolean => {
+    if (!term) return true;
+    term = term.toLowerCase();
+    const nameMatch = item.machine_name && item.machine_name.toLowerCase().includes(term);
+    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    return Boolean(nameMatch || codeMatch);
+  };
+
+  customDriverSearchFn = (term: string, item: any): boolean => {
+    if (!term) return true;
+    term = term.toLowerCase();
+    const nameMatch = item.name && item.name.toLowerCase().includes(term);
+    const codeMatch = (item.employee_code || item.code) && (item.employee_code || item.code).toLowerCase().includes(term);
+    const designationMatch = item.designation && item.designation.toLowerCase().includes(term);
+    return Boolean(nameMatch || codeMatch || designationMatch);
+  };
 
   // Filters
   filterShiftId: any = null;
@@ -232,6 +252,14 @@ export class DumpingComponent implements OnInit, OnDestroy {
               .filter((m: any) => m.category_name?.toLowerCase().includes('dumper'));
             this.excavators = this.machinesList
               .filter((m: any) => m.category_name?.toLowerCase().includes('excavator'));
+
+            if (res.data.drivers && res.data.drivers.length > 0) {
+              this.drivers = res.data.drivers.map((d: any) => ({
+                ...d,
+                id: d.id ? Number(d.id) : null,
+                name: d.name || d.employee_name || 'Unknown'
+              })).filter((d: any) => d.id !== null);
+            }
 
             if (res.data.site && res.data.site.id) {
               this.tripForm.patchValue({ site_id: res.data.site.id });
@@ -397,8 +425,11 @@ export class DumpingComponent implements OnInit, OnDestroy {
                 shift_date: shortDate,
                 shift_name: item.shift_plan?.shift?.shift_name || '',
                 dumper_no: item.dumper?.equipment_name || '',
+                dumper_code: item.dumper?.equipment_code || item.dumper?.code || '',
                 driver_name: item.driver?.name || '',
+                driver_code: item.driver?.employee_code || item.driver?.code || '',
                 excavator_no: item.excavator?.equipment_name || '',
+                excavator_code: item.excavator?.equipment_code || item.excavator?.code || '',
                 loading_point: item.loading_point?.name || '',
                 dumping_point: item.dumping_point?.name || '',
                 start_time: getShortTime(item.start_time),
@@ -418,9 +449,12 @@ export class DumpingComponent implements OnInit, OnDestroy {
               const s = searchText.toLowerCase();
               this.displayTrips = this.trips.filter(t => 
                 t.dumper_no?.toLowerCase().includes(s) || 
+                t.dumper_code?.toLowerCase().includes(s) ||
                 t.trip_ref_no?.toLowerCase().includes(s) ||
                 t.driver_name?.toLowerCase().includes(s) ||
+                t.driver_code?.toLowerCase().includes(s) ||
                 t.excavator_no?.toLowerCase().includes(s) ||
+                t.excavator_code?.toLowerCase().includes(s) ||
                 t.loading_point?.toLowerCase().includes(s) ||
                 t.dumping_point?.toLowerCase().includes(s)
               );
@@ -437,16 +471,19 @@ export class DumpingComponent implements OnInit, OnDestroy {
               
               this.bestPerformingDumper = {
                 dumper: response.dashboard.best_performing_dumper?.dumper_number || 'N/A',
+                equipment_code: response.dashboard.best_performing_dumper?.equipment_code || response.dashboard.best_performing_dumper?.code || '',
                 quantity: response.dashboard.best_performing_dumper?.value || 0
               };
               
               this.highestTripDumper = {
                 dumper: response.dashboard.highest_trip_count_dumper?.dumper_number || 'N/A',
+                equipment_code: response.dashboard.highest_trip_count_dumper?.equipment_code || response.dashboard.highest_trip_count_dumper?.code || '',
                 trips: response.dashboard.highest_trip_count_dumper?.value || 0
               };
               
               this.fastestDumper = {
                 dumper: response.dashboard.fastest_dumper?.dumper_number || 'N/A',
+                equipment_code: response.dashboard.fastest_dumper?.equipment_code || response.dashboard.fastest_dumper?.code || '',
                 cycleTime: response.dashboard.fastest_dumper?.value || 0
               };
             }
@@ -583,9 +620,12 @@ export class DumpingComponent implements OnInit, OnDestroy {
                 trip_ref_no: item.trip_info?.trip_reference_no || '',
                 shift_date: shiftDateStr.split(' ')[0], // Extracts YYYY-MM-DD
                 shift_name: item.operational_info?.shift_plan?.shift_name || '',
-                dumper_no: item.equipment_info?.dumper?.machine_number || '',
+                dumper_no: item.equipment_info?.dumper?.machine_number || item.equipment_info?.dumper?.equipment_name || '',
+                dumper_code: item.equipment_info?.dumper?.equipment_code || item.equipment_info?.dumper?.code || trip.dumper_code || '',
                 driver_name: item.equipment_info?.driver?.name || '',
-                excavator_no: item.equipment_info?.excavator?.machine_number || '',
+                driver_code: item.equipment_info?.driver?.employee_code || item.equipment_info?.driver?.code || trip.driver_code || '',
+                excavator_no: item.equipment_info?.excavator?.machine_number || item.equipment_info?.excavator?.equipment_name || '',
+                excavator_code: item.equipment_info?.excavator?.equipment_code || item.equipment_info?.excavator?.code || trip.excavator_code || '',
                 loading_point: item.route_info?.loading_point?.name || '',
                 dumping_point: item.route_info?.dumping_point?.name || '',
                 start_time: getShortTime(item.trip_info?.start_time),

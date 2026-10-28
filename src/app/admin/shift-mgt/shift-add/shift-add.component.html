@@ -60,7 +60,8 @@
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Supervisor <span
                         class="text-red-500">*</span></label>
                 <div class="relative">
-                    <ng-select [(ngModel)]="shiftForm.supervisorId" [items]="supervisors" bindLabel="name"
+                    <ng-select [(ngModel)]="shiftForm.supervisorId" [items]="supervisors" [multiple]="true"
+                        [closeOnSelect]="false" [compareWith]="compareFn" bindLabel="name"
                         bindValue="id" placeholder="Select Supervisor" class="w-full text-sm">
                         <ng-template ng-option-tmp let-item="item">
                             <div class="font-medium text-gray-800">{{item.name}} <span
@@ -113,7 +114,10 @@
                 <div class="p-5 border-b border-gray-200 flex justify-between items-center">
                     <div class="flex items-center gap-3">
                         <i class="fas fa-tools text-[#468faf] text-xl"></i>
-                        <span class="text-lg font-bold">{{ eq.id }}</span>
+                        <div class="flex flex-col">
+                            <span class="text-lg font-bold leading-tight">{{ eq.id }}</span>
+                            <span *ngIf="eq.code" class="text-xs text-gray-500 font-medium tracking-wide">{{ eq.code }}</span>
+                        </div>
                     </div>
                     <div class="flex items-center gap-3">
 
@@ -129,7 +133,10 @@
                     <div class="flex flex-wrap gap-2">
                         <div *ngFor="let dmp of eq.assignedDumpers"
                             class="bg-[#eef5f9] text-[#2c7da0] text-xs font-bold px-3 py-1.5 rounded flex items-center gap-2">
-                            {{ dmp.id || dmp }}
+                            <div class="flex flex-col text-left">
+                                <span class="leading-tight">{{ dmp.id || dmp }}</span>
+                                <span *ngIf="dmp.code" class="text-[10px] text-gray-500 font-normal leading-tight">{{ dmp.code }}</span>
+                            </div>
                             <button (click)="removeDumper(eq, dmp.allocation_id || dmp)"
                                 class="text-[#2c7da0] hover:text-red-500 transition-colors">
                                 <i class="fas fa-times"></i>
@@ -375,13 +382,16 @@
             <div>
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Machine <span
                         class="text-red-500">*</span></label>
-                <ng-select [(ngModel)]="newMachine.id" [items]="machineNames" bindLabel="name" bindValue="id"
-                    placeholder="Select Machine" class="w-full text-sm font-medium" appendTo="body">
+                <ng-select [(ngModel)]="newMachine.id" [items]="machineNames" [searchFn]="customMachineSearchFn"
+                    bindLabel="name" bindValue="id" placeholder="Select Machine" class="w-full text-sm font-medium" appendTo="body">
                     <ng-template ng-option-tmp let-item="item">
                         <div class="flex justify-between items-center py-1.5 border-b border-gray-50 last:border-0">
                             <div class="flex flex-col gap-0.5">
                                 <span class="font-bold text-[13px]" [ngClass]="{'text-gray-400': item.disabled, 'text-gray-800': !item.disabled}">
                                     {{ item.name }}
+                                </span>
+                                <span *ngIf="item.code" class="text-[11px] text-gray-500 font-medium">
+                                    {{ item.code }}
                                 </span>
                                 <span *ngIf="item.shortReason" class="text-[10px] font-semibold text-red-400/90 tracking-wide">
                                     {{ item.shortReason }}
@@ -395,6 +405,7 @@
                     </ng-template>
                     <ng-template ng-label-tmp let-item="item">
                         <span class="font-bold text-gray-800 text-[13px]">{{ item.name }}</span>
+                        <span *ngIf="item.code" class="text-[11px] text-gray-500 font-normal ml-1.5">({{ item.code }})</span>
                     </ng-template>
                 </ng-select>
             </div>

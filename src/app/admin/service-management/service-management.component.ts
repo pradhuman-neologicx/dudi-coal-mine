@@ -23,6 +23,8 @@ import { takeUntil } from 'rxjs/operators';
 export interface MachineOption {
   id: number | string;
   name: string;
+  equipment_code?: string;
+  chassis_number?: string;
   categoryName?: string;
 }
 
@@ -51,6 +53,7 @@ export interface ActiveBreakdownItem {
   ticketNumber: string;
   machineId: number | string;
   equipmentName: string;
+  equipmentCode?: string;
   type: string;
   description: string;
   date?: string;
@@ -62,6 +65,7 @@ export interface ServiceRecordItem {
   breakdownId?: number | string | null;
   machineId?: number | string | null;
   machineName?: string;
+  equipmentCode?: string;
   serviceDate?: string;
   serviceStartTime?: string;
   serviceEndTime?: string;
@@ -155,6 +159,24 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
   breakdownMachines: any[] = [];
   breakdownWorkforce: any[] = [];
 
+  customMachineSearchFn = (term: string, item: any): boolean => {
+    if (!term) return true;
+    term = term.toLowerCase();
+    const nameMatch = item.name && item.name.toLowerCase().includes(term);
+    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    const categoryMatch = item.categoryName && item.categoryName.toLowerCase().includes(term);
+    return Boolean(nameMatch || codeMatch || categoryMatch);
+  };
+
+  customBreakdownMachineSearchFn = (term: string, item: any): boolean => {
+    if (!term) return true;
+    term = term.toLowerCase();
+    const nameMatch = item.machine_name && item.machine_name.toLowerCase().includes(term);
+    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    const categoryMatch = item.category_name && item.category_name.toLowerCase().includes(term);
+    return Boolean(nameMatch || codeMatch || categoryMatch);
+  };
+
   storesList: any[] = [];
   storeProductsMap: { [key: number]: any[] } = {};
 
@@ -199,6 +221,8 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
             this.machines = list.map((item: any) => ({
               id: item.id || item.equipment_name_id,
               name: item.equipment_name || item.name || `Machine #${item.id}`,
+              equipment_code: item.equipment_code || item.code || '',
+              chassis_number: item.chassis_number || '',
               categoryName: item.equipment_category_name || '',
             }));
           }
@@ -260,6 +284,7 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
               ticketNumber: item.ticket_number || `BRK-${item.id}`,
               machineId: item.equipment_name_id || item.equipment_id,
               equipmentName: item.equipment_name || '',
+              equipmentCode: item.equipment_code || item.code || '',
               type:
                 item.breakdown_type || item.equipment_category || 'Breakdown',
               description:
@@ -961,6 +986,12 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
       data.machine_name ||
       fallback.machineName ||
       (machineId ? `Machine #${machineId}` : '');
+    const equipmentCode =
+      data.machine?.equipment_code ||
+      data.machine?.code ||
+      data.equipment_code ||
+      fallback.equipmentCode ||
+      '';
     const breakdownId =
       data.breakdown?.id || data.breakdown_id || fallback.breakdownId || null;
     const breakdownTicketNumber =
@@ -1078,6 +1109,7 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
       breakdownTicketNumber: breakdownTicketNumber,
       machineId: machineId,
       machineName: machineName,
+      equipmentCode: equipmentCode,
       serviceDate: sDate,
       serviceStartTime: formatTime(startTimeRaw),
       serviceEndTime: formatTime(endTimeRaw),

@@ -58,6 +58,10 @@ export interface MachineOptionItem {
   category_id?: number | string;
   equipment_category_id?: number | string;
   equipment_id?: number | string;
+  machine_name?: string;
+  equipment_code?: string;
+  chassis_number?: string;
+  category_name?: string;
   breakdown?: any;
   [key: string]: any;
 }
@@ -158,6 +162,15 @@ export class DelayReportComponent implements OnInit, OnDestroy {
   isSaving = false;
   shiftStartTime = '';
   shiftEndTime = '';
+
+  customMachineSearchFn = (term: string, item: any): boolean => {
+    if (!term) return true;
+    term = term.toLowerCase();
+    const nameMatch = item.machine_name && item.machine_name.toLowerCase().includes(term);
+    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    const categoryMatch = item.category_name && item.category_name.toLowerCase().includes(term);
+    return Boolean(nameMatch || codeMatch || categoryMatch);
+  };
 
   ngOnInit() {
     this.fetchDropdowns();

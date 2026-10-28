@@ -11,6 +11,8 @@ import { NotificationService } from 'src/app/core/services/notificationnew.servi
 export interface Equipment {
   id: number;
   name: string;
+  equipment_code?: string;
+  chassis_number?: string;
   categoryId: number;
   categoryName: string;
   isActive: boolean;
@@ -63,7 +65,9 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.equipmentForm = this.fb.group({
+      equipment_code: ['', Validators.required],
       name: ['', Validators.required],
+      chassis_number: ['', Validators.required],
       categoryId: ['', Validators.required],
       isActive: [true]
     });
@@ -123,6 +127,8 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
             this.filteredEquipments = response.data.map((item: any) => ({
               id: item.id,
               name: item.equipment_name,
+              equipment_code: item.equipment_code || item.equipmentCode || '',
+              chassis_number: item.chassis_number || item.chassisNumber || '',
               categoryId: item.equipment_category_id,
               categoryName: item.equipment_category_name,
               isActive: item.status === 1 || item.status === true
@@ -165,7 +171,13 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
   openAddModal() {
     this.isEditMode = false;
     this.selectedEquipmentId = null;
-    this.equipmentForm.reset({ isActive: true, categoryId: '' });
+    this.equipmentForm.reset({
+      equipment_code: '',
+      name: '',
+      chassis_number: '',
+      categoryId: '',
+      isActive: true
+    });
     this.isModalOpen = true;
   }
 
@@ -180,8 +192,10 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
           if (res.status === 200 && res.data) {
             const item = res.data;
             this.equipmentForm.patchValue({
-              name: item.equipment_name,
-              categoryId: item.equipment_category_id,
+              equipment_code: item.equipment_code || item.equipmentCode || equipment.equipment_code || '',
+              name: item.equipment_name || equipment.name || '',
+              chassis_number: item.chassis_number || item.chassisNumber || equipment.chassis_number || '',
+              categoryId: item.equipment_category_id || equipment.categoryId,
               isActive: item.status === 1 || item.status === true
             });
             this.isModalOpen = true;
@@ -208,7 +222,9 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
 
     const formValue = this.equipmentForm.value;
     const formData = new FormData();
+    formData.append('equipment_code', formValue.equipment_code);
     formData.append('equipment_name', formValue.name);
+    formData.append('chassis_number', formValue.chassis_number);
     formData.append('equipment_id', formValue.categoryId.toString());
 
     if (this.isEditMode && this.selectedEquipmentId !== null) {

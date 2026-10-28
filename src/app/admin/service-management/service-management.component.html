@@ -142,7 +142,14 @@
           <tr *ngFor="let s of filteredServices | paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }"
             class="hover:bg-gray-50">
             <td class="px-4 py-3 font-medium text-gray-800">{{ s.ticketNumber || (s.breakdownId ? '#' + s.breakdownId : '#' + s.id) }}</td>
-            <td class="px-4 py-3 font-bold text-[#0f2a4a]">{{s.machineName}}</td>
+            <td class="px-4 py-3 font-bold text-[#0f2a4a]">
+              <div class="flex flex-col">
+                <span class="font-bold text-[#0f2a4a] text-[15px] leading-tight">{{s.machineName}}</span>
+                <span *ngIf="s.equipmentCode" class="text-xs text-gray-500 font-medium tracking-wide mt-0.5">
+                  {{ s.equipmentCode }}
+                </span>
+              </div>
+            </td>
             <td class="px-4 py-3">
               <span class="bg-gray-100 text-gray-700 text-[10px] font-bold px-2 py-1 rounded">{{s.serviceType}}</span>
             </td>
@@ -216,8 +223,28 @@
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Machine</label>
-            <ng-select [items]="breakdownMachines" bindLabel="machine_name" bindValue="machine_id" formControlName="machineId"
-              placeholder="Select Machine"></ng-select>
+            <ng-select
+              [items]="breakdownMachines"
+              bindLabel="machine_name"
+              bindValue="machine_id"
+              formControlName="machineId"
+              [searchFn]="customBreakdownMachineSearchFn"
+              placeholder="Select Machine"
+            >
+              <ng-template ng-label-tmp let-item="item">
+                <span>{{ item.machine_name }} <span *ngIf="item.equipment_code || item.code" class="text-xs text-gray-500 font-normal">({{ item.equipment_code || item.code }})</span> <span *ngIf="item.category_name" class="text-xs text-gray-500 font-normal">- {{ item.category_name }}</span></span>
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                <div class="flex flex-col py-0.5">
+                  <span class="font-bold text-[13px] text-gray-800">
+                    {{ item.machine_name }} <span *ngIf="item.category_name" class="font-normal text-xs text-gray-500">- {{ item.category_name }}</span>
+                  </span>
+                  <span *ngIf="item.equipment_code || item.code" class="text-[11px] text-gray-500 font-medium">
+                    {{ item.equipment_code || item.code }}
+                  </span>
+                </div>
+              </ng-template>
+            </ng-select>
             <div *ngIf="breakdownForm.get('machineId')?.invalid && breakdownForm.get('machineId')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Machine is required</div>
           </div>
           <div>
@@ -282,10 +309,14 @@
               (change)="onBreakdownSelect()" placeholder="Select Breakdown">
               <ng-template ng-option-tmp let-item="item">
                 <div class="font-bold text-red-600">{{item.ticketNumber || ('ID: ' + item.id)}} - {{item.type}}</div>
-                <div class="text-[10px] text-gray-500"><span *ngIf="item.equipmentName" class="font-semibold text-gray-700">{{item.equipmentName}}:</span> {{item.description}}</div>
+                <div class="text-[10px] text-gray-500">
+                  <span *ngIf="item.equipmentName" class="font-semibold text-gray-700">
+                    {{item.equipmentName}}<span *ngIf="item.equipmentCode" class="font-normal text-gray-500"> ({{item.equipmentCode}})</span>:
+                  </span> {{item.description}}
+                </div>
               </ng-template>
               <ng-template ng-label-tmp let-item="item">
-                {{item.ticketNumber || ('ID: ' + item.id)}} - {{item.equipmentName || item.type}}
+                {{item.ticketNumber || ('ID: ' + item.id)}} - {{item.equipmentName || item.type}} <span *ngIf="item.equipmentCode" class="text-xs text-gray-500">({{item.equipmentCode}})</span>
               </ng-template>
             </ng-select>
             <div *ngIf="serviceForm.get('breakdownId')?.invalid && serviceForm.get('breakdownId')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Breakdown ticket is required</div>
@@ -294,8 +325,28 @@
           <div class="grid grid-cols-2 gap-4 mb-6">
             <div class="col-span-2">
               <label class="block text-xs font-bold text-gray-700 mb-1">Vehicle Number</label>
-              <ng-select [items]="machines" bindLabel="name" bindValue="id" formControlName="machineId"
-                placeholder="Machine Details"></ng-select>
+              <ng-select
+                [items]="machines"
+                bindLabel="name"
+                bindValue="id"
+                formControlName="machineId"
+                [searchFn]="customMachineSearchFn"
+                placeholder="Machine Details"
+              >
+                <ng-template ng-label-tmp let-item="item">
+                  <span>{{ item.name }} <span *ngIf="item.equipment_code" class="text-xs text-gray-500 font-normal">({{ item.equipment_code }})</span> <span *ngIf="item.categoryName" class="text-xs text-gray-500 font-normal">- {{ item.categoryName }}</span></span>
+                </ng-template>
+                <ng-template ng-option-tmp let-item="item">
+                  <div class="flex flex-col py-0.5">
+                    <span class="font-bold text-[13px] text-gray-800">
+                      {{ item.name }} <span *ngIf="item.categoryName" class="font-normal text-xs text-gray-500">- {{ item.categoryName }}</span>
+                    </span>
+                    <span *ngIf="item.equipment_code" class="text-[11px] text-gray-500 font-medium">
+                      {{ item.equipment_code }}
+                    </span>
+                  </div>
+                </ng-template>
+              </ng-select>
               <div *ngIf="serviceForm.get('machineId')?.invalid && serviceForm.get('machineId')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Vehicle is required</div>
             </div>
             <div>
@@ -616,7 +667,12 @@
           </div>
           <div>
             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Machine</div>
-            <div class="text-sm font-bold text-[#0f2a4a]">{{ viewModalData.machineName }}</div>
+            <div class="text-sm font-bold text-[#0f2a4a]">
+              {{ viewModalData.machineName }}
+              <span *ngIf="viewModalData.equipmentCode" class="text-xs text-gray-500 font-medium ml-1.5">
+                ({{ viewModalData.equipmentCode }})
+              </span>
+            </div>
           </div>
           <div>
             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Service Type</div>

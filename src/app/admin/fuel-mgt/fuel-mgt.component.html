@@ -254,8 +254,11 @@
           <tbody class="divide-y divide-gray-200">
             <tr *ngFor="let item of filteredFuelData" class="hover:bg-gray-50">
               <td class="p-2">
-                <div class="font-bold text-[#0f2a4a]">{{item.machineId}}</div>
-                <div class="text-[11px] text-gray-500">{{item.machineDesc}}</div>
+                <div class="font-bold text-[#0f2a4a] leading-tight">{{item.machineId}}</div>
+                <div *ngIf="item.equipmentCode" class="text-xs text-gray-500 font-medium tracking-wide mt-0.5">
+                  {{item.equipmentCode}}
+                </div>
+                <div class="text-[11px] text-gray-400">{{item.machineDesc}}</div>
               </td>
               <td class="p-2">
                 <div class="font-bold text-[#0f2a4a]">{{item.shiftName}}</div>
@@ -377,11 +380,22 @@
             <ng-select [items]="machinesList" bindLabel="machine_name" bindValue="machine_id"
               [placeholder]="machinesList.length === 0 ? 'No machines available' : 'Select Asset'"
               [(ngModel)]="formData.machineId" [disabled]="machinesList.length === 0" [clearable]="true"
+              [searchFn]="customMachineSearchFn"
               class="custom-ng-select w-full"
               [ngClass]="{'border border-red-500 rounded': isFormSubmitted && !formData.machineId}">
-              <ng-template ng-label-tmp let-item="item">{{ item.machine_name }} - {{ item.category_name }}</ng-template>
-              <ng-template ng-option-tmp let-item="item">{{ item.machine_name }} - {{ item.category_name
-                }}</ng-template>
+              <ng-template ng-label-tmp let-item="item">
+                <span>{{ item.machine_name }} <span *ngIf="item.equipment_code || item.code" class="text-xs text-gray-500 font-normal">({{ item.equipment_code || item.code }})</span> - {{ item.category_name }}</span>
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                <div class="flex flex-col py-0.5">
+                  <span class="font-bold text-[13px] text-gray-800">
+                    {{ item.machine_name }} - {{ item.category_name }}
+                  </span>
+                  <span *ngIf="item.equipment_code || item.code" class="text-[11px] text-gray-500 font-medium">
+                    {{ item.equipment_code || item.code }}
+                  </span>
+                </div>
+              </ng-template>
             </ng-select>
             <p *ngIf="isFormSubmitted && !formData.machineId" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Machine is required</p>
           </div>
@@ -586,9 +600,13 @@
           <div>
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Equipment</p>
             <p class="text-sm font-semibold text-gray-800">{{
-              viewItemData?.equipment_allocation?.equipment_name?.equipment_name || 'N/A' }} <span
+              viewItemData?.equipment_allocation?.equipment_name?.equipment_name || viewItemData?.equipment_name || 'N/A' }}
+              <br> <span *ngIf="viewItemData?.equipment_allocation?.equipment_name?.equipment_code || viewItemData?.equipment_code" class="text-xs text-gray-500 font-normal">
+                ({{ viewItemData?.equipment_allocation?.equipment_name?.equipment_code || viewItemData?.equipment_code }})
+              </span>
+              <span
                 class="text-gray-400 text-xs font-normal">({{
-                viewItemData?.equipment_allocation?.equipment_name?.equipment?.name || 'N/A' }})</span></p>
+                viewItemData?.equipment_allocation?.equipment_name?.equipment?.name || viewItemData?.category_name || 'N/A' }})</span></p>
           </div>
         </div>
 

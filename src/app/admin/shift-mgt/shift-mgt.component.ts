@@ -224,7 +224,9 @@ export class ShiftMgtComponent implements OnInit, OnDestroy {
               shiftCode: shiftCode,
               shiftName: item.shift_name,
               location: item.site_name,
-              supervisor: item.supervisor_name,
+              supervisor: (item as any).supervisors && (item as any).supervisors.length > 0
+                ? (item as any).supervisors.map((s: any) => s.name?.trim()).filter(Boolean).join(', ')
+                : item.supervisor_name,
               targetBCM: Number(item.target_bcm),
               actualBCM: Number(item.actual_bcm),
               status: item.status
@@ -291,6 +293,14 @@ export class ShiftMgtComponent implements OnInit, OnDestroy {
     this.isViewDetailsModalOpen = false;
     this.viewShiftPlanData = null;
     document.body.style.overflow = '';
+  }
+
+  getSupervisorsDisplay(plan: any): string {
+    if (!plan) return 'N/A';
+    if (Array.isArray(plan.supervisors) && plan.supervisors.length > 0) {
+      return plan.supervisors.map((s: any) => s.name?.trim()).filter(Boolean).join(', ');
+    }
+    return plan.supervisor_name || 'N/A';
   }
 
   addShift() {
