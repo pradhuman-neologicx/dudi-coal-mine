@@ -160,6 +160,13 @@ const routes: Routes = [
               ),
           },
           {
+            path: 'equipment-model-master',
+            loadComponent: () =>
+              import('./admin/equipment-management/model-master/model-master.component').then(
+                (m) => m.ModelMasterComponent,
+              ),
+          },
+          {
             path: 'equipments',
             loadComponent: () =>
               import('./admin/equipment-management/equipments/equipments.component').then(

@@ -56,7 +56,6 @@ import { SalaryPayrollManagementComponent } from './admin/salary-payroll-managem
     RelaySettingsComponent,
     WageMasterComponent,
     SalaryPayrollManagementComponent,
-
   ],
   imports: [
     BrowserModule,

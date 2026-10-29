@@ -322,11 +322,17 @@ export class SidenavComponent {
             {
               index: 1,
               icon: 'widgets',
-              label: 'Master',
+              label: 'Equipment Master',
               route: '/admin/equipment-management/equipment-master',
             },
             {
               index: 2,
+              icon: 'widgets',
+              label: 'Model Master',
+              route: '/admin/equipment-management/equipment-model-master',
+            },
+            {
+              index: 3,
               icon: 'precision_manufacturing',
               label: 'Equipments',
               route: '/admin/equipment-management/equipments',
