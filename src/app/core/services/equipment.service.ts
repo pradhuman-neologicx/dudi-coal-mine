@@ -79,6 +79,38 @@ export class EquipmentService {
     return this.apiService.post(`v1/admin/equipment-names/${id}/status`, body, this.getHeaders());
   }
 
+  // --- Equipment Models (Model Master) ---
+  getEquipmentModels(limit: any, page: any, search?: string, equipmentId?: any): Observable<any> {
+    let params = new HttpParams();
+    if (limit !== 'all') {
+      params = params.set('limit', limit.toString());
+      params = params.set('page', page.toString());
+    }
+    if (search && search.trim().length > 0) {
+      params = params.set('search', search.trim());
+    }
+    if (equipmentId) {
+      params = params.set('equipment_id', equipmentId.toString());
+    }
+    return this.apiService.get('v1/admin/equipment-model-numbers', this.getHeaders(), params);
+  }
+
+  getEquipmentModelById(id: any): Observable<any> {
+    return this.apiService.get(`v1/admin/equipment-model-numbers/${id}`, this.getHeaders());
+  }
+
+  createEquipmentModel(body: any): Observable<any> {
+    return this.apiService.post('v1/admin/equipment-model-numbers', body, this.getHeaders());
+  }
+
+  updateEquipmentModel(id: any, body: any): Observable<any> {
+    return this.apiService.put(`v1/admin/equipment-model-numbers/${id}`, body, this.getHeaders());
+  }
+
+  updateEquipmentModelStatus(id: any, body: any): Observable<any> {
+    return this.apiService.patch(`v1/admin/equipment-model-numbers/${id}/status`, body, this.getHeaders());
+  }
+
   // --- Public Dropdown Lists ---
   getMachineCategories(): Observable<any> {
     return this.apiService.get('v1/machine-categories', this.getHeaders());

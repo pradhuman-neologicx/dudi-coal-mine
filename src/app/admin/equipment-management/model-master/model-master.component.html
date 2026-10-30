@@ -23,7 +23,13 @@
         <thead class="bg-light">
           <tr>
             <th class="px-4 py-3 text-secondary" style="font-size: 12px; font-weight: 600">
-              MODEL NAME
+              MODEL NUMBER
+            </th>
+            <th class="px-4 py-3 text-secondary" style="font-size: 12px; font-weight: 600">
+              MANUFACTURER
+            </th>
+            <th class="px-4 py-3 text-secondary" style="font-size: 12px; font-weight: 600">
+              CATEGORY
             </th>
             <th class="px-4 py-3 text-secondary" style="font-size: 12px; font-weight: 600">
               STATUS
@@ -34,8 +40,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let model of paginatedModels" class="align-middle">
-            <td class="px-4 py-3 text-dark">{{ model.name }}</td>
+          <tr *ngFor="let model of models" class="align-middle">
+            <td class="px-4 py-3 text-dark fw-bold">{{ model.model_number }}</td>
+            <td class="px-4 py-3 text-secondary">{{ model.manufacturer || 'N/A' }}</td>
+            <td class="px-4 py-3 text-secondary">{{ model.categoryName || 'N/A' }}</td>
             <td class="px-4 py-3">
               <span class="badge" [ngClass]="
                   model.isActive
@@ -45,9 +53,9 @@
                 {{ model.isActive ? "Active" : "Inactive" }}
               </span>
             </td>
-            <td class="px-4 py-3 text-end">
-              <button *ngIf="model.isActive" class="btn btn-sm btn-outline-primary me-2" (click)="openEditModal(model)"
-                title="Edit">
+            <td class="px-4 py-3 text-end gap-2">
+              <button *ngIf="model.isActive" class="btn btn-sm btn-outline-primary md:me-2"
+                (click)="openEditModal(model)" title="Edit">
                 <i class="fa-solid fa-edit"></i>
               </button>
               <button class="btn btn-sm" [ngClass]="
@@ -59,8 +67,8 @@
               </button>
             </td>
           </tr>
-          <tr *ngIf="paginatedModels.length === 0">
-            <td colspan="3" class="text-center py-4 text-muted">
+          <tr *ngIf="models.length === 0">
+            <td colspan="5" class="text-center py-4 text-muted">
               No models found.
             </td>
           </tr>
@@ -71,7 +79,7 @@
     <!-- Footer / Pagination -->
     <div class="d-flex justify-content-between align-items-center px-4 py-3 border-top bg-light">
       <div class="text-muted small">
-        Showing {{ paginatedModels.length }} of {{ totalRecords }} Models
+        Showing {{ models.length }} of {{ totalRecords }} Models
       </div>
       <div class="d-flex gap-1">
         <button (click)="goToPage(page - 1)" [disabled]="page === 1"
@@ -111,14 +119,42 @@
     <form [formGroup]="modelForm" (ngSubmit)="saveModel()">
       <div class="modal-body-custom px-4 py-4">
         <div class="mb-3">
-          <label class="form-label form-lable-custom">Model Name *</label>
-          <input type="text" class="form-control form-input-custom" placeholder="e.g. CAT 320D, Komatsu PC210"
-            formControlName="name" [ngClass]="{
+          <label class="form-label form-lable-custom">Equipment Category *</label>
+          <ng-select [items]="categories" bindLabel="name" bindValue="id" placeholder="-- Select Equipment Category --"
+            formControlName="equipment_id" [ngClass]="{
               'is-invalid':
-                modelForm.get('name')?.invalid &&
-                modelForm.get('name')?.touched,
+                modelForm.get('equipment_id')?.invalid &&
+                modelForm.get('equipment_id')?.touched,
+            }" class="custom-ng-select">
+          </ng-select>
+          <div class="text-danger mt-1" style="font-size: 0.875em;" *ngIf="
+              modelForm.get('equipment_id')?.invalid &&
+              modelForm.get('equipment_id')?.touched
+            ">
+            Equipment Category is required.
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label form-lable-custom">Model Number *</label>
+          <input type="text" class="form-control form-input-custom" placeholder="e.g. ZX490H-5A, PRIMA 2830.K"
+            formControlName="model_number" [ngClass]="{
+              'is-invalid':
+                modelForm.get('model_number')?.invalid &&
+                modelForm.get('model_number')?.touched,
             }" />
-          <div class="invalid-feedback">Model Name is required.</div>
+          <div class="invalid-feedback">Model Number is required.</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label form-lable-custom">Manufacturer *</label>
+          <input type="text" class="form-control form-input-custom" placeholder="e.g. TATA HITACHI, Tata Motors"
+            formControlName="manufacturer" [ngClass]="{
+              'is-invalid':
+                modelForm.get('manufacturer')?.invalid &&
+                modelForm.get('manufacturer')?.touched,
+            }" />
+          <div class="invalid-feedback">Manufacturer is required.</div>
         </div>
       </div>
       <div class="px-4 py-3 border-top bg-light text-end">
