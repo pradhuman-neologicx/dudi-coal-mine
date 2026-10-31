@@ -93,18 +93,20 @@
         <div class="relative flex gap-2">
           <div class="relative flex-1">
             <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
-            <input type="text" [(ngModel)]="searchInput" (ngModelChange)="onSearchInputChange()" (keyup.enter)="applySearch()" placeholder="Search by machine, ticket ID..."
+            <input type="text" [(ngModel)]="searchInput" (ngModelChange)="onSearchInputChange()"
+              (keyup.enter)="applySearch()" placeholder="Search by machine, ticket ID..."
               class="w-full pl-9 pr-3 py-[7px] text-sm border rounded focus:outline-none focus:border-[#0f2a4a]">
           </div>
-          <button type="button" (click)="applySearch()" class="h-[36px] px-4 flex items-center justify-center rounded border border-[#0f2a4a] bg-[#0f2a4a] text-white hover:bg-[#1a3a6a] transition-colors text-sm font-bold shadow-sm">
+          <button type="button" (click)="applySearch()"
+            class="h-[36px] px-4 flex items-center justify-center rounded border border-[#0f2a4a] bg-[#0f2a4a] text-white hover:bg-[#1a3a6a] transition-colors text-sm font-bold shadow-sm">
             Search
           </button>
         </div>
       </div>
       <div class="w-48">
         <label class="block text-xs font-bold text-gray-700 mb-1">Service Type</label>
-        <ng-select [items]="['All', 'General Service', 'Repair']" [(ngModel)]="filterServiceType" (change)="onFilterChange()"
-          [clearable]="false"></ng-select>
+        <ng-select [items]="['All', 'General Service', 'Repair']" [(ngModel)]="filterServiceType"
+          (change)="onFilterChange()" [clearable]="false"></ng-select>
       </div>
       <div class="w-40">
         <label class="block text-xs font-bold text-gray-700 mb-1">From Date</label>
@@ -139,9 +141,11 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
-          <tr *ngFor="let s of filteredServices | paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }"
+          <tr
+            *ngFor="let s of filteredServices | paginate: { itemsPerPage: pageSize, currentPage: page, totalItems: totalRecords }"
             class="hover:bg-gray-50">
-            <td class="px-4 py-3 font-medium text-gray-800">{{ s.ticketNumber || (s.breakdownId ? '#' + s.breakdownId : '#' + s.id) }}</td>
+            <td class="px-4 py-3 font-medium text-gray-800">{{ s.ticketNumber || (s.breakdownId ? '#' + s.breakdownId :
+              '#' + s.id) }}</td>
             <td class="px-4 py-3 font-bold text-[#0f2a4a]">
               <div class="flex flex-col">
                 <span class="font-bold text-[#0f2a4a] text-[15px] leading-tight">{{s.machineName}}</span>
@@ -156,8 +160,10 @@
             <td class="px-4 py-3 text-sm text-gray-700">
               <div class="flex items-center gap-1"><i class="far fa-calendar-alt text-gray-400"></i> {{s.serviceDate |
                 date:'mediumDate'}}</div>
-              <div *ngIf="s.serviceStartTime || s.serviceEndTime" class="text-[11px] text-gray-500 mt-0.5 flex items-center gap-1 font-medium">
-                <i class="far fa-clock text-gray-400"></i> {{s.serviceStartTime || '--:--'}} - {{s.serviceEndTime || '--:--'}}
+              <div *ngIf="s.serviceStartTime || s.serviceEndTime"
+                class="text-[11px] text-gray-500 mt-0.5 flex items-center gap-1 font-medium">
+                <i class="far fa-clock text-gray-400"></i> {{s.serviceStartTime || '--:--'}} - {{s.serviceEndTime ||
+                '--:--'}}
               </div>
             </td>
             <td class="px-4 py-3 font-semibold text-emerald-600">₹{{s.totalCost}}</td>
@@ -173,7 +179,8 @@
                   title="View Details">
                   <i class="fas fa-eye text-lg"></i>
                 </button>
-                <button *ngIf="s.status !== 'Completed' && s.status?.toLowerCase() !== 'completed'" (click)="editService(s)" class="text-gray-400 hover:text-blue-600 transition-colors"
+                <button *ngIf="s.status !== 'Completed' && s.status?.toLowerCase() !== 'completed'"
+                  (click)="editService(s)" class="text-gray-400 hover:text-blue-600 transition-colors"
                   title="Edit Entry">
                   <i class="fas fa-edit text-lg"></i>
                 </button>
@@ -207,69 +214,76 @@
             <label class="block text-xs font-bold text-gray-700 mb-1">Date & Time</label>
             <input type="datetime-local" formControlName="dateTime"
               class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500">
-            <div *ngIf="breakdownForm.get('dateTime')?.invalid && breakdownForm.get('dateTime')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Date & Time is required</div>
+            <div *ngIf="breakdownForm.get('dateTime')?.invalid && breakdownForm.get('dateTime')?.touched"
+              class="text-red-500 text-[10px] mt-1 font-semibold">Date & Time is required</div>
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Shift</label>
             <ng-select [items]="breakdownShifts" bindLabel="name" bindValue="id" formControlName="shift"
               placeholder="Select Shift"></ng-select>
-            <div *ngIf="breakdownForm.get('shift')?.invalid && breakdownForm.get('shift')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Shift is required</div>
+            <div *ngIf="breakdownForm.get('shift')?.invalid && breakdownForm.get('shift')?.touched"
+              class="text-red-500 text-[10px] mt-1 font-semibold">Shift is required</div>
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Site</label>
             <ng-select [items]="breakdownSites" bindLabel="name" bindValue="id" formControlName="site"
               placeholder="Select Site"></ng-select>
-            <div *ngIf="breakdownForm.get('site')?.invalid && breakdownForm.get('site')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Site is required</div>
+            <div *ngIf="breakdownForm.get('site')?.invalid && breakdownForm.get('site')?.touched"
+              class="text-red-500 text-[10px] mt-1 font-semibold">Site is required</div>
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Machine</label>
-            <ng-select
-              [items]="breakdownMachines"
-              bindLabel="machine_name"
-              bindValue="machine_id"
-              formControlName="machineId"
-              [searchFn]="customBreakdownMachineSearchFn"
-              placeholder="Select Machine"
-            >
+            <ng-select [items]="breakdownMachines" bindLabel="machine_name" bindValue="machine_id"
+              formControlName="machineId" [searchFn]="customBreakdownMachineSearchFn" placeholder="Select Machine">
               <ng-template ng-label-tmp let-item="item">
-                <span>{{ item.machine_name }} <span *ngIf="item.equipment_code || item.code" class="text-xs text-gray-500 font-normal">({{ item.equipment_code || item.code }})</span> <span *ngIf="item.category_name" class="text-xs text-gray-500 font-normal">- {{ item.category_name }}</span></span>
+                <span>{{ item.machine_name }} <span *ngIf="item.model_number"
+                    class="text-xs text-gray-500 font-normal">({{ item.model_number}})</span> <span
+                    *ngIf="item.category_name" class="text-xs text-gray-500 font-normal">- {{ item.category_name
+                    }}</span></span>
               </ng-template>
               <ng-template ng-option-tmp let-item="item">
                 <div class="flex flex-col py-0.5">
                   <span class="font-bold text-[13px] text-gray-800">
-                    {{ item.machine_name }} <span *ngIf="item.category_name" class="font-normal text-xs text-gray-500">- {{ item.category_name }}</span>
+                    {{ item.machine_name }} <span *ngIf="item.category_name" class="font-normal text-xs text-gray-500">-
+                      {{ item.category_name }}</span>
                   </span>
-                  <span *ngIf="item.equipment_code || item.code" class="text-[11px] text-gray-500 font-medium">
-                    {{ item.equipment_code || item.code }}
+                  <span *ngIf="item.model_number " class="text-[11px] text-gray-500 font-medium">
+                    {{ item.model_number }}
                   </span>
                 </div>
               </ng-template>
             </ng-select>
-            <div *ngIf="breakdownForm.get('machineId')?.invalid && breakdownForm.get('machineId')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Machine is required</div>
+            <div *ngIf="breakdownForm.get('machineId')?.invalid && breakdownForm.get('machineId')?.touched"
+              class="text-red-500 text-[10px] mt-1 font-semibold">Machine is required</div>
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Breakdown Type</label>
-            <ng-select [items]="breakdownTypes" bindLabel="name" bindValue="id" formControlName="breakdownType" placeholder="Select Type"></ng-select>
-            <div *ngIf="breakdownForm.get('breakdownType')?.invalid && breakdownForm.get('breakdownType')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Breakdown Type is required</div>
+            <ng-select [items]="breakdownTypes" bindLabel="name" bindValue="id" formControlName="breakdownType"
+              placeholder="Select Type"></ng-select>
+            <div *ngIf="breakdownForm.get('breakdownType')?.invalid && breakdownForm.get('breakdownType')?.touched"
+              class="text-red-500 text-[10px] mt-1 font-semibold">Breakdown Type is required</div>
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Severity</label>
             <ng-select [items]="['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']" formControlName="severity"
               placeholder="Select Severity"></ng-select>
-            <div *ngIf="breakdownForm.get('severity')?.invalid && breakdownForm.get('severity')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Severity is required</div>
+            <div *ngIf="breakdownForm.get('severity')?.invalid && breakdownForm.get('severity')?.touched"
+              class="text-red-500 text-[10px] mt-1 font-semibold">Severity is required</div>
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-700 mb-1">Reported By</label>
             <ng-select [items]="breakdownWorkforce" bindLabel="name" bindValue="id" formControlName="reportedBy"
               placeholder="Operator Name" class="custom-ng-select w-full"></ng-select>
-            <div *ngIf="breakdownForm.get('reportedBy')?.invalid && breakdownForm.get('reportedBy')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Reported By is required</div>
+            <div *ngIf="breakdownForm.get('reportedBy')?.invalid && breakdownForm.get('reportedBy')?.touched"
+              class="text-red-500 text-[10px] mt-1 font-semibold">Reported By is required</div>
           </div>
         </div>
         <div class="mb-4">
           <label class="block text-xs font-bold text-gray-700 mb-1">Problem Description</label>
           <textarea formControlName="description" rows="2"
             class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-red-500"></textarea>
-          <div *ngIf="breakdownForm.get('description')?.invalid && breakdownForm.get('description')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Problem description is required</div>
+          <div *ngIf="breakdownForm.get('description')?.invalid && breakdownForm.get('description')?.touched"
+            class="text-red-500 text-[10px] mt-1 font-semibold">Problem description is required</div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" (click)="closeModals()"
@@ -311,55 +325,58 @@
                 <div class="font-bold text-red-600">{{item.ticketNumber || ('ID: ' + item.id)}} - {{item.type}}</div>
                 <div class="text-[10px] text-gray-500">
                   <span *ngIf="item.equipmentName" class="font-semibold text-gray-700">
-                    {{item.equipmentName}}<span *ngIf="item.equipmentCode" class="font-normal text-gray-500"> ({{item.equipmentCode}})</span>:
+                    {{item.equipmentName}}<span *ngIf="item.equipmentCode" class="font-normal text-gray-500">
+                      ({{item.equipmentCode}})</span>:
                   </span> {{item.description}}
                 </div>
               </ng-template>
               <ng-template ng-label-tmp let-item="item">
-                {{item.ticketNumber || ('ID: ' + item.id)}} - {{item.equipmentName || item.type}} <span *ngIf="item.equipmentCode" class="text-xs text-gray-500">({{item.equipmentCode}})</span>
+                {{item.ticketNumber || ('ID: ' + item.id)}} - {{item.equipmentName || item.type}} <span
+                  *ngIf="item.equipmentCode" class="text-xs text-gray-500">({{item.equipmentCode}})</span>
               </ng-template>
             </ng-select>
-            <div *ngIf="serviceForm.get('breakdownId')?.invalid && serviceForm.get('breakdownId')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Breakdown ticket is required</div>
+            <div *ngIf="serviceForm.get('breakdownId')?.invalid && serviceForm.get('breakdownId')?.touched"
+              class="text-red-500 text-[10px] mt-1 font-semibold">Breakdown ticket is required</div>
           </div>
 
           <div class="grid grid-cols-2 gap-4 mb-6">
             <div class="col-span-2">
               <label class="block text-xs font-bold text-gray-700 mb-1">Vehicle Number</label>
-              <ng-select
-                [items]="machines"
-                bindLabel="name"
-                bindValue="id"
-                formControlName="machineId"
-                [searchFn]="customMachineSearchFn"
-                placeholder="Machine Details"
-              >
+              <ng-select [items]="machines" bindLabel="name" bindValue="id" formControlName="machineId"
+                [searchFn]="customMachineSearchFn" placeholder="Machine Details">
                 <ng-template ng-label-tmp let-item="item">
-                  <span>{{ item.name }} <span *ngIf="item.equipment_code" class="text-xs text-gray-500 font-normal">({{ item.equipment_code }})</span> <span *ngIf="item.categoryName" class="text-xs text-gray-500 font-normal">- {{ item.categoryName }}</span></span>
+                  <span>{{ item.name }} <span *ngIf="item.model_number" class="text-xs text-gray-500 font-normal">({{
+                      item.model_number }})</span> <span *ngIf="item.categoryName"
+                      class="text-xs text-gray-500 font-normal">- {{ item.categoryName }}</span></span>
                 </ng-template>
                 <ng-template ng-option-tmp let-item="item">
                   <div class="flex flex-col py-0.5">
                     <span class="font-bold text-[13px] text-gray-800">
-                      {{ item.name }} <span *ngIf="item.categoryName" class="font-normal text-xs text-gray-500">- {{ item.categoryName }}</span>
+                      {{ item.name }} <span *ngIf="item.categoryName" class="font-normal text-xs text-gray-500">- {{
+                        item.categoryName }}</span>
                     </span>
-                    <span *ngIf="item.equipment_code" class="text-[11px] text-gray-500 font-medium">
-                      {{ item.equipment_code }}
+                    <span *ngIf="item.model_number" class="text-[11px] text-gray-500 font-medium">
+                      {{ item.model_number }}
                     </span>
                   </div>
                 </ng-template>
               </ng-select>
-              <div *ngIf="serviceForm.get('machineId')?.invalid && serviceForm.get('machineId')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Vehicle is required</div>
+              <div *ngIf="serviceForm.get('machineId')?.invalid && serviceForm.get('machineId')?.touched"
+                class="text-red-500 text-[10px] mt-1 font-semibold">Vehicle is required</div>
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Service Date</label>
               <input type="date" formControlName="serviceDate" [max]="maxDate"
                 class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]">
-              <div *ngIf="serviceForm.get('serviceDate')?.invalid && serviceForm.get('serviceDate')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid service date is required</div>
+              <div *ngIf="serviceForm.get('serviceDate')?.invalid && serviceForm.get('serviceDate')?.touched"
+                class="text-red-500 text-[10px] mt-1 font-semibold">Valid service date is required</div>
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Hours / Odometer Reading</label>
               <input type="text" formControlName="odometerReading" placeholder="Hours / Odometer Reading"
                 class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]">
-              <div *ngIf="serviceForm.get('odometerReading')?.hasError('pattern')" class="text-red-500 text-[10px] mt-1 font-semibold">Invalid numeric format</div>
+              <div *ngIf="serviceForm.get('odometerReading')?.hasError('pattern')"
+                class="text-red-500 text-[10px] mt-1 font-semibold">Invalid numeric format</div>
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Service Start Time</label>
@@ -371,19 +388,22 @@
               <input type="time" formControlName="serviceEndTime"
                 class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]"
                 [ngClass]="{'border-red-500': serviceForm.hasError('timeError')}">
-              <div *ngIf="serviceForm.hasError('timeError')" class="text-red-500 text-[10px] mt-1 font-semibold">End time cannot be earlier than start time</div>
+              <div *ngIf="serviceForm.hasError('timeError')" class="text-red-500 text-[10px] mt-1 font-semibold">End
+                time cannot be earlier than start time</div>
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Hr / Km Run</label>
               <input type="text" formControlName="kmRun" placeholder="Km Run"
                 class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]">
-              <div *ngIf="serviceForm.get('kmRun')?.hasError('pattern')" class="text-red-500 text-[10px] mt-1 font-semibold">Invalid numeric format</div>
+              <div *ngIf="serviceForm.get('kmRun')?.hasError('pattern')"
+                class="text-red-500 text-[10px] mt-1 font-semibold">Invalid numeric format</div>
             </div>
             <div>
               <label class="block text-xs font-bold text-gray-700 mb-1">Time Gap (In months)</label>
               <input type="text" formControlName="timeGap" placeholder="Time Gap"
                 class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-[#0f2a4a]">
-              <div *ngIf="serviceForm.get('timeGap')?.hasError('pattern')" class="text-red-500 text-[10px] mt-1 font-semibold">Must be an integer</div>
+              <div *ngIf="serviceForm.get('timeGap')?.hasError('pattern')"
+                class="text-red-500 text-[10px] mt-1 font-semibold">Must be an integer</div>
             </div>
           </div>
 
@@ -403,7 +423,9 @@
                 <input type="number" formControlName="serviceTypeAmount" placeholder="Amount"
                   (keyup)="calculateTotalAmount()" (change)="calculateTotalAmount()"
                   class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
-                <div *ngIf="serviceForm.get('serviceTypeAmount')?.invalid && serviceForm.get('serviceTypeAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Invalid amount</div>
+                <div
+                  *ngIf="serviceForm.get('serviceTypeAmount')?.invalid && serviceForm.get('serviceTypeAmount')?.touched"
+                  class="text-red-500 text-[10px] mt-1 font-semibold">Invalid amount</div>
               </div>
             </div>
 
@@ -421,7 +443,8 @@
                   [readonly]="serviceForm.get('oilChange')?.value === 'No'"
                   [ngClass]="{'bg-gray-100 cursor-not-allowed': serviceForm.get('oilChange')?.value === 'No'}"
                   class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
-                <div *ngIf="serviceForm.get('oilChangeAmount')?.invalid && serviceForm.get('oilChangeAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
+                <div *ngIf="serviceForm.get('oilChangeAmount')?.invalid && serviceForm.get('oilChangeAmount')?.touched"
+                  class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
               </div>
 
               <!-- Row 2 -->
@@ -436,7 +459,9 @@
                   [readonly]="serviceForm.get('hydraulicOil')?.value === 'No'"
                   [ngClass]="{'bg-gray-100 cursor-not-allowed': serviceForm.get('hydraulicOil')?.value === 'No'}"
                   class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
-                <div *ngIf="serviceForm.get('hydraulicOilAmount')?.invalid && serviceForm.get('hydraulicOilAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
+                <div
+                  *ngIf="serviceForm.get('hydraulicOilAmount')?.invalid && serviceForm.get('hydraulicOilAmount')?.touched"
+                  class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
               </div>
 
               <!-- Row 3 -->
@@ -451,7 +476,8 @@
                   [readonly]="serviceForm.get('gearOil')?.value === 'No'"
                   [ngClass]="{'bg-gray-100 cursor-not-allowed': serviceForm.get('gearOil')?.value === 'No'}"
                   class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
-                <div *ngIf="serviceForm.get('gearOilAmount')?.invalid && serviceForm.get('gearOilAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
+                <div *ngIf="serviceForm.get('gearOilAmount')?.invalid && serviceForm.get('gearOilAmount')?.touched"
+                  class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
               </div>
 
               <!-- Row 4 -->
@@ -466,7 +492,9 @@
                   [readonly]="serviceForm.get('fuelFilterChange')?.value === 'No'"
                   [ngClass]="{'bg-gray-100 cursor-not-allowed': serviceForm.get('fuelFilterChange')?.value === 'No'}"
                   class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
-                <div *ngIf="serviceForm.get('fuelFilterChangeAmount')?.invalid && serviceForm.get('fuelFilterChangeAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
+                <div
+                  *ngIf="serviceForm.get('fuelFilterChangeAmount')?.invalid && serviceForm.get('fuelFilterChangeAmount')?.touched"
+                  class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
               </div>
 
               <!-- Row 5 -->
@@ -481,7 +509,9 @@
                   [readonly]="serviceForm.get('oilFilterChange')?.value === 'No'"
                   [ngClass]="{'bg-gray-100 cursor-not-allowed': serviceForm.get('oilFilterChange')?.value === 'No'}"
                   class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-[#0f2a4a]">
-                <div *ngIf="serviceForm.get('oilFilterChangeAmount')?.invalid && serviceForm.get('oilFilterChangeAmount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
+                <div
+                  *ngIf="serviceForm.get('oilFilterChangeAmount')?.invalid && serviceForm.get('oilFilterChangeAmount')?.touched"
+                  class="text-red-500 text-[10px] mt-1 font-semibold">Valid amount required</div>
               </div>
             </div>
 
@@ -517,11 +547,14 @@
                   </div> -->
                   <div class="flex-1" *ngIf="part.get('source')?.value === 'Store'">
                     <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Store</label>
-                    <ng-select class="custom-ng-select" [items]="storesList" bindLabel="name" bindValue="id" formControlName="storeId"
-                      (change)="onStoreChange($event?.id || $event, i)" placeholder="Select Store">
+                    <ng-select class="custom-ng-select" [items]="storesList" bindLabel="name" bindValue="id"
+                      formControlName="storeId" (change)="onStoreChange($event?.id || $event, i)"
+                      placeholder="Select Store">
                     </ng-select>
-                    <div *ngIf="part.get('storeId')?.hasError('required') && part.get('storeId')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Store is required</div>
-                    <div *ngIf="part.get('storeId')?.hasError('differentStore')" class="text-red-500 text-[10px] mt-1 font-semibold">All items must be from the same store</div>
+                    <div *ngIf="part.get('storeId')?.hasError('required') && part.get('storeId')?.touched"
+                      class="text-red-500 text-[10px] mt-1 font-semibold">Store is required</div>
+                    <div *ngIf="part.get('storeId')?.hasError('differentStore')"
+                      class="text-red-500 text-[10px] mt-1 font-semibold">All items must be from the same store</div>
                   </div>
                   <div class="flex-1">
                     <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Part Name</label>
@@ -530,26 +563,32 @@
                         (change)="onInventoryPartSelect($event, i)" placeholder="Select Part">
                         <ng-template ng-option-tmp let-item="item">
                           <div class="font-semibold text-gray-800">{{item.name}}</div>
-                          <div class="text-[10px] text-gray-500" *ngIf="item.category || item.availableQty !== undefined">
+                          <div class="text-[10px] text-gray-500"
+                            *ngIf="item.category || item.availableQty !== undefined">
                             <span *ngIf="item.category">{{item.category}}</span>
                             <span *ngIf="item.category && item.availableQty !== undefined"> | </span>
-                            <span *ngIf="item.availableQty !== undefined" class="text-green-600 font-medium">Avail Qty: {{item.availableQty}}</span>
+                            <span *ngIf="item.availableQty !== undefined" class="text-green-600 font-medium">Avail Qty:
+                              {{item.availableQty}}</span>
                           </div>
                         </ng-template>
                       </ng-select>
-                      <div *ngIf="part.get('partName')?.invalid && part.get('partName')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Part name is required</div>
+                      <div *ngIf="part.get('partName')?.invalid && part.get('partName')?.touched"
+                        class="text-red-500 text-[10px] mt-1 font-semibold">Part name is required</div>
                     </ng-container>
                     <ng-container *ngIf="part.get('source')?.value === 'Store'">
-                      <ng-select class="custom-ng-select" [items]="storeProductsMap[part.get('storeId')?.value] || []" bindLabel="name" bindValue="name" formControlName="partName"
+                      <ng-select class="custom-ng-select" [items]="storeProductsMap[part.get('storeId')?.value] || []"
+                        bindLabel="name" bindValue="name" formControlName="partName"
                         (change)="onStorePartSelect($event, i)" placeholder="Select Part">
                         <ng-template ng-option-tmp let-item="item">
                           <div class="font-semibold text-gray-800">{{item.name || item.product_name}}</div>
                           <div class="text-[10px] text-gray-500">
-                            <span class="text-green-600 font-medium">Avail Qty: {{item.available_quantity ?? item.left_quantity ?? 0}}</span>
+                            <span class="text-green-600 font-medium">Avail Qty: {{item.available_quantity ??
+                              item.left_quantity ?? 0}}</span>
                           </div>
                         </ng-template>
                       </ng-select>
-                      <div *ngIf="part.get('partName')?.invalid && part.get('partName')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Part name is required</div>
+                      <div *ngIf="part.get('partName')?.invalid && part.get('partName')?.touched"
+                        class="text-red-500 text-[10px] mt-1 font-semibold">Part name is required</div>
                     </ng-container>
                   </div>
                   <div class="w-24">
@@ -557,14 +596,16 @@
                     <input type="number" formControlName="quantity" (keyup)="calculateTotalAmount()"
                       (change)="calculateTotalAmount()"
                       class="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                    <div *ngIf="part.get('quantity')?.invalid && part.get('quantity')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">Required</div>
+                    <div *ngIf="part.get('quantity')?.invalid && part.get('quantity')?.touched"
+                      class="text-red-500 text-[10px] mt-1 font-semibold">Required</div>
                   </div>
                   <div class="w-32" *ngIf="part.get('source')?.value === 'Store'">
                     <label class="block text-[10px] font-bold text-gray-500 mb-1 uppercase">Amount</label>
                     <input type="number" formControlName="amount" max="1000000" (keyup)="calculateTotalAmount()"
                       (change)="calculateTotalAmount()" placeholder="Amount"
                       class="w-full border rounded px-3 py-[7px] text-sm focus:outline-none focus:border-blue-500">
-                    <div *ngIf="part.get('amount')?.invalid && part.get('amount')?.touched" class="text-red-500 text-[10px] mt-1 font-semibold">
+                    <div *ngIf="part.get('amount')?.invalid && part.get('amount')?.touched"
+                      class="text-red-500 text-[10px] mt-1 font-semibold">
                       <span *ngIf="part.get('amount')?.hasError('required')">Required</span>
                       <span *ngIf="part.get('amount')?.hasError('max')">Max ₹10,00,000</span>
                     </div>
@@ -595,7 +636,8 @@
               <div (click)="fileUploadInput.click()"
                 class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
                 <div class="text-blue-500 text-2xl mb-2"><i class="fas fa-cloud-upload-alt"></i></div>
-                <div class="text-sm text-gray-600 font-medium">Drag and drop files here or click to upload attachments</div>
+                <div class="text-sm text-gray-600 font-medium">Drag and drop files here or click to upload attachments
+                </div>
                 <div class="text-xs text-gray-400 mt-1">Supports invoices, bills, and service report images</div>
               </div>
 
@@ -604,15 +646,18 @@
                 <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
                   <i class="fas fa-image"></i> Uploaded Attachments
                 </div>
-                <div *ngFor="let file of existingAttachments; let i = index" class="flex items-center justify-between p-2 bg-gray-50 border border-gray-200 rounded text-sm">
+                <div *ngFor="let file of existingAttachments; let i = index"
+                  class="flex items-center justify-between p-2 bg-gray-50 border border-gray-200 rounded text-sm">
                   <div class="flex items-center gap-3 truncate">
                     <i class="fas fa-image text-gray-400 text-lg"></i>
                     <div class="flex flex-col truncate">
-                      <span class="font-bold text-gray-700 truncate">{{ file.file_name || 'Attachment ' + (i+1) }}</span>
+                      <span class="font-bold text-gray-700 truncate">{{ file.file_name || 'Attachment ' + (i+1)
+                        }}</span>
                       <a [href]="file.url" target="_blank" class="text-xs text-blue-500 hover:underline">View File</a>
                     </div>
                   </div>
-                  <button type="button" (click)="removeExistingAttachment(i)" title="Remove existing attachment" class="text-red-500 hover:text-red-700 font-bold ml-2 shrink-0">
+                  <button type="button" (click)="removeExistingAttachment(i)" title="Remove existing attachment"
+                    class="text-red-500 hover:text-red-700 font-bold ml-2 shrink-0">
                     <i class="fas fa-trash-alt"></i>
                   </button>
                 </div>
@@ -623,12 +668,14 @@
                 <div class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-2">
                   <i class="fas fa-file-upload"></i> New Uploads
                 </div>
-                <div *ngFor="let file of selectedFiles; let fi = index" class="flex items-center justify-between p-2 bg-blue-50 border border-blue-100 rounded text-sm">
+                <div *ngFor="let file of selectedFiles; let fi = index"
+                  class="flex items-center justify-between p-2 bg-blue-50 border border-blue-100 rounded text-sm">
                   <div class="flex items-center gap-3 truncate">
                     <i class="fas fa-paperclip text-blue-500 text-lg"></i>
                     <span class="font-bold text-blue-800 truncate">{{ file.name }}</span>
                   </div>
-                  <button type="button" (click)="removeFile(fi); $event.stopPropagation()" class="text-red-500 hover:text-red-700 font-bold ml-2 shrink-0">
+                  <button type="button" (click)="removeFile(fi); $event.stopPropagation()"
+                    class="text-red-500 hover:text-red-700 font-bold ml-2 shrink-0">
                     <i class="fas fa-times"></i>
                   </button>
                 </div>
@@ -663,7 +710,8 @@
         <div class="grid grid-cols-2 gap-4 mb-4">
           <div>
             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Ticket ID</div>
-            <div class="text-sm font-bold text-gray-800">{{ viewModalData.ticketNumber || (viewModalData.breakdownId ? '#' + viewModalData.breakdownId : '#' + viewModalData.id) }}</div>
+            <div class="text-sm font-bold text-gray-800">{{ viewModalData.ticketNumber || (viewModalData.breakdownId ?
+              '#' + viewModalData.breakdownId : '#' + viewModalData.id) }}</div>
           </div>
           <div>
             <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Machine</div>
@@ -762,8 +810,10 @@
             <i class="fas fa-image"></i> Attachments
           </div>
           <div class="flex flex-wrap gap-4">
-            <a *ngFor="let file of viewModalData.attachments" [href]="file.url" target="_blank" class="w-24 h-24 border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow block">
-               <img [src]="file.url" [alt]="file.file_name" class="w-full h-full object-cover hover:opacity-90 transition-opacity">
+            <a *ngFor="let file of viewModalData.attachments" [href]="file.url" target="_blank"
+              class="w-24 h-24 border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow block">
+              <img [src]="file.url" [alt]="file.file_name"
+                class="w-full h-full object-cover hover:opacity-90 transition-opacity">
             </a>
           </div>
         </div>
@@ -781,30 +831,35 @@
   </div>
 </div>
 
-  <!-- Delete Attachment Custom Modal -->
-  <div *ngIf="isDeleteAttachmentModalOpen" class="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center font-sans py-4">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm flex flex-col overflow-hidden m-4">
-      <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-        <h3 class="text-sm font-black text-gray-800 tracking-wide uppercase flex items-center gap-2">
-          <i class="fas fa-trash-alt text-red-500"></i> Delete Attachment
-        </h3>
-        <button (click)="closeDeleteAttachmentModal()" class="text-gray-400 hover:text-gray-700 transition-colors">
-          <i class="fas fa-times text-lg"></i>
-        </button>
+<!-- Delete Attachment Custom Modal -->
+<div *ngIf="isDeleteAttachmentModalOpen"
+  class="fixed inset-0 bg-black/60 z-[110] flex items-center justify-center font-sans py-4">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-sm flex flex-col overflow-hidden m-4">
+    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+      <h3 class="text-sm font-black text-gray-800 tracking-wide uppercase flex items-center gap-2">
+        <i class="fas fa-trash-alt text-red-500"></i> Delete Attachment
+      </h3>
+      <button (click)="closeDeleteAttachmentModal()" class="text-gray-400 hover:text-gray-700 transition-colors">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+    </div>
+    <div class="p-6">
+      <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mx-auto mb-4">
+        <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
       </div>
-      <div class="p-6">
-        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mx-auto mb-4">
-          <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
-        </div>
-        <p class="text-center text-gray-700 text-sm mb-2 font-semibold">Are you sure you want to permanently delete this attachment?</p>
-        <p class="text-center text-gray-500 text-xs">This action cannot be undone and will immediately remove the file from our servers.</p>
-      </div>
-      <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 items-center">
-        <button (click)="closeDeleteAttachmentModal()" class="px-4 py-2 text-sm text-gray-600 font-bold hover:bg-gray-200 rounded transition-colors">Cancel</button>
-        <button (click)="confirmDeleteAttachment()" [disabled]="isSubmitting" class="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded shadow hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 transition-colors">
-          <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin"></i>
-          <span>{{ isSubmitting ? 'Deleting...' : 'Delete' }}</span>
-        </button>
-      </div>
+      <p class="text-center text-gray-700 text-sm mb-2 font-semibold">Are you sure you want to permanently delete this
+        attachment?</p>
+      <p class="text-center text-gray-500 text-xs">This action cannot be undone and will immediately remove the file
+        from our servers.</p>
+    </div>
+    <div class="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 items-center">
+      <button (click)="closeDeleteAttachmentModal()"
+        class="px-4 py-2 text-sm text-gray-600 font-bold hover:bg-gray-200 rounded transition-colors">Cancel</button>
+      <button (click)="confirmDeleteAttachment()" [disabled]="isSubmitting"
+        class="px-4 py-2 bg-red-600 text-white text-sm font-bold rounded shadow hover:bg-red-700 disabled:opacity-50 flex items-center gap-2 transition-colors">
+        <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin"></i>
+        <span>{{ isSubmitting ? 'Deleting...' : 'Delete' }}</span>
+      </button>
     </div>
   </div>
+</div>

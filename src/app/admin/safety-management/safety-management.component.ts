@@ -15,26 +15,31 @@ import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 export interface IncidentItem {
   id: number | string;
-  incident_date?: string;
-  shift_id?: number | string;
-  shift_name?: string;
-  incident_type_id?: number | string;
-  severity?: string;
-  location_id?: number | string;
-  person_involved_id?: number | string;
-  person_involved_name?: string;
-  person_involved_employee_code?: string;
-  incident_type?: string;
-  location_name?: string;
-  incident_no?: string;
-  incident_description?: string;
-  action_taken?: string;
-  preventive_measures?: string;
-  equipment_id?: number | string;
-  equipment_name_id?: number | string;
-  status?: string;
-  notes?: string[];
-  media?: any[];
+  incident_date?: string | null;
+  shift_id?: number | string | null;
+  shift_name?: string | null;
+  incident_type_id?: number | string | null;
+  severity?: string | null;
+  location_id?: number | string | null;
+  person_involved_id?: number | string | null;
+  person_involved_name?: string | null;
+  person_involved_employee_code?: string | null;
+  incident_type?: string | null;
+  location_name?: string | null;
+  incident_no?: string | null;
+  incident_description?: string | null;
+  action_taken?: string | null;
+  preventive_measures?: string | null;
+  equipment_id?: number | string | null;
+  equipment_category?: string | null;
+  equipment_name_id?: number | string | null;
+  equipment__name?: string | null;
+  equipment_name?: string | null;
+  model_number?: string | null;
+  chassis_number?: string | null;
+  status?: string | null;
+  notes?: string[] | null;
+  media?: any[] | null;
   [key: string]: any;
 }
 
@@ -97,7 +102,9 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
   mockShifts: any[] = [];
   mockIncidentTypes: IncidentTypeOption[] = [];
   machineCategories: MachineCategoryOption[] = [];
+  allMachineCategories: MachineCategoryOption[] = [];
   machineNames: any[] = [];
+  editMachineNames: any[] = [];
   shiftMachines: any[] = [];
   activeShiftEmployees: any[] = [];
 
@@ -188,10 +195,13 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
     this.safetyService.getMachineCategories().pipe(takeUntil(this.destroy$)).subscribe({
       next: (res: any) => {
         if (res && res.status === 200) {
-          this.machineCategories = res.data.map((c: any) => ({
+          this.allMachineCategories = res.data.map((c: any) => ({
             id: c.category_id || c.id,
             name: c.category_name || c.name
           }));
+          if (!this.machineCategories || this.machineCategories.length === 0) {
+            this.machineCategories = [...this.allMachineCategories];
+          }
         }
       }
     });
@@ -201,7 +211,7 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
     if (!term) return true;
     term = term.toLowerCase();
     const nameMatch = item.name && item.name.toLowerCase().includes(term);
-    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    const codeMatch = (item.model_number ) && (item.model_number ).toLowerCase().includes(term);
     return Boolean(nameMatch || codeMatch);
   };
 
@@ -214,34 +224,130 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
     return Boolean(nameMatch || codeMatch || designationMatch);
   };
 
-  onMachineCategoryChange(categoryId: any) {
+  onMachineCategoryChange(event: any) {
+    const categoryId = event && typeof event === 'object' ? event.id : event;
     this.newIncidentForm.equipment_name_id = null;
     this.machineNames = [];
     if (categoryId) {
       if (this.shiftMachines && this.shiftMachines.length > 0) {
         this.machineNames = this.shiftMachines
           .filter((m: any) => m.category_id === categoryId)
-          
           .map((m: any) => ({
-            id: m.machine_id,
-            name: m.machine_name,
-            equipment_code: m.equipment_code || m.code || '',
+            id: m.machine_id || m.id || m.equipment_id,
+            name: m.machine_name || m.equipment_name || m.name,
+            model_number: m.model_number || m.equipment_model_number || '',
             chassis_number: m.chassis_number || ''
           }));
       } else {
         this.safetyService.getMachineNames(categoryId).pipe(takeUntil(this.destroy$)).subscribe({
           next: (res: any) => {
-            if (res && res.status === 200) {
-              this.machineNames = res.data.map((m: any) => ({
-                id: m.id || m.equipment_id,
-                name: m.equipment_name || m.name,
-                equipment_code: m.equipment_code || m.code || '',
+            const rawData = res?.data?.data || res?.data || (Array.isArray(res) ? res : []);
+            if (Array.isArray(rawData)) {
+              this.machineNames = rawData.map((m: any) => ({
+                id: m.id || m.equipment_id || m.machine_id,
+                name: m.equipment_name || m.machine_name || m.name,
+                model_number: m.model_number || m.equipment_model_number || '',
                 chassis_number: m.chassis_number || ''
               }));
             }
           }
         });
       }
+    }
+  }
+
+  loadEditMachineNames(categoryId: any, callback?: () => void) {
+    if (!categoryId) {
+      this.editMachineNames = [];
+      if (callback) callback();
+      return;
+    }
+
+    this.safetyService.getMachineNames(categoryId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        const rawData = res?.data?.data || res?.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(rawData)) {
+          this.editMachineNames = rawData.map((m: any) => ({
+            id: Number(m.id || m.equipment_id || m.machine_id),
+            name: m.equipment_name || m.machine_name || m.name || `Machine #${m.id || m.equipment_id}`,
+            model_number: m.model_number || m.equipment_model_number || '',
+            chassis_number: m.chassis_number || ''
+          }));
+        } else {
+          this.editMachineNames = [];
+        }
+
+        // If the incident currently has an assigned machine that isn't in the fetched list, preserve it
+        if (this.selectedIncident && this.selectedIncident.equipment_name_id) {
+          const currentId = Number(this.selectedIncident.equipment_name_id);
+          const exists = this.editMachineNames.some(m => m.id === currentId);
+          if (!exists) {
+            this.editMachineNames.unshift({
+              id: currentId,
+              name: this.selectedIncident.equipment__name || this.selectedIncident.equipment_name || ('Machine #' + currentId),
+              model_number: this.selectedIncident.model_number || '',
+              chassis_number: this.selectedIncident.chassis_number || ''
+            });
+          }
+        }
+
+        if (callback) callback();
+      },
+      error: (err: any) => {
+        console.error('Error loading machine names for edit:', err);
+        this.editMachineNames = [];
+        if (this.selectedIncident && this.selectedIncident.equipment_name_id) {
+          this.editMachineNames = [{
+            id: Number(this.selectedIncident.equipment_name_id),
+            name: this.selectedIncident.equipment__name || this.selectedIncident.equipment_name || ('Machine #' + this.selectedIncident.equipment_name_id),
+            model_number: this.selectedIncident.model_number || '',
+            chassis_number: this.selectedIncident.chassis_number || ''
+          }];
+        }
+        if (callback) callback();
+      }
+    });
+  }
+
+  onEditMachineCategoryChange(event: any) {
+    const categoryId = event && typeof event === 'object' ? event.id : event;
+    if (this.selectedIncident) {
+      this.selectedIncident.equipment_id = categoryId ? Number(categoryId) : null;
+      this.selectedIncident.equipment_name_id = null;
+      this.selectedIncident.equipment__name = '';
+      this.selectedIncident.equipment_name = '';
+      this.selectedIncident.model_number = '';
+      this.selectedIncident.chassis_number = '';
+
+      const catList = this.allMachineCategories.length ? this.allMachineCategories : this.machineCategories;
+      const foundCat = catList.find((c: any) => c.id == categoryId);
+      if (foundCat) {
+        this.selectedIncident.equipment_category = foundCat.name;
+      } else {
+        this.selectedIncident.equipment_category = '';
+      }
+    }
+    this.loadEditMachineNames(categoryId);
+  }
+
+  onEditMachineNameChange(event: any) {
+    if (!this.selectedIncident) return;
+    let selectedItem = event;
+    if (event && (typeof event === 'number' || typeof event === 'string')) {
+      selectedItem = this.editMachineNames.find((m: any) => m.id == event);
+    }
+    if (selectedItem) {
+      this.selectedIncident.equipment_name_id = Number(selectedItem.id);
+      this.selectedIncident.equipment__name = selectedItem.name;
+      this.selectedIncident.equipment_name = selectedItem.name;
+      this.selectedIncident.model_number = selectedItem.model_number || '';
+      this.selectedIncident.chassis_number = selectedItem.chassis_number || '';
+    } else {
+      this.selectedIncident.equipment_name_id = null;
+      this.selectedIncident.equipment__name = '';
+      this.selectedIncident.equipment_name = '';
+      this.selectedIncident.model_number = '';
+      this.selectedIncident.chassis_number = '';
     }
   }
 
@@ -678,6 +784,19 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
           this.selectedIncident = res.data;
           this.isEditMode = false;
           this.isDetailsPanelOpen = true;
+
+          if (this.selectedIncident?.equipment_id) {
+            this.selectedIncident.equipment_id = Number(this.selectedIncident.equipment_id);
+          }
+          if (this.selectedIncident?.equipment_name_id) {
+            this.selectedIncident.equipment_name_id = Number(this.selectedIncident.equipment_name_id);
+          }
+
+          if (this.selectedIncident?.equipment_id) {
+            this.loadEditMachineNames(this.selectedIncident.equipment_id);
+          } else {
+            this.editMachineNames = [];
+          }
         } else {
           this.notificationService.show(res?.message || 'Failed to fetch incident details.', 'error');
         }
@@ -730,6 +849,9 @@ export class SafetyManagementComponent implements OnInit, OnDestroy {
     this.isEditMode = !this.isEditMode;
     if (this.isEditMode) {
       this.editIncidentFiles = [];
+      if (this.selectedIncident?.equipment_id && (!this.editMachineNames || this.editMachineNames.length === 0)) {
+        this.loadEditMachineNames(this.selectedIncident.equipment_id);
+      }
     }
   }
 

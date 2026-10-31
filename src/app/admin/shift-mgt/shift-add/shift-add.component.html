@@ -15,7 +15,8 @@
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Planning
                     Date <span class="text-red-500">*</span></label>
                 <div class="relative">
-                    <input type="date" [(ngModel)]="shiftForm.planningDate" (ngModelChange)="checkDateVisibility()" [min]="minDate"
+                    <input type="date" [(ngModel)]="shiftForm.planningDate" (ngModelChange)="checkDateVisibility()"
+                        [min]="minDate"
                         class="w-full border border-gray-300 rounded px-4 py-2.5 text-sm text-gray-700 focus:outline-none focus:border-[#468faf] focus:ring-1 focus:ring-[#468faf]/20 bg-gray-50/50">
                 </div>
             </div>
@@ -61,8 +62,8 @@
                         class="text-red-500">*</span></label>
                 <div class="relative">
                     <ng-select [(ngModel)]="shiftForm.supervisorId" [items]="supervisors" [multiple]="true"
-                        [closeOnSelect]="false" [compareWith]="compareFn" bindLabel="name"
-                        bindValue="id" placeholder="Select Supervisor" class="w-full text-sm">
+                        [closeOnSelect]="false" [compareWith]="compareFn" bindLabel="name" bindValue="id"
+                        placeholder="Select Supervisor" class="w-full text-sm">
                         <ng-template ng-option-tmp let-item="item">
                             <div class="font-medium text-gray-800">{{item.name}} <span
                                     class="text-xs text-gray-400 font-normal">({{item.code}})</span></div>
@@ -111,12 +112,13 @@
         <!-- Equipment Allocation Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div *ngFor="let eq of equipments" class="bg-white border border-gray-200 rounded shadow-sm flex flex-col">
-                <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+                <div class="p-3 border-b border-gray-200 flex justify-between items-center">
                     <div class="flex items-center gap-3">
                         <i class="fas fa-tools text-[#468faf] text-xl"></i>
                         <div class="flex flex-col">
                             <span class="text-lg font-bold leading-tight">{{ eq.id }}</span>
-                            <span *ngIf="eq.code" class="text-xs text-gray-500 font-medium tracking-wide">{{ eq.code }}</span>
+                            <span *ngIf="eq.code" class="text-xs text-gray-500 font-medium tracking-wide">{{ eq.code
+                                }}</span>
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
@@ -127,7 +129,7 @@
                         </button>
                     </div>
                 </div>
-                <div class="p-5 flex-1">
+                <div class="p-3 flex-1">
                     <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Assigned Dumpers
                     </div>
                     <div class="flex flex-wrap gap-2">
@@ -135,7 +137,8 @@
                             class="bg-[#eef5f9] text-[#2c7da0] text-xs font-bold px-3 py-1.5 rounded flex items-center gap-2">
                             <div class="flex flex-col text-left">
                                 <span class="leading-tight">{{ dmp.id || dmp }}</span>
-                                <span *ngIf="dmp.code" class="text-[10px] text-gray-500 font-normal leading-tight">{{ dmp.code }}</span>
+                                <span *ngIf="dmp.code" class="text-[10px] text-gray-500 font-normal leading-tight">{{
+                                    dmp.code }}</span>
                             </div>
                             <button (click)="removeDumper(eq, dmp.allocation_id || dmp)"
                                 class="text-[#2c7da0] hover:text-red-500 transition-colors">
@@ -169,175 +172,180 @@
                     <h2 class="text-xl font-bold text-[#468faf] mb-1">Employee Deployment</h2>
                     <p class="text-sm text-gray-500">Bulk assignment of operators and support staff.</p>
                 </div>
-            <div class="flex items-center gap-3 mt-4 md:mt-0">
-                <!-- Employee Workforce Metrics -->
-                <div
-                    class="flex flex-wrap bg-white border border-gray-200 rounded shadow-sm text-[10px] font-bold uppercase tracking-widest text-center mr-2">
-                    <div class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-gray-50/50 flex flex-col justify-center">
-                        <div class="text-gray-500 mb-0.5">Planned</div>
-                        <div class="text-sm text-gray-800">{{ employeeStats.planned }}</div>
-                    </div>
-                    <div class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-green-50/30 flex flex-col justify-center">
-                        <div class="text-gray-500 mb-0.5">Present</div>
-                        <div class="text-sm text-green-600">{{ employeeStats.present }}</div>
-                    </div>
-                    <!-- <div class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-[#468faf]/10 flex flex-col justify-center">
+                <div class="flex items-center gap-3 mt-4 md:mt-0">
+                    <!-- Employee Workforce Metrics -->
+                    <div
+                        class="flex flex-wrap bg-white border border-gray-200 rounded shadow-sm text-[10px] font-bold uppercase tracking-widest text-center mr-2">
+                        <div
+                            class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-gray-50/50 flex flex-col justify-center">
+                            <div class="text-gray-500 mb-0.5">Planned</div>
+                            <div class="text-sm text-gray-800">{{ employeeStats.planned }}</div>
+                        </div>
+                        <div
+                            class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-green-50/30 flex flex-col justify-center">
+                            <div class="text-gray-500 mb-0.5">Present</div>
+                            <div class="text-sm text-green-600">{{ employeeStats.present }}</div>
+                        </div>
+                        <!-- <div class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-[#468faf]/10 flex flex-col justify-center">
                         <div class="text-gray-500 mb-0.5">Deployed</div>
                         <div class="text-sm text-[#468faf]">{{ employeeStats.deployed }}</div>
                     </div> -->
-                    <div class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-yellow-50/50 flex flex-col justify-center">
-                        <div class="text-gray-500 mb-0.5">Borrowed</div>
-                        <div class="text-sm text-yellow-600">{{ employeeStats.borrowed }}</div>
+                        <div
+                            class="px-3 py-1.5 border-r border-gray-200 border-b md:border-b-0 bg-yellow-50/50 flex flex-col justify-center">
+                            <div class="text-gray-500 mb-0.5">Borrowed</div>
+                            <div class="text-sm text-yellow-600">{{ employeeStats.borrowed }}</div>
+                        </div>
+                        <div class="px-3 py-1.5 border-r border-gray-200 bg-red-50/30 flex flex-col justify-center">
+                            <div class="text-gray-500 mb-0.5">Absent</div>
+                            <div class="text-sm text-red-500">{{ employeeStats.absent }}</div>
+                        </div>
+                        <div class="px-3 py-1.5 bg-orange-50/30 flex flex-col justify-center">
+                            <div class="text-gray-500 mb-0.5">Leave</div>
+                            <div class="text-sm text-orange-500">{{ employeeStats.leave }}</div>
+                        </div>
                     </div>
-                    <div class="px-3 py-1.5 border-r border-gray-200 bg-red-50/30 flex flex-col justify-center">
-                        <div class="text-gray-500 mb-0.5">Absent</div>
-                        <div class="text-sm text-red-500">{{ employeeStats.absent }}</div>
-                    </div>
-                    <div class="px-3 py-1.5 bg-orange-50/30 flex flex-col justify-center">
-                        <div class="text-gray-500 mb-0.5">Leave</div>
-                        <div class="text-sm text-orange-500">{{ employeeStats.leave }}</div>
-                    </div>
-                </div>
 
-                <button (click)="openAddEmployeeModal()"
-                    class="bg-[#468faf] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0] shadow-sm transition-colors">
-                    <i class="fas fa-plus"></i> BORROW EMPLOYEE
-                </button>
+                    <button (click)="openAddEmployeeModal()"
+                        class="bg-[#468faf] text-white px-4 py-2 rounded text-sm font-bold flex items-center gap-2 hover:bg-[#2c7da0] shadow-sm transition-colors">
+                        <i class="fas fa-plus"></i> BORROW EMPLOYEE
+                    </button>
 
-                <!-- <div
+                    <!-- <div
                 class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-2 text-sm text-gray-700 cursor-pointer min-w-[180px] shadow-sm">
                 <i class="fas fa-filter text-gray-400"></i>
                 <span class="flex-1 font-medium">All Designations</span>
                 <i class="fas fa-caret-down text-gray-400"></i>
             </div> -->
+                </div>
             </div>
-        </div>
 
-        <!-- Employee Deployment Table -->
-        <div class="bg-white border border-gray-200 rounded shadow-sm mb-6">
-            <!-- Table Controls -->
-            <div class="p-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
-                <div class="flex items-center text-sm text-gray-600 font-medium">
-                    <span class="mr-2">Show</span>
-                    <ng-select class="entries-select" 
-                               [items]="tableSizes" 
-                               [clearable]="false" 
-                               [searchable]="false" 
-                               [(ngModel)]="tableSize">
-                    </ng-select>
-                    <span class="ml-2">entries</span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="relative">
-                        <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="applySearch()"
-                            placeholder="Search employees..."
-                            class="border border-gray-300 rounded pl-9 pr-9 py-1.5 text-sm focus:outline-none focus:border-[#468faf] w-full sm:w-64 text-gray-700">
-                        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <i *ngIf="isSearchActive || searchQuery"
-                            class="fas fa-times absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-red-500 transition-colors"
-                            (click)="resetSearch()"></i>
+            <!-- Employee Deployment Table -->
+            <div class="bg-white border border-gray-200 rounded shadow-sm mb-6">
+                <!-- Table Controls -->
+                <div class="p-4 border-b border-gray-200 flex flex-wrap justify-between items-center gap-4">
+                    <div class="flex items-center text-sm text-gray-600 font-medium">
+                        <span class="mr-2">Show</span>
+                        <ng-select class="entries-select" [items]="tableSizes" [clearable]="false" [searchable]="false"
+                            [(ngModel)]="tableSize">
+                        </ng-select>
+                        <span class="ml-2">entries</span>
                     </div>
-                    <button (click)="applySearch()"
-                        class="bg-[#468faf] text-white px-4 py-1.5 rounded text-sm font-bold hover:bg-[#2c7da0] transition-colors shadow-sm">
-                        Search
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <div class="relative">
+                            <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="applySearch()"
+                                placeholder="Search employees..."
+                                class="border border-gray-300 rounded pl-9 pr-9 py-1.5 text-sm focus:outline-none focus:border-[#468faf] w-full sm:w-64 text-gray-700">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <i *ngIf="isSearchActive || searchQuery"
+                                class="fas fa-times absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer hover:text-red-500 transition-colors"
+                                (click)="resetSearch()"></i>
+                        </div>
+                        <button (click)="applySearch()"
+                            class="bg-[#468faf] text-white px-4 py-1.5 rounded text-sm font-bold hover:bg-[#2c7da0] transition-colors shadow-sm">
+                            Search
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm whitespace-nowrap">
-                    <thead
-                        class="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
-                        <tr>
-                            <th class="px-6 py-4 w-12 text-center">S.No.</th>
-                            <th class="px-6 py-4">Employee Info</th>
-                            <th class="px-6 py-4">Designation</th>
-                            <th class="px-6 py-4">Status</th>
-                            <th class="px-6 py-4">Scheduled Shift</th>
-                            <th class="px-6 py-4">Machine Assigned</th>
-                            <th class="px-6 py-4 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <tr *ngFor="let emp of employees; let i = index" class="hover:bg-gray-50/50 transition-colors">
-                            <td class="px-6 py-4 text-center text-gray-600 font-medium">
-                                {{ (currentPage - 1) * 4 + i + 1 }}
-                            </td>
-                            <td class="px-6 py-4">
-                                <div class="font-bold text-gray-800 flex flex-col gap-1">
-                                    <div class="flex items-center gap-2">
-                                        {{ emp.name }}
-                                        <span *ngIf="emp.isBorrowed"
-                                            class="bg-blue-100 text-blue-700 text-[9px] font-bold px-2 py-0.5 rounded tracking-widest uppercase cursor-help"
-                                            [title]="emp.borrowingReason || 'Borrowed'">Borrowed</span>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead
+                            class="bg-gray-50/50 text-[10px] font-bold text-gray-500 uppercase tracking-widest border-b border-gray-200">
+                            <tr>
+                                <th class="px-6 py-4 w-12 text-center">S.No.</th>
+                                <th class="px-6 py-4">Employee Info</th>
+                                <th class="px-6 py-4">Designation</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">Scheduled Shift</th>
+                                <th class="px-6 py-4">Machine Assigned</th>
+                                <th class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr *ngFor="let emp of employees; let i = index"
+                                class="hover:bg-gray-50/50 transition-colors">
+                                <td class="px-6 py-4 text-center text-gray-600 font-medium">
+                                    {{ (currentPage - 1) * 4 + i + 1 }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="font-bold text-gray-800 flex flex-col gap-1">
+                                        <div class="flex items-center gap-2">
+                                            {{ emp.name }}
+                                            <span *ngIf="emp.isBorrowed"
+                                                class="bg-blue-100 text-blue-700 text-[9px] font-bold px-2 py-0.5 rounded tracking-widest uppercase cursor-help"
+                                                [title]="emp.borrowingReason || 'Borrowed'">Borrowed</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500 font-normal">{{ emp.code || 'N/A' }}</span>
                                     </div>
-                                    <span class="text-xs text-gray-500 font-normal">{{ emp.code || 'N/A' }}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600 font-medium">{{ emp.designation }}</td>
-                            <td class="px-6 py-4">
-                                <span class="px-2.5 py-1 rounded text-xs font-bold border"
-                                    [ngClass]="{
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 font-medium">{{ emp.designation }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2.5 py-1 rounded text-xs font-bold border" [ngClass]="{
                                         'bg-green-50 text-green-700 border-green-200': emp.status === 'Present',
                                         'bg-blue-50 text-blue-700 border-blue-200': emp.status === 'Deployed',
                                         'bg-gray-50 text-gray-700 border-gray-200': emp.status !== 'Present' && emp.status !== 'Deployed'
                                     }">
-                                    {{ emp.status || 'N/A' }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600 font-medium">
-                                <div class="flex flex-col items-start gap-1">
-                                    <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded border border-gray-200">
-                                        {{ emp.homeShiftName || 'N/A' }}
+                                        {{ emp.status || 'N/A' }}
                                     </span>
-                                    <span *ngIf="emp.homeRelayShift" class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-                                        {{ emp.homeRelayShift.replace('_', ' ') }}
-                                    </span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 text-gray-600">{{ emp.machine }}</td>
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end gap-3 text-lg">
-                                    <button (click)="editEmployee(emp)" title="Edit Assignment"
-                                        class="text-gray-400 hover:text-[#468faf] transition-colors"><i
-                                            class="fas fa-edit"></i></button>
-                                    <button (click)="removeEmployee(emp)" title="Remove Employee"
-                                        class="text-gray-400 hover:text-red-500 transition-colors"><i
-                                            class="far fa-trash-alt"></i></button>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <!-- Footer / Pagination -->
-            <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center bg-gray-50/50">
-                <div class="text-sm text-gray-500">Showing {{ (currentPage - 1) * 4 + 1 }}-{{ currentPage * 4 >
-                    totalEmployees ? totalEmployees : currentPage * 4 }} of {{ totalEmployees }}
-                    employees</div>
-                <div class="flex gap-2">
-                    <button (click)="prevPage()" [disabled]="currentPage === 1"
-                        [ngClass]="{'opacity-50 cursor-not-allowed': currentPage === 1}"
-                        class="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button (click)="nextPage()" [disabled]="currentPage === totalPages"
-                        [ngClass]="{'opacity-50 cursor-not-allowed': currentPage === totalPages}"
-                        class="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 transition-colors">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 font-medium">
+                                    <div class="flex flex-col items-start gap-1">
+                                        <span
+                                            class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded border border-gray-200">
+                                            {{ emp.homeShiftName || 'N/A' }}
+                                        </span>
+                                        <span *ngIf="emp.homeRelayShift"
+                                            class="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                                            {{ emp.homeRelayShift.replace('_', ' ') }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">{{ emp.machine }}</td>
+                                <td class="px-6 py-4 text-right">
+                                    <div class="flex items-center justify-end gap-3 text-lg">
+                                        <button (click)="editEmployee(emp)" title="Edit Assignment"
+                                            class="text-gray-400 hover:text-[#468faf] transition-colors"><i
+                                                class="fas fa-edit"></i></button>
+                                        <button (click)="removeEmployee(emp)" title="Remove Employee"
+                                            class="text-gray-400 hover:text-red-500 transition-colors"><i
+                                                class="far fa-trash-alt"></i></button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Footer / Pagination -->
+                <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center bg-gray-50/50">
+                    <div class="text-sm text-gray-500">Showing {{ (currentPage - 1) * 4 + 1 }}-{{ currentPage * 4 >
+                        totalEmployees ? totalEmployees : currentPage * 4 }} of {{ totalEmployees }}
+                        employees</div>
+                    <div class="flex gap-2">
+                        <button (click)="prevPage()" [disabled]="currentPage === 1"
+                            [ngClass]="{'opacity-50 cursor-not-allowed': currentPage === 1}"
+                            class="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button (click)="nextPage()" [disabled]="currentPage === totalPages"
+                            [ngClass]="{'opacity-50 cursor-not-allowed': currentPage === totalPages}"
+                            class="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 transition-colors">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-        </div>
 
         <ng-template #futureDateMessage>
-            <div class="bg-blue-50/50 border border-blue-100 rounded shadow-sm p-8 flex flex-col items-center justify-center text-center mb-6 mt-4">
-                <div class="w-16 h-16 bg-blue-100/50 text-[#468faf] rounded-full flex items-center justify-center text-2xl mb-4">
+            <div
+                class="bg-blue-50/50 border border-blue-100 rounded shadow-sm p-8 flex flex-col items-center justify-center text-center mb-6 mt-4">
+                <div
+                    class="w-16 h-16 bg-blue-100/50 text-[#468faf] rounded-full flex items-center justify-center text-2xl mb-4">
                     <i class="fas fa-robot"></i>
                 </div>
                 <h3 class="text-[#2c7da0] font-bold text-lg mb-2">Automated Roster Generation</h3>
                 <p class="text-gray-500 text-sm max-w-xl leading-relaxed">
-                    Workforce deployment for future dates is automatically managed by the <span class="font-bold text-gray-700">Master Relay Sequence</span>. 
+                    Workforce deployment for future dates is automatically managed by the <span
+                        class="font-bold text-gray-700">Master Relay Sequence</span>.
                     <br>Manual assignment overrides and employee borrowing are only permitted for today's active shift.
                 </p>
             </div>
@@ -348,7 +356,8 @@
             <button
                 class="border border-gray-300 bg-white text-gray-700 px-6 py-2.5 rounded text-sm font-bold hover:bg-gray-50 transition-colors"
                 (click)="goBack()">Cancel</button>
-            <button class="bg-[#468faf] text-white px-6 py-2.5 rounded text-sm font-bold flex items-center gap-2 transition-colors"
+            <button
+                class="bg-[#468faf] text-white px-6 py-2.5 rounded text-sm font-bold flex items-center gap-2 transition-colors"
                 [disabled]="!showEmployeeDeployment"
                 [ngClass]="!showEmployeeDeployment ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#2c7da0]'"
                 (click)="publishShift()">
@@ -371,50 +380,56 @@
         </div>
         <div class="p-6 space-y-5 min-h-[420px] flex flex-col">
             <div>
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Machine Type <span
-                        class="text-red-500">*</span></label>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Machine Type
+                    <span class="text-red-500">*</span></label>
                 <ng-select [(ngModel)]="newMachine.categoryId" [items]="filteredMachineCategories" bindLabel="name"
                     bindValue="id" placeholder="Select Type" class="w-full text-sm font-medium"
-                    (ngModelChange)="onMachineCategoryChange()"
-                    [disabled]="isMachineTypeLocked" appendTo="body">
+                    (ngModelChange)="onMachineCategoryChange()" [disabled]="isMachineTypeLocked" appendTo="body">
                 </ng-select>
             </div>
             <div>
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Machine <span
                         class="text-red-500">*</span></label>
                 <ng-select [(ngModel)]="newMachine.id" [items]="machineNames" [searchFn]="customMachineSearchFn"
-                    bindLabel="name" bindValue="id" placeholder="Select Machine" class="w-full text-sm font-medium" appendTo="body">
+                    bindLabel="name" bindValue="id" placeholder="Select Machine" class="w-full text-sm font-medium"
+                    appendTo="body">
                     <ng-template ng-option-tmp let-item="item">
                         <div class="flex justify-between items-center py-1.5 border-b border-gray-50 last:border-0">
                             <div class="flex flex-col gap-0.5">
-                                <span class="font-bold text-[13px]" [ngClass]="{'text-gray-400': item.disabled, 'text-gray-800': !item.disabled}">
+                                <span class="font-bold text-[13px]"
+                                    [ngClass]="{'text-gray-400': item.disabled, 'text-gray-800': !item.disabled}">
                                     {{ item.name }}
                                 </span>
                                 <span *ngIf="item.code" class="text-[11px] text-gray-500 font-medium">
                                     {{ item.code }}
                                 </span>
-                                <span *ngIf="item.shortReason" class="text-[10px] font-semibold text-red-400/90 tracking-wide">
+                                <span *ngIf="item.shortReason"
+                                    class="text-[10px] font-semibold text-red-400/90 tracking-wide">
                                     {{ item.shortReason }}
                                 </span>
                             </div>
-                            <span *ngIf="item.status" class="text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider"
-                                  [ngClass]="item.status === 'available' ? 'bg-green-50 text-green-600 border border-green-100/50' : 'bg-red-50 text-red-500 border border-red-100/50'">
+                            <span *ngIf="item.status"
+                                class="text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider"
+                                [ngClass]="item.status === 'available' ? 'bg-green-50 text-green-600 border border-green-100/50' : 'bg-red-50 text-red-500 border border-red-100/50'">
                                 {{ item.status }}
                             </span>
                         </div>
                     </ng-template>
                     <ng-template ng-label-tmp let-item="item">
                         <span class="font-bold text-gray-800 text-[13px]">{{ item.name }}</span>
-                        <span *ngIf="item.code" class="text-[11px] text-gray-500 font-normal ml-1.5">({{ item.code }})</span>
+                        <span *ngIf="item.code" class="text-[11px] text-gray-500 font-normal ml-1.5">({{ item.code
+                            }})</span>
                     </ng-template>
                 </ng-select>
             </div>
         </div>
         <div class="bg-gray-50/80 px-6 py-4 border-t border-gray-100 flex justify-end gap-3 rounded-b-xl">
-            <button class="text-gray-500 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded-md transition-colors" (click)="closeAddMachineryModal()">Cancel</button>
+            <button class="text-gray-500 font-bold text-sm px-4 py-2 hover:bg-gray-200 rounded-md transition-colors"
+                (click)="closeAddMachineryModal()">Cancel</button>
             <button class="text-white font-bold text-sm px-6 py-2 rounded-md transition-colors shadow-sm"
                 [ngClass]="(!newMachine.categoryId || !newMachine.id) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-[#468faf] hover:bg-[#2c7da0]'"
-                [disabled]="!newMachine.categoryId || !newMachine.id" (click)="addMachineToShift()">Add Machinery</button>
+                [disabled]="!newMachine.categoryId || !newMachine.id" (click)="addMachineToShift()">Add
+                Machinery</button>
         </div>
     </div>
 </div>
@@ -473,9 +488,7 @@
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Assign Machine <span
                         class="text-gray-400 font-normal">(Optional)</span></label>
-                <ng-select [(ngModel)]="newEmployee.machineAssigned"
-                    class="w-full text-sm"
-                    dropdownPosition="bottom"
+                <ng-select [(ngModel)]="newEmployee.machineAssigned" class="w-full text-sm" dropdownPosition="bottom"
                     placeholder="Select Machine">
                     <ng-option value="">Unassigned</ng-option>
                     <ng-option value="EXC-101">EXC-101 (Excavator)</ng-option>
@@ -519,10 +532,8 @@
             <div>
                 <label class="block text-xs font-bold text-gray-600 uppercase tracking-widest mb-2">Assign Machine <span
                         class="text-gray-400 font-normal">(Optional)</span></label>
-                <ng-select [(ngModel)]="editEmployeeData.machineAssigned"
-                    class="w-full text-sm"
-                    dropdownPosition="bottom"
-                    placeholder="Select Machine">
+                <ng-select [(ngModel)]="editEmployeeData.machineAssigned" class="w-full text-sm"
+                    dropdownPosition="bottom" placeholder="Select Machine">
                     <ng-option value="">Unassigned</ng-option>
                     <ng-option value="EXC-101">EXC-101 (Excavator)</ng-option>
                     <ng-option value="EXC-102">EXC-102 (Excavator)</ng-option>
@@ -580,23 +591,26 @@
                 (click)="closeValidationModal()">&times;</button>
         </div>
         <div class="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-            <p class="text-sm text-gray-600 mb-2">Please resolve the following issues before publishing the shift plan:</p>
-            
+            <p class="text-sm text-gray-600 mb-2">Please resolve the following issues before publishing the shift plan:
+            </p>
+
             <div class="flex flex-col gap-3">
-                <div *ngFor="let validation of validationErrors | keyvalue" 
-                     class="flex items-start gap-3 p-3 rounded-lg border transition-all"
-                     [ngClass]="validation.value.status ? 'bg-green-50/30 border-green-100' : 'bg-red-50 border-red-200 shadow-sm'">
-                    
+                <div *ngFor="let validation of validationErrors | keyvalue"
+                    class="flex items-start gap-3 p-3 rounded-lg border transition-all"
+                    [ngClass]="validation.value.status ? 'bg-green-50/30 border-green-100' : 'bg-red-50 border-red-200 shadow-sm'">
+
                     <div class="mt-0.5">
                         <i *ngIf="validation.value.status" class="fas fa-check-circle text-green-500 text-lg"></i>
                         <i *ngIf="!validation.value.status" class="fas fa-times-circle text-red-500 text-lg"></i>
                     </div>
                     <div class="flex-1 flex flex-col justify-center min-h-[24px]">
-                        <p class="text-sm font-bold" [ngClass]="validation.value.status ? 'text-gray-600' : 'text-red-700'">
+                        <p class="text-sm font-bold"
+                            [ngClass]="validation.value.status ? 'text-gray-600' : 'text-red-700'">
                             {{ validation.value.message }}
                         </p>
                         <!-- Actionable suggestions for common failures -->
-                        <p *ngIf="!validation.value.status && validation.key === 'equipment_allocated'" class="text-xs text-red-600/80 mt-1">
+                        <p *ngIf="!validation.value.status && validation.key === 'equipment_allocated'"
+                            class="text-xs text-red-600/80 mt-1">
                             Go to 'Equipment Allocation' section to add machinery.
                         </p>
                     </div>
@@ -604,7 +618,8 @@
             </div>
         </div>
         <div class="bg-gray-50/80 px-6 py-4 border-t border-gray-100 flex justify-end gap-3 rounded-b-xl">
-            <button class="bg-[#468faf] hover:bg-[#2c7da0] text-white font-bold text-sm px-6 py-2 rounded-md transition-colors shadow-sm"
+            <button
+                class="bg-[#468faf] hover:bg-[#2c7da0] text-white font-bold text-sm px-6 py-2 rounded-md transition-colors shadow-sm"
                 (click)="closeValidationModal()">Got it</button>
         </div>
     </div>

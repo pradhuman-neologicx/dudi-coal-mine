@@ -36,7 +36,7 @@ export interface MachineShiftOption {
   machine_id: number | string;
   category_id: number | string;
   machine_name?: string;
-  equipment_code?: string;
+  model_number?: string;
   chassis_number?: string;
   category_name?: string;
   [key: string]: any;
@@ -124,7 +124,7 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
     term = term.toLowerCase();
     const nameMatch = item.machine_name && item.machine_name.toLowerCase().includes(term);
     const categoryMatch = item.category_name && item.category_name.toLowerCase().includes(term);
-    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    const codeMatch = (item.model_number || item.code) && (item.model_number || item.code).toLowerCase().includes(term);
     return Boolean(nameMatch || categoryMatch || codeMatch);
   };
 
@@ -299,7 +299,7 @@ export class BreakdownAndMaintenanceComponent implements OnInit, OnDestroy {
           this.tickets = data.map((item: any) => ({
             ticketNo: item.ticket_number,
             machineId: item.equipment_name,
-            equipmentCode: item.equipment_code || item.code || '',
+            equipmentCode: item.model_number || item.code || '',
             chassisNumber: item.chassis_number || '',
             machineType: item.equipment_category,
             breakdownTime: item.breakdown_date_time,

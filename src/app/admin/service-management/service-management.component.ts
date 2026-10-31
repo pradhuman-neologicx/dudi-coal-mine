@@ -23,7 +23,7 @@ import { takeUntil } from 'rxjs/operators';
 export interface MachineOption {
   id: number | string;
   name: string;
-  equipment_code?: string;
+  model_number?: string;
   chassis_number?: string;
   categoryName?: string;
 }
@@ -163,7 +163,7 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
     if (!term) return true;
     term = term.toLowerCase();
     const nameMatch = item.name && item.name.toLowerCase().includes(term);
-    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    const codeMatch = (item.model_number) && (item.model_number).toLowerCase().includes(term);
     const categoryMatch = item.categoryName && item.categoryName.toLowerCase().includes(term);
     return Boolean(nameMatch || codeMatch || categoryMatch);
   };
@@ -172,7 +172,7 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
     if (!term) return true;
     term = term.toLowerCase();
     const nameMatch = item.machine_name && item.machine_name.toLowerCase().includes(term);
-    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    const codeMatch = (item.model_number) && (item.model_number).toLowerCase().includes(term);
     const categoryMatch = item.category_name && item.category_name.toLowerCase().includes(term);
     return Boolean(nameMatch || codeMatch || categoryMatch);
   };
@@ -221,7 +221,7 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
             this.machines = list.map((item: any) => ({
               id: item.id || item.equipment_name_id,
               name: item.equipment_name || item.name || `Machine #${item.id}`,
-              equipment_code: item.equipment_code || item.code || '',
+              model_number: item.model_number || '',
               chassis_number: item.chassis_number || '',
               categoryName: item.equipment_category_name || '',
             }));
@@ -284,7 +284,7 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
               ticketNumber: item.ticket_number || `BRK-${item.id}`,
               machineId: item.equipment_name_id || item.equipment_id,
               equipmentName: item.equipment_name || '',
-              equipmentCode: item.equipment_code || item.code || '',
+              equipmentCode: item.model_number|| '',
               type:
                 item.breakdown_type || item.equipment_category || 'Breakdown',
               description:
@@ -987,9 +987,9 @@ export class ServiceManagementComponent implements OnInit, OnDestroy {
       fallback.machineName ||
       (machineId ? `Machine #${machineId}` : '');
     const equipmentCode =
-      data.machine?.equipment_code ||
+      data.machine?.model_number ||
       data.machine?.code ||
-      data.equipment_code ||
+      data.model_number ||
       fallback.equipmentCode ||
       '';
     const breakdownId =

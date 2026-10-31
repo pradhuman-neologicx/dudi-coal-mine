@@ -23,15 +23,11 @@
     <!-- Filters Area -->
     <div class="flex justify-end items-center gap-3 mb-6 flex-wrap">
       <!-- Shift Dropdown -->
-      <div class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-1 text-sm text-gray-700 min-w-[140px] shadow-sm focus-within:border-[#0f2a4a]">
-        <ng-select [(ngModel)]="filterShift" 
-                   (change)="loadIncidents()" 
-                   [items]="mockShifts" 
-                   bindLabel="shift_name"
-                   bindValue="id" 
-                   placeholder="All Shifts" 
-                   [clearable]="true" 
-                   class="flex-1 font-medium w-full custom-filter-select">
+      <div
+        class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-1 text-sm text-gray-700 min-w-[140px] shadow-sm focus-within:border-[#0f2a4a]">
+        <ng-select [(ngModel)]="filterShift" (change)="loadIncidents()" [items]="mockShifts" bindLabel="shift_name"
+          bindValue="id" placeholder="All Shifts" [clearable]="true"
+          class="flex-1 font-medium w-full custom-filter-select">
         </ng-select>
       </div>
 
@@ -53,8 +49,8 @@
       <!-- Date To -->
       <div class="flex items-center bg-white border border-gray-300 rounded px-3 py-1.5 shadow-sm">
         <label class="text-[10px] font-bold text-gray-500 mr-2 tracking-wide uppercase">To:</label>
-        <input type="date" [(ngModel)]="filterDateTo" (change)="selectedDateRange=''; loadIncidents()" [min]="filterDateFrom"
-          class="text-sm text-gray-700 focus:outline-none bg-transparent">
+        <input type="date" [(ngModel)]="filterDateTo" (change)="selectedDateRange=''; loadIncidents()"
+          [min]="filterDateFrom" class="text-sm text-gray-700 focus:outline-none bg-transparent">
       </div>
 
       <!-- Reset Button -->
@@ -171,12 +167,8 @@
           <h2 class="text-lg font-bold text-[#0f2a4a]">Incident Register</h2>
           <div class="flex items-center gap-2 text-sm text-gray-600 border-l border-gray-300 pl-4 hidden sm:flex">
             <span>Show</span>
-            <ng-select class="custom-ng-select min-w-[80px]" 
-                       [items]="tableSizes" 
-                       [clearable]="false" 
-                       [searchable]="false" 
-                       (change)="onLimitChange()"
-                       [(ngModel)]="limit">
+            <ng-select class="custom-ng-select min-w-[80px]" [items]="tableSizes" [clearable]="false"
+              [searchable]="false" (change)="onLimitChange()" [(ngModel)]="limit">
             </ng-select>
             <span>entries</span>
           </div>
@@ -207,23 +199,21 @@
           </div>
           <div class="flex-1 min-w-[150px]">
             <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">SHIFT</label>
-            <ng-select [items]="mockShifts" bindLabel="shift_name" bindValue="id"
-              placeholder="All Shifts" class="custom-ng-select w-full"
-              [(ngModel)]="filterShift" (change)="loadIncidents()" [clearable]="true">
+            <ng-select [items]="mockShifts" bindLabel="shift_name" bindValue="id" placeholder="All Shifts"
+              class="custom-ng-select w-full" [(ngModel)]="filterShift" (change)="loadIncidents()" [clearable]="true">
             </ng-select>
           </div>
           <div class="flex-1 min-w-[150px]">
             <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">LOCATION</label>
-            <ng-select [items]="mockLocations" bindLabel="name" bindValue="id"
-              placeholder="All Locations" class="custom-ng-select w-full"
-              [(ngModel)]="filterLocation" (change)="loadIncidents()" [clearable]="true">
+            <ng-select [items]="mockLocations" bindLabel="name" bindValue="id" placeholder="All Locations"
+              class="custom-ng-select w-full" [(ngModel)]="filterLocation" (change)="loadIncidents()"
+              [clearable]="true">
             </ng-select>
           </div>
           <div class="flex-1 min-w-[150px]">
             <label class="block text-[10px] font-bold text-gray-500 mb-1 tracking-wide">INCIDENT TYPE</label>
-            <ng-select [items]="mockIncidentTypes" bindLabel="incident_type" bindValue="id"
-              placeholder="All Types" class="custom-ng-select w-full"
-              [(ngModel)]="selectedType" (change)="loadIncidents()" [clearable]="true">
+            <ng-select [items]="mockIncidentTypes" bindLabel="incident_type" bindValue="id" placeholder="All Types"
+              class="custom-ng-select w-full" [(ngModel)]="selectedType" (change)="loadIncidents()" [clearable]="true">
             </ng-select>
           </div>
 
@@ -442,6 +432,77 @@
         </ng-select>
       </div>
 
+      <!-- Machine Details -->
+      <div class="mb-6">
+        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Machine Details</h3>
+        
+        <!-- View Mode -->
+        <div *ngIf="!isEditMode">
+          <div *ngIf="selectedIncident.equipment_category || selectedIncident.equipment__name || selectedIncident.equipment_name; else noMachineView"
+            class="flex items-center justify-between p-3 border border-gray-200 rounded bg-gray-50/50">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-amber-100 text-amber-800 font-bold text-sm rounded flex items-center justify-center">
+                <i class="fas fa-truck-monster text-amber-700 text-base"></i>
+              </div>
+              <div>
+                <div class="text-sm font-bold text-gray-900 flex items-center gap-2 flex-wrap">
+                  <span>{{ selectedIncident.equipment__name || selectedIncident.equipment_name || 'N/A' }}</span>
+                  <span *ngIf="selectedIncident.model_number" class="text-xs font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
+                    {{ selectedIncident.model_number }}
+                  </span>
+                </div>
+                <div class="text-xs text-gray-500 flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span *ngIf="selectedIncident.equipment_category">
+                    Category: <strong class="text-gray-700 font-medium">{{ selectedIncident.equipment_category }}</strong>
+                  </span>
+                  <span *ngIf="selectedIncident.equipment_category && selectedIncident.chassis_number" class="text-gray-300">•</span>
+                  <span *ngIf="selectedIncident.chassis_number">
+                    Chassis: <strong class="text-gray-700 font-medium">{{ selectedIncident.chassis_number }}</strong>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Machine</div>
+          </div>
+          <ng-template #noMachineView>
+            <div class="p-3 border border-gray-200 rounded text-sm text-gray-500 italic bg-gray-50/50">
+              No machine assigned to this incident.
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Edit Mode -->
+        <div *ngIf="isEditMode" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+          <div>
+            <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Machine Category</label>
+            <ng-select [items]="allMachineCategories.length ? allMachineCategories : machineCategories" bindLabel="name" bindValue="id"
+              [(ngModel)]="selectedIncident.equipment_id"
+              (change)="onEditMachineCategoryChange($event)"
+              placeholder="Select category..." class="custom-ng-select w-full">
+            </ng-select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Machine Name</label>
+            <ng-select [items]="editMachineNames" bindLabel="name" bindValue="id"
+              [(ngModel)]="selectedIncident.equipment_name_id"
+              (change)="onEditMachineNameChange($event)"
+              placeholder="Select machine name..."
+              [searchFn]="customMachineSearchFn" class="custom-ng-select w-full"
+              [disabled]="!selectedIncident.equipment_id">
+              <ng-template ng-label-tmp let-item="item">
+                <span>{{ item.name }} <span *ngIf="item.model_number" class="text-xs text-gray-500 font-normal">({{ item.model_number }})</span></span>
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                <div class="flex flex-col py-0.5">
+                  <span class="font-bold text-[13px] text-gray-800">{{ item.name }}</span>
+                  <span *ngIf="item.model_number" class="text-[11px] text-gray-500 font-medium">{{ item.model_number }}</span>
+                </div>
+              </ng-template>
+            </ng-select>
+          </div>
+        </div>
+      </div>
+
 
       <!-- Attachments -->
       <div class="mb-8">
@@ -551,15 +612,18 @@
                 class="w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-[var(--primary-color)]">
             </div>
             <div>
-              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Shift <span class="text-red-500">*</span></label>
-              <input type="text" [value]="newIncidentForm.shift_name || ''" readonly placeholder="Auto-selected by Date & Time"
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Shift <span
+                  class="text-red-500">*</span></label>
+              <input type="text" [value]="newIncidentForm.shift_name || ''" readonly
+                placeholder="Auto-selected by Date & Time"
                 class="w-full border border-gray-300 bg-gray-100 rounded px-3 py-2 text-sm text-gray-500 focus:outline-none cursor-not-allowed">
             </div>
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Incident
                 Type <span class="text-red-500">*</span></label>
               <ng-select [items]="mockIncidentTypes" bindLabel="incident_type" bindValue="id"
-                placeholder="Select Category" class="custom-ng-select w-full" [(ngModel)]="newIncidentForm.incident_type_id">
+                placeholder="Select Category" class="custom-ng-select w-full"
+                [(ngModel)]="newIncidentForm.incident_type_id">
               </ng-select>
             </div>
             <div>
@@ -572,7 +636,8 @@
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Location <span class="text-red-500">*</span></label>
+              <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Location <span
+                  class="text-red-500">*</span></label>
               <ng-select [items]="mockLocations" bindLabel="name" bindValue="id"
                 placeholder="Search and select location..." class="custom-ng-select w-full"
                 [(ngModel)]="newIncidentForm.location_id">
@@ -583,10 +648,10 @@
                 Involved</label>
               <ng-select [items]="activeShiftEmployees" bindLabel="name" bindValue="id"
                 placeholder="Search and select employee..." class="custom-ng-select w-full"
-                [searchFn]="customEmployeeSearchFn"
-                [(ngModel)]="newIncidentForm.person_involved_id">
+                [searchFn]="customEmployeeSearchFn" [(ngModel)]="newIncidentForm.person_involved_id">
                 <ng-template ng-label-tmp let-item="item">
-                  <span>{{ item.name }} <span *ngIf="item.employee_code" class="text-xs text-gray-500 font-normal">({{ item.employee_code }})</span></span>
+                  <span>{{ item.name }} <span *ngIf="item.employee_code" class="text-xs text-gray-500 font-normal">({{
+                      item.employee_code }})</span></span>
                 </ng-template>
                 <ng-template ng-option-tmp let-item="item">
                   <div class="flex flex-col py-1">
@@ -602,8 +667,8 @@
             <div>
               <label class="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-1">Machine
                 Category</label>
-              <ng-select [items]="machineCategories" bindLabel="name" bindValue="id"
-                [(ngModel)]="newIncidentForm.equipment_id" (change)="onMachineCategoryChange($event ? $event.id : null)"
+              <ng-select [items]="machineCategories.length ? machineCategories : allMachineCategories" bindLabel="name" bindValue="id"
+                [(ngModel)]="newIncidentForm.equipment_id" (change)="onMachineCategoryChange($event)"
                 placeholder="Select category..." class="custom-ng-select w-full">
               </ng-select>
             </div>
@@ -612,18 +677,19 @@
                 Name</label>
               <ng-select [items]="machineNames" bindLabel="name" bindValue="id"
                 [(ngModel)]="newIncidentForm.equipment_name_id" placeholder="Select machine name..."
-                [searchFn]="customMachineSearchFn"
-                class="custom-ng-select w-full" [disabled]="!newIncidentForm.equipment_id">
+                [searchFn]="customMachineSearchFn" class="custom-ng-select w-full"
+                [disabled]="!newIncidentForm.equipment_id">
                 <ng-template ng-label-tmp let-item="item">
-                  <span>{{ item.name }} <span *ngIf="item.equipment_code" class="text-xs text-gray-500 font-normal">({{ item.equipment_code }})</span></span>
+                  <span>{{ item.name }} <span *ngIf="item.model_number" class="text-xs text-gray-500 font-normal">({{
+                      item.model_number }})</span></span>
                 </ng-template>
                 <ng-template ng-option-tmp let-item="item">
                   <div class="flex flex-col py-0.5">
                     <span class="font-bold text-[13px] text-gray-800">
                       {{ item.name }}
                     </span>
-                    <span *ngIf="item.equipment_code" class="text-[11px] text-gray-500 font-medium">
-                      {{ item.equipment_code }}
+                    <span *ngIf="item.model_number" class="text-[11px] text-gray-500 font-medium">
+                      {{ item.model_number }}
                     </span>
                   </div>
                 </ng-template>
@@ -734,12 +800,14 @@
   <!-- Import Modal -->
   <div *ngIf="isImportModalOpen"
     class="fixed inset-0 bg-[#0f2a4a]/40 z-[110] flex items-center justify-center font-sans p-4 sm:p-6 backdrop-blur-[2px] transition-all duration-300">
-    <div class="bg-white w-full max-w-[600px] flex flex-col rounded-xl shadow-2xl relative border border-gray-100 animate-fade-in-up">
-      
+    <div
+      class="bg-white w-full max-w-[600px] flex flex-col rounded-xl shadow-2xl relative border border-gray-100 animate-fade-in-up">
+
       <!-- Header -->
       <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50/80">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-lg shadow-sm">
+          <div
+            class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-lg shadow-sm">
             <i class="fas fa-file-excel"></i>
           </div>
           <div>
@@ -747,7 +815,8 @@
             <p class="text-xs text-gray-500">Upload an Excel file to import incident records</p>
           </div>
         </div>
-        <button (click)="closeImportModal()" class="w-8 h-8 rounded bg-white border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-all shadow-sm">
+        <button (click)="closeImportModal()"
+          class="w-8 h-8 rounded bg-white border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-all shadow-sm">
           <i class="fas fa-times"></i>
         </button>
       </div>
@@ -755,27 +824,32 @@
       <!-- Body -->
       <div class="p-6">
         <!-- File Upload Area -->
-        <div *ngIf="!importResult" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors relative cursor-pointer group"
-             (click)="importFileInputRef.click()">
-          <input type="file" #importFileInputRef (change)="onImportFileSelected($event)" accept=".xlsx, .xls, .csv" class="hidden">
-          
+        <div *ngIf="!importResult"
+          class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors relative cursor-pointer group"
+          (click)="importFileInputRef.click()">
+          <input type="file" #importFileInputRef (change)="onImportFileSelected($event)" accept=".xlsx, .xls, .csv"
+            class="hidden">
+
           <div *ngIf="isImporting" class="flex flex-col items-center justify-center space-y-3">
             <div class="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
             <p class="text-sm font-bold text-gray-600">Uploading and Processing...</p>
           </div>
 
           <div *ngIf="!isImporting" class="flex flex-col items-center justify-center">
-            <div class="w-16 h-16 bg-white group-hover:bg-blue-50 rounded-full flex items-center justify-center shadow-sm mb-4 transition-colors">
+            <div
+              class="w-16 h-16 bg-white group-hover:bg-blue-50 rounded-full flex items-center justify-center shadow-sm mb-4 transition-colors">
               <i class="fas fa-cloud-upload-alt text-3xl text-blue-500"></i>
             </div>
             <p class="text-base font-bold text-gray-700 mb-1">Click to browse or drag and drop</p>
             <p class="text-xs text-gray-500 mb-4">
               Support for Excel (.xlsx) and CSV files<br>
-              <a href="assets/bulk_incidents.xlsx" download class="text-blue-600 hover:text-blue-800 hover:underline mt-2 inline-block font-semibold">
+              <a href="assets/bulk_incidents.xlsx" download
+                class="text-blue-600 hover:text-blue-800 hover:underline mt-2 inline-block font-semibold">
                 <i class="fas fa-download mr-1"></i>Download Sample File
               </a>
             </p>
-            <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-lg transition-colors shadow-sm">
+            <button
+              class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-lg transition-colors shadow-sm">
               Select File
             </button>
           </div>
@@ -784,8 +858,10 @@
         <!-- Result Area -->
         <div *ngIf="importResult" class="space-y-4">
           <!-- Success State -->
-          <div *ngIf="importResult.status === 'success'" class="bg-green-50 border border-green-200 rounded-xl p-6 text-center shadow-inner">
-            <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div *ngIf="importResult.status === 'success'"
+            class="bg-green-50 border border-green-200 rounded-xl p-6 text-center shadow-inner">
+            <div
+              class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <i class="fas fa-check text-3xl"></i>
             </div>
             <h3 class="text-lg font-bold text-green-800 mb-2">{{ importResult.message }}</h3>
@@ -793,33 +869,41 @@
           </div>
 
           <!-- Error State -->
-          <div *ngIf="importResult.status !== 'success'" class="bg-red-50 border border-red-200 rounded-xl p-5 shadow-inner">
-             <div class="flex items-start gap-4 mb-4">
-                <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm text-red-500">
-                  <i class="fas fa-exclamation-triangle text-2xl"></i>
-                </div>
-                <div>
-                  <h3 class="text-base font-bold text-red-800">{{ importResult.message || 'Import process completed with errors.' }}</h3>
-                  <p class="text-xs mt-1 font-medium text-red-600">The following issues were encountered during the import process:</p>
-                </div>
-             </div>
-             
-             <!-- Error List -->
-             <div *ngIf="importResult.errors && importResult.errors.length > 0" class="bg-white rounded-lg border border-red-100 p-4 max-h-56 overflow-y-auto custom-scrollbar shadow-sm">
-                <ul class="space-y-2.5">
-                  <li *ngFor="let err of importResult.errors" class="text-sm text-red-600 flex items-start gap-2.5 bg-red-50/50 p-2 rounded">
-                    <i class="fas fa-circle text-[6px] mt-2 flex-shrink-0 text-red-400"></i>
-                    <span class="font-medium leading-snug">{{ err }}</span>
-                  </li>
-                </ul>
-             </div>
+          <div *ngIf="importResult.status !== 'success'"
+            class="bg-red-50 border border-red-200 rounded-xl p-5 shadow-inner">
+            <div class="flex items-start gap-4 mb-4">
+              <div
+                class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm text-red-500">
+                <i class="fas fa-exclamation-triangle text-2xl"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-red-800">{{ importResult.message || 'Import process completed with
+                  errors.' }}</h3>
+                <p class="text-xs mt-1 font-medium text-red-600">The following issues were encountered during the import
+                  process:</p>
+              </div>
+            </div>
+
+            <!-- Error List -->
+            <div *ngIf="importResult.errors && importResult.errors.length > 0"
+              class="bg-white rounded-lg border border-red-100 p-4 max-h-56 overflow-y-auto custom-scrollbar shadow-sm">
+              <ul class="space-y-2.5">
+                <li *ngFor="let err of importResult.errors"
+                  class="text-sm text-red-600 flex items-start gap-2.5 bg-red-50/50 p-2 rounded">
+                  <i class="fas fa-circle text-[6px] mt-2 flex-shrink-0 text-red-400"></i>
+                  <span class="font-medium leading-snug">{{ err }}</span>
+                </li>
+              </ul>
+            </div>
           </div>
 
           <div class="flex justify-end pt-4 mt-2">
-            <button (click)="importResult = null" *ngIf="importResult.status !== 'success'" class="mr-4 text-sm font-bold text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-widest">
+            <button (click)="importResult = null" *ngIf="importResult.status !== 'success'"
+              class="mr-4 text-sm font-bold text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-widest">
               Try Again
             </button>
-            <button (click)="closeImportModal()" class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold py-2.5 px-6 rounded shadow-sm transition-colors uppercase tracking-widest">
+            <button (click)="closeImportModal()"
+              class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold py-2.5 px-6 rounded shadow-sm transition-colors uppercase tracking-widest">
               Close
             </button>
           </div>

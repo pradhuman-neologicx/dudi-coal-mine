@@ -65,9 +65,9 @@ export class DumpingComponent implements OnInit, OnDestroy {
   totalQuantity: number = 0;
   avgCycleTime: string = '00:00:00';
 
-  bestPerformingDumper: { dumper: string; equipment_code?: string; quantity: number } = { dumper: 'N/A', quantity: 0 };
-  highestTripDumper: { dumper: string; equipment_code?: string; trips: number } = { dumper: 'N/A', trips: 0 };
-  fastestDumper: { dumper: string; equipment_code?: string; cycleTime: number } = { dumper: 'N/A', cycleTime: 0 };
+  bestPerformingDumper: { dumper: string; model_number?: string; quantity: number } = { dumper: 'N/A', quantity: 0 };
+  highestTripDumper: { dumper: string; model_number?: string; trips: number } = { dumper: 'N/A', trips: 0 };
+  fastestDumper: { dumper: string; model_number?: string; cycleTime: number } = { dumper: 'N/A', cycleTime: 0 };
 
   page: number = 1;
   totalRecords: number = 0;
@@ -105,11 +105,23 @@ export class DumpingComponent implements OnInit, OnDestroy {
   dumpingPoints: any[] = [];
   allShifts: any[] = [];
 
+  getEquipmentModel(equipment: any): string {
+    if (!equipment) return '';
+    const rawModel = equipment.dumper_model_number || equipment.model_number || equipment.equipment_model_number || equipment.code;
+    if (!rawModel) return '';
+    if (typeof rawModel === 'string') return rawModel;
+    if (typeof rawModel === 'object') {
+      return rawModel.model_number || rawModel.equipment_model_number || '';
+    }
+    return String(rawModel);
+  }
+
   customMachineSearchFn = (term: string, item: any): boolean => {
     if (!term) return true;
     term = term.toLowerCase();
     const nameMatch = item.machine_name && item.machine_name.toLowerCase().includes(term);
-    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    const modelStr = this.getEquipmentModel(item);
+    const codeMatch = modelStr && modelStr.toLowerCase().includes(term);
     return Boolean(nameMatch || codeMatch);
   };
 
@@ -425,11 +437,11 @@ export class DumpingComponent implements OnInit, OnDestroy {
                 shift_date: shortDate,
                 shift_name: item.shift_plan?.shift?.shift_name || '',
                 dumper_no: item.dumper?.equipment_name || '',
-                dumper_code: item.dumper?.equipment_code || item.dumper?.code || '',
+                dumper_code: this.getEquipmentModel(item.dumper),
                 driver_name: item.driver?.name || '',
                 driver_code: item.driver?.employee_code || item.driver?.code || '',
                 excavator_no: item.excavator?.equipment_name || '',
-                excavator_code: item.excavator?.equipment_code || item.excavator?.code || '',
+                excavator_code: this.getEquipmentModel(item.excavator),
                 loading_point: item.loading_point?.name || '',
                 dumping_point: item.dumping_point?.name || '',
                 start_time: getShortTime(item.start_time),
@@ -471,19 +483,19 @@ export class DumpingComponent implements OnInit, OnDestroy {
               
               this.bestPerformingDumper = {
                 dumper: response.dashboard.best_performing_dumper?.dumper_number || 'N/A',
-                equipment_code: response.dashboard.best_performing_dumper?.equipment_code || response.dashboard.best_performing_dumper?.code || '',
+                model_number: this.getEquipmentModel(response.dashboard.best_performing_dumper),
                 quantity: response.dashboard.best_performing_dumper?.value || 0
               };
               
               this.highestTripDumper = {
                 dumper: response.dashboard.highest_trip_count_dumper?.dumper_number || 'N/A',
-                equipment_code: response.dashboard.highest_trip_count_dumper?.equipment_code || response.dashboard.highest_trip_count_dumper?.code || '',
+                model_number: this.getEquipmentModel(response.dashboard.highest_trip_count_dumper),
                 trips: response.dashboard.highest_trip_count_dumper?.value || 0
               };
               
               this.fastestDumper = {
                 dumper: response.dashboard.fastest_dumper?.dumper_number || 'N/A',
-                equipment_code: response.dashboard.fastest_dumper?.equipment_code || response.dashboard.fastest_dumper?.code || '',
+                model_number: this.getEquipmentModel(response.dashboard.fastest_dumper),
                 cycleTime: response.dashboard.fastest_dumper?.value || 0
               };
             }
@@ -620,12 +632,12 @@ export class DumpingComponent implements OnInit, OnDestroy {
                 trip_ref_no: item.trip_info?.trip_reference_no || '',
                 shift_date: shiftDateStr.split(' ')[0], // Extracts YYYY-MM-DD
                 shift_name: item.operational_info?.shift_plan?.shift_name || '',
-                dumper_no: item.equipment_info?.dumper?.machine_number || item.equipment_info?.dumper?.equipment_name || '',
-                dumper_code: item.equipment_info?.dumper?.equipment_code || item.equipment_info?.dumper?.code || trip.dumper_code || '',
+                dumper_no: item.equipment_info?.dumper?.machine_number || item.equipment_info?.dumper?.equipment_name || trip.dumper_no || '',
+                dumper_code: this.getEquipmentModel(item.equipment_info?.dumper) || trip.dumper_code || '',
                 driver_name: item.equipment_info?.driver?.name || '',
                 driver_code: item.equipment_info?.driver?.employee_code || item.equipment_info?.driver?.code || trip.driver_code || '',
-                excavator_no: item.equipment_info?.excavator?.machine_number || item.equipment_info?.excavator?.equipment_name || '',
-                excavator_code: item.equipment_info?.excavator?.equipment_code || item.equipment_info?.excavator?.code || trip.excavator_code || '',
+                excavator_no: item.equipment_info?.excavator?.machine_number || item.equipment_info?.excavator?.equipment_name || trip.excavator_no || '',
+                excavator_code: this.getEquipmentModel(item.equipment_info?.excavator) || trip.excavator_code || '',
                 loading_point: item.route_info?.loading_point?.name || '',
                 dumping_point: item.route_info?.dumping_point?.name || '',
                 start_time: getShortTime(item.trip_info?.start_time),

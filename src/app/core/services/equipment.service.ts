@@ -116,6 +116,11 @@ export class EquipmentService {
     return this.apiService.get('v1/machine-categories', this.getHeaders());
   }
 
+  getModels(id?: any): Observable<any> {
+    const query = id ? `?equipment_id=${id}` : '';
+    return this.apiService.get(`v1/equipment-model-numbers${query}`, this.getHeaders());
+  }
+
   getMachineNames(categoryId: any): Observable<any> {
     return this.apiService.get(`v1/machine-names/${categoryId}`, this.getHeaders());
   }
@@ -123,4 +128,5 @@ export class EquipmentService {
   getActiveMachines(): Observable<any> {
     return this.apiService.get('v1/active-machines', this.getHeaders());
   }
+
 }

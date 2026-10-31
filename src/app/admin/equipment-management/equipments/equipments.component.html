@@ -55,17 +55,22 @@
                   <span *ngIf="eq.chassis_number"><span class="fw-semibold">Chassis:</span> {{ eq.chassis_number
                     }}</span>
                 </div>
-                <span class="badge bg-secondary">{{ eq.categoryName }}</span>
+                <div class="d-flex align-items-center gap-1 flex-wrap">
+                  <span class="badge bg-secondary">{{ eq.categoryName }}</span>
+                  <span class="badge bg-light text-dark border" *ngIf="eq.modelName">
+                    <i class="fa-solid fa-tag text-muted me-1"></i>{{ eq.modelName }}
+                  </span>
+                </div>
               </div>
               <span class="badge" [ngClass]="eq.isActive ? 'bg-success' : 'bg-danger'">
                 {{ eq.isActive ? 'Active' : 'Inactive' }}
               </span>
             </div>
             <div class="mt-auto d-flex justify-content-between align-items-center gap-2">
-              <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(eq)">
+              <button class="btn btn-sm btn-outline-primary" (click)="openEditModal(eq)" *ngIf="eq.isActive">
                 <i class="fa-solid fa-edit me-1"></i> Edit
               </button>
-              <button class="btn btn-sm" [ngClass]="eq.isActive ? 'btn-outline-danger' : 'btn-outline-success'"
+              <button class="btn btn-sm" [ngClass]="[eq.isActive ? 'btn-outline-danger' : 'btn-outline-success', !eq.isActive ? 'ms-auto' : '']"
                 (click)="toggleActiveStatus(eq)">
                 <i class="fa-solid" [ngClass]="eq.isActive ? 'fa-ban' : 'fa-check-circle'"></i>
                 {{ eq.isActive ? 'Deactivate' : 'Activate' }}
@@ -107,6 +112,7 @@
           <label class="form-label form-lable-custom">Equipment Category *</label>
           <ng-select [items]="activeCategories" bindLabel="name" bindValue="id"
             placeholder="-- Select Equipment Category --" formControlName="categoryId"
+            (change)="onCategoryChange($event)"
             [ngClass]="{'is-invalid': equipmentForm.get('categoryId')?.invalid && equipmentForm.get('categoryId')?.touched}"
             class="custom-ng-select">
           </ng-select>
@@ -117,8 +123,11 @@
         </div>
         <div class="mb-3">
           <label class="form-label form-lable-custom">Equipment Model *</label>
-          <ng-select [items]="activeCategories" bindLabel="name" bindValue="id"
-            placeholder="-- Select Equipment Model --" formControlName="modelId"
+          <ng-select [items]="availableModels" bindLabel="name" bindValue="id"
+            [loading]="loadingModels"
+            [placeholder]="!equipmentForm.get('categoryId')?.value ? '-- Select Category First --' : '-- Select Equipment Model --'"
+            [disabled]="!equipmentForm.get('categoryId')?.value || loadingModels"
+            formControlName="modelId"
             [ngClass]="{'is-invalid': equipmentForm.get('modelId')?.invalid && equipmentForm.get('modelId')?.touched}"
             class="custom-ng-select">
           </ng-select>

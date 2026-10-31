@@ -98,8 +98,8 @@
         <div class="card-info">
           <span class="info-label">Best Performing Dumper</span>
           <span class="info-value" style="font-size: 1.5rem;">{{ bestPerformingDumper.dumper }}</span>
-          <span *ngIf="bestPerformingDumper.equipment_code" class="text-xs text-muted font-medium d-block">
-            {{ bestPerformingDumper.equipment_code }}
+          <span *ngIf="bestPerformingDumper.model_number" class="text-xs text-muted font-medium d-block">
+            {{ bestPerformingDumper.model_number }}
           </span>
           <span class="info-label" style="font-size: 0.8rem; margin-top: 4px;">{{ bestPerformingDumper.quantity | number
             }} BCM</span>
@@ -115,8 +115,8 @@
         <div class="card-info">
           <span class="info-label">Highest Trip Count Dumper</span>
           <span class="info-value" style="font-size: 1.5rem;">{{ highestTripDumper.dumper }}</span>
-          <span *ngIf="highestTripDumper.equipment_code" class="text-xs text-muted font-medium d-block">
-            {{ highestTripDumper.equipment_code }}
+          <span *ngIf="highestTripDumper.model_number" class="text-xs text-muted font-medium d-block">
+            {{ highestTripDumper.model_number }}
           </span>
           <span class="info-label" style="font-size: 0.8rem; margin-top: 4px;">{{ highestTripDumper.trips }}
             Trips</span>
@@ -132,8 +132,8 @@
         <div class="card-info">
           <span class="info-label">Fastest Dumper</span>
           <span class="info-value" style="font-size: 1.5rem;">{{ fastestDumper.dumper }}</span>
-          <span *ngIf="fastestDumper.equipment_code" class="text-xs text-muted font-medium d-block">
-            {{ fastestDumper.equipment_code }}
+          <span *ngIf="fastestDumper.model_number" class="text-xs text-muted font-medium d-block">
+            {{ fastestDumper.model_number }}
           </span>
           <span class="info-label" style="font-size: 0.8rem; margin-top: 4px;">{{ fastestDumper.cycleTime |
             number:'1.1-1' }} Mins</span>
@@ -351,11 +351,12 @@
           <div class="col-md-4">
             <label class="form-label form-lable-custom">Driver Name *</label>
             <ng-select formControlName="driver_name" [items]="drivers" bindLabel="name" bindValue="id"
-              [searchFn]="customDriverSearchFn"
-              placeholder="Select Driver" [clearable]="true" class="custom-ng-select w-full shadow-sm"
+              [searchFn]="customDriverSearchFn" placeholder="Select Driver" [clearable]="true"
+              class="custom-ng-select w-full shadow-sm"
               [ngClass]="{'is-invalid': tripForm.get('driver_name')?.invalid && tripForm.get('driver_name')?.touched}">
               <ng-template ng-label-tmp let-item="item">
-                <span>{{ item.name }} <span *ngIf="item.employee_code || item.code" class="text-xs text-muted">({{ item.employee_code || item.code }})</span></span>
+                <span>{{ item.name }} <span *ngIf="item.employee_code || item.code" class="text-xs text-muted">({{
+                    item.employee_code || item.code }})</span></span>
               </ng-template>
               <ng-template ng-option-tmp let-item="item">
                 <div class="d-flex flex-column py-1">
@@ -385,17 +386,18 @@
           <div class="col-md-4">
             <label class="form-label form-lable-custom">Dumper No *</label>
             <ng-select formControlName="dumper_no" [items]="dumpers" bindLabel="machine_name" bindValue="machine_id"
-              [searchFn]="customMachineSearchFn"
-              placeholder="Select Dumper" [clearable]="true" class="custom-ng-select w-full shadow-sm"
+              [searchFn]="customMachineSearchFn" placeholder="Select Dumper" [clearable]="true"
+              class="custom-ng-select w-full shadow-sm"
               [ngClass]="{'is-invalid': tripForm.get('dumper_no')?.invalid && tripForm.get('dumper_no')?.touched}">
               <ng-template ng-label-tmp let-item="item">
-                <span>{{ item.machine_name }} <span *ngIf="item.equipment_code || item.code" class="text-xs text-muted">({{ item.equipment_code || item.code }})</span></span>
+                <span>{{ item.machine_name }} <span *ngIf="item.model_number" class="text-xs text-muted">({{
+                    item.model_number}})</span></span>
               </ng-template>
               <ng-template ng-option-tmp let-item="item">
                 <div class="d-flex flex-column py-1">
                   <span class="fw-bold text-dark">{{ item.machine_name }}</span>
-                  <span *ngIf="item.equipment_code || item.code" class="text-muted small">
-                    {{ item.equipment_code || item.code }}
+                  <span *ngIf="item.model_number" class="text-muted small">
+                    {{ item.model_number}}
                   </span>
                 </div>
               </ng-template>
@@ -512,9 +514,9 @@
 
 
 <!-- View Modal -->
-<div *ngIf="viewModalOpen" class="your-animation-class modal-container premium-detail-modal"
-  aria-labelledby="modal-title" role="dialog" aria-modal="true">
-  <div class="modal-contenttop modal-content-50" [@fadeIn]>
+<div *ngIf="viewModalOpen" class="modal-container premium-detail-modal"
+  aria-labelledby="modal-title" role="dialog" aria-modal="true" (click)="closeModal()">
+  <div class="modal-dialog-view" [@fadeIn] (click)="$event.stopPropagation()">
     <div class="card">
       <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <div>
@@ -529,7 +531,7 @@
         <!-- Premium Summary Banner -->
         <div class="dept-summary-banner mb-0">
           <div class="banner-content">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
               <div>
                 <div class="banner-label">TRIP REFERENCE</div>
                 <div class="banner-value">{{ selectedTrip?.trip_ref_no }}</div>
@@ -541,29 +543,32 @@
                 </span>
               </div>
             </div>
-            <div class="banner-subtitle mt-2">
-              <i class="fa-solid fa-truck me-1"></i>
-              <strong>Dumper:</strong> {{ selectedTrip?.dumper_no }} <span *ngIf="selectedTrip?.dumper_code">({{ selectedTrip?.dumper_code }})</span> &nbsp;|&nbsp;
-              <i class="fa-solid fa-tractor me-1"></i>
-              <strong>Excavator:</strong> {{ selectedTrip?.excavator_no }} <span *ngIf="selectedTrip?.excavator_code">({{ selectedTrip?.excavator_code }})</span>
-            </div>
-            <div class="banner-subtitle mt-1">
-              <i class="fa-solid fa-user-tie me-1"></i>
-              <strong>Driver:</strong> {{ selectedTrip?.driver_name }} <span *ngIf="selectedTrip?.driver_code">({{ selectedTrip?.driver_code }})</span>
-            </div>
-            <div class="banner-subtitle mt-1">
-              <i class="fa-solid fa-location-dot me-1"></i>
-              {{ selectedTrip?.site_name || 'N/A' }}
-              &nbsp;|&nbsp;
-              <i class="fa-regular fa-calendar me-1"></i>
-              {{ selectedTrip?.shift_date || 'N/A' }}
-              &nbsp;|&nbsp;
-              <i class="fa-solid fa-sun me-1"></i>
-              {{ selectedTrip?.shift_name || 'N/A' }}
-            </div>
-            <div class="banner-subtitle mt-1" *ngIf="selectedTrip?.created_at">
-              <small class="text-muted"><i class="fa-regular fa-clock me-1"></i> Logged at: {{ selectedTrip?.created_at
-                }}</small>
+            <div class="banner-meta-grid mt-3">
+              <div class="banner-meta-item">
+                <i class="fa-solid fa-truck text-white opacity-75"></i>
+                <span><strong>Dumper:</strong> {{ selectedTrip?.dumper_no }}</span>
+                <span *ngIf="selectedTrip?.dumper_code" class="meta-code">({{ selectedTrip?.dumper_code }})</span>
+              </div>
+              <div class="banner-meta-item">
+                <i class="fa-solid fa-tractor text-white opacity-75"></i>
+                <span><strong>Excavator:</strong> {{ selectedTrip?.excavator_no }}</span>
+                <span *ngIf="selectedTrip?.excavator_code" class="meta-code">({{ selectedTrip?.excavator_code }})</span>
+              </div>
+              <div class="banner-meta-item">
+                <i class="fa-solid fa-user-tie text-white opacity-75"></i>
+                <span><strong>Driver:</strong> {{ selectedTrip?.driver_name }}</span>
+                <span *ngIf="selectedTrip?.driver_code" class="meta-code">({{ selectedTrip?.driver_code }})</span>
+              </div>
+              <div class="banner-meta-item">
+                <span><i class="fa-solid fa-location-dot text-white opacity-75 me-1"></i>{{ selectedTrip?.site_name || 'N/A' }}</span>
+                <span class="mx-1 opacity-50">•</span>
+                <span><i class="fa-regular fa-calendar text-white opacity-75 me-1"></i>{{ selectedTrip?.shift_date || 'N/A' }}</span>
+                <span class="mx-1 opacity-50">•</span>
+                <span><i class="fa-solid fa-sun text-white opacity-75 me-1"></i>Shift {{ selectedTrip?.shift_name || 'N/A' }}</span>
+              </div>
+              <div class="banner-meta-item opacity-75 small" *ngIf="selectedTrip?.created_at">
+                <i class="fa-regular fa-clock me-1"></i> Logged at: {{ selectedTrip?.created_at }}
+              </div>
             </div>
           </div>
         </div>
@@ -572,7 +577,7 @@
           <div class="col-12">
             <h6 class="grid-section-title">Timeline & Output</h6>
           </div>
-          <div class="col-md-4">
+          <div class="col-12 col-sm-6 col-md-4">
             <div class="glass-info-card">
               <div class="card-icon-wrapper code"><i class="fa-regular fa-clock"></i></div>
               <div class="card-info-content">
@@ -582,7 +587,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-12 col-sm-6 col-md-4">
             <div class="glass-info-card">
               <div class="card-icon-wrapper code"
                 style="color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2);">
@@ -595,7 +600,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-4">
+          <div class="col-12 col-sm-12 col-md-4">
             <div class="glass-info-card">
               <div class="card-icon-wrapper code"><i class="fa-solid fa-cubes"></i></div>
               <div class="card-info-content">
@@ -609,7 +614,7 @@
           <div class="col-12 mt-3">
             <h6 class="grid-section-title">Route Information</h6>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-sm-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper type"><i class="fa-solid fa-arrow-up-from-ground-water"></i></div>
               <div class="card-info-content">
@@ -618,7 +623,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-6">
+          <div class="col-12 col-sm-6">
             <div class="glass-info-card">
               <div class="card-icon-wrapper type"><i class="fa-solid fa-arrow-up-from-ground-water rotate-180"></i>
               </div>

@@ -47,7 +47,7 @@ export interface MachineShiftItem {
   machine_id: number | string;
   category_id?: number | string;
   machine_name?: string;
-  equipment_code?: string;
+  model_number?: string;
   chassis_number?: string;
   category_name?: string;
   [key: string]: any;
@@ -113,7 +113,7 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!term) return true;
     term = term.toLowerCase();
     const nameMatch = item.machine_name && item.machine_name.toLowerCase().includes(term);
-    const codeMatch = (item.equipment_code || item.code) && (item.equipment_code || item.code).toLowerCase().includes(term);
+    const codeMatch = (item.model_number) && (item.model_number).toLowerCase().includes(term);
     const categoryMatch = item.category_name && item.category_name.toLowerCase().includes(term);
     return Boolean(nameMatch || codeMatch || categoryMatch);
   };
@@ -260,22 +260,26 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
           this.pagination = res.pagination;
         }
         if (res.data) {
-          this.fuelEntries = res.data.map((item: any) => ({
-            id: item.id,
-            machineId: item.machine_name,
-            machineDesc: item.category_name,
-            equipmentCode: item.equipment_code || item.code || '',
-            shiftName: item.shift_name || item.shift?.name || item.shift?.shift_name || 'N/A',
-            date: item.fuel_log_date,
-            opening: parseFloat(item.opening_fuel) || 0,
-            issued: parseFloat(item.fuel_issued) || 0,
-            closing: parseFloat(item.closing_fuel) || 0,
-            consumption: parseFloat(item.fuel_consumption) || 0,
-            fuelBcm: parseFloat(item.fuel_per_bcm || item.fuel_per_hour) || 0,
-            trend: 'neutral',
-            efficiencyClass: 'bg-gray-100 text-gray-800',
-            originalData: item
-          }));
+          this.fuelEntries = res.data.map((item: any) => {
+            const rawModel = item.model_number || item.equipment_allocation?.equipment_name?.model_number;
+            const modelStr = typeof rawModel === 'object' && rawModel !== null ? (rawModel.model_number || '') : (rawModel || '');
+            return {
+              id: item.id,
+              machineId: item.machine_name,
+              machineDesc: item.category_name,
+              equipmentCode: modelStr,
+              shiftName: item.shift_name || item.shift?.name || item.shift?.shift_name || 'N/A',
+              date: item.fuel_log_date,
+              opening: parseFloat(item.opening_fuel) || 0,
+              issued: parseFloat(item.fuel_issued) || 0,
+              closing: parseFloat(item.closing_fuel) || 0,
+              consumption: parseFloat(item.fuel_consumption) || 0,
+              fuelBcm: parseFloat(item.fuel_per_bcm || item.fuel_per_hour) || 0,
+              trend: 'neutral',
+              efficiencyClass: 'bg-gray-100 text-gray-800',
+              originalData: item
+            };
+          });
         }
         setTimeout(() => {
           this.initTrendChart();
@@ -489,6 +493,24 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
     this.viewItemData = null;
   }
 
+  getViewModelNumber(): string {
+    const eqModel = this.viewItemData?.equipment_allocation?.equipment_name?.model_number;
+    if (eqModel) {
+      if (typeof eqModel === 'object') {
+        return eqModel.model_number || '';
+      }
+      return String(eqModel);
+    }
+    const itemModel = this.viewItemData?.model_number;
+    if (itemModel) {
+      if (typeof itemModel === 'object') {
+        return itemModel.model_number || '';
+      }
+      return String(itemModel);
+    }
+    return '';
+  }
+
   onDateChange() {
     if (this.isBindingData) return;
     this.dateChangeSubject.next(this.formData.date || '');
@@ -563,10 +585,12 @@ export class FuelMgtComponent implements OnInit, AfterViewInit, OnDestroy {
 
                   // If the selected machine is not in the list, add it so the dropdown displays correctly
                   if (data.equipment_name_id && !this.machinesList.find(m => m.machine_id == data.equipment_name_id)) {
+                    const rawModel = data.equipment_allocation?.equipment_name?.model_number || data.equipment?.model_number || data.model_number;
+                    const modelStr = typeof rawModel === 'object' && rawModel !== null ? (rawModel.model_number || '') : (rawModel || '');
                     this.machinesList.push({
                       machine_id: data.equipment_name_id,
                       machine_name: data.equipment_allocation?.equipment_name?.equipment_name || data.equipment?.equipment_name || 'Machine ' + data.equipment_name_id,
-                      equipment_code: data.equipment_allocation?.equipment_name?.equipment_code || data.equipment?.equipment_code || data.equipment_code || '',
+                      model_number: modelStr,
                       chassis_number: data.equipment_allocation?.equipment_name?.chassis_number || data.equipment?.chassis_number || data.chassis_number || '',
                       category_id: data.equipment_id,
                       category_name: data.equipment_allocation?.equipment_name?.equipment?.name || data.equipment_category?.category_name || ''

@@ -15,10 +15,17 @@ export interface Equipment {
   chassis_number?: string;
   categoryId: number;
   categoryName: string;
+  modelId?: number;
+  modelName?: string;
   isActive: boolean;
 }
 
 export interface EquipmentCategoryOption {
+  id: number;
+  name: string;
+}
+
+export interface EquipmentModelOption {
   id: number;
   name: string;
 }
@@ -35,6 +42,8 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
   filteredEquipments: Equipment[] = [];
   categories: EquipmentCategoryOption[] = [];
   activeCategories: EquipmentCategoryOption[] = [];
+  availableModels: EquipmentModelOption[] = [];
+  loadingModels: boolean = false;
   private destroy$ = new Subject<void>();
 
   // Pagination
@@ -65,10 +74,11 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.equipmentForm = this.fb.group({
-      equipment_code: ['', Validators.required],
+      equipment_code: [''],
       name: ['', Validators.required],
       chassis_number: ['', Validators.required],
-      categoryId: ['', Validators.required],
+      categoryId: [null, Validators.required],
+      modelId: [null, Validators.required],
       isActive: [true]
     });
     this.loadData();
@@ -131,6 +141,8 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
               chassis_number: item.chassis_number || item.chassisNumber || '',
               categoryId: item.equipment_category_id,
               categoryName: item.equipment_category_name,
+              modelId: item.equipment_model_number_id || item.equipment_model_id || item.model_id,
+              modelName: item.equipment_model_number || item.model_number || item.model?.model_number || '',
               isActive: item.status === 1 || item.status === true
             }));
             this.totalRecords = response.pagination?.total || this.filteredEquipments.length;
@@ -140,7 +152,7 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
         },
         error: (error: any) => {
           console.error('Error loading equipments:', error);
-          this.notificationService.show(error.message || 'Something went wrong', 'error', 3000);
+          // this.notificationService.show(error.message || 'Something went wrong', 'error', 3000);
         }
       });
   }
@@ -168,14 +180,69 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
     this.loadData();
   }
 
+  onCategoryChange(event: any) {
+    const categoryId = event && typeof event === 'object' ? event.id : event;
+    this.equipmentForm.patchValue({ modelId: null });
+    this.availableModels = [];
+    if (categoryId) {
+      this.loadModelsForCategory(categoryId);
+    }
+  }
+
+  loadModelsForCategory(categoryId: any, callback?: () => void) {
+    this.loadingModels = true;
+    this.equipmentService.getModels(categoryId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          this.loadingModels = false;
+          this.parseModelsResponse(res);
+          if (callback) callback();
+        },
+        error: (err: any) => {
+          // Fallback to getEquipmentModels in case backend serves from admin endpoint
+          this.equipmentService.getEquipmentModels('all', 1, undefined, categoryId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (res: any) => {
+                this.loadingModels = false;
+                this.parseModelsResponse(res);
+                if (callback) callback();
+              },
+              error: () => {
+                this.loadingModels = false;
+                this.availableModels = [];
+                if (callback) callback();
+              }
+            });
+        }
+      });
+  }
+
+  private parseModelsResponse(res: any) {
+    if (res && (res.status === 200 || res.status === 'success' || Array.isArray(res.data) || Array.isArray(res))) {
+      const rawList = Array.isArray(res) ? res : (Array.isArray(res.data) ? res.data : (res.data?.data || []));
+      this.availableModels = rawList.map((m: any) => ({
+        id: Number(m.id || m.model_id),
+        name: m.model_number
+          ? (m.manufacturer ? `${m.model_number} (${m.manufacturer})` : m.model_number)
+          : (m.name || m.equipment_model || `Model #${m.id}`)
+      }));
+    } else {
+      this.availableModels = [];
+    }
+  }
+
   openAddModal() {
     this.isEditMode = false;
     this.selectedEquipmentId = null;
+    this.availableModels = [];
     this.equipmentForm.reset({
       equipment_code: '',
       name: '',
       chassis_number: '',
-      categoryId: '',
+      categoryId: null,
+      modelId: null,
       isActive: true
     });
     this.isModalOpen = true;
@@ -184,6 +251,7 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
   openEditModal(equipment: Equipment) {
     this.isEditMode = true;
     this.selectedEquipmentId = equipment.id;
+    this.availableModels = [];
     
     this.equipmentService.getEquipmentNameById(equipment.id)
       .pipe(takeUntil(this.destroy$))
@@ -191,13 +259,26 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
         next: (res: any) => {
           if (res.status === 200 && res.data) {
             const item = res.data;
+            const categoryId = item.equipment_category_id || item.equipment_id || equipment.categoryId;
+            const modelId = item.equipment_model_number_id || item.equipment_model_id || item.model_id || equipment.modelId || null;
+
             this.equipmentForm.patchValue({
               equipment_code: item.equipment_code || item.equipmentCode || equipment.equipment_code || '',
               name: item.equipment_name || equipment.name || '',
               chassis_number: item.chassis_number || item.chassisNumber || equipment.chassis_number || '',
-              categoryId: item.equipment_category_id || equipment.categoryId,
+              categoryId: categoryId ? Number(categoryId) : null,
+              modelId: null,
               isActive: item.status === 1 || item.status === true
             });
+
+            if (categoryId) {
+              this.loadModelsForCategory(categoryId, () => {
+                if (modelId) {
+                  this.equipmentForm.patchValue({ modelId: Number(modelId) });
+                }
+              });
+            }
+
             this.isModalOpen = true;
           } else {
             this.notificationService.show(res.message || 'Failed to fetch equipment details', 'error', 3000);
@@ -205,7 +286,7 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
         },
         error: (err: any) => {
           console.error('Error fetching equipment details:', err);
-          this.notificationService.show(err.message || 'Failed to fetch equipment details', 'error', 3000);
+          // this.notificationService.show(err.message || 'Failed to fetch equipment details', 'error', 3000);
         }
       });
   }
@@ -222,10 +303,15 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
 
     const formValue = this.equipmentForm.value;
     const formData = new FormData();
-    formData.append('equipment_code', formValue.equipment_code);
+    formData.append('equipment_id', formValue.categoryId.toString());
+    if (formValue.modelId) {
+      formData.append('equipment_model_number_id', formValue.modelId.toString());
+    }
     formData.append('equipment_name', formValue.name);
     formData.append('chassis_number', formValue.chassis_number);
-    formData.append('equipment_id', formValue.categoryId.toString());
+    if (formValue.equipment_code) {
+      formData.append('equipment_code', formValue.equipment_code);
+    }
 
     if (this.isEditMode && this.selectedEquipmentId !== null) {
       formData.append('_method', 'PUT');
@@ -243,7 +329,7 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
           },
           error: (err: any) => {
             console.error('Error updating equipment:', err);
-            this.notificationService.show(err.message || 'Something went wrong', 'error', 3000);
+            // this.notificationService.show(err.message || 'Something went wrong', 'error', 3000);
           }
         });
     } else {
@@ -261,7 +347,7 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
           },
           error: (err: any) => {
             console.error('Error creating equipment:', err);
-            this.notificationService.show(err.message || 'Something went wrong', 'error', 3000);
+            // this.notificationService.show(err.message || 'Something went wrong', 'error', 3000);
           }
         });
     }
@@ -286,7 +372,7 @@ export class EquipmentsComponent implements OnInit, OnDestroy {
         },
         error: (error: any) => {
           console.error('Error toggling status:', error);
-          this.notificationService.show(error.message || 'Something went wrong', 'error', 3000);
+          // this.notificationService.show(error.message || 'Something went wrong', 'error', 3000);
         }
       });
   }

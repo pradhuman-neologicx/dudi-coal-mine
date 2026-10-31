@@ -16,15 +16,11 @@
   <!-- Filters Area -->
   <div class="flex justify-end items-center gap-3 mb-6 flex-wrap">
     <!-- Shift Dropdown -->
-    <div class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-1 text-sm text-gray-700 min-w-[140px] shadow-sm focus-within:border-[#0f2a4a]">
-      <ng-select [items]="filterShifts" 
-                 bindLabel="shift_name" 
-                 bindValue="id" 
-                 [(ngModel)]="selectedShift"
-                 (change)="fetchFuelData()" 
-                 placeholder="All Shifts" 
-                 [clearable]="true" 
-                 class="flex-1 font-medium w-full custom-filter-select">
+    <div
+      class="flex items-center gap-2 border border-gray-300 bg-white rounded px-3 py-1 text-sm text-gray-700 min-w-[140px] shadow-sm focus-within:border-[#0f2a4a]">
+      <ng-select [items]="filterShifts" bindLabel="shift_name" bindValue="id" [(ngModel)]="selectedShift"
+        (change)="fetchFuelData()" placeholder="All Shifts" [clearable]="true"
+        class="flex-1 font-medium w-full custom-filter-select">
       </ng-select>
     </div>
 
@@ -165,12 +161,8 @@
           <h2 class="text-lg font-bold text-[#0f2a4a]">Daily Fuel Register</h2>
           <div class="flex items-center gap-2 text-sm text-gray-600 border-l border-gray-300 pl-4 hidden sm:flex">
             <span>Show</span>
-            <ng-select class="custom-ng-select min-w-[80px]" 
-                       [items]="tableSizes" 
-                       [clearable]="false" 
-                       [searchable]="false" 
-                       (change)="onTableSizeChange()"
-                       [(ngModel)]="tableSize">
+            <ng-select class="custom-ng-select min-w-[80px]" [items]="tableSizes" [clearable]="false"
+              [searchable]="false" (change)="onTableSizeChange()" [(ngModel)]="tableSize">
             </ng-select>
             <span>entries</span>
           </div>
@@ -353,13 +345,15 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Date & Time <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Date & Time <span
+                  class="text-red-500">*</span></label>
               <div class="relative">
                 <input type="datetime-local" [(ngModel)]="formData.date" (ngModelChange)="onDateChange()"
                   class="w-full border rounded px-4 py-2.5 text-sm text-gray-700 outline-none transition-colors"
                   [ngClass]="isFormSubmitted && !formData.date ? 'border-red-500 focus:border-red-500 bg-red-50' : 'border-gray-300 focus:border-[#0f2a4a]'">
               </div>
-              <p *ngIf="isFormSubmitted && !formData.date" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Date & Time is required</p>
+              <p *ngIf="isFormSubmitted && !formData.date" class="text-xs text-red-500 mt-1 font-medium"><i
+                  class="fas fa-exclamation-circle me-1"></i> Date & Time is required</p>
             </div>
             <div>
               <label class="block text-sm font-bold text-gray-700 mb-1">Shift</label>
@@ -376,28 +370,31 @@
             <h3 class="text-[10px] font-bold text-gray-500 tracking-widest uppercase">Equipment Details</h3>
           </div>
           <div>
-            <label class="block text-sm font-bold text-gray-700 mb-1">Machine No. & Name <span class="text-red-500">*</span></label>
+            <label class="block text-sm font-bold text-gray-700 mb-1">Machine No. & Name <span
+                class="text-red-500">*</span></label>
             <ng-select [items]="machinesList" bindLabel="machine_name" bindValue="machine_id"
               [placeholder]="machinesList.length === 0 ? 'No machines available' : 'Select Asset'"
               [(ngModel)]="formData.machineId" [disabled]="machinesList.length === 0" [clearable]="true"
-              [searchFn]="customMachineSearchFn"
-              class="custom-ng-select w-full"
+              [searchFn]="customMachineSearchFn" class="custom-ng-select w-full"
               [ngClass]="{'border border-red-500 rounded': isFormSubmitted && !formData.machineId}">
               <ng-template ng-label-tmp let-item="item">
-                <span>{{ item.machine_name }} <span *ngIf="item.equipment_code || item.code" class="text-xs text-gray-500 font-normal">({{ item.equipment_code || item.code }})</span> - {{ item.category_name }}</span>
+                <span>{{ item.machine_name }} <span *ngIf="item.model_number || item.code"
+                    class="text-xs text-gray-500 font-normal">({{ item.model_number}})</span> - {{ item.category_name
+                  }}</span>
               </ng-template>
               <ng-template ng-option-tmp let-item="item">
                 <div class="flex flex-col py-0.5">
                   <span class="font-bold text-[13px] text-gray-800">
                     {{ item.machine_name }} - {{ item.category_name }}
                   </span>
-                  <span *ngIf="item.equipment_code || item.code" class="text-[11px] text-gray-500 font-medium">
-                    {{ item.equipment_code || item.code }}
+                  <span *ngIf="item.model_number || item.code" class="text-[11px] text-gray-500 font-medium">
+                    {{ item.model_number }}
                   </span>
                 </div>
               </ng-template>
             </ng-select>
-            <p *ngIf="isFormSubmitted && !formData.machineId" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Machine is required</p>
+            <p *ngIf="isFormSubmitted && !formData.machineId" class="text-xs text-red-500 mt-1 font-medium"><i
+                class="fas fa-exclamation-circle me-1"></i> Machine is required</p>
           </div>
         </div>
 
@@ -409,7 +406,8 @@
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Opening Fuel <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Opening Fuel <span
+                  class="text-red-500">*</span></label>
               <div class="relative">
                 <input type="number" [(ngModel)]="formData.opening"
                   class="w-full border rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold transition-colors"
@@ -417,10 +415,13 @@
                 <span
                   class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
               </div>
-              <p *ngIf="isFormSubmitted && (formData.opening === null || formData.opening === undefined || formData.opening === '')" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Opening Fuel is required</p>
+              <p *ngIf="isFormSubmitted && (formData.opening === null || formData.opening === undefined || formData.opening === '')"
+                class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Opening
+                Fuel is required</p>
             </div>
             <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Fuel Issued <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Fuel Issued <span
+                  class="text-red-500">*</span></label>
               <div class="relative">
                 <input type="number" [(ngModel)]="formData.issued"
                   class="w-full border rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold transition-colors"
@@ -428,20 +429,25 @@
                 <span
                   class="absolute right-3 top-3 text-gray-400 text-[10px] tracking-widest pointer-events-none">LITERS</span>
               </div>
-              <p *ngIf="isFormSubmitted && (formData.issued === null || formData.issued === undefined || formData.issued === '')" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Fuel Issued is required</p>
+              <p *ngIf="isFormSubmitted && (formData.issued === null || formData.issued === undefined || formData.issued === '')"
+                class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Fuel Issued
+                is required</p>
             </div>
             <div>
-              <label class="block text-sm font-bold text-gray-700 mb-1">Closing Fuel <span class="text-red-500">*</span></label>
+              <label class="block text-sm font-bold text-gray-700 mb-1">Closing Fuel <span
+                  class="text-red-500">*</span></label>
               <div class="relative">
                 <input type="number" [(ngModel)]="formData.closing"
                   class="w-full border rounded pl-3 pr-16 py-2.5 text-sm text-right text-gray-700 outline-none font-bold transition-colors"
                   [ngClass]="isClosingFuelInvalid || (isFormSubmitted && (formData.closing === null || formData.closing === undefined || formData.closing === '')) ? 'border-red-500 focus:border-red-500 bg-red-50 text-red-700' : 'border-gray-300 focus:border-[#0f2a4a]'">
-                <span
-                  class="absolute right-3 top-3 text-[10px] tracking-widest pointer-events-none"
+                <span class="absolute right-3 top-3 text-[10px] tracking-widest pointer-events-none"
                   [ngClass]="isClosingFuelInvalid || (isFormSubmitted && (formData.closing === null || formData.closing === undefined || formData.closing === '')) ? 'text-red-400' : 'text-gray-400'">LITERS</span>
               </div>
-              <p *ngIf="isClosingFuelInvalid" class="text-xs text-red-500 mt-1 font-medium">Cannot exceed Opening + Issued</p>
-              <p *ngIf="!isClosingFuelInvalid && isFormSubmitted && (formData.closing === null || formData.closing === undefined || formData.closing === '')" class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Closing Fuel is required</p>
+              <p *ngIf="isClosingFuelInvalid" class="text-xs text-red-500 mt-1 font-medium">Cannot exceed Opening +
+                Issued</p>
+              <p *ngIf="!isClosingFuelInvalid && isFormSubmitted && (formData.closing === null || formData.closing === undefined || formData.closing === '')"
+                class="text-xs text-red-500 mt-1 font-medium"><i class="fas fa-exclamation-circle me-1"></i> Closing
+                Fuel is required</p>
             </div>
             <div>
               <label class="block text-sm font-bold text-[#0f2a4a] mb-1">Net Consumed</label>
@@ -600,13 +606,17 @@
           <div>
             <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Equipment</p>
             <p class="text-sm font-semibold text-gray-800">{{
-              viewItemData?.equipment_allocation?.equipment_name?.equipment_name || viewItemData?.equipment_name || 'N/A' }}
-              <br> <span *ngIf="viewItemData?.equipment_allocation?.equipment_name?.equipment_code || viewItemData?.equipment_code" class="text-xs text-gray-500 font-normal">
-                ({{ viewItemData?.equipment_allocation?.equipment_name?.equipment_code || viewItemData?.equipment_code }})
+              viewItemData?.equipment_allocation?.equipment_name?.equipment_name || viewItemData?.equipment_name ||
+              'N/A' }}
+              <br> <span
+                *ngIf="getViewModelNumber()"
+                class="text-xs text-gray-500 font-normal">
+                ({{ getViewModelNumber() }})
               </span>
-              <span
-                class="text-gray-400 text-xs font-normal">({{
-                viewItemData?.equipment_allocation?.equipment_name?.equipment?.name || viewItemData?.category_name || 'N/A' }})</span></p>
+              <span class="text-gray-400 text-xs font-normal">({{
+                viewItemData?.equipment_allocation?.equipment_name?.equipment?.name || viewItemData?.category_name ||
+                'N/A' }})</span>
+            </p>
           </div>
         </div>
 
@@ -722,12 +732,14 @@
 <!-- Import Modal -->
 <div *ngIf="isImportModalOpen"
   class="fixed inset-0 bg-[#0f2a4a]/40 z-[110] flex items-center justify-center font-sans p-4 sm:p-6 backdrop-blur-[2px] transition-all duration-300">
-  <div class="bg-white w-full max-w-[600px] flex flex-col rounded-xl shadow-2xl relative border border-gray-100 animate-fade-in-up">
-    
+  <div
+    class="bg-white w-full max-w-[600px] flex flex-col rounded-xl shadow-2xl relative border border-gray-100 animate-fade-in-up">
+
     <!-- Header -->
     <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-gray-50/80">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-lg shadow-sm">
+        <div
+          class="w-10 h-10 rounded-lg bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center text-lg shadow-sm">
           <i class="fas fa-file-excel"></i>
         </div>
         <div>
@@ -735,7 +747,8 @@
           <p class="text-xs text-gray-500">Upload an Excel file to import fuel records</p>
         </div>
       </div>
-      <button (click)="closeImportModal()" class="w-8 h-8 rounded bg-white border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-all shadow-sm">
+      <button (click)="closeImportModal()"
+        class="w-8 h-8 rounded bg-white border border-gray-200 text-gray-400 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-all shadow-sm">
         <i class="fas fa-times"></i>
       </button>
     </div>
@@ -743,27 +756,31 @@
     <!-- Body -->
     <div class="p-6">
       <!-- File Upload Area -->
-      <div *ngIf="!importResult" class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors relative cursor-pointer group"
-           (click)="fileInput.click()">
+      <div *ngIf="!importResult"
+        class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center bg-gray-50 hover:bg-gray-100 transition-colors relative cursor-pointer group"
+        (click)="fileInput.click()">
         <input type="file" #fileInput (change)="onFileSelected($event)" accept=".xlsx, .xls, .csv" class="hidden">
-        
+
         <div *ngIf="isImporting" class="flex flex-col items-center justify-center space-y-3">
           <div class="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
           <p class="text-sm font-bold text-gray-600">Uploading and Processing...</p>
         </div>
 
         <div *ngIf="!isImporting" class="flex flex-col items-center justify-center">
-          <div class="w-16 h-16 bg-white group-hover:bg-blue-50 rounded-full flex items-center justify-center shadow-sm mb-4 transition-colors">
+          <div
+            class="w-16 h-16 bg-white group-hover:bg-blue-50 rounded-full flex items-center justify-center shadow-sm mb-4 transition-colors">
             <i class="fas fa-cloud-upload-alt text-3xl text-blue-500"></i>
           </div>
           <p class="text-base font-bold text-gray-700 mb-1">Click to browse or drag and drop</p>
           <p class="text-xs text-gray-500 mb-4">
             Support for Excel (.xlsx) and CSV files<br>
-            <a href="assets/bulk_fuel.xlsx" download class="text-blue-600 hover:text-blue-800 hover:underline mt-2 inline-block font-semibold">
+            <a href="assets/bulk_fuel.xlsx" download
+              class="text-blue-600 hover:text-blue-800 hover:underline mt-2 inline-block font-semibold">
               <i class="fas fa-download mr-1"></i>Download Sample File
             </a>
           </p>
-          <button class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-lg transition-colors shadow-sm">
+          <button
+            class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-2 px-6 rounded-lg transition-colors shadow-sm">
             Select File
           </button>
         </div>
@@ -772,7 +789,8 @@
       <!-- Result Area -->
       <div *ngIf="importResult" class="space-y-4">
         <!-- Success State -->
-        <div *ngIf="importResult.status === 'success'" class="bg-green-50 border border-green-200 rounded-xl p-6 text-center shadow-inner">
+        <div *ngIf="importResult.status === 'success'"
+          class="bg-green-50 border border-green-200 rounded-xl p-6 text-center shadow-inner">
           <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <i class="fas fa-check text-3xl"></i>
           </div>
@@ -781,33 +799,41 @@
         </div>
 
         <!-- Error State -->
-        <div *ngIf="importResult.status !== 'success'" class="bg-red-50 border border-red-200 rounded-xl p-5 shadow-inner">
-           <div class="flex items-start gap-4 mb-4">
-              <div class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm text-red-500">
-                <i class="fas fa-exclamation-triangle text-2xl"></i>
-              </div>
-              <div>
-                <h3 class="text-base font-bold text-red-800">{{ importResult.message || 'Import process completed with errors.' }}</h3>
-                <p class="text-xs mt-1 font-medium text-red-600">The following issues were encountered during the import process:</p>
-              </div>
-           </div>
-           
-           <!-- Error List -->
-           <div *ngIf="importResult.errors && importResult.errors.length > 0" class="bg-white rounded-lg border border-red-100 p-4 max-h-56 overflow-y-auto custom-scrollbar shadow-sm">
-              <ul class="space-y-2.5">
-                <li *ngFor="let err of importResult.errors" class="text-sm text-red-600 flex items-start gap-2.5 bg-red-50/50 p-2 rounded">
-                  <i class="fas fa-circle text-[6px] mt-2 flex-shrink-0 text-red-400"></i>
-                  <span class="font-medium leading-snug">{{ err }}</span>
-                </li>
-              </ul>
-           </div>
+        <div *ngIf="importResult.status !== 'success'"
+          class="bg-red-50 border border-red-200 rounded-xl p-5 shadow-inner">
+          <div class="flex items-start gap-4 mb-4">
+            <div
+              class="w-12 h-12 rounded-full flex-shrink-0 flex items-center justify-center bg-white shadow-sm text-red-500">
+              <i class="fas fa-exclamation-triangle text-2xl"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-red-800">{{ importResult.message || 'Import process completed with
+                errors.' }}</h3>
+              <p class="text-xs mt-1 font-medium text-red-600">The following issues were encountered during the import
+                process:</p>
+            </div>
+          </div>
+
+          <!-- Error List -->
+          <div *ngIf="importResult.errors && importResult.errors.length > 0"
+            class="bg-white rounded-lg border border-red-100 p-4 max-h-56 overflow-y-auto custom-scrollbar shadow-sm">
+            <ul class="space-y-2.5">
+              <li *ngFor="let err of importResult.errors"
+                class="text-sm text-red-600 flex items-start gap-2.5 bg-red-50/50 p-2 rounded">
+                <i class="fas fa-circle text-[6px] mt-2 flex-shrink-0 text-red-400"></i>
+                <span class="font-medium leading-snug">{{ err }}</span>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div class="flex justify-end pt-4 mt-2">
-          <button (click)="importResult = null" *ngIf="importResult.status !== 'success'" class="mr-4 text-sm font-bold text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-widest">
+          <button (click)="importResult = null" *ngIf="importResult.status !== 'success'"
+            class="mr-4 text-sm font-bold text-gray-500 hover:text-gray-800 transition-colors uppercase tracking-widest">
             Try Again
           </button>
-          <button (click)="closeImportModal()" class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold py-2.5 px-6 rounded shadow-sm transition-colors uppercase tracking-widest">
+          <button (click)="closeImportModal()"
+            class="bg-[#0f2a4a] hover:bg-[#0c223c] text-white text-xs font-bold py-2.5 px-6 rounded shadow-sm transition-colors uppercase tracking-widest">
             Close
           </button>
         </div>

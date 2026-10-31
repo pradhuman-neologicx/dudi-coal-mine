@@ -265,7 +265,7 @@ export class ShiftAddComponent implements OnInit {
   mapEquipments(allocations: any[]) {
     this.equipments = (allocations || []).map((alloc: any) => ({
       id: alloc.machine_number || alloc.equipment_name || alloc.name,
-      code: alloc.equipment_code || alloc.code || '',
+      code: alloc.model_number || alloc.code || '',
       chassisNumber: alloc.chassis_number || '',
       categoryName: alloc.category_name || '',
       equipment_id: alloc.machine_id || alloc.equipment_id,
@@ -274,7 +274,7 @@ export class ShiftAddComponent implements OnInit {
       status: 'OPTIMAL', // Placeholder
       assignedDumpers: alloc.dumpers ? alloc.dumpers.map((d: any) => ({
         id: d.machine_number || d.equipment_name || d.name,
-        code: d.equipment_code || d.code || '',
+        code: d.model_number || d.code || '',
         chassisNumber: d.chassis_number || '',
         equipment_id: d.machine_id || d.equipment_id,
         allocation_id: d.allocation_id || d.id
@@ -358,7 +358,7 @@ export class ShiftAddComponent implements OnInit {
         this.machineNames = data.map((item: any) => ({
           id: item.id || item.equipment_id,
           name: item.equipment_name || item.machine_name || item.name || item.equipment_id || 'Unknown',
-          code: item.equipment_code || item.code || '',
+          code: item.model_number || item.code || '',
           chassisNumber: item.chassis_number || '',
           status: item.status,
           shortReason: item.short_reason,
