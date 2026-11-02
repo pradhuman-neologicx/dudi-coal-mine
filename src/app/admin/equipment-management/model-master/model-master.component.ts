@@ -68,25 +68,24 @@ export class ModelMasterComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+ 
   loadCategories() {
-    this.equipmentService.getEquipments('all', 1)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (res: any) => {
-          if (res && res.status === 200 && Array.isArray(res.data) && res.data.length > 0) {
-            this.categories = res.data.map((c: any) => ({
-              id: Number(c.id),
-              name: c.equipment_category || c.name || c.category_name
-            }));
-          } else {
-            this.fallbackMachineCategories();
-          }
-        },
-        error: () => {
-          this.fallbackMachineCategories();
+  this.equipmentService.getMachineCategories()
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (res: any) => {
+        if (res.status === 200 && res.data) {
+          this.categories = res.data.map((c: any) => ({
+            id: Number(c.category_id || c.id),
+            name: c.category_name || c.name
+          }));
         }
-      });
-  }
+      },
+      error: (err: any) => {
+        console.error('Error loading active categories:', err);
+      }
+    });
+}
 
   fallbackMachineCategories() {
     this.equipmentService.getMachineCategories()
