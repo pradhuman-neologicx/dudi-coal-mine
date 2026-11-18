@@ -55,7 +55,7 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <!-- Supervisor -->
             <div>
                 <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Supervisor <span
@@ -71,13 +71,27 @@
                     </ng-select>
                 </div>
             </div>
-            <!-- Site Incharge -->
+            <!-- Shift Incharge -->
             <div>
-                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Site
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Shift
                     Incharge <span class="text-red-500">*</span></label>
                 <div class="relative">
-                    <ng-select [(ngModel)]="shiftForm.siteInchargeId" [items]="siteIncharges" bindLabel="name"
-                        bindValue="id" placeholder="Select Site Incharge" class="w-full text-sm">
+                    <ng-select [(ngModel)]="shiftForm.shiftInchargeId" [items]="shiftIncharges" bindLabel="name"
+                        bindValue="id" placeholder="Select Shift Incharge" class="w-full text-sm">
+                        <ng-template ng-option-tmp let-item="item">
+                            <div class="font-medium text-gray-800">{{item.name}} <span
+                                    class="text-xs text-gray-400 font-normal">({{item.code}})</span></div>
+                        </ng-template>
+                    </ng-select>
+                </div>
+            </div>
+            <!-- Production Incharge -->
+            <div>
+                <label class="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Production
+                    Incharge <span class="text-red-500">*</span></label>
+                <div class="relative">
+                    <ng-select [(ngModel)]="shiftForm.productionInchargeId" [items]="productionIncharges" bindLabel="name"
+                        bindValue="id" placeholder="Select Production Incharge" class="w-full text-sm">
                         <ng-template ng-option-tmp let-item="item">
                             <div class="font-medium text-gray-800">{{item.name}} <span
                                     class="text-xs text-gray-400 font-normal">({{item.code}})</span></div>

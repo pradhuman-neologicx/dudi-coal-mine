@@ -25,7 +25,10 @@ export class ShiftAddComponent implements OnInit {
     locationId: null as any,
     targetBcm: 45000,
     supervisorId: [] as any[],
-    siteInchargeId: null as any
+    shiftInchargeId: null as any,
+    productionInchargeId: null as any,
+    get siteInchargeId() { return this.shiftInchargeId; },
+    set siteInchargeId(val: any) { this.shiftInchargeId = val; }
   };
 
   compareFn = (a: any, b: any): boolean => {
@@ -46,7 +49,10 @@ export class ShiftAddComponent implements OnInit {
   shiftsList: any[] = [];
   locationsList: any[] = [];
   supervisors: any[] = [];
-  siteIncharges: any[] = [];
+  shiftIncharges: any[] = [];
+  productionIncharges: any[] = [];
+  get siteIncharges(): any[] { return this.shiftIncharges; }
+  set siteIncharges(val: any[]) { this.shiftIncharges = val; }
   machineCategories: any[] = [];
   filteredMachineCategories: any[] = [];
   machineNames: any[] = [];
@@ -193,7 +199,27 @@ export class ShiftAddComponent implements OnInit {
             this.shiftForm.supervisorId = [];
           }
 
-          this.shiftForm.siteInchargeId = data.site_incharge_id;
+          this.shiftForm.shiftInchargeId = data.shift_incharge_id || data.site_incharge_id;
+          this.shiftForm.productionInchargeId = data.production_incharge_id;
+
+          if (this.shiftForm.shiftInchargeId && !this.shiftIncharges.some(e => Number(e.id) === Number(this.shiftForm.shiftInchargeId))) {
+            this.shiftIncharges.push({
+              id: Number(this.shiftForm.shiftInchargeId),
+              name: data.shift_incharge_name || data.site_incharge_name || `Shift Incharge ${this.shiftForm.shiftInchargeId}`,
+              code: data.shift_incharge_code || data.site_incharge_code || 'N/A'
+            });
+            this.shiftIncharges = [...this.shiftIncharges];
+          }
+
+          if (this.shiftForm.productionInchargeId && !this.productionIncharges.some(e => Number(e.id) === Number(this.shiftForm.productionInchargeId))) {
+            this.productionIncharges.push({
+              id: Number(this.shiftForm.productionInchargeId),
+              name: data.production_incharge_name || `Production Incharge ${this.shiftForm.productionInchargeId}`,
+              code: data.production_incharge_code || 'N/A'
+            });
+            this.productionIncharges = [...this.productionIncharges];
+          }
+
           this.checkDateVisibility();
 
           if (data.machinery_allocations && data.machinery_allocations.length > 0) {
@@ -326,14 +352,8 @@ export class ShiftAddComponent implements OnInit {
       }
     });
 
-    this.shiftPlanningService.getEmployees('site-incharge').subscribe((res: any) => {
-      const data = res.data?.data || res.data || [];
-      this.siteIncharges = data.map((emp: any) => ({
-        id: emp.id,
-        name: `${emp.name} (${emp.designation})`,
-        code: emp.employee_code || emp.code || 'N/A'
-      }));
-    });
+    this.loadShiftIncharges();
+    this.loadProductionIncharges();
 
     this.shiftPlanningService.getMachineCategories().subscribe((res: any) => {
       console.log('Categories API response:', res);
@@ -345,6 +365,115 @@ export class ShiftAddComponent implements OnInit {
       this.filteredMachineCategories = [...this.machineCategories];
       console.log('Mapped categories:', this.machineCategories);
     });
+  }
+
+  loadShiftIncharges() {
+    this.shiftPlanningService.getEmployees('shift-incharge').subscribe({
+      next: (res: any) => {
+        const data = res.data?.data || res.data || [];
+        if (data.length > 0) {
+          this.populateShiftIncharges(data);
+        } else {
+          // Fallback to site-incharge in case backend still uses 'site-incharge'
+          this.shiftPlanningService.getEmployees('site-incharge').subscribe({
+            next: (siteRes: any) => {
+              const siteData = siteRes.data?.data || siteRes.data || [];
+              this.populateShiftIncharges(siteData);
+            },
+            error: (err: any) => console.error('Error fetching fallback site incharges:', err)
+          });
+        }
+      },
+      error: () => {
+        this.shiftPlanningService.getEmployees('site-incharge').subscribe({
+          next: (siteRes: any) => {
+            const siteData = siteRes.data?.data || siteRes.data || [];
+            this.populateShiftIncharges(siteData);
+          },
+          error: (err: any) => console.error('Error fetching fallback site incharges:', err)
+        });
+      }
+    });
+  }
+
+  populateShiftIncharges(data: any[]) {
+    const list = data.map((emp: any) => ({
+      id: Number(emp.id),
+      name: `${emp.name} (${emp.designation})`,
+      code: emp.employee_code || emp.code || 'N/A'
+    }));
+    list.forEach(item => {
+      if (!this.shiftIncharges.some(e => Number(e.id) === Number(item.id))) {
+        this.shiftIncharges.push(item);
+      }
+    });
+    this.shiftIncharges = [...this.shiftIncharges];
+  }
+
+  loadProductionIncharges() {
+    this.shiftPlanningService.getEmployees('production-incharge').subscribe({
+      next: (res: any) => {
+        const data = res.data?.data || res.data || [];
+        if (data.length > 0) {
+          this.populateProductionIncharges(data);
+        } else {
+          this.fetchFallbackProductionIncharges();
+        }
+      },
+      error: () => {
+        this.fetchFallbackProductionIncharges();
+      }
+    });
+  }
+
+  fetchFallbackProductionIncharges() {
+    this.shiftPlanningService.getEmployees('production').subscribe({
+      next: (res: any) => {
+        const data = res.data?.data || res.data || [];
+        if (data.length > 0) {
+          this.populateProductionIncharges(data);
+        } else {
+          this.shiftPlanningService.getEmployees().subscribe({
+            next: (allRes: any) => {
+              const allData = allRes.data?.data || allRes.data || [];
+              const filtered = allData.filter((emp: any) => {
+                const desig = (emp.designation || '').toLowerCase();
+                return desig.includes('production') || desig.includes('incharge');
+              });
+              this.populateProductionIncharges(filtered.length > 0 ? filtered : allData);
+            },
+            error: (err: any) => console.error('Error loading employees for production incharge:', err)
+          });
+        }
+      },
+      error: () => {
+        this.shiftPlanningService.getEmployees().subscribe({
+          next: (allRes: any) => {
+            const allData = allRes.data?.data || allRes.data || [];
+            const filtered = allData.filter((emp: any) => {
+              const desig = (emp.designation || '').toLowerCase();
+              return desig.includes('production') || desig.includes('incharge');
+            });
+            this.populateProductionIncharges(filtered.length > 0 ? filtered : allData);
+          },
+          error: (err: any) => console.error('Error loading employees for production incharge:', err)
+        });
+      }
+    });
+  }
+
+  populateProductionIncharges(data: any[]) {
+    const list = data.map((emp: any) => ({
+      id: Number(emp.id),
+      name: `${emp.name} (${emp.designation})`,
+      code: emp.employee_code || emp.code || 'N/A'
+    }));
+    list.forEach(item => {
+      if (!this.productionIncharges.some(e => Number(e.id) === Number(item.id))) {
+        this.productionIncharges.push(item);
+      }
+    });
+    this.productionIncharges = [...this.productionIncharges];
   }
 
   onMachineCategoryChange() {
@@ -680,7 +809,8 @@ export class ShiftAddComponent implements OnInit {
       !this.shiftForm.locationId ||
       this.shiftForm.targetBcm === null || this.shiftForm.targetBcm === undefined || (this.shiftForm.targetBcm as any) === '' ||
       !supervisorIdStr ||
-      !this.shiftForm.siteInchargeId
+      !this.shiftForm.shiftInchargeId ||
+      !this.shiftForm.productionInchargeId
     ) {
       this.showNotification('Please fill in all mandatory fields before saving the plan.', 'error');
       return;
@@ -702,7 +832,9 @@ export class ShiftAddComponent implements OnInit {
     formData.append('site_id', String(this.shiftForm.locationId));
     formData.append('target_bcm', String(this.shiftForm.targetBcm));
     formData.append('supervisor_id', supervisorIdStr);
-    formData.append('site_incharge_id', String(this.shiftForm.siteInchargeId));
+    formData.append('shift_incharge_id', String(this.shiftForm.shiftInchargeId));
+    formData.append('site_incharge_id', String(this.shiftForm.shiftInchargeId)); // For backend compatibility
+    formData.append('production_incharge_id', String(this.shiftForm.productionInchargeId));
 
     if (this.isEditMode && this.shiftPlanId) {
       this.shiftPlanningService.updateShiftPlan(this.shiftPlanId, formData).subscribe({

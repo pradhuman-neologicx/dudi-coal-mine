@@ -365,7 +365,7 @@ export class EmployeeManagementComponent implements OnInit, OnDestroy {
     // forkJoin: saari APIs ek saath call hoti hain, ek baar mein handle karo
     forkJoin({
       departments: this.departmentService.getAllDepartments(),
-      designations: this.designationService.getDesignations('all', 1, ''),
+      designations: this.designationService.getDesignationPublic(),
       sites: this.siteService.getAllSites(),
       relays: this.relayService.getAllRelays()
     }).pipe(takeUntil(this.destroy$)).subscribe({

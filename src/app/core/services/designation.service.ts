@@ -62,4 +62,10 @@ export class DesignationService {
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
     return this.apiservice.post(`v1/admin/designation/${id}/status`, body, headers);
   }
+
+  getDesignationPublic(): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.apiservice.get(`v1/designations`, headers);
+  }
 }

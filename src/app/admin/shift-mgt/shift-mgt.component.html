@@ -376,9 +376,16 @@
                     getSupervisorsDisplay(viewShiftPlanData.shift_plan) }}</div>
                 </div>
                 <div>
-                  <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Site Incharge</div>
-                  <div class="text-sm font-bold text-gray-800">{{ viewShiftPlanData.shift_plan?.site_incharge_name ||
+                  <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Shift Incharge</div>
+                  <div class="text-sm font-bold text-gray-800">{{ viewShiftPlanData.shift_plan?.shift_incharge_name ||
+                    viewShiftPlanData.shift_plan?.site_incharge_name ||
                     'N/A' }}</div>
+                </div>
+                <div *ngIf="viewShiftPlanData.shift_plan?.production_incharge_name">
+                  <div class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Production Incharge
+                  </div>
+                  <div class="text-sm font-bold text-gray-800">{{ viewShiftPlanData.shift_plan?.production_incharge_name
+                    || 'N/A' }}</div>
                 </div>
               </div>
             </div>

@@ -17,9 +17,15 @@ export interface ShiftPlan {
   supervisor_id: number;
   supervisor_name: string;
   supervisor_code: string;
-  site_incharge_id: number;
-  site_incharge_name: string;
-  site_incharge_code: string;
+  site_incharge_id?: number;
+  site_incharge_name?: string;
+  site_incharge_code?: string;
+  shift_incharge_id?: number;
+  shift_incharge_name?: string;
+  shift_incharge_code?: string;
+  production_incharge_id?: number;
+  production_incharge_name?: string;
+  production_incharge_code?: string;
   equipment_count: number;
   status: string;
   created_by: number;

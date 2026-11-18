@@ -36,12 +36,20 @@
               summaryData?.shift_plan?.supervisor_name
               }}</span>
           </div>
-          <div *ngIf="summaryData?.shift_plan?.site_incharge_name"
+          <div *ngIf="summaryData?.shift_plan?.shift_incharge_name || summaryData?.shift_plan?.site_incharge_name"
             class="bg-gray-50 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5">
             <i class="fas fa-hard-hat text-gray-400"></i>
-            <span class="font-bold text-gray-500">Incharge:</span>
+            <span class="font-bold text-gray-500">Shift Incharge:</span>
             <span class="font-semibold">{{
-              summaryData?.shift_plan?.site_incharge_name
+              summaryData?.shift_plan?.shift_incharge_name || summaryData?.shift_plan?.site_incharge_name
+              }}</span>
+          </div>
+          <div *ngIf="summaryData?.shift_plan?.production_incharge_name"
+            class="bg-gray-50 border border-gray-200 rounded px-2.5 py-1.5 flex items-center gap-1.5">
+            <i class="fas fa-user-gear text-gray-400"></i>
+            <span class="font-bold text-gray-500">Prod. Incharge:</span>
+            <span class="font-semibold">{{
+              summaryData?.shift_plan?.production_incharge_name
               }}</span>
           </div>
         </div>
