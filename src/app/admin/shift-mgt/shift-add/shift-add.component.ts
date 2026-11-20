@@ -114,8 +114,10 @@ export class ShiftAddComponent implements OnInit {
   currentPage = 1;
   totalPages = 1;
   totalEmployees = 0;
-  tableSize: number | string = 10;
-  tableSizes: any[] = [10, 20, 50, 100, 'All'];
+  paginationFrom = 0;
+  paginationTo = 0;
+  tableSize: number | string = 15;
+  tableSizes: any[] = [10, 15, 20, 50, 100, 'All'];
 
   // Toast State
   showToast = false;
@@ -237,8 +239,14 @@ export class ShiftAddComponent implements OnInit {
     });
   }
 
-  loadWorkforceRelayData(id: string | number) {
-    this.shiftPlanningService.loadWorkforceRelay(id).subscribe({
+  loadWorkforceRelayData(id?: string | number) {
+    if (id) {
+      this.shiftPlanId = id;
+    }
+    const planId = this.shiftPlanId;
+    if (!planId) return;
+
+    this.shiftPlanningService.loadWorkforceRelay(planId, this.currentPage, this.tableSize, this.searchQuery).subscribe({
       next: (res: any) => {
         if (res.status === 200) {
           const data = res.data || [];
@@ -276,9 +284,18 @@ export class ShiftAddComponent implements OnInit {
           }
 
           if (res.pagination) {
-            this.currentPage = res.pagination.current_page;
-            this.totalPages = res.pagination.last_page;
-            this.totalEmployees = res.pagination.total;
+            this.currentPage = Number(res.pagination.current_page) || 1;
+            this.totalPages = Number(res.pagination.last_page) || 1;
+            this.totalEmployees = Number(res.pagination.total) || 0;
+            const perPage = Number(this.tableSize === 'All' ? this.totalEmployees : (this.tableSize || 15));
+            this.paginationFrom = res.pagination.from ?? (this.totalEmployees > 0 ? (this.currentPage - 1) * perPage + 1 : 0);
+            this.paginationTo = res.pagination.to ?? Math.min(this.currentPage * perPage, this.totalEmployees);
+          } else {
+            this.currentPage = 1;
+            this.totalPages = 1;
+            this.totalEmployees = this.employees.length;
+            this.paginationFrom = this.totalEmployees > 0 ? 1 : 0;
+            this.paginationTo = this.totalEmployees;
           }
         }
       },
@@ -758,32 +775,36 @@ export class ShiftAddComponent implements OnInit {
     });
   }
 
+  onTableSizeChange() {
+    this.currentPage = 1;
+    this.loadWorkforceRelayData(this.shiftPlanId);
+  }
+
   applySearch() {
-    if (!this.searchQuery.trim()) {
-      this.resetSearch();
-      return;
-    }
-    const q = this.searchQuery.toLowerCase().trim();
-    this.employees = this.originalEmployees.filter(e =>
-      e.name.toLowerCase().includes(q) ||
-      e.designation.toLowerCase().includes(q) ||
-      e.machine.toLowerCase().includes(q)
-    );
-    this.isSearchActive = true;
+    this.currentPage = 1;
+    this.isSearchActive = !!(this.searchQuery && this.searchQuery.trim().length > 0);
+    this.loadWorkforceRelayData(this.shiftPlanId);
   }
 
   resetSearch() {
     this.searchQuery = '';
-    this.employees = [...this.originalEmployees];
     this.isSearchActive = false;
+    this.currentPage = 1;
+    this.loadWorkforceRelayData(this.shiftPlanId);
   }
 
   prevPage() {
-    if (this.currentPage > 1) this.currentPage--;
+    if (this.currentPage > 1) {
+      this.currentPage--;
+      this.loadWorkforceRelayData(this.shiftPlanId);
+    }
   }
 
   nextPage() {
-    if (this.currentPage < this.totalPages) this.currentPage++;
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+      this.loadWorkforceRelayData(this.shiftPlanId);
+    }
   }
 
   goBack() {

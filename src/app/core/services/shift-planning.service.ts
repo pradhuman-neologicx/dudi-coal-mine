@@ -171,8 +171,25 @@ export class ShiftPlanningService {
     return this.apiService.deleteFun(`v1/admin/shift-plans/${planId}/equipment/${equipmentId}`, { headers: this.getHeaders() });
   }
 
-  loadWorkforceRelay(planId: string | number): Observable<any> {
-    return this.apiService.post(`v1/admin/shift-plans/${planId}/workforce/load-relay`, {}, this.getHeaders());
+  loadWorkforceRelay(planId: string | number, page?: any, limit?: any, search?: string): Observable<any> {
+    const queryParts: string[] = [];
+    if (page !== undefined && page !== null) {
+      queryParts.push(`page=${page}`);
+    }
+    if (limit !== undefined && limit !== null && limit !== 'All') {
+      queryParts.push(`limit=${limit}`);
+    }
+    if (search && search.trim().length > 0) {
+      queryParts.push(`search=${encodeURIComponent(search.trim())}`);
+    }
+    const query = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+
+    const body: any = {};
+    if (page !== undefined && page !== null) body.page = page;
+    if (limit !== undefined && limit !== null && limit !== 'All') body.limit = limit;
+    if (search && search.trim().length > 0) body.search = search.trim();
+
+    return this.apiService.post(`v1/admin/shift-plans/${planId}/workforce/load-relay${query}`, body, this.getHeaders());
   }
 
   assignBorrowEmployees(planId: string | number, data: any): Observable<any> {

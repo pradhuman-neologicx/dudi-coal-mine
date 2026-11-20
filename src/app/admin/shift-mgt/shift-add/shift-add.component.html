@@ -240,7 +240,7 @@
                     <div class="flex items-center text-sm text-gray-600 font-medium">
                         <span class="mr-2">Show</span>
                         <ng-select class="entries-select" [items]="tableSizes" [clearable]="false" [searchable]="false"
-                            [(ngModel)]="tableSize">
+                            [(ngModel)]="tableSize" (change)="onTableSizeChange()">
                         </ng-select>
                         <span class="ml-2">entries</span>
                     </div>
@@ -278,7 +278,7 @@
                             <tr *ngFor="let emp of employees; let i = index"
                                 class="hover:bg-gray-50/50 transition-colors">
                                 <td class="px-6 py-4 text-center text-gray-600 font-medium">
-                                    {{ (currentPage - 1) * 4 + i + 1 }}
+                                    {{ (paginationFrom ? paginationFrom + i : i + 1) }}
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="font-bold text-gray-800 flex flex-col gap-1">
@@ -330,8 +330,7 @@
                 </div>
                 <!-- Footer / Pagination -->
                 <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center bg-gray-50/50">
-                    <div class="text-sm text-gray-500">Showing {{ (currentPage - 1) * 4 + 1 }}-{{ currentPage * 4 >
-                        totalEmployees ? totalEmployees : currentPage * 4 }} of {{ totalEmployees }}
+                    <div class="text-sm text-gray-500">Showing {{ paginationFrom }}-{{ paginationTo }} of {{ totalEmployees }}
                         employees</div>
                     <div class="flex gap-2">
                         <button (click)="prevPage()" [disabled]="currentPage === 1"
@@ -339,8 +338,8 @@
                             class="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 transition-colors">
                             <i class="fas fa-chevron-left"></i>
                         </button>
-                        <button (click)="nextPage()" [disabled]="currentPage === totalPages"
-                            [ngClass]="{'opacity-50 cursor-not-allowed': currentPage === totalPages}"
+                        <button (click)="nextPage()" [disabled]="currentPage === totalPages || totalPages === 0"
+                            [ngClass]="{'opacity-50 cursor-not-allowed': currentPage === totalPages || totalPages === 0}"
                             class="w-8 h-8 flex items-center justify-center border border-gray-300 rounded bg-white text-gray-600 hover:bg-gray-50 transition-colors">
                             <i class="fas fa-chevron-right"></i>
                         </button>
