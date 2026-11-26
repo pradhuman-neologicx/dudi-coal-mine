@@ -57,6 +57,18 @@ export class DesignationService {
     );
   }
 
+  createDesignation(requestbody: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.apiservice.post(`v1/admin/designation`, requestbody, headers);
+  }
+
+  updateDesignation(id: any, requestbody: any): Observable<any> {
+    const token = this.jwtService.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.apiservice.post(`v1/admin/designation/${id}`, requestbody, headers);
+  }
+
   updateDesignationStatus(id: any, body: any): Observable<any> {
     const token = this.jwtService.getToken();
     const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });

@@ -78,12 +78,17 @@ export class DesignationComponent implements OnInit, OnDestroy {
 
   showreset: boolean = false;
   searchbarform!: FormGroup;
+  createDesignationForm!: FormGroup;
+  updateDesignationForm!: FormGroup;
   tableSize: number = 10;
   tableSizes: number[] = [10, 20, 50, 100];
   totalRecords: number = 0;
   page: number = 1;
+  createDesignationOpen: boolean = false;
+  updateDesignationOpen: boolean = false;
   viewDesignationOpen: boolean = false;
   selectedDesignation: DesignationItem | null = null;
+  currentDesignationId: any;
   isDataLoaded: boolean = false;
 
   designationList: DesignationItem[] = [];
@@ -99,6 +104,15 @@ export class DesignationComponent implements OnInit, OnDestroy {
     this.searchbarform = this.formBuilder.group({
       searchbar: ['']
     });
+
+    this.createDesignationForm = this.formBuilder.group({
+      Name: ['', [Validators.required, Validators.minLength(2)]]
+    });
+
+    this.updateDesignationForm = this.formBuilder.group({
+      Name: ['', [Validators.required, Validators.minLength(2)]]
+    });
+
     this.GetDesignationFun();
   }
 
@@ -151,9 +165,99 @@ export class DesignationComponent implements OnInit, OnDestroy {
     });
   }
 
-  closeModal() {
+  openAddModal(): void {
+    this.createDesignationForm.reset();
+    this.createDesignationOpen = true;
+  }
+
+  OpenEditModal(designation: DesignationItem): void {
+    this.currentDesignationId = designation.id;
+    this.updateDesignationOpen = true;
+    this.updateDesignationForm.patchValue({ Name: designation.name });
+    this.getUpdateDesignationById(this.currentDesignationId);
+  }
+
+  getUpdateDesignationById(id: any): void {
+    this.designationService.getDesignationById(id).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (response: any) => {
+        if (response.status === 200 && response.data) {
+          this.updateDesignationForm.patchValue({
+            Name: response.data.name
+          });
+        }
+      },
+      error: (error: any) => {
+        console.error('Error fetching designation details for edit:', error);
+      }
+    });
+  }
+
+  createDesignation(): void {
+    if (this.createDesignationForm.valid) {
+      let name = this.createDesignationForm.get('Name')?.value || '';
+      name = name.trim();
+
+      const formData = new FormData();
+      formData.append('name', name);
+
+      this.designationService.createDesignation(formData).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.closeModal();
+            this.notificationService.show(response.message || 'Designation created successfully', 'success', 3000);
+            this.GetDesignationFun();
+          } else {
+            this.notificationService.show(response.message || response.error || 'Failed to create designation', 'error', 3000);
+          }
+        },
+        error: (error: any) => {
+          console.error('Create Designation failed:', error);
+          const errorMsg = error?.error?.message || error?.message || 'Something went wrong';
+          this.notificationService.show(errorMsg, 'error', 3000);
+        }
+      });
+    } else {
+      this.createDesignationForm.markAllAsTouched();
+    }
+  }
+
+  updateDesignation(): void {
+    if (this.updateDesignationForm.valid) {
+      let name = this.updateDesignationForm.get('Name')?.value || '';
+      name = name.trim();
+
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('_method', 'PUT');
+
+      this.designationService.updateDesignation(this.currentDesignationId, formData).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response: any) => {
+          if (response.status === 200 || response.status === 201) {
+            this.closeModal();
+            this.notificationService.show(response.message || 'Designation updated successfully', 'success', 3000);
+            this.GetDesignationFun();
+          } else {
+            this.notificationService.show(response.message || response.error || 'Failed to update designation', 'error', 3000);
+          }
+        },
+        error: (error: any) => {
+          console.error('Update Designation failed:', error);
+          const errorMsg = error?.error?.message || error?.message || 'Something went wrong';
+          this.notificationService.show(errorMsg, 'error', 3000);
+        }
+      });
+    } else {
+      this.updateDesignationForm.markAllAsTouched();
+    }
+  }
+
+  closeModal(): void {
+    this.createDesignationOpen = false;
+    this.updateDesignationOpen = false;
     this.viewDesignationOpen = false;
     this.selectedDesignation = null;
+    this.createDesignationForm?.reset();
+    this.updateDesignationForm?.reset();
   }
 
   GetDesignationFun() {
